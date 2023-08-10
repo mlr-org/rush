@@ -1,0 +1,145 @@
+---
+title: "Benchmark rush"
+format:
+  html:
+    toc: true
+    html-math-method: katex
+---
+
+```{r setup}
+library(rush)
+library(data.table)
+library(mlr3misc)
+library(microbenchmark)
+
+options(width = 200)
+
+lgr::get_logger("rush")$set_threshold("warn")
+```
+
+# Push
+
+Push task to queue.
+
+```{r}
+config = redux::redis_config()
+server = Server$new("benchmark", config)
+server$reset()
+
+xss = list(x1 = 4, x2 = 6)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+microbenchmark(
+  push_1 = server$push_tasks(list(xss)),
+  push_100 = server$push_tasks(xss_100),
+  push_10000 = server$push_tasks(xss_10000),
+  times = 10,
+  setup = server$reset()
+)
+```
+
+Pushing a task to the worker takes around 1 ms.
+The time grows slower than linearly with the number of tasks.
+Probably because of pipelining in redis.
+In comparison, starting a worker and serializing for `mlr3::resample()` takes 200 ms.
+
+# Pop
+
+Pop task from queue.
+
+```{r}
+server_1 = Server$new("benchmark_1", config)
+server_100 = Server$new("benchmark_100", config)
+server_10000 = Server$new("benchmark_10000", config)
+
+xss = list(x1 = 4, x2 = 6)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+setup = function(server, xss) {
+  server$reset()
+  server$push_tasks(xss)
+}
+
+microbenchmark(
+  pop_1 = server_1$pop_task(),
+  pop_100 = server_100$pop_task(),
+  pop_10000 = server_10000$pop_task(),
+  times = 10,
+  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+)
+```
+
+Pulling a task from the queue takes around 1 ms.
+The time is independent of the number of tasks.
+
+# Syncing
+
+Sync results.
+
+```{r}
+server_1 = Server$new("benchmark_1", config)
+server_100 = Server$new("benchmark_100", config)
+server_10000 = Server$new("benchmark_10000", config)
+
+xss = list(x1 = 4, x2 = 6)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+setup = function(server, xss) {
+  server$reset()
+  keys = server$push_tasks(xss)
+  walk(keys, function(key) server$push_result(key, list(y = 10)))
+}
+
+setup(server_1, list(xss))
+
+microbenchmark(
+  sync_1 = server_1$sync_data(),
+  sync_100 = server_100$sync_data(),
+  sync_10000 = server_10000$sync_data(),
+  times = 10,
+  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+)
+```
+
+Syncing one result takes about 1 ms, syncing 10,000 result about 150 ms.
+The time grows slower than linearly with the number of tasks.
+Probably because of pipelining in redis.
+
+# Caching
+
+Sync one result to existing cache.
+
+```{r}
+server_1 = Server$new("benchmark_1", config)
+server_100 = Server$new("benchmark_100", config)
+server_10000 = Server$new("benchmark_10000", config)
+
+xss = list(x1 = 4, x2 = 6)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+setup = function(server, xss) {
+  server$reset()
+  keys = server$push_tasks(xss)
+  walk(keys, function(key) server$push_result(key, list(y = 10)))
+  server$sync_data()
+  key = server$push_tasks(xss[1])
+  server$push_result(key[[1]], list(y = 10))
+}
+
+setup(server_1, list(xss))
+
+microbenchmark(
+  sync_1 = server_1$sync_data(),
+  sync_100 = server_100$sync_data(),
+  sync_10000 = server_10000$sync_data(),
+  times = 10,
+  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+)
+```
+
+Syncing one result to an existing cache takes about 1 ms independent of the number of elements in the cache.
+Probably due to shallow copy in R.

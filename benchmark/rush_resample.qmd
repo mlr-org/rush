@@ -1,0 +1,160 @@
+---
+title: "Benchmark rush resample"
+format:
+  html:
+    toc: true
+    html-math-method: katex
+---
+
+```{r setup}
+library(rush)
+library(data.table)
+library(mlr3misc)
+library(microbenchmark)
+library(checkmate)
+
+options(width = 200)
+
+lgr::get_logger("rush")$set_threshold("warn")
+```
+
+```{r}
+rush_resample = function(task, learner, resampling, store_models = FALSE, store_backends = TRUE, encapsulate = NA_character_, allow_hotstart = FALSE, clone = c("task", "learner", "resampling")) {
+  assert_subset(clone, c("task", "learner", "resampling"))
+  task = mlr3:::assert_task(mlr3::as_task(task, clone = "task" %in% clone))
+  learner = mlr3:::assert_learner(mlr3::as_learner(learner, clone = "learner" %in% clone))
+  resampling = mlr3:::assert_resampling(mlr3::as_resampling(resampling, clone = "resampling" %in% clone))
+  assert_flag(store_models)
+  assert_flag(store_backends)
+  mlr3:::assert_learnable(task, learner)
+
+  mlr3:::set_encapsulation(list(learner), encapsulate)
+  if (!resampling$is_instantiated) {
+    resampling = resampling$instantiate(task)
+  }
+  n = resampling$iters
+  pb = if (isNamespaceLoaded("progressr")) {
+    # NB: the progress bar needs to be created in this env
+    pb = progressr::progressor(steps = n)
+  } else {
+    NULL
+  }
+  lgr_threshold = map_int(mlr3:::mlr_reflections$loggers, "threshold")
+
+  grid = data.table(iteration = seq(n))
+
+  server = Server$new(paste0(uuid::UUIDgenerate(), "rush_benchmark"))
+  on.exit(server$reset())
+  server$constants = list(learner = learner, task = task, resampling = resampling, store_models = store_models, lgr_threshold = lgr_threshold, pb = pb, mode = "train")
+  server$start_workers(mlr3:::workhorse)
+  server$push_tasks(transpose_list(grid))
+  while(server$n_finished_tasks < n) {}
+  res = get_private(server)$.read_values(unlist(server$finished_tasks), "ys")
+
+  data = data.table(
+    task = list(task),
+    learner = replicate(n, learner),
+    learner_state = map(res, "learner_state"),
+    resampling = list(resampling),
+    iteration = seq_len(n),
+    prediction = map(res, "prediction"),
+    uhash = uuid::UUIDgenerate()
+  )
+
+  mlr3::ResampleResult$new(mlr3::ResultData$new(data, store_backends = store_backends))
+}
+```
+
+```{r}
+library(mlr3)
+library(microbenchmark)
+lgr::get_logger("mlr3")$set_threshold("warn")
+options(mlr3.exec_chunk_size = 45)
+r = redux::hiredis()
+r$FLUSHDB()
+
+future::plan("multisession", workers = 2)
+
+learner = lrn("classif.rpart")
+task = tsk("pima")
+resampling = rsmp("repeated_cv", folds = 3, repeats = 30)
+
+microbenchmark(
+  rush_resample(task, learner, resampling),
+  mlr3::resample(task, learner, resampling),
+  times = 10
+)
+```
+
+On a few workers faster.
+
+```{r}
+library(mlr3)
+library(microbenchmark)
+lgr::get_logger("mlr3")$set_threshold("warn")
+options(mlr3.exec_chunk_size = 18)
+r = redux::hiredis()
+r$FLUSHDB()
+
+future::plan("multisession", workers = 5)
+
+learner = lrn("classif.rpart")
+task = tsk("pima")
+resampling = rsmp("repeated_cv", folds = 3, repeats = 30)
+
+microbenchmark(
+  rush_resample(task, learner, resampling),
+  mlr3::resample(task, learner, resampling),
+  times = 10
+)
+```
+
+On many workers slower because it takes more time to serialize `server` than only serializing `mlr3:::workhorse()`.
+
+```{r}
+#| eval: false
+x = file("rush_benchmark.log", open = "wt")
+sink(x ,type = "output")
+sink(x, type = "message")
+options(future.debug = TRUE)
+
+library(mlr3)
+library(microbenchmark)
+lgr::get_logger("mlr3")$set_threshold("warn")
+options(mlr3.exec_chunk_size = 1)
+r = redux::hiredis()
+r$FLUSHDB()
+
+future::plan("multisession", workers = 2)
+
+learner = lrn("classif.rpart")
+task = tsk("pima")
+resampling = rsmp("repeated_cv", folds = 3, repeats = 30)
+
+rush_resample(task, learner, resampling)
+```
+
+Globals are are 2.05 MiB with rush.
+
+```{r}
+#| eval: false
+x = file("mlr3_benchmark.log", open = "wt")
+sink(x ,type = "output")
+sink(x, type = "message")
+options(future.debug = TRUE)
+
+library(mlr3)
+library(microbenchmark)
+lgr::get_logger("mlr3")$set_threshold("warn")
+options(mlr3.exec_chunk_size = 1)
+
+future::plan("multisession", workers = 2)
+
+learner = lrn("classif.rpart")
+task = tsk("pima")
+resampling = rsmp("repeated_cv", folds = 3, repeats = 30)
+
+resample(task, learner, resampling)
+```
+
+Globals are only 157.50 KiB.

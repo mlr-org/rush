@@ -1,0 +1,26 @@
+Package: rush
+Title: Parallele Programmierung
+Version: 0.0.0.9000
+Authors@R:
+  c(
+    person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut"),
+           comment = c(ORCID = "0000-0002-8115-0400"))
+  )
+Description: Parallel programmierung with future and redis.
+License: LGPL-3
+Depends:
+    R (>= 4.0.0),
+Imports:
+    checkmate,
+    future,
+    lgr,
+    mlr3misc,
+    redux
+Suggests:
+    data.table,
+    knitr,
+    rmarkdown
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+
