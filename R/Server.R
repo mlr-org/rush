@@ -67,30 +67,29 @@ Server = R6::R6Class("Server",
     #'
     #' @param fun (`function`)\cr
     #' Function to be executed by the workers.
-    start_workers = function(fun) {
+    #' @param as_list (`logical(1)`)\cr
+    #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
+    #' @param packages (`character()`)\cr
+    #' Packages to be loaded by the workers.
+    start_workers = function(fun, as_list = FALSE, packages = NULL) {
+      assert_function(fun)
+      assert_flag(as_list)
+      assert_character(packages, null.ok = TRUE)
       self$n_workers = future::nbrOfWorkers()
       r = self$connector
 
       if (self$n_workers == 1) stop("Only one worker is available.")
       if (!is.null(self$promises)) stop("Workers are already running.")
 
-      # wrap function with task loop
-      fun_wrapper = function(fun, server) {
-        while(!server$terminate) {
-          task = server$pop_task()
-          if (!is.null(task)) {
-            ys = mlr3misc::invoke(fun, .args = c(task$xs, server$constants))
-            server$push_result(task$key, c(ys, list(pid = Sys.getpid())))
-          }
-        }
-      }
+      # choose wrapper function
+      fun_wrapped = if (as_list) fun_wrapper_list else fun_wrapper
 
       # termination flag
       r$SET(private$.get_key("terminate"), "0")
 
       # start workers
       self$promises = replicate(self$n_workers,
-        future::future(fun_wrapper(fun, self), seed = TRUE, globals = c("fun_wrapper", "fun", "self"), packages = "mlr3")
+        future::future(fun_wrapped(fun, self), seed = TRUE, globals = c("fun_wrapped", "fun", "self"), packages = packages)
       )
 
       return(invisible(self$promises))
@@ -199,9 +198,8 @@ Server = R6::R6Class("Server",
         r$command(c("SADD", private$.get_key("archived_tasks"), keys))
 
         lg$info("Receiving %i result(s)", length(keys))
-
-        hashes = private$.read_values(keys, c("xs", "x_extra", "ys"))
-        private$.cache = c(private$.cache, hashes)
+        hashes = rbindlist(private$.read_values(keys, c("xs", "x_extra", "ys")), , use.names = TRUE, fill = TRUE)
+        private$.cache = rbindlist(list(private$.cache, hashes), use.names = TRUE, fill = TRUE)
       }
 
       invisible(private$.cache)
@@ -210,7 +208,7 @@ Server = R6::R6Class("Server",
 
   private = list(
 
-    .cache = list(),
+    .cache = data.table(),
 
     .get_key = function(key) {
       sprintf("%s:%s", self$id, key)
@@ -321,7 +319,27 @@ Server = R6::R6Class("Server",
     #' @field free_workers ([integer])\cr
     #' Number of free workers.
     free_workers = function() {
-      self$n_workers - self$n_running_tasks
+      max(0, self$n_workers - self$n_running_tasks - self$n_queued_tasks)
     }
   )
 )
+
+fun_wrapper = function(fun, server) {
+  while(!server$terminate) {
+    task = server$pop_task()
+    if (!is.null(task)) {
+      ys = mlr3misc::invoke(fun, .args = c(task$xs, server$constants))
+      server$push_result(task$key, c(ys, list(pid = Sys.getpid())))
+    }
+  }
+}
+
+fun_wrapper_list = function(fun, server) {
+  while(!server$terminate) {
+    task = server$pop_task()
+    if (!is.null(task)) {
+      ys = mlr3misc::invoke(fun, xs = task$xs, .args = server$constants)
+      server$push_result(task$key, c(ys, list(pid = Sys.getpid())))
+    }
+  }
+}

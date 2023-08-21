@@ -34,7 +34,7 @@ microbenchmark(
   push_1 = server$push_tasks(list(xss)),
   push_100 = server$push_tasks(xss_100),
   push_10000 = server$push_tasks(xss_10000),
-  times = 10,
+  times = 100,
   setup = server$reset()
 )
 ```
@@ -43,6 +43,40 @@ Pushing a task to the worker takes around 1 ms.
 The time grows slower than linearly with the number of tasks.
 Probably because of pipelining in redis.
 In comparison, starting a worker and serializing for `mlr3::resample()` takes 200 ms.
+
+```{r}
+config = redux::redis_config()
+server = Server$new("benchmark", config)
+server$reset()
+
+xss = list(x1 = 4, x2 = 6, x3 = 1, x4 = 2)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+microbenchmark(
+  push_1 = server$push_tasks(list(xss)),
+  push_100 = server$push_tasks(xss_100),
+  push_10000 = server$push_tasks(xss_10000),
+  times = 100,
+  setup = server$reset()
+)
+```
+
+# Push with Extra
+
+```{r}
+xss = list(x1 = 4, x2 = 6)
+xss_100 = replicate(100, xss, simplify = FALSE)
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+
+microbenchmark(
+  push_1 = server$push_tasks(list(xss), list(xss)),
+  push_100 = server$push_tasks(xss_100, xss_100),
+  push_10000 = server$push_tasks(xss_10000, xss_10000),
+  times = 100,
+  setup = server$reset()
+)
+```
 
 # Pop
 
@@ -143,3 +177,34 @@ microbenchmark(
 
 Syncing one result to an existing cache takes about 1 ms independent of the number of elements in the cache.
 Probably due to shallow copy in R.
+
+# List columns
+
+```{r}
+size = 100
+xdt = data.table(x1 = runif(size), x2 = runif(size))
+xss = transpose_list(xdt)
+xss_wrapped = map(xss, function(x) list(list(x_domain = x)))
+rbindlist(xss_wrapped)
+
+microbenchmark(
+  wrap = map(xss, function(x) list(list(x_domain = x))),
+  times = 100
+)
+
+size = 1000
+xdt = data.table(x1 = runif(size), x2 = runif(size))
+xss = transpose_list(xdt)
+xss_wrapped = map(xss, function(x) list(list(x_domain = x)))
+rbindlist(xss_wrapped)
+
+microbenchmark(
+  wrap = map(xss, function(x) list(list(x_domain = x))),
+  times = 100
+)
+
+microbenchmark(
+  set(xdt, j = "xss", value = xss),
+  times = 100
+)
+```

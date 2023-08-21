@@ -18,7 +18,11 @@ Redis configuration.}
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
-\item{\code{promises}}{(\code{\link[future:Future-class]{future::Future()}})\cr}
+\item{\code{promises}}{(\code{\link[future:Future-class]{future::Future()}})\cr
+List of futures.}
+
+\item{\code{constants}}{(\code{list()})\cr
+List of constants.}
 }
 \if{html}{\out{</div>}}
 }
@@ -140,7 +144,7 @@ Print method.
 \subsection{Method \code{start_workers()}}{
 Start workers.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Server$start_workers(fun, n_workers)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Server$start_workers(fun, as_list = FALSE, packages = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -149,8 +153,11 @@ Start workers.
 \item{\code{fun}}{(\code{function})\cr
 Function to be executed by the workers.}
 
-\item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers.}
+\item{\code{as_list}}{(\code{logical(1)})\cr
+Whether the function takes a list of arguments (\verb{fun(xs = list(x1, x2)}) or named arguments (\code{fun(x1, x2)}).}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
 }
 \if{html}{\out{</div>}}
 }
@@ -251,7 +258,7 @@ Can contain additional information.}
 \if{html}{\out{<a id="method-Server-sync_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Server-sync_data}{}}}
 \subsection{Method \code{sync_data()}}{
-Sync data from the data baset to the local data table.
+Sync data from the data base to the local cache.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Server$sync_data()}\if{html}{\out{</div>}}
 }
