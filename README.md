@@ -45,7 +45,7 @@ xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
 server$push_tasks(xss)
 ```
 
-    ## INFO  [14:18:52.278] [rush] Sending 2 tasks(s)
+    ## INFO  [13:00:11.477] [rush] Sending 2 tasks(s)
 
 ``` r
 Sys.sleep(1)
@@ -59,34 +59,11 @@ server$n_finished_tasks
 server$data
 ```
 
-    ## INFO  [14:18:53.316] [rush] Receiving 2 result(s)
+    ## INFO  [13:00:12.518] [rush] Receiving 2 result(s)
 
-    ## [[1]]
-    ## [[1]]$x1
-    ## [1] 4
-    ## 
-    ## [[1]]$x2
-    ## [1] 6
-    ## 
-    ## [[1]]$y
-    ## [1] 10
-    ## 
-    ## [[1]]$pid
-    ## [1] 321385
-    ## 
-    ## 
-    ## [[2]]
-    ## [[2]]$x1
-    ## [1] 3
-    ## 
-    ## [[2]]$x2
-    ## [1] 5
-    ## 
-    ## [[2]]$y
-    ## [1] 8
-    ## 
-    ## [[2]]$pid
-    ## [1] 321385
+    ##    x1 x2  y    pid
+    ## 1:  4  6 10 428724
+    ## 2:  3  5  8 428723
 
 ``` r
 server$n_archived_tasks
@@ -100,7 +77,7 @@ xss = list(list(x1 = 1, x2 = 5), list(x1 = 7, x2 = 6))
 server$push_tasks(xss)
 ```
 
-    ## INFO  [14:18:53.323] [rush] Sending 2 tasks(s)
+    ## INFO  [13:00:12.530] [rush] Sending 2 tasks(s)
 
 ``` r
 Sys.sleep(1)
@@ -116,16 +93,16 @@ server
 
 ``` r
 # to data.table
-data.table::rbindlist(server$data)
+server$data
 ```
 
-    ## INFO  [14:18:54.334] [rush] Receiving 2 result(s)
+    ## INFO  [13:00:13.546] [rush] Receiving 2 result(s)
 
     ##    x1 x2  y    pid
-    ## 1:  4  6 10 321385
-    ## 2:  3  5  8 321385
-    ## 3:  1  5  6 321384
-    ## 4:  7  6 13 321385
+    ## 1:  4  6 10 428724
+    ## 2:  3  5  8 428723
+    ## 3:  1  5  6 429131
+    ## 4:  7  6 13 428723
 
 ## `Server`
 
@@ -166,7 +143,7 @@ data.table::rbindlist(server$data)
   - `$sync_data()`
       - Syncs data base with main process
       - Deserializes data base entries
-      - Caches data in list
+      - Caches data in data.table
       - Is called in the main process
 
 **fields**
@@ -174,7 +151,7 @@ data.table::rbindlist(server$data)
   - `$connector`
       - Returns connection to data base
   - `$data`
-      - Returns list of tasks and results
+      - Returns data.table of tasks and results
   - `$terminate`
       - Returns `TRUE` if the worker should terminate
   - `$queued_tasks`

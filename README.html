@@ -635,7 +635,7 @@ body {
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co"># push tasks</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>xss =<span class="st"> </span><span class="kw">list</span>(<span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">3</span>, <span class="dt">x2 =</span> <span class="dv">5</span>), <span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">4</span>, <span class="dt">x2 =</span> <span class="dv">6</span>))</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>server<span class="op">$</span><span class="kw">push_tasks</span>(xss)</span></code></pre></div>
-<pre><code>## INFO  [14:18:52.278] [rush] Sending 2 tasks(s)
+<pre><code>## INFO  [13:00:11.477] [rush] Sending 2 tasks(s)
 </code></pre>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">Sys.sleep</span>(<span class="dv">1</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>server<span class="op">$</span>n_finished_tasks</span></code></pre></div>
@@ -643,34 +643,11 @@ body {
 </code></pre>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co"># sync data</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>server<span class="op">$</span>data</span></code></pre></div>
-<pre><code>## INFO  [14:18:53.316] [rush] Receiving 2 result(s)
+<pre><code>## INFO  [13:00:12.518] [rush] Receiving 2 result(s)
 
-## [[1]]
-## [[1]]$x1
-## [1] 4
-## 
-## [[1]]$x2
-## [1] 6
-## 
-## [[1]]$y
-## [1] 10
-## 
-## [[1]]$pid
-## [1] 321385
-## 
-## 
-## [[2]]
-## [[2]]$x1
-## [1] 3
-## 
-## [[2]]$x2
-## [1] 5
-## 
-## [[2]]$y
-## [1] 8
-## 
-## [[2]]$pid
-## [1] 321385
+##    x1 x2  y    pid
+## 1:  4  6 10 428724
+## 2:  3  5  8 428723
 </code></pre>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>server<span class="op">$</span>n_archived_tasks</span></code></pre></div>
 <pre><code>## [1] 2
@@ -678,7 +655,7 @@ body {
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="co"># push more tasks</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>xss =<span class="st"> </span><span class="kw">list</span>(<span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">1</span>, <span class="dt">x2 =</span> <span class="dv">5</span>), <span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">7</span>, <span class="dt">x2 =</span> <span class="dv">6</span>))</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>server<span class="op">$</span><span class="kw">push_tasks</span>(xss)</span></code></pre></div>
-<pre><code>## INFO  [14:18:53.323] [rush] Sending 2 tasks(s)
+<pre><code>## INFO  [13:00:12.530] [rush] Sending 2 tasks(s)
 </code></pre>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="kw">Sys.sleep</span>(<span class="dv">1</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>server</span></code></pre></div>
@@ -690,14 +667,14 @@ body {
 ## * Archived Tasks: 2
 </code></pre>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="co"># to data.table</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>data.table<span class="op">::</span><span class="kw">rbindlist</span>(server<span class="op">$</span>data)</span></code></pre></div>
-<pre><code>## INFO  [14:18:54.334] [rush] Receiving 2 result(s)
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>server<span class="op">$</span>data</span></code></pre></div>
+<pre><code>## INFO  [13:00:13.546] [rush] Receiving 2 result(s)
 
 ##    x1 x2  y    pid
-## 1:  4  6 10 321385
-## 2:  3  5  8 321385
-## 3:  1  5  6 321384
-## 4:  7  6 13 321385
+## 1:  4  6 10 428724
+## 2:  3  5  8 428723
+## 3:  1  5  6 429131
+## 4:  7  6 13 428723
 </code></pre>
 <h2 id="server"><code>Server</code></h2>
 <p><strong>public</strong></p>
@@ -750,7 +727,7 @@ body {
 <ul>
 <li>Syncs data base with main process</li>
 <li>Deserializes data base entries</li>
-<li>Caches data in list</li>
+<li>Caches data in data.table</li>
 <li>Is called in the main process</li>
 </ul></li>
 </ul>
@@ -762,7 +739,7 @@ body {
 </ul></li>
 <li><code>$data</code>
 <ul>
-<li>Returns list of tasks and results</li>
+<li>Returns data.table of tasks and results</li>
 </ul></li>
 <li><code>$terminate</code>
 <ul>

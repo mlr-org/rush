@@ -210,10 +210,12 @@ Server = R6::R6Class("Server",
 
     .cache = data.table(),
 
+    # prefix key with id of instance
     .get_key = function(key) {
       sprintf("%s:%s", self$id, key)
     },
 
+    # write values to field of multiple hashes
     .write_values = function(values, field, keys = NULL) {
       r = self$connector
 
@@ -229,6 +231,7 @@ Server = R6::R6Class("Server",
       return(invisible(keys))
     },
 
+    # read values from field of multiple hashes
     .read_values = function(keys, fields = c("xs", "ys", "x_extra")) {
       r = self$connector
 

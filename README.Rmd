@@ -48,7 +48,7 @@ Sys.sleep(1)
 server
 
 # to data.table
-data.table::rbindlist(server$data)
+server$data
 ```
 
 ## `Server`
@@ -95,7 +95,7 @@ data.table::rbindlist(server$data)
 * `$sync_data()`
     - Syncs data base with main process
     - Deserializes data base entries
-    - Caches data in list
+    - Caches data in data.table
     - Is called in the main process
 
 **fields**
@@ -104,7 +104,7 @@ data.table::rbindlist(server$data)
     - Returns connection to data base
 
 * `$data`
-    - Returns list of tasks and results
+    - Returns data.table of tasks and results
 
 * `$terminate`
     - Returns `TRUE` if the worker should terminate
