@@ -1,15 +1,19 @@
-#' @title Server
+#' @title Rush
 #'
 #' @description
-#' Server
+#' Rush
 #'
 #' @export
-Server = R6::R6Class("Server",
+Rush = R6::R6Class("Rush",
   public = list(
 
-    #' @field id (`character(1)`)\cr
-    #' Identifier of the server.
-    id = NULL,
+    #' @field experiment_id (`character(1)`)\cr
+    #' Identifier of the experiment.
+    experiment_id = NULL,
+
+    #' @field client_id (`character(1)`)\cr
+    #' Identifier of the client.
+    client_id = NULL,
 
     #' @field config ([redux::redis_config])\cr
     #' Redis configuration.
@@ -35,7 +39,8 @@ Server = R6::R6Class("Server",
     #' @param config ([redux::redis_config])\cr
     #' Redis configuration.
     initialize = function(id = NULL, config  = redux::redis_config()) {
-      self$id = assert_string(id)
+      self$experiment_id = assert_string(id)
+      self$client_id = Sys.getpid()
       self$config = assert_class(config, "redis_config")
       self$n_workers = 0
     },
@@ -69,11 +74,14 @@ Server = R6::R6Class("Server",
     #' Function to be executed by the workers.
     #' @param as_list (`logical(1)`)\cr
     #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
+    #' @param globals (`character()`)\cr
+    #' Global variables to be loaded by the workers.
     #' @param packages (`character()`)\cr
     #' Packages to be loaded by the workers.
-    start_workers = function(fun, as_list = FALSE, packages = NULL) {
+    start_workers = function(fun, as_list = FALSE, globals = NULL, packages = NULL) {
       assert_function(fun)
       assert_flag(as_list)
+      assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
       self$n_workers = future::nbrOfWorkers()
       r = self$connector
@@ -88,8 +96,10 @@ Server = R6::R6Class("Server",
       r$SET(private$.get_key("terminate"), "0")
 
       # start workers
+      instance_id = self$instance_id
+      config = self$config
       self$promises = replicate(self$n_workers,
-        future::future(fun_wrapped(fun, self), seed = TRUE, globals = c("fun_wrapped", "fun", "self"), packages = packages)
+        future::future(fun_wrapped(fun, instance_id, config), seed = TRUE, globals = c(globals, "fun_wrapped", "instance_id", "config"), packages = packages)
       )
 
       return(invisible(self$promises))
@@ -124,6 +134,7 @@ Server = R6::R6Class("Server",
       r$DEL(private$.get_key("archived_tasks"))
       r$DEL(private$.get_key("terminate"))
       private$.cache = list()
+      private$.cached_keys = list()
 
       invisible(self)
     },
@@ -178,11 +189,11 @@ Server = R6::R6Class("Server",
       assert_list(ys, names = "unique")
       r = self$connector
 
+      # write result to hash
       private$.write_values(list(ys), "ys", key)
 
       # move key from running to finished
-      r$command(c("SREM", private$.get_key("running_tasks"), key))
-      r$command(c("LPUSH", private$.get_key("finished_tasks"), key))
+      r$command(c("SMOVE", private$.get_key("running_tasks"), private$.get_key("finished_tasks"), key))
 
       return(invisible(NULL))
     },
@@ -191,11 +202,15 @@ Server = R6::R6Class("Server",
     #' Sync data from the data base to the local cache.
     sync_data = function() {
       r = self$connector
-      keys = r$command(list("LPOP", private$.get_key("finished_tasks"), r$LLEN(private$.get_key("finished_tasks"))))
+
+      keys = unlist(r$command(c("SMEMBERS", private$.get_key("finished_tasks"))))
+      keys = setdiff(keys, private$.cached_keys)
+
+      #keys = r$command(list("LPOP", private$.get_key("finished_tasks"), r$LLEN(private$.get_key("finished_tasks"))))
 
       if (!is.null(keys)) {
         # move keys from finished to archived
-        r$command(c("SADD", private$.get_key("archived_tasks"), keys))
+        private$.cached_keys = c(private$.cached_keys, keys)
 
         lg$info("Receiving %i result(s)", length(keys))
         hashes = rbindlist(private$.read_values(keys, c("xs", "x_extra", "ys")), , use.names = TRUE, fill = TRUE)
@@ -208,11 +223,13 @@ Server = R6::R6Class("Server",
 
   private = list(
 
+    .cached_keys = NULL,
+
     .cache = data.table(),
 
     # prefix key with id of instance
     .get_key = function(key) {
-      sprintf("%s:%s", self$id, key)
+      sprintf("%s:%s", self$experiment_id, key)
     },
 
     # write values to field of multiple hashes
@@ -281,7 +298,7 @@ Server = R6::R6Class("Server",
     #' Keys of finished tasks.
     finished_tasks = function() {
       r = self$connector
-      r$LRANGE(private$.get_key("finished_tasks"), 0, -1)
+      r$SMEMBERS(private$.get_key("finished_tasks"))
     },
 
     #' @field archived_tasks (`character()`)\cr
@@ -309,7 +326,7 @@ Server = R6::R6Class("Server",
     #' Number of finished tasks.
     n_finished_tasks = function() {
       r = self$connector
-      as.integer(r$LLEN(private$.get_key("finished_tasks"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("finished_tasks"))) %??% 0
     },
 
     #' @field n_archived_tasks (`integer(1)`)\cr
@@ -327,22 +344,30 @@ Server = R6::R6Class("Server",
   )
 )
 
-fun_wrapper = function(fun, server) {
-  while(!server$terminate) {
-    task = server$pop_task()
+fun_wrapper = function(fun, instance_id, config) {
+  rush = Rush$new(instance_id, config)
+
+  while(!rush$terminate) {
+    task = rush$pop_task()
     if (!is.null(task)) {
-      ys = mlr3misc::invoke(fun, .args = c(task$xs, server$constants))
-      server$push_result(task$key, c(ys, list(pid = Sys.getpid())))
+      ys = mlr3misc::invoke(fun, rush = rush, .args = c(task$xs, rush$constants))
+      rush$push_result(task$key, c(ys, list(pid = Sys.getpid())))
     }
   }
 }
 
-fun_wrapper_list = function(fun, server) {
-  while(!server$terminate) {
-    task = server$pop_task()
+fun_wrapper_list = function(fun, instance_id, config) {
+  rush = Rush$new(instance_id, config)
+
+  while(!rush$terminate) {
+    task = rush$pop_task()
     if (!is.null(task)) {
-      ys = mlr3misc::invoke(fun, xs = task$xs, .args = server$constants)
-      server$push_result(task$key, c(ys, list(pid = Sys.getpid())))
+      ys = mlr3misc::invoke(fun, xs = task$xs, rush = rush, .args = rush$constants)
+      rush$push_result(task$key, c(ys, list(pid = Sys.getpid())))
     }
   }
 }
+
+# readme link to redis
+# task to job
+# keys to table

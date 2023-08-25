@@ -23,7 +23,7 @@ Push task to queue.
 
 ```{r}
 config = redux::redis_config()
-server = Server$new("benchmark", config)
+server = Rush$new("benchmark", config)
 server$reset()
 
 xss = list(x1 = 4, x2 = 6)
@@ -46,7 +46,7 @@ In comparison, starting a worker and serializing for `mlr3::resample()` takes 20
 
 ```{r}
 config = redux::redis_config()
-server = Server$new("benchmark", config)
+server = Rush$new("benchmark", config)
 server$reset()
 
 xss = list(x1 = 4, x2 = 6, x3 = 1, x4 = 2)
@@ -83,9 +83,9 @@ microbenchmark(
 Pop task from queue.
 
 ```{r}
-server_1 = Server$new("benchmark_1", config)
-server_100 = Server$new("benchmark_100", config)
-server_10000 = Server$new("benchmark_10000", config)
+server_1 = Rush$new("benchmark_1", config)
+server_100 = Rush$new("benchmark_100", config)
+server_10000 = Rush$new("benchmark_10000", config)
 
 xss = list(x1 = 4, x2 = 6)
 xss_100 = replicate(100, xss, simplify = FALSE)
@@ -113,9 +113,10 @@ The time is independent of the number of tasks.
 Sync results.
 
 ```{r}
-server_1 = Server$new("benchmark_1", config)
-server_100 = Server$new("benchmark_100", config)
-server_10000 = Server$new("benchmark_10000", config)
+config = redux::redis_config()
+server_1 = Rush$new("benchmark_1", config)
+server_100 = Rush$new("benchmark_100", config)
+server_10000 = Rush$new("benchmark_10000", config)
 
 xss = list(x1 = 4, x2 = 6)
 xss_100 = replicate(100, xss, simplify = FALSE)
@@ -124,10 +125,9 @@ xss_10000 = replicate(10000, xss, simplify = FALSE)
 setup = function(server, xss) {
   server$reset()
   keys = server$push_tasks(xss)
+  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
   walk(keys, function(key) server$push_result(key, list(y = 10)))
 }
-
-setup(server_1, list(xss))
 
 microbenchmark(
   sync_1 = server_1$sync_data(),
@@ -147,9 +147,9 @@ Probably because of pipelining in redis.
 Sync one result to existing cache.
 
 ```{r}
-server_1 = Server$new("benchmark_1", config)
-server_100 = Server$new("benchmark_100", config)
-server_10000 = Server$new("benchmark_10000", config)
+server_1 = Rush$new("benchmark_1", config)
+server_100 = Rush$new("benchmark_100", config)
+server_10000 = Rush$new("benchmark_10000", config)
 
 xss = list(x1 = 4, x2 = 6)
 xss_100 = replicate(100, xss, simplify = FALSE)
@@ -158,9 +158,11 @@ xss_10000 = replicate(10000, xss, simplify = FALSE)
 setup = function(server, xss) {
   server$reset()
   keys = server$push_tasks(xss)
+  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
   walk(keys, function(key) server$push_result(key, list(y = 10)))
   server$sync_data()
   key = server$push_tasks(xss[1])
+  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
   server$push_result(key[[1]], list(y = 10))
 }
 
@@ -170,7 +172,7 @@ microbenchmark(
   sync_1 = server_1$sync_data(),
   sync_100 = server_100$sync_data(),
   sync_10000 = server_10000$sync_data(),
-  times = 10,
+  times = 1,
   setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
 )
 ```
