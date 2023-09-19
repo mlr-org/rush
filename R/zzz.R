@@ -3,6 +3,8 @@
 #' @import mlr3misc
 #' @import future
 #' @import checkmate
+#' @importFrom uuid UUIDgenerate
+#' @importFrom callr r_bg
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

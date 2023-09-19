@@ -15,98 +15,342 @@ library(microbenchmark)
 options(width = 200)
 
 lgr::get_logger("rush")$set_threshold("warn")
+
+xdt_1 = data.table(x1 = runif(1), x2 = runif(1))
+xdt_10 = data.table(x1 = runif(10), x2 = runif(10))
+xdt_100 = data.table(x1 = runif(100), x2 = runif(100))
+xdt_1000 = data.table(x1 = runif(1000), x2 = runif(1000))
+xdt_10000 = data.table(x1 = runif(10000), x2 = runif(10000))
+
+xss_1 = transpose_list(xdt_1)
+xss_10 = transpose_list(xdt_10)
+xss_100 = transpose_list(xdt_100)
+xss_1000 = transpose_list(xdt_1000)
+xss_10000 = transpose_list(xdt_10000)
+
+extra_1 = list(list(extra1 = runif(1)))
+extra_10 = replicate(10, list(list(extra1 = runif(1))))
+extra_100 = replicate(100, list(list(extra1 = runif(1))))
+extra_1000 = replicate(1000, list(list(extra1 = runif(1))))
+extra_10000 = replicate(10000, list(list(extra1 = runif(1))))
 ```
 
-# Push
+# Basic Redis Operations
+
+Add keys to set.
+
+```{r}
+keys_1 = uuid::UUIDgenerate(n = 1)
+keys_10 = uuid::UUIDgenerate(n = 10)
+keys_100 = uuid::UUIDgenerate(n = 100)
+keys_1000 = uuid::UUIDgenerate(n = 1000)
+keys_10000 = uuid::UUIDgenerate(n = 10000)
+
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+rush$reset()
+r = rush$connector
+
+microbenchmark(
+  add_1 = r$command(c("SADD", "running_tasks", keys_1)),
+  add_10 = r$command(c("SADD", "running_tasks", keys_10)),
+  add_100 = r$command(c("SADD", "running_tasks", keys_100)),
+  add_1000 = r$command(c("SADD", "running_tasks", keys_1000)),
+  add_10000 = r$command(c("SADD", "running_tasks", keys_10000)),
+  times = 100,
+  unit = "ms",
+  setup = r$FLUSHDB()
+)
+```
+
+Add keys to list.
+
+```{r}
+keys_1 = uuid::UUIDgenerate(n = 1)
+keys_10 = uuid::UUIDgenerate(n = 10)
+keys_100 = uuid::UUIDgenerate(n = 100)
+keys_1000 = uuid::UUIDgenerate(n = 1000)
+keys_10000 = uuid::UUIDgenerate(n = 10000)
+
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+rush$reset()
+r = rush$connector
+
+microbenchmark(
+  add_1 = r$command(c("RPUSH", "running_tasks", keys_1)),
+  add_10 = r$command(c("RPUSH", "running_tasks", keys_10)),
+  add_100 = r$command(c("RPUSH", "running_tasks", keys_100)),
+  add_1000 = r$command(c("RPUSH", "running_tasks", keys_1000)),
+  add_10000 = r$command(c("RPUSH", "running_tasks", keys_10000)),
+  times = 100,
+  unit = "ms",
+  setup = r$FLUSHDB()
+)
+```
+
+Writting to lists and sets is cheap.
+
+Check membership in set.
+
+```{r}
+keys_1 = uuid::UUIDgenerate(n = 1)
+keys_10 = uuid::UUIDgenerate(n = 10)
+keys_100 = uuid::UUIDgenerate(n = 100)
+keys_1000 = uuid::UUIDgenerate(n = 1000)
+keys_10000 = uuid::UUIDgenerate(n = 10000)
+keys_100000 = uuid::UUIDgenerate(n = 100000)
+
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+rush$reset()
+r = rush$connector
+r$FLUSHDB()
+
+r$command(c("SADD", "running_tasks_1", keys_1))
+r$command(c("SADD", "running_tasks_10", keys_10))
+r$command(c("SADD", "running_tasks_100", keys_100))
+r$command(c("SADD", "running_tasks_1000", keys_1000))
+r$command(c("SADD", "running_tasks_10000", keys_10000))
+r$command(c("SADD", "running_tasks_100000", keys_100000))
+
+microbenchmark(
+  check_1 = r$command(c("SMISMEMBER", "running_tasks_1", keys_1)),
+  check_10 = r$command(c("SMISMEMBER", "running_tasks_10", keys_10)),
+  check_100 = r$command(c("SMISMEMBER", "running_tasks_100", keys_100)),
+  check_1000 = r$command(c("SMISMEMBER", "running_tasks_1000", keys_1000)),
+  check_10000 = r$command(c("SMISMEMBER", "running_tasks_10000", keys_10000)),
+  check_100000 = r$command(c("SMISMEMBER", "running_tasks_100000", keys_100000)),
+  times = 100,
+  unit = "ms"
+)
+```
+
+# Push Task
 
 Push task to queue.
 
 ```{r}
 config = redux::redis_config()
-server = Rush$new("benchmark", config)
-server$reset()
-
-xss = list(x1 = 4, x2 = 6)
-xss_100 = replicate(100, xss, simplify = FALSE)
-xss_10000 = replicate(10000, xss, simplify = FALSE)
+rush = Rush$new("benchmark", config)
+rush$reset()
 
 microbenchmark(
-  push_1 = server$push_tasks(list(xss)),
-  push_100 = server$push_tasks(xss_100),
-  push_10000 = server$push_tasks(xss_10000),
+  push_1 = rush$push_tasks(list(xss_1)),
+  push_10 = rush$push_tasks(xss_10),
+  push_100 = rush$push_tasks(xss_100),
+  push_1000 = rush$push_tasks(xss_1000),
+  push_10000 = rush$push_tasks(xss_10000),
   times = 100,
-  setup = server$reset()
+  setup = rush$reset()
 )
 ```
+
+Unit: milliseconds
+       expr        min         lq       mean     median         uq        max neval
+     push_1   1.093347   1.228519   1.343468   1.275937   1.396000   2.259887   100
+    push_10   1.162514   1.328732   1.453361   1.370904   1.499319   2.462746   100
+   push_100   2.092163   2.315099   2.863690   2.425581   2.573900  13.319037   100
+  push_1000  10.872826  12.156610  15.951320  13.113159  20.337111  41.525551   100
+ push_10000 107.897268 121.918092 145.685859 141.415570 159.341556 265.462682   100
 
 Pushing a task to the worker takes around 1 ms.
 The time grows slower than linearly with the number of tasks.
 Probably because of pipelining in redis.
 In comparison, starting a worker and serializing for `mlr3::resample()` takes 200 ms.
 
+# Push Task with Extra
+
+Push task to queue with extras.
+
 ```{r}
 config = redux::redis_config()
-server = Rush$new("benchmark", config)
-server$reset()
-
-xss = list(x1 = 4, x2 = 6, x3 = 1, x4 = 2)
-xss_100 = replicate(100, xss, simplify = FALSE)
-xss_10000 = replicate(10000, xss, simplify = FALSE)
+rush = Rush$new("benchmark", config)
+rush$reset()
 
 microbenchmark(
-  push_1 = server$push_tasks(list(xss)),
-  push_100 = server$push_tasks(xss_100),
-  push_10000 = server$push_tasks(xss_10000),
+  push_1 = rush$push_tasks(list(xss_1), extra = extra_1),
+  push_10 = rush$push_tasks(xss_10, extra = extra_10),
+  push_100 = rush$push_tasks(xss_100, extra = extra_100),
+  push_1000 = rush$push_tasks(xss_1000, extra = extra_1000),
+  push_10000 = rush$push_tasks(xss_10000, extra = extra_10000),
   times = 100,
-  setup = server$reset()
+  setup = rush$reset()
 )
 ```
 
-# Push with Extra
+Unit: milliseconds
+       expr        min         lq       mean     median         uq        max neval
+     push_1   1.243461   1.830777   2.338545   2.132902   3.208128   3.968298   100
+    push_10   1.393184   1.626217   2.577437   2.324838   2.746460  11.630921   100
+   push_100   2.795465   4.196219   5.917538   4.469743   6.506441  27.341124   100
+  push_1000  16.234042  24.149732  29.479055  27.036654  33.939170 119.186518   100
+ push_10000 163.880247 228.656225 275.471867 273.773341 309.745860 464.503796   100
 
-```{r}
-xss = list(x1 = 4, x2 = 6)
-xss_100 = replicate(100, xss, simplify = FALSE)
-xss_10000 = replicate(10000, xss, simplify = FALSE)
-
-microbenchmark(
-  push_1 = server$push_tasks(list(xss), list(xss)),
-  push_100 = server$push_tasks(xss_100, xss_100),
-  push_10000 = server$push_tasks(xss_10000, xss_10000),
-  times = 100,
-  setup = server$reset()
-)
-```
-
-# Pop
+# Pop Task
 
 Pop task from queue.
 
 ```{r}
-server_1 = Rush$new("benchmark_1", config)
-server_100 = Rush$new("benchmark_100", config)
-server_10000 = Rush$new("benchmark_10000", config)
+rush_1 = Rush$new("benchmark_1", config)
+rush_10 = Rush$new("benchmark_10", config)
+rush_100 = Rush$new("benchmark_100", config)
+rush_1000 = Rush$new("benchmark_1000", config)
+rush_10000 = Rush$new("benchmark_10000", config)
 
-xss = list(x1 = 4, x2 = 6)
-xss_100 = replicate(100, xss, simplify = FALSE)
-xss_10000 = replicate(10000, xss, simplify = FALSE)
-
-setup = function(server, xss) {
-  server$reset()
-  server$push_tasks(xss)
+setup = function(rush, xss) {
+  rush$reset()
+  rush$push_tasks(xss)
 }
 
 microbenchmark(
-  pop_1 = server_1$pop_task(),
-  pop_100 = server_100$pop_task(),
-  pop_10000 = server_10000$pop_task(),
+  pop_1 = rush_1$pop_task(),
+  pop_10 = rush_10$pop_task(),
+  pop_100 = rush_100$pop_task(),
+  pop_1000 = rush_1000$pop_task(),
+  pop_10000 = rush_10000$pop_task(),
   times = 10,
-  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+  unit = "ms",
+  setup = {setup(rush_1, list(xss_1)); setup(rush_10, xss_10); setup(rush_100, xss_100); setup(rush_1000, xss_1000); setup(rush_10000, xss_10000)}
 )
 ```
 
-Pulling a task from the queue takes around 1 ms.
+Pulling a task from the queue takes around 2 ms.
 The time is independent of the number of tasks.
+
+Unit: milliseconds
+      expr      min       lq     mean   median       uq      max neval
+     pop_1 1.292573 1.463606 1.711950 1.550444 2.001379 2.380814    10
+    pop_10 1.923305 1.970317 2.049616 2.037127 2.074820 2.270527    10
+   pop_100 1.313203 1.828290 1.876639 1.888765 1.999346 2.219704    10
+  pop_1000 2.026322 2.151618 2.505174 2.504808 2.913165 3.052179    10
+ pop_10000 1.306584 1.742384 1.842858 1.953145 1.984081 2.039759    10
+
+# Fetch Data
+
+```{r}
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+rush$reset()
+r = rush$connector
+
+setup = function(rush, xss) {
+  rush$reset()
+  keys = rush$push_tasks(xss)
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  walk(keys, function(key) rush$push_results(key, list(y = 10)))
+}
+
+microbenchmark(
+  latest_results_1 = rush$fetch_latest_results(),
+  fetch_results_1 = rush$fetch_results(),
+  fetch_data_1 = rush$fetch_data(),
+  times = 100,
+  unit = "ms",
+  setup = setup(rush, list(xss_1))
+)
+
+microbenchmark(
+  latest_results_10 = rush$fetch_latest_results(),
+  fetch_results_10 = rush$fetch_results(),
+  fetch_data_10 = rush$fetch_data(),
+  times = 100,
+  unit = "ms",
+  setup = setup(rush, xss_10)
+)
+
+microbenchmark(
+  latest_results_100 = rush$fetch_latest_results(),
+  fetch_results_100 = rush$fetch_results(),
+  fetch_data_100 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_100)
+)
+
+microbenchmark(
+  latest_results_1000 = rush$fetch_latest_results(),
+  fetch_results_1000 = rush$fetch_results(),
+  fetch_data_1000 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_1000)
+)
+
+microbenchmark(
+  latest_results_10000 = rush$fetch_latest_results(),
+  fetch_results_10000 = rush$fetch_results(),
+  fetch_data_10000 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_10000)
+)
+```
+
+On cached data.
+
+```{r}
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+rush$reset()
+r = rush$connector
+
+setup = function(rush, xss, new_xss) {
+  rush$reset()
+  keys = rush$push_tasks(xss)
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  walk(keys, function(key) rush$push_results(key, list(y = 10)))
+  rush$fetch_data()
+  rush$fetch_results()
+  keys = rush$push_tasks(xss_100)
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  walk(keys, function(key) rush$push_results(key, list(y = 10)))
+}
+
+microbenchmark(
+  fetch_results_1 = rush$fetch_results(),
+  fetch_data_1 = rush$fetch_data(),
+  times = 100,
+  unit = "ms",
+  setup = setup(rush, list(xss_1), xss_100)
+)
+
+microbenchmark(
+  fetch_results_10 = rush$fetch_results(),
+  fetch_data_10 = rush$fetch_data(),
+  times = 100,
+  unit = "ms",
+  setup = setup(rush, xss_10)
+)
+
+microbenchmark(
+  fetch_results_100 = rush$fetch_results(),
+  fetch_data_100 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_100)
+)
+
+microbenchmark(
+  fetch_results_1000 = rush$fetch_results(),
+  fetch_data_1000 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_1000)
+)
+
+microbenchmark(
+  fetch_results_10000 = rush$fetch_results(),
+  fetch_data_10000 = rush$fetch_data(),
+  times = 10,
+  unit = "ms",
+  setup = setup(rush, xss_10000)
+)
+```
+
+
+
+
 
 # Syncing
 
@@ -114,27 +358,27 @@ Sync results.
 
 ```{r}
 config = redux::redis_config()
-server_1 = Rush$new("benchmark_1", config)
-server_100 = Rush$new("benchmark_100", config)
-server_10000 = Rush$new("benchmark_10000", config)
+rush_1 = Rush$new("benchmark_1", config)
+rush_100 = Rush$new("benchmark_100", config)
+rush_10000 = Rush$new("benchmark_10000", config)
 
 xss = list(x1 = 4, x2 = 6)
 xss_100 = replicate(100, xss, simplify = FALSE)
 xss_10000 = replicate(10000, xss, simplify = FALSE)
 
-setup = function(server, xss) {
-  server$reset()
-  keys = server$push_tasks(xss)
-  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
-  walk(keys, function(key) server$push_result(key, list(y = 10)))
+setup = function(rush, xss) {
+  rush$reset()
+  keys = rush$push_tasks(xss)
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  walk(keys, function(key) rush$push_results(key, list(y = 10)))
 }
 
 microbenchmark(
-  sync_1 = server_1$sync_data(),
-  sync_100 = server_100$sync_data(),
-  sync_10000 = server_10000$sync_data(),
-  times = 10,
-  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+  sync_1 = rush_1$sync_data(),
+  sync_100 = rush_100$sync_data(),
+  sync_10000 = rush_10000$sync_data(),
+  times = 1,
+  setup = {setup(rush_1, list(xss)); setup(rush_100, xss_100); setup(rush_10000, xss_10000)}
 )
 ```
 
@@ -147,38 +391,55 @@ Probably because of pipelining in redis.
 Sync one result to existing cache.
 
 ```{r}
-server_1 = Rush$new("benchmark_1", config)
-server_100 = Rush$new("benchmark_100", config)
-server_10000 = Rush$new("benchmark_10000", config)
+config = redux::redis_config()
+rush_1 = Rush$new("benchmark_1", config)
+rush_100 = Rush$new("benchmark_100", config)
+rush_10000 = Rush$new("benchmark_10000", config)
 
 xss = list(x1 = 4, x2 = 6)
 xss_100 = replicate(100, xss, simplify = FALSE)
 xss_10000 = replicate(10000, xss, simplify = FALSE)
 
-setup = function(server, xss) {
-  server$reset()
-  keys = server$push_tasks(xss)
-  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
-  walk(keys, function(key) server$push_result(key, list(y = 10)))
-  server$sync_data()
-  key = server$push_tasks(xss[1])
-  server$connector$command(c("SADD", get_private(server)$.get_key("running_tasks"), keys))
-  server$push_result(key[[1]], list(y = 10))
+setup = function(rush, xss) {
+  rush$reset()
+  keys = rush$push_tasks(xss)
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  walk(keys, function(key) rush$push_results(key, list(y = 10)))
+  rush$sync_data()
+  key = rush$push_tasks(xss[1])
+  rush$connector$command(c("SADD", get_private(rush)$.get_key("running_tasks"), keys))
+  rush$push_results(key[[1]], list(y = 10))
 }
 
-setup(server_1, list(xss))
-
 microbenchmark(
-  sync_1 = server_1$sync_data(),
-  sync_100 = server_100$sync_data(),
-  sync_10000 = server_10000$sync_data(),
-  times = 1,
-  setup = {setup(server_1, list(xss)); setup(server_100, xss_100); setup(server_10000, xss_10000)}
+  sync_1 = rush_1$sync_data(),
+  sync_100 = rush_100$sync_data(),
+  sync_10000 = rush_10000$sync_data(),
+  times = 3,
+  setup = {setup(rush_1, list(xss)); setup(rush_100, xss_100); setup(rush_10000, xss_10000)}
 )
 ```
 
-Syncing one result to an existing cache takes about 1 ms independent of the number of elements in the cache.
-Probably due to shallow copy in R.
+Syncing one result to an existing cache takes about 1 ms.
+Syncing takes slighly longer when many objects are already cached.
+
+# Get Data by Key
+
+```{r}
+config = redux::redis_config()
+rush = Rush$new("benchmark", config)
+
+xss_10000 = replicate(10000, xss, simplify = FALSE)
+keys = rush$push_tasks(xss_10000)
+
+microbenchmark(
+  get_data_1 = rush$get_data(keys[1]),
+  get_data_100 = rush$get_data(keys[1:100]),
+  get_data_10000 = rush_1$get_data(keys),
+  times = 3,
+  unit = "ms"
+)
+```
 
 # List columns
 
@@ -209,4 +470,225 @@ microbenchmark(
   set(xdt, j = "xss", value = xss),
   times = 100
 )
+```
+
+# Write Hashes
+
+One hash with one field.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_1 = data.table(x1 = runif(1), x2 = runif(1))
+xss_1 = transpose_list(xdt_1)
+
+microbenchmark(
+  write_hash = rush$write_hashes(xs = xss_1),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+       expr      min       lq      mean   median       uq     max neval
+ write_hash 0.530609 0.620622 0.9946271 0.648462 0.964719 140.569  1000
+
+One hash with two fields.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_1 = data.table(x1 = runif(1), x2 = runif(1))
+xss_1 = transpose_list(xdt_1)
+extra_1 = replicate(1, list(list(extra1 = runif(1))))
+
+microbenchmark(
+  write_hash = rush$write_hashes(xs = xss_1, xs_extra = extra_1),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+       expr      min       lq    mean    median        uq      max neval
+ write_hash 0.580248 0.607519 0.65182 0.6196865 0.6521155 1.159964   100
+
+
+Multiple hashes with one field.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_10 = data.table(x1 = runif(10), x2 = runif(10))
+xdt_100 = data.table(x1 = runif(100), x2 = runif(100))
+xdt_1000 = data.table(x1 = runif(1000), x2 = runif(1000))
+xdt_10000 = data.table(x1 = runif(10000), x2 = runif(10000))
+
+xss_10 = transpose_list(xdt_10)
+xss_100 = transpose_list(xdt_100)
+xss_1000 = transpose_list(xdt_1000)
+xss_10000 = transpose_list(xdt_10000)
+
+
+microbenchmark(
+  write_hashes_10 = rush$write_hashes(xs = xss_10),
+  write_hashes_100 = rush$write_hashes(xs = xss_100),
+  write_hashes_1000 = rush$write_hashes(xs = xss_1000),
+  write_hashes_10000 = rush$write_hashes(xs = xss_10000),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+               expr        min         lq       mean     median         uq        max neval
+    write_hashes_10   0.773612   1.027355   1.278735   1.301781   1.537268   1.684296   100
+   write_hashes_100   1.821931   2.190416   2.977044   2.862988   3.168775  14.746965   100
+  write_hashes_1000  10.971556  13.553282  18.063778  15.097364  19.352713 102.880572   100
+ write_hashes_10000 111.956769 132.023770 147.744713 143.365596 154.191339 306.108971   100
+
+Multiple hashes with two fields.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_10 = data.table(x1 = runif(10), x2 = runif(10))
+xdt_100 = data.table(x1 = runif(100), x2 = runif(100))
+xdt_1000 = data.table(x1 = runif(1000), x2 = runif(1000))
+xdt_10000 = data.table(x1 = runif(10000), x2 = runif(10000))
+
+xss_10 = transpose_list(xdt_10)
+xss_100 = transpose_list(xdt_100)
+xss_1000 = transpose_list(xdt_1000)
+xss_10000 = transpose_list(xdt_10000)
+
+extra_10 = replicate(10, list(list(extra1 = runif(1))))
+extra_100 = replicate(100, list(list(extra1 = runif(1))))
+extra_1000 = replicate(1000, list(list(extra1 = runif(1))))
+extra_10000 = replicate(10000, list(list(extra1 = runif(1))))
+
+
+microbenchmark(
+  write_hashes_10 = rush$write_hashes(xs = xss_10, xs_extra = extra_10),
+  write_hashes_100 = rush$write_hashes(xs = xss_100, xs_extra = extra_100),
+  write_hashes_1000 = rush$write_hashes(xs = xss_1000, xs_extra = extra_1000),
+  write_hashes_10000 = rush$write_hashes(xs = xss_10000, xs_extra = extra_10000),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+               expr        min          lq       mean     median         uq       max neval
+    write_hashes_10   0.756041   0.9748905   1.359851   1.122755   1.373602  10.91992   100
+   write_hashes_100   1.942930   2.2426215   2.831560   2.456692   3.543381  12.07348   100
+  write_hashes_1000  13.352710  15.1968510  18.918174  17.919134  21.298211  31.34914   100
+ write_hashes_10000 137.644531 156.7866165 181.286768 174.260601 188.582098 360.85884   100
+
+# Read Hashes
+
+One field.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_10000 = data.table(x1 = runif(10000), x2 = runif(10000))
+xss_10000 = transpose_list(xdt_10000)
+
+keys = rush$write_hashes(xs = xss_10000)
+
+microbenchmark(
+  read_hashes_1 = rush$read_hashes(keys[[1]], "xs"),
+  read_hashes_10 = rush$read_hashes(keys[seq(10)], "xs"),
+  read_hashes_100 = rush$read_hashes(keys[seq(100)], "xs"),
+  read_hashes_1000 = rush$read_hashes(keys[seq(1000)], "xs"),
+  read_hashes_10000 = rush$read_hashes(keys, "xs"),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+              expr        min          lq       mean     median         uq        max neval
+     read_hashes_1   0.600210   0.7896420   1.006246   0.885132   1.036484   4.032889   100
+    read_hashes_10   0.756010   0.8989385   1.177358   1.046673   1.190430   5.871955   100
+   read_hashes_100   1.602496   1.9365210   2.703555   2.086880   2.556201   8.985804   100
+  read_hashes_1000   9.744491  11.2126610  15.337870  13.128587  17.877468  44.668043   100
+ read_hashes_10000 103.455112 120.8318360 146.028175 140.802626 160.718842 295.989210   100
+
+Two fields.
+
+```{r}
+config = redux::redis_config()
+rush= Rush$new("benchmark", config)
+rush$reset()
+
+xdt_10000 = data.table(x1 = runif(10000), x2 = runif(10000))
+xss_10000 = transpose_list(xdt_10000)
+extra_10000 = replicate(10000, list(list(extra1 = runif(1))))
+
+keys = rush$write_hashes(xs = xss_10000, xs_extra = extra_10000)
+
+microbenchmark(
+  read_hashes_1 = rush$read_hashes(keys[[1]], c("xs", "xs_extra")),
+  read_hashes_10 = rush$read_hashes(keys[seq(10)], c("xs", "xs_extra")),
+  read_hashes_100 = rush$read_hashes(keys[seq(100)], c("xs", "xs_extra")),
+  read_hashes_1000 = rush$read_hashes(keys[seq(1000)], c("xs", "xs_extra")),
+  read_hashes_10000 = rush$read_hashes(keys, c("xs", "xs_extra")),
+  times = 100,
+  unit = "ms"
+)
+```
+
+Unit: milliseconds
+              expr        min          lq       mean      median          uq        max neval
+     read_hashes_1   0.613858   0.7555275   1.005441   0.8545745   0.9844215   5.571285   100
+    read_hashes_10   0.737404   0.8668575   1.101237   1.0230825   1.1997545   2.228207   100
+   read_hashes_100   1.784320   2.0785685   2.594113   2.2532730   2.4657635   8.656693   100
+  read_hashes_1000  11.199241  12.9659085  17.469444  15.0559710  19.7809245  57.997557   100
+ read_hashes_10000 121.931667 140.8399040 172.223226 166.0748975 188.6839580 324.805854   100
+
+
+# discard
+
+
+```{r}
+library(lobstr)
+
+args = list(xs = NULL, extra = list(a = 1), condition = NULL)
+
+lobstr::ref(args)
+
+args2 = discard(args, is.null)
+
+lobstr::ref(args2)
+```
+
+# length of 1000 lists
+
+
+```{r}
+config = redux::redis_config()
+r = redux::hiredis(config)
+
+walk(seq(1000), function(i) r$command(c("LPUSH", sprintf("list:%i", i), 1)))
+cmds =  map(sprintf("list:%i", seq(1000)), function(i) c("LLEN", i))
+
+cmds = map(self$worker_ids, function(worker_id)  c("LLEN", sprintf("%s:%s", private$.get_key("queued_tasks"), worker_id)))
+sum(unlist(r$pipeline(.commands = cmds)))
+
+microbenchmark(
+  length = sum(as.logical(r$pipeline(.commands = cmds)))
+)
+
 ```

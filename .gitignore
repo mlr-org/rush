@@ -1,1 +1,2 @@
 inst/doc
+tests/testthat/test-Rush.R

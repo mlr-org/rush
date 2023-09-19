@@ -11,16 +11,20 @@ License: LGPL-3
 Depends:
     R (>= 4.0.0),
 Imports:
+    callr,
     checkmate,
+    data.table,
     future,
     lgr,
     mlr3misc,
-    redux
+    redux,
+    uuid
 Suggests:
-    data.table,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-
+Config/testthat/edition: 3
+Config/testthat/parallel: true
