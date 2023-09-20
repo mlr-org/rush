@@ -1,0 +1,77 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# rush
+
+Rush is a package for asynchronous parallelization in R.
+Tasks are queued and distributed to workers in the background.
+It heavily uses Redis as a data base.
+
+![](man/figures/README-flow.png)
+
+## Install
+
+[Install Redis](https://redis.io/docs/getting-started/installation/)
+
+## Example
+
+```{r, include=FALSE}
+future::plan("sequential")
+config = redux::redis_config()
+r = redux::hiredis(config)
+r$FLUSHDB()
+```
+
+```{r}
+library(rush)
+
+# initialize controller
+rush = Rush$new("test")
+
+# start workers
+future::plan("multisession", workers = 2)
+
+fun = function(x1, x2, ...) {
+  list(y = x1 + x2)
+}
+
+rush$start_workers(fun)
+rush
+
+# push tasks
+xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
+keys = rush$push_tasks(xss)
+rush$wait_tasks(keys)
+rush$n_finished_tasks
+
+# get results
+rush$data
+
+# push more tasks
+xss = list(list(x1 = 1, x2 = 5), list(x1 = 7, x2 = 6))
+keys = rush$push_tasks(xss)
+rush$wait_tasks(keys)
+
+rush$data
+```
+
+## Task States
+
+Tasks have four states: `queued`, `running`, `finished`, `failed`.
+
+* `queued` tasks are in the wait list.
+* `running` tasks are evaluated on a worker.
+* `finished` tasks pushed their result to the data base.
+* `failed` tasks threw an error.
+
+## Worker States
+
+Workers have four states: `running`, `terminated`, `killed`, `lost`.
+
+* `running` workers are evaluating tasks.
+* `terminated` workers are stopped.
+* `killed` workers were killed by the user.
+* `lost` workers crashed.
