@@ -54,6 +54,9 @@ Identifier of the instance.}
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration.}
 
+\item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
+Connector to redis.}
+
 \item{\code{promises}}{(\code{\link[future:Future-class]{future::Future()}})\cr
 List of futures.}
 }
@@ -62,9 +65,6 @@ List of futures.}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{connector}}{(\link[redux:hiredis]{redux::hiredis})\cr
-Redis connector.}
-
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
@@ -107,6 +107,11 @@ Number of all tasks.}
 \item{\code{data}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains all performed function calls.}
 
+\item{\code{worker_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
+Contains information about the workers.
+
+The methods \verb{$detect_lost_workers()}, \verb{$detect_lost_tasks()} and \verb{$stop_workers()} update the status column.}
+
 \item{\code{priority_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains the number of tasks in the priority queues.}
 }
@@ -122,9 +127,8 @@ Contains the number of tasks in the priority queues.}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-await_workers}{\code{Rush$await_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
-\item \href{#method-Rush-worker_info}{\code{Rush$worker_info()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
-\item \href{#method-Rush-detect_failed_tasks}{\code{Rush$detect_failed_tasks()}}
+\item \href{#method-Rush-detect_lost_tasks}{\code{Rush$detect_lost_tasks()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
@@ -136,7 +140,7 @@ Contains the number of tasks in the priority queues.}
 \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
 \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
 \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
-\item \href{#method-Rush-wait_tasks}{\code{Rush$wait_tasks()}}
+\item \href{#method-Rush-await_tasks}{\code{Rush$await_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
@@ -323,50 +327,30 @@ If \code{NULL} all workers are stopped.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-worker_info"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-worker_info}{}}}
-\subsection{Method \code{worker_info()}}{
-Get status of workers.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$worker_info(worker_ids = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_ids}}{(\code{character()})\cr
-Worker ids to be checked.
-If \code{NULL} all workers are checked.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-detect_lost_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-detect_lost_workers}{}}}
 \subsection{Method \code{detect_lost_workers()}}{
 Detect lost workers.
-Workers can only be detected if they were started with \code{future} or a heartbeat.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(worker_ids = NULL)}\if{html}{\out{</div>}}
+Updates the state of lost workers in \verb{$worker_info}.
+\enumerate{
+\item Local workers without a heartbeat are checked with \code{tools::pskill()}.
+\item Workers with a heartbeat process are checked with \code{EXISTS} on the heartbeat key.
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_ids}}{(\code{character()})\cr
-Workers to be checked.}
+Checking local workers on windows might be very slow.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
 }
-\if{html}{\out{</div>}}
-}
+
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-detect_failed_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-detect_failed_tasks}{}}}
-\subsection{Method \code{detect_failed_tasks()}}{
-Detect failed tasks.
+\if{html}{\out{<a id="method-Rush-detect_lost_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-detect_lost_tasks}{}}}
+\subsection{Method \code{detect_lost_tasks()}}{
+Detect lost tasks.
+Changes the status of tasks to \code{"lost"} if the worker crashed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_failed_tasks()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_tasks()}\if{html}{\out{</div>}}
 }
 
 }
@@ -374,7 +358,7 @@ Detect failed tasks.
 \if{html}{\out{<a id="method-Rush-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-reset}{}}}
 \subsection{Method \code{reset()}}{
-Reset the data base.
+Stop workers and delete data stored in redis.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$reset()}\if{html}{\out{</div>}}
 }
@@ -387,7 +371,7 @@ Reset the data base.
 Pushes a task to the queue.
 Task is added to queued tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = list())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -640,12 +624,12 @@ Table of all tasks.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-wait_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-wait_tasks}{}}}
-\subsection{Method \code{wait_tasks()}}{
+\if{html}{\out{<a id="method-Rush-await_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-await_tasks}{}}}
+\subsection{Method \code{await_tasks()}}{
 Wait until tasks are finished.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_tasks(keys)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$await_tasks(keys, detect_lost_tasks = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -653,6 +637,10 @@ Wait until tasks are finished.
 \describe{
 \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to wait for.}
+
+\item{\code{detect_lost_tasks}}{(\code{logical(1)})\cr
+Whether to detect failed tasks.
+Comes with an overhead.}
 }
 \if{html}{\out{</div>}}
 }

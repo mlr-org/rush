@@ -9,7 +9,7 @@ Authors@R:
 Description: Parallel programmierung with future and redis.
 License: LGPL-3
 Depends:
-    R (>= 4.0.0),
+    R (>= 3.1.0),
 Imports:
     callr,
     checkmate,

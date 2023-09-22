@@ -5,6 +5,7 @@
 #' @import checkmate
 #' @importFrom uuid UUIDgenerate
 #' @importFrom callr r_bg
+#' @importFrom utils str
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

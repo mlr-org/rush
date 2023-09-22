@@ -20,10 +20,6 @@ RushWorker = R6::R6Class("RushWorker",
     #' Local or remote host.
     host = NULL,
 
-    #' @field initializer (`character(1)`)\cr
-    #' Future or batch initializer.
-    initializer = NULL,
-
     #' @field heartbeat (`callr::RBackgroundProcess`)\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
@@ -37,17 +33,14 @@ RushWorker = R6::R6Class("RushWorker",
     #' Redis configuration.
     #' @param host (`character(1)`)\cr
     #' Local or remote host.
-    #' @param initializer (`character(1)`)\cr
-    #' Future or batch initializer.
     #' @param worker_id (`character(1)`)\cr
     #' Identifier of the worker.
     #' @param heartbeat_period (`numeric(1)`)\cr
     #' Period of the heartbeat.
     #' @param heartbeat_expire (`numeric(1)`)\cr
     #' Expiration of the heartbeat.
-    initialize = function(instance_id, config = redux::redis_config(), host, initializer, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL) {
+    initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL) {
       self$host = assert_choice(host, c("local", "remote"))
-      self$initializer = assert_choice(initializer, c("future", "batch"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
 
       super$initialize(instance_id = instance_id, config = config)
@@ -81,16 +74,7 @@ RushWorker = R6::R6Class("RushWorker",
         "pid", Sys.getpid(),
         "status", "running",
         "host", self$host,
-        "initializer", self$initializer,
         "heartbeat", as.character(!is.null(self$heartbeat))))
-    },
-
-    #' @description
-    #' Unregister worker.
-    unregister_worker = function() {
-      r = self$connector
-      r$SREM(private$.get_key("worker_ids"), self$worker_id)
-      r$DEL(private$.get_key(self$worker_id))
     },
 
     #' @description

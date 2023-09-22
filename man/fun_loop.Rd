@@ -9,7 +9,6 @@ fun_loop(
   instance_id,
   config,
   host,
-  initializer,
   worker_id,
   heartbeat_period,
   heartbeat_expire
@@ -27,9 +26,6 @@ Redis configuration.}
 
 \item{host}{(\code{character(1)})\cr
 Local or remote host.}
-
-\item{initializer}{(\code{character(1)})\cr
-Future or batch initializer.}
 
 \item{worker_id}{(\code{character(1)})\cr
 Identifier of the worker.}

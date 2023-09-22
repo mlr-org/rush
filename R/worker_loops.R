@@ -11,8 +11,6 @@
 #' Redis configuration.
 #' @param host (`character(1)`)\cr
 #' Local or remote host.
-#' @param initializer (`character(1)`)\cr
-#' Future or batch initializer.
 #' @param worker_id (`character(1)`)\cr
 #' Identifier of the worker.
 #' @param heartbeat_period (`numeric(1)`)\cr
@@ -21,12 +19,11 @@
 #' Expiration of the heartbeat.
 #'
 #' @export
-fun_loop = function(fun, instance_id, config, host, initializer, worker_id, heartbeat_period, heartbeat_expire) {
+fun_loop = function(fun, instance_id, config, host, worker_id, heartbeat_period, heartbeat_expire) {
   rush = RushWorker$new(
     instance_id = instance_id,
     config = config,
     host = host,
-    initializer = initializer,
     worker_id = worker_id,
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire)
@@ -63,8 +60,6 @@ fun_loop = function(fun, instance_id, config, host, initializer, worker_id, hear
 #' Redis configuration.
 #' @param host (`character(1)`)\cr
 #' Local or remote host.
-#' @param initializer (`character(1)`)\cr
-#' Future or batch initializer.
 #' @param worker_id (`character(1)`)\cr
 #' Identifier of the worker.
 #' @param heartbeat_period (`numeric(1)`)\cr
@@ -73,12 +68,11 @@ fun_loop = function(fun, instance_id, config, host, initializer, worker_id, hear
 #' Expiration of the heartbeat.
 #'
 #' @export
-list_fun_loop = function(fun, instance_id, config, host, initializer, worker_id, heartbeat_period, heartbeat_expire) {
+list_fun_loop = function(fun, instance_id, config, host, worker_id, heartbeat_period, heartbeat_expire) {
   rush = RushWorker$new(
     instance_id = instance_id,
     config = config,
     host = host,
-    initializer = initializer,
     worker_id = worker_id,
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire)

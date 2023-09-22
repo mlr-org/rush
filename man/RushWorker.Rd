@@ -21,9 +21,6 @@ List of constants.}
 \item{\code{host}}{(\code{character(1)})\cr
 Local or remote host.}
 
-\item{\code{initializer}}{(\code{character(1)})\cr
-Future or batch initializer.}
-
 \item{\code{heartbeat}}{(\code{callr::RBackgroundProcess})\cr
 Background process for the heartbeat.}
 }
@@ -41,7 +38,6 @@ Whether to shutdown the worker.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
-\item \href{#method-RushWorker-unregister_worker}{\code{RushWorker$unregister_worker()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
@@ -50,10 +46,11 @@ Whether to shutdown the worker.}
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="await_tasks"><a href='../../rush/html/Rush.html#method-Rush-await_tasks'><code>rush::Rush$await_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="await_workers"><a href='../../rush/html/Rush.html#method-Rush-await_workers'><code>rush::Rush$await_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="block_latest_results"><a href='../../rush/html/Rush.html#method-Rush-block_latest_results'><code>rush::Rush$block_latest_results()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href='../../rush/html/Rush.html#method-Rush-create_worker_script'><code>rush::Rush$create_worker_script()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-detect_failed_tasks'><code>rush::Rush$detect_failed_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_tasks"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_tasks'><code>rush::Rush$detect_lost_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
@@ -70,8 +67,6 @@ Whether to shutdown the worker.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>rush::Rush$start_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_tasks'><code>rush::Rush$wait_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="worker_info"><a href='../../rush/html/Rush.html#method-Rush-worker_info'><code>rush::Rush$worker_info()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>rush::Rush$write_hashes()</code></a></span></li>
 </ul>
 </details>
@@ -86,7 +81,6 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   instance_id,
   config = redux::redis_config(),
   host,
-  initializer,
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL
@@ -105,9 +99,6 @@ Redis configuration.}
 \item{\code{host}}{(\code{character(1)})\cr
 Local or remote host.}
 
-\item{\code{initializer}}{(\code{character(1)})\cr
-Future or batch initializer.}
-
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
@@ -119,16 +110,6 @@ Expiration of the heartbeat.}
 }
 \if{html}{\out{</div>}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-unregister_worker"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-unregister_worker}{}}}
-\subsection{Method \code{unregister_worker()}}{
-Unregister worker.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$unregister_worker()}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-pop_task"></a>}}
