@@ -7,7 +7,7 @@ choose_pid_exists = function() {
 
     suppressWarnings({
       if (os == "unix") {
-        if (isTRUE(pid_exists_by_pskill(Sys.getpid()))) {
+        if (isTRUE(pid_exists_by_pskill(Sys.getpid())) && getRversion() >= "3.5.0") {
           pid_check = pid_exists_by_pskill
         } else if (isTRUE(pid_exists_by_ps(Sys.getpid()))) {
           pid_check = pid_exists_by_ps
