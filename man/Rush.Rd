@@ -136,8 +136,10 @@ Contains the number of tasks in the priority queues.}
 \item \href{#method-Rush-block_latest_results}{\code{Rush$block_latest_results()}}
 \item \href{#method-Rush-fetch_results}{\code{Rush$fetch_results()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
+\item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
 \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
+\item \href{#method-Rush-block_finished_tasks}{\code{Rush$block_finished_tasks()}}
 \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
 \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
 \item \href{#method-Rush-await_tasks}{\code{Rush$await_tasks()}}
@@ -397,6 +399,7 @@ Keys of the tasks.
 Pushes a task to the queue of a specific worker.
 Task is added to queued priority tasks.
 A worker evaluates the tasks in the priority queue before the normal queue.
+If \code{priority} is \code{NA} the task is added to the normal queue.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_priority_tasks(xss, extra = NULL, priority = NULL)}\if{html}{\out{</div>}}
 }
@@ -519,6 +522,29 @@ Table of queued tasks.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fetch_priority_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fetch_priority_tasks}{}}}
+\subsection{Method \code{fetch_priority_tasks()}}{
+Fetch queued priority tasks from the data base.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra", "status"))}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.
+Defaults to \code{c("xs", "xs_extra", "status")}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{data.table()}\cr
+Table of queued priority tasks.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_running_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_running_tasks}{}}}
 \subsection{Method \code{fetch_running_tasks()}}{
@@ -565,6 +591,36 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{data.table()}\cr
+Table of finished tasks.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-block_finished_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-block_finished_tasks}{}}}
+\subsection{Method \code{block_finished_tasks()}}{
+Block process until a new finished task is available.
+Returns all finished tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$block_finished_tasks(
+  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"),
+  timeout = Inf
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")}.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Time to wait for a result in seconds.}
 }
 \if{html}{\out{</div>}}
 }

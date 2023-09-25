@@ -1017,3 +1017,23 @@ microbenchmark(
 Unit: milliseconds
                 expr      min        lq      mean    median       uq      max neval
  detect_lost_workers 0.718074 0.7580115 0.9484395 0.7927805 0.809943 13.76021   100
+
+# Priority Tasks
+
+
+```{r}
+config = start_flush_redis()
+rush = Rush$new("benchmark", config)
+
+future::plan("multisession", workers = 20)
+fun = function(x1, x2, ...) list(y = x1 + x2)
+rush$start_workers(fun, n_workers = 20, host = "local")
+
+rush$await_workers(20)
+
+microbenchmark(
+  n_queued_priority_tasks = rush$n_queued_priority_tasks,
+  times = 100,
+  unit = "ms"
+)
+```

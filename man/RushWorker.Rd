@@ -48,6 +48,7 @@ Whether to shutdown the worker.}
 <ul>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="await_tasks"><a href='../../rush/html/Rush.html#method-Rush-await_tasks'><code>rush::Rush$await_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="await_workers"><a href='../../rush/html/Rush.html#method-Rush-await_workers'><code>rush::Rush$await_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="block_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-block_finished_tasks'><code>rush::Rush$block_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="block_latest_results"><a href='../../rush/html/Rush.html#method-Rush-block_latest_results'><code>rush::Rush$block_latest_results()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href='../../rush/html/Rush.html#method-Rush-create_worker_script'><code>rush::Rush$create_worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_tasks"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_tasks'><code>rush::Rush$detect_lost_tasks()</code></a></span></li>
@@ -55,6 +56,7 @@ Whether to shutdown the worker.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_latest_results"><a href='../../rush/html/Rush.html#method-Rush-fetch_latest_results'><code>rush::Rush$fetch_latest_results()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_priority_tasks'><code>rush::Rush$fetch_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_queued_tasks'><code>rush::Rush$fetch_queued_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_results"><a href='../../rush/html/Rush.html#method-Rush-fetch_results'><code>rush::Rush$fetch_results()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>rush::Rush$fetch_running_tasks()</code></a></span></li>

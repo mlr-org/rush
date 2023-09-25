@@ -383,7 +383,8 @@ Rush = R6::R6Class("Rush",
       assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
 
-      lg$info("Sending %i task(s)", length(xss))
+      lg$debug("Pushing %i task(s) to the default queue",
+        length(xss))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, status = "queued")
       r$command(c("LPUSH", private$.get_key("queued_tasks"), keys))
@@ -396,6 +397,7 @@ Rush = R6::R6Class("Rush",
     #' Pushes a task to the queue of a specific worker.
     #' Task is added to queued priority tasks.
     #' A worker evaluates the tasks in the priority queue before the normal queue.
+    #' If `priority` is `NA` the task is added to the normal queue.
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
@@ -410,14 +412,20 @@ Rush = R6::R6Class("Rush",
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       assert_character(priority, len = length(xss))
-      assert_subset(priority, self$worker_ids)
+      assert_subset(priority, c(NA_character_, self$worker_ids))
       r = self$connector
 
-      lg$info("Sending %i task(s)", length(xss))
+      lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the default queue",
+        sum(!is.na(priority)), length(unique(priority[!is.na(priority)])), sum(is.na(priority)))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, status = "queued")
-      cmds = pmap(list(priority, keys), function(worker_id, key) c("LPUSH", private$.get_worker_key("queued_tasks", worker_id), key))
-
+      cmds = pmap(list(priority, keys), function(worker_id, key) {
+        if (is.na(priority)) {
+          c("LPUSH", private$.get_key("queued_tasks"), key)
+        } else {
+          c("LPUSH", private$.get_worker_key("queued_tasks", worker_id), key)
+        }
+      })
       r$pipeline(.commands = cmds)
       r$command(c("SADD", private$.get_key("all_tasks"), keys))
 
@@ -487,6 +495,8 @@ Rush = R6::R6Class("Rush",
       if (self$n_finished_tasks > nrow(private$.cached_results)) {
         keys = r$command(c("LRANGE", private$.get_key("finished_tasks"), nrow(private$.cached_results), -1))
 
+        lg$debug("Caching %i result(s)", length(keys))
+
         # cache results
         results = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
         results[, keys := unlist(keys)]
@@ -511,6 +521,30 @@ Rush = R6::R6Class("Rush",
 
       if (!self$n_queued_tasks) return(data.table())
       keys = self$queued_tasks
+      data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
+      data[, keys := unlist(keys)]
+      data[]
+    },
+
+    #' @description
+    #' Fetch queued priority tasks from the data base.
+    #'
+    #' @param fields (`character()`)\cr
+    #' Fields to be read from the hashes.
+    #' Defaults to `c("xs", "xs_extra", "status")`.
+    #'
+    #' @return `data.table()`\cr
+    #' Table of queued priority tasks.
+    fetch_priority_tasks = function(fields = c("xs", "xs_extra", "status")) {
+      r = self$connector
+      assert_character(fields)
+
+      cmds = map(self$worker_ids, function(worker_id)  c("LRANGE", private$.get_worker_key("queued_tasks", worker_id), "0", "-1"))
+      if (!length(cmds)) return(data.table())
+
+      keys = unlist(r$pipeline(.commands = cmds))
+      if (is.null(keys)) return(data.table())
+
       data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
       data[, keys := unlist(keys)]
       data[]
@@ -557,6 +591,8 @@ Rush = R6::R6Class("Rush",
       if (self$n_finished_tasks > nrow(private$.cached_data)) {
         keys = r$command(c("LRANGE", private$.get_key("finished_tasks"), nrow(private$.cached_data), -1))
 
+        lg$debug("Caching %i finished task(s)", length(keys))
+
         # cache results
         data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
         data[, keys := unlist(keys)]
@@ -564,6 +600,27 @@ Rush = R6::R6Class("Rush",
       }
 
       private$.cached_data
+    },
+
+    #' @description
+    #' Block process until a new finished task is available.
+    #' Returns all finished tasks or `NULL` if no new task is available after `timeout` seconds.
+    #'
+    #' @param fields (`character()`)\cr
+    #' Fields to be read from the hashes.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")`.
+    #' @param timeout (`numeric(1)`)\cr
+    #' Time to wait for a result in seconds.
+    #'
+    #' @return `data.table()`\cr
+    #' Table of finished tasks.
+    block_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"), timeout = Inf) {
+      start_time = Sys.time()
+      while(start_time + timeout > Sys.time()) {
+        if (self$n_finished_tasks > nrow(private$.cached_data)) return(self$fetch_finished_tasks(fields))
+        Sys.sleep(0.01)
+      }
+      NULL
     },
 
     #' @description
@@ -659,10 +716,16 @@ Rush = R6::R6Class("Rush",
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
       bin_status = redux::object_to_bin(list(status = status))
 
+      lg$debug("Writting %i hash(es) with %i field(s)",
+        length(keys), length(fields))
+
       # construct list of redis commands to write hashes
       cmds = pmap(c(list(key = keys), values), function(key, ...) {
           # serialize lists
           bin_values = map(list(...), redux::object_to_bin)
+
+          lg$debug("Serialzing %i value(s) to %s",
+            length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
 
           # merge fields and values alternatively
           # c and rbind are fastest option in R
@@ -689,6 +752,10 @@ Rush = R6::R6Class("Rush",
     #' The outer list contains one element for each key.
     #' The inner list is the combination of the lists stored at the different fields.
     read_hashes = function(keys, fields) {
+
+      lg$debug("Reading %i hash(es) with %i field(s)",
+        length(keys), length(fields))
+
       # construct list of redis commands to read hashes
       cmds = map(keys, function(key) c("HMGET", key, fields))
 
