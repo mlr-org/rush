@@ -209,26 +209,24 @@ Print method.
 Start workers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
-  fun,
-  as_list = FALSE,
+  worker_loop = fun_loop,
   n_workers = NULL,
   globals = NULL,
   packages = NULL,
   host = "local",
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  ...
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{fun}}{(\code{function})\cr
-Function to be executed by the workers.
-Function must return a named list.}
-
-\item{\code{as_list}}{(\code{logical(1)})\cr
-Whether the function takes a list of arguments (\verb{fun(xs = list(x1, x2)}) or named arguments (\code{fun(x1, x2)}).}
+\item{\code{worker_loop}}{(\code{function})\cr
+Start a worker loop with the future package.
+Defaults to \link{fun_loop}.
+Pass \code{fun} in \code{...}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.
@@ -248,6 +246,9 @@ Period of the heartbeat in seconds.}
 
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
 }

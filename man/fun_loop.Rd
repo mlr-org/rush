@@ -4,37 +4,14 @@
 \alias{fun_loop}
 \title{Single Task Worker Loop}
 \usage{
-fun_loop(
-  fun,
-  instance_id,
-  config,
-  host,
-  worker_id,
-  heartbeat_period,
-  heartbeat_expire
-)
+fun_loop(fun, rush)
 }
 \arguments{
 \item{fun}{(\code{function})\cr
 Function to be executed.}
 
-\item{instance_id}{(\code{character(1)})\cr
-Identifier of the rush instance.}
-
-\item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
-
-\item{host}{(\code{character(1)})\cr
-Local or remote host.}
-
-\item{worker_id}{(\code{character(1)})\cr
-Identifier of the worker.}
-
-\item{heartbeat_period}{(\code{numeric(1)})\cr
-Period of the heartbeat.}
-
-\item{heartbeat_expire}{(\code{numeric(1)})\cr
-Expiration of the heartbeat.}
+\item{rush}{(\code{character(1)})\cr
+Rush worker instance.}
 }
 \description{
 Worker loop that pops a single task from the queue, executes the function and pushes the results.

@@ -93,11 +93,10 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Start workers.
     #'
-    #' @param fun (`function`)\cr
-    #' Function to be executed by the workers.
-    #' Function must return a named list.
-    #' @param as_list (`logical(1)`)\cr
-    #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
+    #' @param worker_loop (`function`)\cr
+    #' Start a worker loop with the future package.
+    #' Defaults to [fun_loop].
+    #' Pass `fun` in `...`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' If `NULL` the maximum number of free workers is used.
@@ -111,15 +110,16 @@ Rush = R6::R6Class("Rush",
     #' Period of the heartbeat in seconds.
     #' @param heartbeat_expire (`integer(1)`)\cr
     #' Time to live of the heartbeat in seconds.
-    start_workers = function(fun, as_list = FALSE, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL) {
-      assert_function(fun)
-      assert_flag(as_list)
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
+    start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, ...) {
       assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
       assert_count(n_workers, positive = TRUE, null.ok = TRUE)
       assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      dots = list(...)
 
       # check free workers
       if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
@@ -129,28 +129,89 @@ Rush = R6::R6Class("Rush",
 
       r = self$connector
 
-      # choose wrapper function
-      worker_loop = if (as_list) list_fun_loop else fun_loop
-
       # start workers
       instance_id = self$instance_id
       config = self$config
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
-        future::future(worker_loop(
-          fun = fun,
-          instance_id = instance_id,
-          config = config,
-          host = host,
-          worker_id = worker_id,
-          heartbeat_period = heartbeat_period,
-          heartbeat_expire = heartbeat_expire),
+        future::future(run_worker(
+            worker_loop = worker_loop,
+            instance_id = instance_id,
+            config = config,
+            host = host,
+            worker_id = worker_id,
+            heartbeat_period = heartbeat_period,
+            heartbeat_expire = heartbeat_expire,
+            args = dots),
           seed = TRUE,
-          globals = c(globals, "worker_loop", "fun", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire"), packages = packages)
+          globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "dots"),
+          packages = packages)
       }), worker_ids))
 
       return(invisible(worker_ids))
     },
+
+    # #' @description
+    # #' Start workers.
+    # #'
+    # #' @param fun (`function`)\cr
+    # #' Function to be executed by the workers.
+    # #' Function must return a named list.
+    # #' @param as_list (`logical(1)`)\cr
+    # #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
+    # #' @param n_workers (`integer(1)`)\cr
+    # #' Number of workers to be started.
+    # #' If `NULL` the maximum number of free workers is used.
+    # #' @param globals (`character()`)\cr
+    # #' Global variables to be loaded by the workers.
+    # #' @param packages (`character()`)\cr
+    # #' Packages to be loaded by the workers.
+    # #' @param host (`character(1)`)\cr
+    # #' Local or remote host.
+    # #' @param heartbeat_period (`integer(1)`)\cr
+    # #' Period of the heartbeat in seconds.
+    # #' @param heartbeat_expire (`integer(1)`)\cr
+    # #' Time to live of the heartbeat in seconds.
+    # start_workers = function(fun, as_list = FALSE, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL) {
+    #   assert_function(fun)
+    #   assert_flag(as_list)
+    #   assert_character(globals, null.ok = TRUE)
+    #   assert_character(packages, null.ok = TRUE)
+    #   assert_count(n_workers, positive = TRUE, null.ok = TRUE)
+    #   assert_choice(host, c("local", "remote"))
+    #   assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
+    #   assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+
+    #   # check free workers
+    #   if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
+    #   if (n_workers > future::nbrOfFreeWorkers()) {
+    #     stopf("No more than %i rush workers can be started. For starting more workers, change the number of workers in the future plan.", future::nbrOfFreeWorkers())
+    #   }
+
+    #   r = self$connector
+
+    #   # choose wrapper function
+    #   worker_loop = if (as_list) list_fun_loop else fun_loop
+
+    #   # start workers
+    #   instance_id = self$instance_id
+    #   config = self$config
+    #   worker_ids = uuid::UUIDgenerate(n = n_workers)
+    #   self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
+    #     future::future(worker_loop(
+    #       fun = fun,
+    #       instance_id = instance_id,
+    #       config = config,
+    #       host = host,
+    #       worker_id = worker_id,
+    #       heartbeat_period = heartbeat_period,
+    #       heartbeat_expire = heartbeat_expire),
+    #       seed = TRUE,
+    #       globals = c(globals, "worker_loop", "fun", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire"), packages = packages)
+    #   }), worker_ids))
+
+    #   return(invisible(worker_ids))
+    # },
 
     #' @description
     #' Create batch script to start workers.
@@ -519,8 +580,9 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       assert_character(fields)
 
-      if (!self$n_queued_tasks) return(data.table())
       keys = self$queued_tasks
+      if (is.null(keys)) return(data.table())
+
       data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
       data[, keys := unlist(keys)]
       data[]
@@ -563,8 +625,9 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       assert_character(fields)
 
-      if (!self$n_running_tasks) return(data.table())
       keys = self$running_tasks
+      if (is.null(keys)) return(data.table())
+
       data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
       data[, keys := unlist(keys)]
       data[]
@@ -636,8 +699,9 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       assert_character(fields)
 
-      if (!self$n_failed_tasks) return(data.table())
       keys = self$failed_tasks
+      if (is.null(keys)) return(data.table())
+
       data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
       data[, keys := unlist(keys)]
       data[]
@@ -656,8 +720,9 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       assert_character(fields)
 
-      if (!self$n_tasks) return(data.table())
       keys = self$tasks
+      if (is.null(keys)) return(data.table())
+
       data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
       data[, keys := unlist(keys)]
       data[]
@@ -931,3 +996,4 @@ Rush = R6::R6Class("Rush",
     }
   )
 )
+
