@@ -481,7 +481,7 @@ Rush = R6::R6Class("Rush",
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, status = "queued")
       cmds = pmap(list(priority, keys), function(worker_id, key) {
-        if (is.na(priority)) {
+        if (is.na(worker_id)) {
           c("LPUSH", private$.get_key("queued_tasks"), key)
         } else {
           c("LPUSH", private$.get_worker_key("queued_tasks", worker_id), key)
