@@ -363,11 +363,12 @@ Rush = R6::R6Class("Rush",
     #' Changes the status of tasks to `"lost"` if the worker crashed.
     detect_lost_tasks = function() {
       r = self$connector
+      if (!self$n_workers) return(invisible(self))
       self$detect_lost_workers()
       running_tasks = self$fetch_running_tasks(fields = "worker_extra")
       worker_info = self$worker_info
 
-      lost_workers = worker_info[list("lost"), worker_id, on = c("status")]
+      lost_workers = worker_info[list("lost"), worker_id, on = c("status"), nomatch = NULL]
 
       if (length(lost_workers)) {
         bin_status = redux::object_to_bin(list(status = "lost"))
