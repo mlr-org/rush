@@ -11,7 +11,6 @@ License: LGPL-3
 Depends:
     R (>= 3.1.0),
 Imports:
-    callr,
     checkmate,
     data.table,
     future,
@@ -20,6 +19,8 @@ Imports:
     redux,
     uuid
 Suggests:
+    callr,
+    evaluate,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

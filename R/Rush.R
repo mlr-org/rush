@@ -120,6 +120,7 @@ Rush = R6::R6Class("Rush",
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
       dots = list(...)
+      if (!is.null(heartbeat_period)) require_namespaces("callr")
 
       # check free workers
       if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
@@ -348,6 +349,9 @@ Rush = R6::R6Class("Rush",
       }
 
       if (length(lost_workers)) {
+
+        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
+
         # update state
         r$pipeline(.commands = map(lost_workers, function(worker_id) c("HSET", private$.get_key(worker_id), "status", "lost")))
 
