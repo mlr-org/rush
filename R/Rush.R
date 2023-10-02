@@ -122,6 +122,7 @@ Rush = R6::R6Class("Rush",
       assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      assert_flag(await_workers)
       dots = list(...)
       if (!is.null(heartbeat_period)) require_namespaces("callr")
 
@@ -152,7 +153,8 @@ Rush = R6::R6Class("Rush",
           packages = packages)
       }), worker_ids))
 
-      self$await_workers(n_workers)
+
+      if (await_workers) self$await_workers(n_workers)
 
       return(invisible(worker_ids))
     },
