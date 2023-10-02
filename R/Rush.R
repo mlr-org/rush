@@ -110,9 +110,12 @@ Rush = R6::R6Class("Rush",
     #' Period of the heartbeat in seconds.
     #' @param heartbeat_expire (`integer(1)`)\cr
     #' Time to live of the heartbeat in seconds.
+    #' @param await_workers (`logical(1)`)\cr
+    #' Whether to wait until all workers are available.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, ...) {
+    start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, await_workers = TRUE, ...) {
       assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
       assert_count(n_workers, positive = TRUE, null.ok = TRUE)
@@ -148,6 +151,8 @@ Rush = R6::R6Class("Rush",
           globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "dots"),
           packages = packages)
       }), worker_ids))
+
+      self$await_workers(n_workers)
 
       return(invisible(worker_ids))
     },

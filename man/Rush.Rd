@@ -216,6 +216,7 @@ Start workers.
   host = "local",
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
+  await_workers = TRUE,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -246,6 +247,9 @@ Period of the heartbeat in seconds.}
 
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.}
+
+\item{\code{await_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}

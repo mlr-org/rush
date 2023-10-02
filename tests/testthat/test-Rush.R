@@ -648,8 +648,8 @@ test_that("workers are started", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   future::plan("multisession", workers = 2)
-  worker_ids = rush$start_workers(fun = fun, host = "local")
-  rush$await_workers(2)
+  worker_ids = rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
+  expect_equal(rush$n_workers, 2)
 
   # check fields
   walk(rush$promises, function(promise) expect_class(promise, "Future"))
@@ -662,7 +662,6 @@ test_that("workers are started", {
   expect_set_equal(worker_info$status, "running")
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_equal(rush$n_workers, 2)
 
   expect_reset_rush(rush)
 })
