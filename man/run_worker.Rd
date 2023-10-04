@@ -12,6 +12,7 @@ run_worker(
   worker_id,
   heartbeat_period,
   heartbeat_expire,
+  lgr_thresholds,
   args
 )
 }
@@ -33,6 +34,9 @@ Period of the heartbeat.}
 
 \item{heartbeat_expire}{(\code{numeric(1)})\cr
 Expiration of the heartbeat.}
+
+\item{lgr_thresholds}{(named \code{character()} or \code{numeric()})\cr
+Logger thresholds.}
 
 \item{fun}{(\code{function})\cr
 Function to be executed.}

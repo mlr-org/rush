@@ -130,6 +130,7 @@ Contains the number of tasks in the priority queues.}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-detect_lost_tasks}{\code{Rush$detect_lost_tasks()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
+\item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-fetch_latest_results}{\code{Rush$fetch_latest_results()}}
@@ -216,6 +217,7 @@ Start workers.
   host = "local",
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
+  lgr_thresholds = NULL,
   await_workers = TRUE,
   ...
 )}\if{html}{\out{</div>}}
@@ -247,6 +249,9 @@ Period of the heartbeat in seconds.}
 
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
 \item{\code{await_workers}}{(\code{logical(1)})\cr
 Whether to wait until all workers are available.}
@@ -370,6 +375,24 @@ Stop workers and delete data stored in redis.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$reset()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-read_log"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-read_log}{}}}
+\subsection{Method \code{read_log()}}{
+Read log messages written with the \code{lgr} package from a worker.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_id)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{worker_id}}{(\code{character(1)})\cr
+Worker id.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}

@@ -636,6 +636,27 @@ test_that("mixing priority queues and default queue work", {
 
 })
 
+test_that("saving lgr logs works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+
+  lg = lgr::get_logger("rush")
+
+  rush = RushWorker$new(instance_id = "test-rush", config = config, host = "local", lgr_thresholds = c(rush = "debug"))
+
+  lg$info("test")
+  expect_data_table(rush$lgr_buffer$dt, nrows = 1)
+
+  rush$write_log()
+  expect_data_table(rush$lgr_buffer$dt, nrows = 0)
+  expect_data_table(rush$read_log(rush$worker_id), nrows = 1)
+
+  lg$info("test2")
+  rush$write_log()
+  expect_data_table(rush$read_log(rush$worker_id), nrows = 2)
+})
+
 # main instance and future workers ---------------------------------------------
 
 test_that("workers are started", {
@@ -1084,3 +1105,29 @@ test_that("wait for tasks works when a task gets lost", {
   expect_class(rush$await_tasks(keys, detect_lost_tasks = TRUE), "Rush")
 })
 
+test_that("saving lgr logs works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"))
+
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+
+  log = rbindlist(list(rush$read_log(rush$worker_ids[1]), rush$read_log(rush$worker_ids[2])), use.names = TRUE, fill = TRUE)
+
+  expect_data_table(log, nrows = 4)
+
+  xss = list(list(x1 = 2, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+
+  log = rbindlist(list(rush$read_log(rush$worker_ids[1]), rush$read_log(rush$worker_ids[2])), use.names = TRUE, fill = TRUE)
+
+  expect_data_table(log, nrows = 8)
+})

@@ -23,6 +23,9 @@ Local or remote host.}
 
 \item{\code{heartbeat}}{(\code{callr::RBackgroundProcess})\cr
 Background process for the heartbeat.}
+
+\item{\code{lgr_buffer}}{(\link[lgr:AppenderBuffer]{lgr::AppenderBuffer})\cr
+Buffer that saves all log messages.}
 }
 \if{html}{\out{</div>}}
 }
@@ -40,6 +43,7 @@ Whether to shutdown the worker.}
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
+\item \href{#method-RushWorker-write_log}{\code{RushWorker$write_log()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
 }
@@ -66,6 +70,7 @@ Whether to shutdown the worker.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_priority_tasks'><code>rush::Rush$push_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>rush::Rush$start_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
@@ -85,7 +90,8 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   host,
   worker_id = NULL,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  lgr_thresholds = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -109,6 +115,10 @@ Period of the heartbeat.}
 
 \item{\code{heartbeat_expire}}{(\code{numeric(1)})\cr
 Expiration of the heartbeat.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
+Logger thresholds.
+If \code{NULL}, no log messages are saved.}
 }
 \if{html}{\out{</div>}}
 }
@@ -169,6 +179,16 @@ If \code{error} the tasks are moved to the failed tasks.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-write_log"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-write_log}{}}}
+\subsection{Method \code{write_log()}}{
+Write log message written with the \code{lgr} package to the database.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$write_log()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-clone"></a>}}

@@ -18,9 +18,11 @@
 #' Period of the heartbeat.
 #' @param heartbeat_expire (`numeric(1)`)\cr
 #' Expiration of the heartbeat.
+#' @param lgr_thresholds (named `character()` or `numeric()`)\cr
+#' Logger thresholds.
 #'
 #' @export
-run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbeat_period, heartbeat_expire, args) {
+run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbeat_period, heartbeat_expire, lgr_thresholds, args) {
   # initialize rush worker
   rush = RushWorker$new(
     instance_id = instance_id,
@@ -28,7 +30,9 @@ run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbe
     host = host,
     worker_id = worker_id,
     heartbeat_period = heartbeat_period,
-    heartbeat_expire = heartbeat_expire)
+    heartbeat_expire = heartbeat_expire,
+    lgr_thresholds = lgr_thresholds)
+
 
   # without waiting, the heartbeat process continues even though fun_wrapper has crashed
   if (!is.null(rush$heartbeat)) Sys.sleep(1)
@@ -63,6 +67,7 @@ fun_loop = function(fun, rush) {
         rush$push_results(task$key, conditions = list(condition), status = "failed")
       })
     }
+    rush$write_log()
   }
   return(NULL)
 }

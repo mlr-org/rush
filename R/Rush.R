@@ -110,18 +110,21 @@ Rush = R6::R6Class("Rush",
     #' Period of the heartbeat in seconds.
     #' @param heartbeat_expire (`integer(1)`)\cr
     #' Time to live of the heartbeat in seconds.
+    #' @param lgr_thresholds (named `character()` or `numeric()`)\cr
+    #' Logger threshold on the workers e.g. `c(rush = "debug")`.
     #' @param await_workers (`logical(1)`)\cr
     #' Whether to wait until all workers are available.
     #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, await_workers = TRUE, ...) {
+    start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL, await_workers = TRUE, ...) {
       assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
       assert_count(n_workers, positive = TRUE, null.ok = TRUE)
       assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      assert_named(lgr_thresholds)
       assert_flag(await_workers)
       dots = list(...)
       if (!is.null(heartbeat_period)) require_namespaces("callr")
@@ -147,9 +150,10 @@ Rush = R6::R6Class("Rush",
             worker_id = worker_id,
             heartbeat_period = heartbeat_period,
             heartbeat_expire = heartbeat_expire,
+            lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
-          globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "dots"),
+          globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
 
@@ -438,6 +442,18 @@ Rush = R6::R6Class("Rush",
       private$.n_seen_results = 0
 
       invisible(self)
+    },
+
+    #' @description
+    #' Read log messages written with the `lgr` package from a worker.
+    #'
+    #' @param worker_id (`character(1)`)\cr
+    #' Worker id.
+    read_log = function(worker_id) {
+      r = self$connector
+      bin_logs = r$command(c("LRANGE", private$.get_worker_key("log", worker_id), 0, -1))
+      if (!length(bin_logs)) return(data.table())
+      rbindlist(map(bin_logs, redux::bin_to_object), use.names = TRUE, fill = TRUE)
     },
 
     #' @description

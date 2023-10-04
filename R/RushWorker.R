@@ -24,6 +24,10 @@ RushWorker = R6::R6Class("RushWorker",
     #' Background process for the heartbeat.
     heartbeat = NULL,
 
+    #' @field lgr_buffer ([lgr::AppenderBuffer])\cr
+    #' Buffer that saves all log messages.
+    lgr_buffer = NULL,
+
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #'
@@ -39,7 +43,10 @@ RushWorker = R6::R6Class("RushWorker",
     #' Period of the heartbeat.
     #' @param heartbeat_expire (`numeric(1)`)\cr
     #' Expiration of the heartbeat.
-    initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL) {
+    #' @param lgr_thresholds (named `character()` or `numeric()`)\cr
+    #' Logger thresholds.
+    #' If `NULL`, no log messages are saved.
+    initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
 
@@ -64,6 +71,17 @@ RushWorker = R6::R6Class("RushWorker",
           pid = Sys.getpid()
         )
         self$heartbeat = callr::r_bg(fun_heartbeat, args = heartbeat_args, supervise = TRUE)
+      }
+
+      # save logging on worker
+      if (!is.null(lgr_thresholds)) {
+        self$lgr_buffer = lgr::AppenderBuffer$new()
+        for (package in names(lgr_thresholds)) {
+          logger = lgr::get_logger(package)
+          threshold = lgr_thresholds[package]
+          logger$set_threshold(threshold)
+          logger$add_appender(self$lgr_buffer)
+        }
       }
 
       # register worker
@@ -131,6 +149,20 @@ RushWorker = R6::R6Class("RushWorker",
       ))
 
       return(invisible(self))
+    },
+
+    #' @description
+    #' Write log message written with the `lgr` package to the database.
+    write_log = function() {
+      if (!is.null(self$lgr_buffer)) {
+        r = self$connector
+        tab = self$lgr_buffer$dt
+        if (nrow(tab)) {
+          bin_log = redux::object_to_bin(self$lgr_buffer$dt)
+          r$command(list("RPUSH", private$.get_worker_key("log"), bin_log))
+          self$lgr_buffer$flush()
+        }
+      }
     }
   ),
 
