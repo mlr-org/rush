@@ -447,13 +447,15 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Read log messages written with the `lgr` package from a worker.
     #'
-    #' @param worker_id (`character(1)`)\cr
-    #' Worker id.
-    read_log = function(worker_id) {
+    #' @param worker_ids (`character(1)`)\cr
+    #' Worker ids.
+    #' If `NULL` all worker ids are used.
+    read_log = function(worker_ids = NULL) {
+      worker_ids = worker_ids %??% self$worker_ids
       r = self$connector
-      bin_logs = r$command(c("LRANGE", private$.get_worker_key("log", worker_id), 0, -1))
-      if (!length(bin_logs)) return(data.table())
-      rbindlist(map(bin_logs, redux::bin_to_object), use.names = TRUE, fill = TRUE)
+      cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("log", worker_id), 0, -1))
+      bin_logs = unlist(setNames(r$pipeline(.commands = cmds), worker_ids), recursive = FALSE)
+      rbindlist(map(bin_logs, redux::bin_to_object), use.names = TRUE, fill = TRUE, idcol = "worker_id")
     },
 
     #' @description

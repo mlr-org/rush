@@ -1114,20 +1114,19 @@ test_that("saving lgr logs works", {
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"))
 
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
-
-  log = rbindlist(list(rush$read_log(rush$worker_ids[1]), rush$read_log(rush$worker_ids[2])), use.names = TRUE, fill = TRUE)
-
-  expect_data_table(log, nrows = 4)
-
   xss = list(list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
   rush$await_tasks(keys)
 
-  log = rbindlist(list(rush$read_log(rush$worker_ids[1]), rush$read_log(rush$worker_ids[2])), use.names = TRUE, fill = TRUE)
+  log = rush$read_log()
+  expect_data_table(log, nrows = 4)
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
 
-  expect_data_table(log, nrows = 8)
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2), list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+
+  log = rush$read_log()
+  expect_data_table(log, nrows = 16)
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
 })
