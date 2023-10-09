@@ -114,7 +114,6 @@ Rush = R6::R6Class("Rush",
     #' Logger threshold on the workers e.g. `c(rush = "debug")`.
     #' @param await_workers (`logical(1)`)\cr
     #' Whether to wait until all workers are available.
-    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     start_workers = function(worker_loop = fun_loop, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL, await_workers = TRUE, ...) {
@@ -163,92 +162,63 @@ Rush = R6::R6Class("Rush",
       return(invisible(worker_ids))
     },
 
-    # #' @description
-    # #' Start workers.
-    # #'
-    # #' @param fun (`function`)\cr
-    # #' Function to be executed by the workers.
-    # #' Function must return a named list.
-    # #' @param as_list (`logical(1)`)\cr
-    # #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
-    # #' @param n_workers (`integer(1)`)\cr
-    # #' Number of workers to be started.
-    # #' If `NULL` the maximum number of free workers is used.
-    # #' @param globals (`character()`)\cr
-    # #' Global variables to be loaded by the workers.
-    # #' @param packages (`character()`)\cr
-    # #' Packages to be loaded by the workers.
-    # #' @param host (`character(1)`)\cr
-    # #' Local or remote host.
-    # #' @param heartbeat_period (`integer(1)`)\cr
-    # #' Period of the heartbeat in seconds.
-    # #' @param heartbeat_expire (`integer(1)`)\cr
-    # #' Time to live of the heartbeat in seconds.
-    # start_workers = function(fun, as_list = FALSE, n_workers = NULL, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL) {
-    #   assert_function(fun)
-    #   assert_flag(as_list)
-    #   assert_character(globals, null.ok = TRUE)
-    #   assert_character(packages, null.ok = TRUE)
-    #   assert_count(n_workers, positive = TRUE, null.ok = TRUE)
-    #   assert_choice(host, c("local", "remote"))
-    #   assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
-    #   assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-
-    #   # check free workers
-    #   if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
-    #   if (n_workers > future::nbrOfFreeWorkers()) {
-    #     stopf("No more than %i rush workers can be started. For starting more workers, change the number of workers in the future plan.", future::nbrOfFreeWorkers())
-    #   }
-
-    #   r = self$connector
-
-    #   # choose wrapper function
-    #   worker_loop = if (as_list) list_fun_loop else fun_loop
-
-    #   # start workers
-    #   instance_id = self$instance_id
-    #   config = self$config
-    #   worker_ids = uuid::UUIDgenerate(n = n_workers)
-    #   self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
-    #     future::future(worker_loop(
-    #       fun = fun,
-    #       instance_id = instance_id,
-    #       config = config,
-    #       host = host,
-    #       worker_id = worker_id,
-    #       heartbeat_period = heartbeat_period,
-    #       heartbeat_expire = heartbeat_expire),
-    #       seed = TRUE,
-    #       globals = c(globals, "worker_loop", "fun", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire"), packages = packages)
-    #   }), worker_ids))
-
-    #   return(invisible(worker_ids))
-    # },
-
     #' @description
-    #' Create batch script to start workers.
+    #' Create script to start workers.
+    #' The worker is started with [start_worker()].
     #'
-    #' @param fun (`function`)\cr
-    #' Function to be executed by the workers.
-    #' Function must return a named list.
-    #' @param as_list (`logical(1)`)\cr
-    #' Whether the function takes a list of arguments (`fun(xs = list(x1, x2)`) or named arguments (`fun(x1, x2)`).
+    #' @param worker_loop (`function`)\cr
+    #' Worker loop.
+    #' Defaults to [fun_loop].
+    #' Pass `fun` in `...`.
     #' @param globals (`character()`)\cr
     #' Global variables to be loaded by the workers.
     #' @param packages (`character()`)\cr
     #' Packages to be loaded by the workers.
-    create_worker_script = function(fun, as_list = FALSE, globals = NULL, packages = NULL) {
+    #' @param host (`character(1)`)\cr
+    #' Local or remote host.
+    #' @param heartbeat_period (`integer(1)`)\cr
+    #' Period of the heartbeat in seconds.
+    #' @param heartbeat_expire (`integer(1)`)\cr
+    #' Time to live of the heartbeat in seconds.
+    #' @param lgr_thresholds (named `character()` or `numeric()`)\cr
+    #' Logger threshold on the workers e.g. `c(rush = "debug")`.
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
+    create_worker_script = function(worker_loop = fun_loop, globals = NULL, packages = NULL, host = "local", heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL, ...) {
+      assert_function(worker_loop)
+      assert_character(globals, null.ok = TRUE)
+      assert_character(packages, null.ok = TRUE)
+      assert_choice(host, c("local", "remote"))
+      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
+      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      assert_named(lgr_thresholds)
+      dots = list(...)
+      if (!is.null(heartbeat_period)) require_namespaces("callr")
+
       r = self$connector
 
-      # serialize objects needed to create rush instance
-      bin_fun = redux::object_to_bin(fun)
-      bin_globals = map(globals, function(global) redux::object_to_bin(get(global)))
-      bin_packages = redux::object_to_bin(packages)
-      r$command(c("HMSET", private$.get_key("worker_script"), "fun", "packages", bin_packages, "globals", bin_globals))
+      # copy globals environment
+      env = new.env()
+      walk(globals, function(global) {
+        env[[global]] = get(global, envir = parent.frame())
+      })
 
-      # TODO: implement script to start loops on worker
-      code = c("#!/usr/bin/env Rscript", "rush::run_worker_script()")
-      writeLines(code, con = "worker_script")
+      # serialize and save rush worker arguments
+      args = list(
+        worker_loop = worker_loop,
+        packages = packages,
+        env = env,
+        host = host,
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        args = dots)
+      bin_args = redux::object_to_bin(args)
+      r$command(list("SET", private$.get_key("worker_script"), bin_args))
+
+      catn("Start worker with:")
+      catn(sprintf("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$instance_id, self$config$url))
+      catn("See ?rush::start_worker for more details.")
     },
 
     #' @description
@@ -419,6 +389,7 @@ Rush = R6::R6Class("Rush",
         r$DEL(private$.get_worker_key("kill", worker_id))
         r$DEL(private$.get_worker_key("heartbeat", worker_id))
         r$DEL(private$.get_worker_key("queued_tasks", worker_id))
+        r$DEL(private$.get_worker_key("log", worker_id))
       })
 
       # remove all tasks
@@ -434,6 +405,7 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("all_tasks"))
       r$DEL(private$.get_key("terminate"))
       r$DEL(private$.get_key("worker_ids"))
+      r$DEL(private$.get_key("worker_script"))
 
       # reset counters and caches
       private$.cached_results = data.table()

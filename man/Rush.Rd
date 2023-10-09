@@ -266,31 +266,49 @@ Arguments passed to \code{worker_loop}.}
 \if{html}{\out{<a id="method-Rush-create_worker_script"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-create_worker_script}{}}}
 \subsection{Method \code{create_worker_script()}}{
-Create batch script to start workers.
+Create script to start workers.
+The worker is started with \code{\link[=start_worker]{start_worker()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$create_worker_script(
-  fun,
-  as_list = FALSE,
+  worker_loop = fun_loop,
   globals = NULL,
-  packages = NULL
+  packages = NULL,
+  host = "local",
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL,
+  lgr_thresholds = NULL,
+  ...
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{fun}}{(\code{function})\cr
-Function to be executed by the workers.
-Function must return a named list.}
-
-\item{\code{as_list}}{(\code{logical(1)})\cr
-Whether the function takes a list of arguments (\verb{fun(xs = list(x1, x2)}) or named arguments (\code{fun(x1, x2)}).}
+\item{\code{worker_loop}}{(\code{function})\cr
+Worker loop.
+Defaults to \link{fun_loop}.
+Pass \code{fun} in \code{...}.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded by the workers.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
+
+\item{\code{host}}{(\code{character(1)})\cr
+Local or remote host.}
+
+\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.}
+
+\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -382,14 +400,15 @@ Stop workers and delete data stored in redis.
 \subsection{Method \code{read_log()}}{
 Read log messages written with the \code{lgr} package from a worker.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_id)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_id}}{(\code{character(1)})\cr
-Worker id.}
+\item{\code{worker_ids}}{(\code{character(1)})\cr
+Worker ids.
+If \code{NULL} all worker ids are used.}
 }
 \if{html}{\out{</div>}}
 }
