@@ -1131,6 +1131,22 @@ test_that("saving lgr logs works", {
   expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
 })
 
+test_that("snapshot option work", {
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"))
+
+  rush$snapshot_schedule = c(1, 1)
+  expect_equal(rush$connector$CONFIG_GET("save")[[2]], "1 1")
+  expect_equal(rush$snapshot_schedule, c(1, 1))
+
+  rush$snapshot_schedule = NULL
+  expect_equal(rush$connector$CONFIG_GET("save")[[2]], "")
+  expect_equal(rush$snapshot_schedule, "")
+})
+
 # main instance and script workers ---------------------------------------------
 
 test_that("worker can be started with script", {
