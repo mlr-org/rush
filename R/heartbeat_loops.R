@@ -1,32 +1,28 @@
 #' @title Heartbeat Loop
 #'
 #' @description
-#' Heartbeat loop that updates the heartbeat key and checks for kill key.
+#' The heartbeat loop updates the heartbeat key if the worker is still alive.
+#' If the kill key is set, the worker is killed.
 #'
-#' @param instance_id (`character(1)`)\cr
-#' Identifier of the rush instance.
-#' @param config ([redux::redis_config])\cr
-#' Redis configuration.
-#' @param worker_id (`character(1)`)\cr
-#' Identifier of the worker.
-#' @param period (`numeric(1)`)\cr
-#' Period of the heartbeat.
-#' @param expire (`numeric(1)`)\cr
-#' Expiration of the heartbeat.
-#' @param pid (`numeric(1)`)\cr
+#' @param pid (`integer(1)`)\cr
 #' Process ID of the worker.
 #'
+#' @template param_instance_id
+#' @template param_config
+#' @template param_worker_id
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
+#'
 #' @export
-fun_heartbeat = function(instance_id, config, worker_id, period, expire, pid) {
+fun_heartbeat = function(instance_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
   worker_id_key = sprintf("%s:%s", instance_id, worker_id)
-  worker_ids_key = sprintf("%s:worker_ids", instance_id)
   heartbeat_key = sprintf("%s:%s:heartbeat", instance_id, worker_id)
   kill_key = sprintf("%s:%s:kill", instance_id, worker_id)
 
   repeat {
-    r$command(c("EXPIRE", heartbeat_key, expire))
-    kill = r$command(c("BLPOP", kill_key, period))[[2]]
+    r$command(c("EXPIRE", heartbeat_key, heartbeat_expire))
+    kill = r$command(c("BLPOP", kill_key, heartbeat_period))[[2]]
     if (!is.null(kill)) {
       r$command(c("DEL", heartbeat_key, kill_key))
       r$command(c("HSET", worker_id_key, "status", "killed"))

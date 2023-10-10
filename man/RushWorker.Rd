@@ -2,10 +2,22 @@
 % Please edit documentation in R/RushWorker.R
 \name{RushWorker}
 \alias{RushWorker}
-\title{Rush}
+\title{Rush Worker}
 \description{
-Rush
+\link{RushWorker} runs on a worker and executes tasks.
+The rush worker inherits from \link{Rush} and adds methods to pop tasks from the queue and push results to the data base.
 }
+\note{
+The worker registers itself in the data base of the rush network.
+}
+\section{Logging}{
+
+The worker logs all messages written with the \code{lgr} package to the data base.
+The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
+Saving log messages adds a small overhead but is useful for debugging.
+By default, no log messages are stored.
+}
+
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }
@@ -15,13 +27,10 @@ Rush
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
-\item{\code{constants}}{(\code{list()})\cr
-List of constants.}
-
 \item{\code{host}}{(\code{character(1)})\cr
-Local or remote host.}
+Worker is started on a local or remote host.}
 
-\item{\code{heartbeat}}{(\code{callr::RBackgroundProcess})\cr
+\item{\code{heartbeat}}{(\link[callr:r_process]{callr::r_process})\cr
 Background process for the heartbeat.}
 
 \item{\code{lgr_buffer}}{(\link[lgr:AppenderBuffer]{lgr::AppenderBuffer})\cr
@@ -99,26 +108,30 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{instance_id}}{(\code{character(1)})\cr
-Identifier of the rush instance.}
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
+Redis configuration options.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{\code{host}}{(\code{character(1)})\cr
-Local or remote host.}
+Worker is started on a local or remote host.
+See \link{Rush} for details.}
 
 \item{\code{worker_id}}{(\code{character(1)})\cr
-Identifier of the worker.}
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
 
-\item{\code{heartbeat_period}}{(\code{numeric(1)})\cr
-Period of the heartbeat.}
+\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.}
 
-\item{\code{heartbeat_expire}}{(\code{numeric(1)})\cr
-Expiration of the heartbeat.}
+\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.}
 
-\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
-Logger thresholds.
-If \code{NULL}, no log messages are saved.}
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -174,8 +187,8 @@ List of lists of conditions.}
 
 \item{\code{status}}{(\code{character(1)})\cr
 Status of the tasks.
-If \code{finished} the tasks are moved to the finished tasks.
-If \code{error} the tasks are moved to the failed tasks.}
+If \code{"finished"} the tasks are moved to the finished tasks.
+If \code{"error"} the tasks are moved to the failed tasks.}
 }
 \if{html}{\out{</div>}}
 }

@@ -3,6 +3,7 @@
 #' @import mlr3misc
 #' @import future
 #' @import checkmate
+#' @importFrom globals globalsByName
 #' @importFrom uuid UUIDgenerate
 #' @importFrom callr r_bg
 #' @importFrom utils str

@@ -1,7 +1,25 @@
-#' @title Rush
+#' @title Rush Worker
 #'
 #' @description
-#' Rush
+#' [RushWorker] runs on a worker and executes tasks.
+#' The rush worker inherits from [Rush] and adds methods to pop tasks from the queue and push results to the data base.
+#'
+#' @note
+#' The worker registers itself in the data base of the rush network.
+#'
+#' @section Logging:
+#' The worker logs all messages written with the `lgr` package to the data base.
+#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
+#' Saving log messages adds a small overhead but is useful for debugging.
+#' By default, no log messages are stored.
+#'
+#' @template param_instance_id
+#' @template param_config
+#' @template param_host
+#' @template param_worker_id
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
+#' @template param_lgr_thresholds
 #'
 #' @export
 RushWorker = R6::R6Class("RushWorker",
@@ -12,15 +30,11 @@ RushWorker = R6::R6Class("RushWorker",
     #' Identifier of the worker.
     worker_id = NULL,
 
-    #' @field constants (`list()`)\cr
-    #' List of constants.
-    constants = NULL,
-
     #' @field host (`character(1)`)\cr
-    #' Local or remote host.
+    #' Worker is started on a local or remote host.
     host = NULL,
 
-    #' @field heartbeat (`callr::RBackgroundProcess`)\cr
+    #' @field heartbeat ([callr::r_process])\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
 
@@ -30,22 +44,6 @@ RushWorker = R6::R6Class("RushWorker",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    #'
-    #' @param instance_id (`character(1)`)\cr
-    #' Identifier of the rush instance.
-    #' @param config ([redux::redis_config])\cr
-    #' Redis configuration.
-    #' @param host (`character(1)`)\cr
-    #' Local or remote host.
-    #' @param worker_id (`character(1)`)\cr
-    #' Identifier of the worker.
-    #' @param heartbeat_period (`numeric(1)`)\cr
-    #' Period of the heartbeat.
-    #' @param heartbeat_expire (`numeric(1)`)\cr
-    #' Expiration of the heartbeat.
-    #' @param lgr_thresholds (named `character()` or `numeric()`)\cr
-    #' Logger thresholds.
-    #' If `NULL`, no log messages are saved.
     initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
@@ -127,8 +125,8 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of conditions.
     #' @param status (`character(1)`)\cr
     #' Status of the tasks.
-    #' If `finished` the tasks are moved to the finished tasks.
-    #' If `error` the tasks are moved to the failed tasks.
+    #' If `"finished"` the tasks are moved to the finished tasks.
+    #' If `"error"` the tasks are moved to the failed tasks.
     push_results = function(keys, yss = list(), extra = list(), conditions = list(), status = "finished") {
       assert_string(keys)
       assert_list(yss, types = "list")
@@ -163,6 +161,8 @@ RushWorker = R6::R6Class("RushWorker",
           self$lgr_buffer$flush()
         }
       }
+
+      return(invisible(self))
     }
   ),
 

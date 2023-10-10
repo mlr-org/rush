@@ -12,15 +12,16 @@
 #' The function calls [run_worker] to initialize the [RushWorker] instance and starts the worker loop.
 #' This function is only called when the worker is started with a script.
 #'
-#' @param instance_id (`character(1)`)\cr
-#' Identifier of the rush instance.
 #' @param ... (`any`)\cr
 #' Arguments passed to [redux::redis_config].
+#'
+#' @template param_instance_id
 #'
 #' @export
 start_worker = function(
   instance_id,
   ...) {
+  checkmate::assert_string(instance_id)
 
   config = mlr3misc::invoke(redux::redis_config, args = list(...))
   r = redux::hiredis(config)

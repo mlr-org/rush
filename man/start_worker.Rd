@@ -8,7 +8,9 @@ start_worker(instance_id, ...)
 }
 \arguments{
 \item{instance_id}{(\code{character(1)})\cr
-Identifier of the rush instance.}
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
 
 \item{...}{(\code{any})\cr
 Arguments passed to \link[redux:redis_config]{redux::redis_config}.}

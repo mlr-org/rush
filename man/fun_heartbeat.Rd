@@ -4,27 +4,39 @@
 \alias{fun_heartbeat}
 \title{Heartbeat Loop}
 \usage{
-fun_heartbeat(instance_id, config, worker_id, period, expire, pid)
+fun_heartbeat(
+  instance_id,
+  config,
+  worker_id,
+  heartbeat_period,
+  heartbeat_expire,
+  pid
+)
 }
 \arguments{
 \item{instance_id}{(\code{character(1)})\cr
-Identifier of the rush instance.}
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
+Redis configuration options.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{worker_id}{(\code{character(1)})\cr
-Identifier of the worker.}
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
 
-\item{period}{(\code{numeric(1)})\cr
-Period of the heartbeat.}
+\item{heartbeat_period}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.}
 
-\item{expire}{(\code{numeric(1)})\cr
-Expiration of the heartbeat.}
+\item{heartbeat_expire}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.}
 
-\item{pid}{(\code{numeric(1)})\cr
+\item{pid}{(\code{integer(1)})\cr
 Process ID of the worker.}
 }
 \description{
-Heartbeat loop that updates the heartbeat key and checks for kill key.
+The heartbeat loop updates the heartbeat key if the worker is still alive.
+If the kill key is set, the worker is killed.
 }

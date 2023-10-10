@@ -3,23 +3,19 @@
 #' @description
 #' Runs a worker.
 #' The function initializes the [RushWorker] instance and invokes the worker loop.
+#' This function is normally not called by the user.
 #'
-#' @param worker_loop (`function`)\cr
-#' Worker loop to be executed e.g. [fun_loop].
-#' @param instance_id (`character(1)`)\cr
-#' Identifier of the rush instance.
-#' @param config ([redux::redis_config])\cr
-#' Redis configuration.
-#' @param host (`character(1)`)\cr
-#' Local or remote host.
-#' @param worker_id (`character(1)`)\cr
-#' Identifier of the worker.
-#' @param heartbeat_period (`numeric(1)`)\cr
-#' Period of the heartbeat.
-#' @param heartbeat_expire (`numeric(1)`)\cr
-#' Expiration of the heartbeat.
-#' @param lgr_thresholds (named `character()` or `numeric()`)\cr
-#' Logger thresholds.
+#' @param args (named `list()`)\cr
+#' Named arguments passed to the worker loop.
+#'
+#' @template param_worker_loop
+#' @template param_instance_id
+#' @template param_config
+#' @template param_host
+#' @template param_worker_id
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
+#' @template param_lgr_thresholds
 #'
 #' @export
 run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbeat_period, heartbeat_expire, lgr_thresholds, args) {
@@ -33,7 +29,7 @@ run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbe
     heartbeat_expire = heartbeat_expire,
     lgr_thresholds = lgr_thresholds)
 
-  # without waiting, the heartbeat process continues even though fun_wrapper has crashed
+  # without waiting, the heartbeat process continues even though worker_loop has crashed
   if (!is.null(rush$heartbeat)) Sys.sleep(1)
 
   # run worker loop

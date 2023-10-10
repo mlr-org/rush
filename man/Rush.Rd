@@ -4,7 +4,7 @@
 \alias{Rush}
 \title{Rush Controller}
 \description{
-The \link{Rush} class is the controller of the asynchronous parallelization.
+\link{Rush} is the controller of the asynchronous parallelization.
 It manages the workers and the tasks.
 }
 \section{Local Workers}{
@@ -13,21 +13,19 @@ A local worker runs on the same machine as the controller.
 We recommend to use the \code{future} package to spawn local workers.
 The \code{future} backends \code{multisession} and \code{multicore} run workers on the local machine.
 As many rush workers can be started as there are future workers available.
-With \code{future}, crashed workers can be easily identified without a heartbeat process.
-It is also possible to spawn local workers with a batch script but a heartbeat process is required to check for crashed workers.
 }
 
 \section{Remote Workers}{
 
 A remote worker runs on a different machine than the controller.
-Remote workers can be started with a batch script or with the \code{future} package.
+Remote workers can be started with a script or with the \code{future} package.
 Only a heartbeat process can kill remote workers.
 The heartbeat process also monitors the remote workers for crashes.
 }
 
 \section{Stopping Workers}{
 
-Local and remote workers can be terminated with the \code{stop_workers(type = "terminate")} method.
+Local and remote workers can be terminated with the \verb{$stop_workers(type = "terminate")} method.
 The workers evaluate the currently running task and then terminate.
 The option \code{type = "kill"} stops the workers immediately.
 Killing a local worker is done with the \code{tools::pskill()} function.
@@ -49,16 +47,16 @@ When evaluating tasks in a distributed system, many things can go wrong.
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{instance_id}}{(\code{character(1)})\cr
-Identifier of the instance.}
+Identifier of the rush network.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
+Redis configuration options.}
 
 \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
-Connector to redis.}
+Returns a connection to Redis.}
 
 \item{\code{promises}}{(\code{\link[future:Future-class]{future::Future()}})\cr
-List of futures.}
+List of futures running \link{run_worker}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -162,10 +160,13 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{instance_id}}{(\code{character(1)})\cr
-Identifier of the instance.}
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
+Redis configuration options.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 }
 \if{html}{\out{</div>}}
 }
@@ -207,7 +208,8 @@ Print method.
 \if{html}{\out{<a id="method-Rush-start_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_workers}{}}}
 \subsection{Method \code{start_workers()}}{
-Start workers.
+Start workers with the future package.
+Alternatively, use \verb{$create_worker_script()} to create a script for starting workers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
   worker_loop = fun_loop,
@@ -227,8 +229,8 @@ Start workers.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{worker_loop}}{(\code{function})\cr
-Start a worker loop with the future package.
-Defaults to \link{fun_loop}.
+Loop run on the workers.
+Defaults to \link{fun_loop} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
@@ -242,7 +244,8 @@ Global variables to be loaded to the workers global environment.}
 Packages to be loaded by the workers.}
 
 \item{\code{host}}{(\code{character(1)})\cr
-Local or remote host.}
+Worker is started on a local or remote host.
+See \link{Rush} for details.}
 
 \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.}
@@ -250,7 +253,7 @@ Period of the heartbeat in seconds.}
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.}
 
-\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
 \item{\code{await_workers}}{(\code{logical(1)})\cr
@@ -260,6 +263,10 @@ Whether to wait until all workers are available.}
 Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Worker ids.
 }
 }
 \if{html}{\out{<hr>}}
@@ -285,8 +292,8 @@ The worker is started with \code{\link[=start_worker]{start_worker()}}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{worker_loop}}{(\code{function})\cr
-Worker loop.
-Defaults to \link{fun_loop}.
+Loop run on the workers.
+Defaults to \link{fun_loop} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.}
 
 \item{\code{globals}}{(\code{character()})\cr
@@ -296,7 +303,8 @@ Global variables to be loaded to the workers global environment.}
 Packages to be loaded by the workers.}
 
 \item{\code{host}}{(\code{character(1)})\cr
-Local or remote host.}
+Worker is started on a local or remote host.
+See \link{Rush} for details.}
 
 \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.}
@@ -304,7 +312,7 @@ Period of the heartbeat in seconds.}
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.}
 
-\item{\code{lgr_thresholds}}{(named \code{character()} or \code{numeric()})\cr
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
 \item{\code{...}}{(\code{any})\cr
@@ -361,13 +369,10 @@ If \code{NULL} all workers are stopped.}
 \if{latex}{\out{\hypertarget{method-Rush-detect_lost_workers}{}}}
 \subsection{Method \code{detect_lost_workers()}}{
 Detect lost workers.
-Updates the state of lost workers in \verb{$worker_info}.
-\enumerate{
-\item Local workers without a heartbeat are checked with \code{tools::pskill()}.
-\item Workers with a heartbeat process are checked with \code{EXISTS} on the heartbeat key.
-}
-
+The status of the worker is changed to \code{"lost"}.
+Local workers without a heartbeat are checked with \code{tools::pskill()}.
 Checking local workers on windows might be very slow.
+Workers with a heartbeat process are checked with the heartbeat.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
 }

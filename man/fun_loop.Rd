@@ -10,7 +10,7 @@ fun_loop(fun, rush)
 \item{fun}{(\code{function})\cr
 Function to be executed.}
 
-\item{rush}{(\code{character(1)})\cr
+\item{rush}{(\link{RushWorker})\cr
 Rush worker instance.}
 }
 \description{

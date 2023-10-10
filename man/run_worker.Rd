@@ -18,30 +18,41 @@ run_worker(
 }
 \arguments{
 \item{worker_loop}{(\code{function})\cr
-Worker loop to be executed e.g. \link{fun_loop}.}
+Loop run on the workers.
+Defaults to \link{fun_loop} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.}
 
 \item{instance_id}{(\code{character(1)})\cr
-Identifier of the rush instance.}
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration.}
+Redis configuration options.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{host}{(\code{character(1)})\cr
-Local or remote host.}
+Worker is started on a local or remote host.
+See \link{Rush} for details.}
 
 \item{worker_id}{(\code{character(1)})\cr
-Identifier of the worker.}
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
 
-\item{heartbeat_period}{(\code{numeric(1)})\cr
-Period of the heartbeat.}
+\item{heartbeat_period}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.}
 
-\item{heartbeat_expire}{(\code{numeric(1)})\cr
-Expiration of the heartbeat.}
+\item{heartbeat_expire}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.}
 
-\item{lgr_thresholds}{(named \code{character()} or \code{numeric()})\cr
-Logger thresholds.}
+\item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{args}{(named \code{list()})\cr
+Named arguments passed to the worker loop.}
 }
 \description{
 Runs a worker.
 The function initializes the \link{RushWorker} instance and invokes the worker loop.
+This function is normally not called by the user.
 }
