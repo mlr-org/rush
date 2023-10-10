@@ -236,7 +236,7 @@ Number of workers to be started.
 If \code{NULL} the maximum number of free workers is used.}
 
 \item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded by the workers.}
+Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
@@ -290,7 +290,7 @@ Defaults to \link{fun_loop}.
 Pass \code{fun} in \code{...}.}
 
 \item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded by the workers.}
+Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}

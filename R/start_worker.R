@@ -2,9 +2,15 @@
 #' @title Start a worker
 #'
 #' @description
-#' Start a worker.
-#' This function initializes the connection to the redis server, loads the packages and globals and calls [run_worker].
-#' Call `$create_worker_script()` of [Rush] before calling this function.
+#' Starts a worker.
+#' The function is called by the user after creating the worker script with `$create_worker_script()` of [Rush].
+#' The function is started with `Rscript -e 'start_worker(instance_id, url, ...)'`.
+#'
+#' @note
+#' The function initializes the connection to the Redis data base.
+#' It loads the packages and copies the globals to the global environment of the worker.
+#' The function calls [run_worker] to initialize the [RushWorker] instance and starts the worker loop.
+#' This function is only called when the worker is started with a script.
 #'
 #' @param instance_id (`character(1)`)\cr
 #' Identifier of the rush instance.
@@ -23,8 +29,8 @@ start_worker = function(
 
   # load packages and globals to worker environment
   mlr3misc::walk(args$packages, function(package) library(package, character.only = TRUE))
-  walk(ls(args$env), function(name) assign(name, args$env[[name]], globalenv()))
-  args$packages = args$env = NULL
+  mlr3misc::iwalk(args$globals, function(value, name) assign(name, value, .GlobalEnv))
+  args$packages = args$globals = NULL
 
-  invoke(rush::run_worker, instance_id = instance_id, config = config, .args = args)
+  mlr3misc::invoke(rush::run_worker, instance_id = instance_id, config = config, .args = args)
 }

@@ -14,7 +14,13 @@ Identifier of the rush instance.}
 Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 }
 \description{
-Start a worker.
-This function initializes the connection to the redis server, loads the packages and globals and calls \link{run_worker}.
-Call \verb{$create_worker_script()} of \link{Rush} before calling this function.
+Starts a worker.
+The function is called by the user after creating the worker script with \verb{$create_worker_script()} of \link{Rush}.
+The function is started with \verb{Rscript -e 'start_worker(instance_id, url, ...)'}.
+}
+\note{
+The function initializes the connection to the Redis data base.
+It loads the packages and copies the globals to the global environment of the worker.
+The function calls \link{run_worker} to initialize the \link{RushWorker} instance and starts the worker loop.
+This function is only called when the worker is started with a script.
 }

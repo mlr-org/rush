@@ -101,7 +101,7 @@ Rush = R6::R6Class("Rush",
     #' Number of workers to be started.
     #' If `NULL` the maximum number of free workers is used.
     #' @param globals (`character()`)\cr
-    #' Global variables to be loaded by the workers.
+    #' Global variables to be loaded to the workers global environment.
     #' @param packages (`character()`)\cr
     #' Packages to be loaded by the workers.
     #' @param host (`character(1)`)\cr
@@ -152,6 +152,7 @@ Rush = R6::R6Class("Rush",
             lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
+          envir = envir,
           globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
@@ -171,7 +172,7 @@ Rush = R6::R6Class("Rush",
     #' Defaults to [fun_loop].
     #' Pass `fun` in `...`.
     #' @param globals (`character()`)\cr
-    #' Global variables to be loaded by the workers.
+    #' Global variables to be loaded to the workers global environment.
     #' @param packages (`character()`)\cr
     #' Packages to be loaded by the workers.
     #' @param host (`character(1)`)\cr
@@ -197,17 +198,15 @@ Rush = R6::R6Class("Rush",
 
       r = self$connector
 
-      # copy globals environment
-      env = new.env()
-      walk(globals, function(global) {
-        env[[global]] = get(global, envir = parent.frame())
-      })
+      # identify globals by name
+      # returns a named list of values of the globals
+      globals = globals::globalsByName(globals)
 
-      # serialize and save rush worker arguments
+      # serialize arguments needed for starting the worker
       args = list(
         worker_loop = worker_loop,
+        globals = globals,
         packages = packages,
-        env = env,
         host = host,
         heartbeat_period = heartbeat_period,
         heartbeat_expire = heartbeat_expire,
