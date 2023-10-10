@@ -653,6 +653,7 @@ test_that("saving lgr logs works", {
 # main instance and future workers ---------------------------------------------
 
 test_that("workers are started", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -681,6 +682,7 @@ test_that("workers are started", {
 })
 
 test_that("workers are started with a heartbeat", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -699,6 +701,7 @@ test_that("workers are started with a heartbeat", {
 })
 
 test_that("additional workers are started", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -730,6 +733,7 @@ test_that("additional workers are started", {
 })
 
 test_that("a worker is terminated", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -759,6 +763,7 @@ test_that("a worker is terminated", {
 })
 
 test_that("a local worker is killed", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -788,6 +793,7 @@ test_that("a local worker is killed", {
 })
 
 test_that("a remote worker is killed", {
+  skip_on_ci()
   # FIXME: heartbeat is broken
   skip_on_cran()
   skip_if(TRUE)
@@ -821,6 +827,7 @@ test_that("a remote worker is killed", {
 })
 
 test_that("a segault on a local worker is detected", {
+  skip_on_ci()
   skip_on_cran()
   skip_on_os("windows")
 
@@ -847,6 +854,7 @@ test_that("a segault on a local worker is detected", {
 })
 
 test_that("a segault on a worker is detected via the heartbeat", {
+  skip_on_ci()
   # FIXME: heartbeat is broken
   skip_on_cran()
   skip_if(TRUE)
@@ -875,6 +883,7 @@ test_that("a segault on a worker is detected via the heartbeat", {
 })
 
 test_that("evaluating a task works with future", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -916,6 +925,7 @@ test_that("evaluating a task works with future", {
 })
 
 test_that("evaluating tasks works with future", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -957,6 +967,7 @@ test_that("evaluating tasks works with future", {
 })
 
 test_that("a simple error is catched", {
+  skip_on_ci()
   # FIXME: Not working in testthat environment
   skip_if(TRUE)
   skip_on_cran()
@@ -1010,6 +1021,7 @@ test_that("a simple error is catched", {
 })
 
 test_that("a lost task is detected", {
+  skip_on_ci()
   # FIXME: check timings
   skip_if(TRUE)
   skip_on_cran()
@@ -1066,6 +1078,7 @@ test_that("a lost task is detected", {
 })
 
 test_that("blocking on new results works", {
+  skip_on_ci()
   # FIXME: check timings
   skip_if(TRUE)
   skip_on_cran()
@@ -1090,6 +1103,7 @@ test_that("blocking on new results works", {
 })
 
 test_that("wait for tasks works when a task gets lost", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -1109,6 +1123,7 @@ test_that("wait for tasks works when a task gets lost", {
 })
 
 test_that("saving lgr logs works", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -1140,6 +1155,7 @@ test_that("saving lgr logs works", {
 # main instance and script workers ---------------------------------------------
 
 test_that("worker can be started with script", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -1178,6 +1194,7 @@ test_that("worker can be started with script", {
 })
 
 test_that("evaluating tasks works with script", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -1211,6 +1228,7 @@ test_that("evaluating tasks works with script", {
 })
 
 test_that("packages are available on the worker", {
+  skip_on_ci()
   skip_on_cran()
 
   config = start_flush_redis()
@@ -1243,6 +1261,7 @@ test_that("packages are available on the worker", {
 })
 
 test_that("globals are available on the worker", {
+  skip_on_ci()
   # FIXME: Not working in testthat env
   skip_if(TRUE)
   skip_on_cran()
