@@ -152,7 +152,6 @@ Rush = R6::R6Class("Rush",
             lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
-          envir = envir,
           globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
