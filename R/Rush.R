@@ -152,7 +152,6 @@ Rush = R6::R6Class("Rush",
             lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
-          envir = envir,
           globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
@@ -936,7 +935,8 @@ Rush = R6::R6Class("Rush",
     #' Contains information about the workers.
     #'
     #' The methods `$detect_lost_workers()`, `$detect_lost_tasks()` and `$stop_workers()` update the status column.
-    worker_info = function() {
+    worker_info = function(rhs) {
+      assert_ro_binding(rhs)
       if (nrow(private$.cached_worker_info) == self$n_workers) return(private$.cached_worker_info)
       worker_ids = self$worker_ids
       r = self$connector
@@ -957,11 +957,27 @@ Rush = R6::R6Class("Rush",
 
     #' @field priority_info ([data.table::data.table])\cr
     #' Contains the number of tasks in the priority queues.
-    priority_info = function() {
+    priority_info = function(rhs) {
+      assert_ro_binding(rhs)
       r = self$connector
       map_dtr(self$worker_ids, function(worker_id) {
         list(worker_id = worker_id, n_tasks =  as.integer(r$LLEN(private$.get_worker_key("queued_tasks", worker_id))))
       })
+    },
+
+    #' @field snapshot_schedule (`character()`)\cr
+    #' Set a snapshot schedule to periodically save the data base on disk.
+    #' For example, `c(60, 1000)` saves the data base every 60 seconds if there are at least 1000 changes.
+    #' Overwrites the redis configuration file.
+    #' Set to `NULL` to disable snapshots.
+    #' For more details see [redis.io](https://redis.io/docs/management/persistence/#snapshotting).
+    snapshot_schedule = function(rhs) {
+      if (missing(rhs)) return(private$.snapshot_schedule)
+      assert_integerish(rhs, min.len = 2, null.ok = TRUE)
+      if (is.null(rhs)) rhs = ""
+      r = self$connector
+      r$command(c("CONFIG", "SET", "save", str_collapse(rhs, sep = " ")))
+      private$.snapshot_schedule = rhs
     }
   ),
 
@@ -976,6 +992,8 @@ Rush = R6::R6Class("Rush",
     .n_seen_results = 0,
 
     .pid_exists = NULL,
+
+    .snapshot_schedule = NULL,
 
     # prefix key with instance id
     .get_key = function(key) {

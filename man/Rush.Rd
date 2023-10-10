@@ -112,6 +112,13 @@ The methods \verb{$detect_lost_workers()}, \verb{$detect_lost_tasks()} and \verb
 
 \item{\code{priority_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains the number of tasks in the priority queues.}
+
+\item{\code{snapshot_schedule}}{(\code{character()})\cr
+Set a snapshot schedule to periodically save the data base on disk.
+For example, \code{c(60, 1000)} saves the data base every 60 seconds if there are at least 1000 changes.
+Overwrites the redis configuration file.
+Set to \code{NULL} to disable snapshots.
+For more details see \href{https://redis.io/docs/management/persistence/#snapshotting}{redis.io}.}
 }
 \if{html}{\out{</div>}}
 }
