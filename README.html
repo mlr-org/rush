@@ -609,64 +609,42 @@ body {
 <h2 id="install">Install</h2>
 <p><a href="https://redis.io/docs/getting-started/installation/">Install Redis</a></p>
 <h2 id="example">Example</h2>
+<p>Initialize the rush controller instance. The <code>instance_id</code> identifies the instance and worker in the network. The <code>config</code> is a list of parameters for the connection to Redis.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(rush)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="co"># initialize controller</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>rush =<span class="st"> </span>Rush<span class="op">$</span><span class="kw">new</span>(<span class="st">&quot;test&quot;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="co"># start workers</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>future<span class="op">::</span><span class="kw">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="dt">workers =</span> <span class="dv">2</span>)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>fun =<span class="st"> </span><span class="cf">function</span>(x1, x2, ...) {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>  <span class="kw">list</span>(<span class="dt">y =</span> x1 <span class="op">+</span><span class="st"> </span>x2)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>}</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">start_workers</span>(fun)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>rush</span></code></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">library</span>(redux)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>config =<span class="st"> </span>redux<span class="op">::</span><span class="kw">redis_config</span>()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>rush =<span class="st"> </span>Rush<span class="op">$</span><span class="kw">new</span>(<span class="dt">instance_id =</span> <span class="st">&quot;test&quot;</span>, config)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>rush</span></code></pre></div>
 <pre><code>## &lt;Rush&gt;
-## * Running Workers: 1
+## * Running Workers: 0
 ## * Queued Tasks: 0
 ## * Queued Priority Tasks: 0
 ## * Running Tasks: 0
 ## * Finished Tasks: 0
 ## * Failed Tasks: 0
 </code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co"># push tasks</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>xss =<span class="st"> </span><span class="kw">list</span>(<span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">3</span>, <span class="dt">x2 =</span> <span class="dv">5</span>), <span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">4</span>, <span class="dt">x2 =</span> <span class="dv">6</span>))</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>keys =<span class="st"> </span>rush<span class="op">$</span><span class="kw">push_tasks</span>(xss)</span></code></pre></div>
-<pre><code>## INFO  [22:28:49.274] [rush] Sending 2 task(s)
-</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">wait_tasks</span>(keys)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>rush<span class="op">$</span>n_finished_tasks</span></code></pre></div>
-<pre><code>## [1] 2
-</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="co"># get results</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>rush<span class="op">$</span>data</span></code></pre></div>
+<p>Next, we define a function that we want to evaluate on the workers.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>fun =<span class="st"> </span><span class="cf">function</span>(x1, x2, ...) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  <span class="kw">list</span>(<span class="dt">y =</span> x1 <span class="op">+</span><span class="st"> </span>x2)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>}</span></code></pre></div>
+<p>We start two worker with the <a href="https://future.futureverse.org/"><code>future</code></a> package.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>future<span class="op">::</span><span class="kw">plan</span>(<span class="st">&quot;multisession&quot;</span>, <span class="dt">workers =</span> <span class="dv">2</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">start_workers</span>(<span class="dt">fun =</span> fun)</span></code></pre></div>
+<p>Now we can push tasks to the workers.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>xss =<span class="st"> </span><span class="kw">list</span>(<span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">3</span>, <span class="dt">x2 =</span> <span class="dv">5</span>), <span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">4</span>, <span class="dt">x2 =</span> <span class="dv">6</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>keys =<span class="st"> </span>rush<span class="op">$</span><span class="kw">push_tasks</span>(xss)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">await_tasks</span>(keys)</span></code></pre></div>
+<p>And retrieve the results.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">fetch_finished_tasks</span>()</span></code></pre></div>
 <pre><code>##    x1 x2    pid                            worker_id  y   status
-## 1:  3  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  8 finished
-## 2:  4  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 10 finished
+## 1:  4  6 545135 f79a2cef-5e37-43f0-a91c-61f444295990 10 finished
+## 2:  3  5 545136 7d03c5a0-f66b-49f1-9a09-38645342df02  8 finished
 ##                                    keys
-## 1: 6f117037-fd08-47a0-8cbe-874748175854
-## 2: 118cf0df-99e6-4fed-8563-c9e3516f73c3
-</code></pre>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co"># push more tasks</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>xss =<span class="st"> </span><span class="kw">list</span>(<span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">1</span>, <span class="dt">x2 =</span> <span class="dv">5</span>), <span class="kw">list</span>(<span class="dt">x1 =</span> <span class="dv">7</span>, <span class="dt">x2 =</span> <span class="dv">6</span>))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>keys =<span class="st"> </span>rush<span class="op">$</span><span class="kw">push_tasks</span>(xss)</span></code></pre></div>
-<pre><code>## INFO  [22:28:49.357] [rush] Sending 2 task(s)
-</code></pre>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>rush<span class="op">$</span><span class="kw">wait_tasks</span>(keys)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>rush<span class="op">$</span>data</span></code></pre></div>
-<pre><code>##    x1 x2    pid                            worker_id  y   status
-## 1:  3  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  8 finished
-## 2:  4  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 10 finished
-## 3:  1  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  6 finished
-## 4:  7  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 13 finished
-##                                    keys
-## 1: 6f117037-fd08-47a0-8cbe-874748175854
-## 2: 118cf0df-99e6-4fed-8563-c9e3516f73c3
-## 3: 06b6dfe3-34c5-4039-92fa-fdd7d92bc5fa
-## 4: 435be500-5c2f-45c0-a62a-d2c9c95be049
+## 1: dfdc1544-e6f8-4bce-9888-81c072595fdc
+## 2: e8165475-2c2c-48b5-b7db-ac6d9557cff4
 </code></pre>
 <h2 id="task-states">Task States</h2>
 <p>Tasks have four states: <code>queued</code>, <code>running</code>, <code>finished</code>, <code>failed</code>.</p>

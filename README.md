@@ -15,82 +15,65 @@ Redis as a data base.
 
 ## Example
 
+Initialize the rush controller instance. The `instance_id` identifies
+the instance and worker in the network. The `config` is a list of
+parameters for the connection to Redis.
+
 ``` r
 library(rush)
+library(redux)
 
-# initialize controller
-rush = Rush$new("test")
+config = redux::redis_config()
+rush = Rush$new(instance_id = "test", config)
 
-# start workers
-future::plan("multisession", workers = 2)
-
-fun = function(x1, x2, ...) {
-  list(y = x1 + x2)
-}
-
-rush$start_workers(fun)
 rush
 ```
 
     ## <Rush>
-    ## * Running Workers: 1
+    ## * Running Workers: 0
     ## * Queued Tasks: 0
     ## * Queued Priority Tasks: 0
     ## * Running Tasks: 0
     ## * Finished Tasks: 0
     ## * Failed Tasks: 0
 
+Next, we define a function that we want to evaluate on the workers.
+
 ``` r
-# push tasks
+fun = function(x1, x2, ...) {
+  list(y = x1 + x2)
+}
+```
+
+We start two worker with the [`future`](https://future.futureverse.org/)
+package.
+
+``` r
+future::plan("multisession", workers = 2)
+
+rush$start_workers(fun = fun)
+```
+
+Now we can push tasks to the workers.
+
+``` r
 xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
 keys = rush$push_tasks(xss)
+rush$await_tasks(keys)
 ```
 
-    ## INFO  [22:28:49.274] [rush] Sending 2 task(s)
+And retrieve the results.
 
 ``` r
-rush$wait_tasks(keys)
-rush$n_finished_tasks
-```
-
-    ## [1] 2
-
-``` r
-# get results
-rush$data
+rush$fetch_finished_tasks()
 ```
 
     ##    x1 x2    pid                            worker_id  y   status
-    ## 1:  3  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  8 finished
-    ## 2:  4  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 10 finished
+    ## 1:  4  6 545135 f79a2cef-5e37-43f0-a91c-61f444295990 10 finished
+    ## 2:  3  5 545136 7d03c5a0-f66b-49f1-9a09-38645342df02  8 finished
     ##                                    keys
-    ## 1: 6f117037-fd08-47a0-8cbe-874748175854
-    ## 2: 118cf0df-99e6-4fed-8563-c9e3516f73c3
-
-``` r
-# push more tasks
-xss = list(list(x1 = 1, x2 = 5), list(x1 = 7, x2 = 6))
-keys = rush$push_tasks(xss)
-```
-
-    ## INFO  [22:28:49.357] [rush] Sending 2 task(s)
-
-``` r
-rush$wait_tasks(keys)
-
-rush$data
-```
-
-    ##    x1 x2    pid                            worker_id  y   status
-    ## 1:  3  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  8 finished
-    ## 2:  4  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 10 finished
-    ## 3:  1  5 246883 4e1104ce-810c-44e9-8034-0f6e57208fda  6 finished
-    ## 4:  7  6 246883 4e1104ce-810c-44e9-8034-0f6e57208fda 13 finished
-    ##                                    keys
-    ## 1: 6f117037-fd08-47a0-8cbe-874748175854
-    ## 2: 118cf0df-99e6-4fed-8563-c9e3516f73c3
-    ## 3: 06b6dfe3-34c5-4039-92fa-fdd7d92bc5fa
-    ## 4: 435be500-5c2f-45c0-a62a-d2c9c95be049
+    ## 1: dfdc1544-e6f8-4bce-9888-81c072595fdc
+    ## 2: e8165475-2c2c-48b5-b7db-ac6d9557cff4
 
 ## Task States
 

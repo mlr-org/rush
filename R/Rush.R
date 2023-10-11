@@ -34,7 +34,7 @@
 #' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
 #'
 #' ```
-#' key > xs | ys | extra | status
+#' key : xs | ys | extra | status
 #' ```
 #'
 #' The key of the hash identifies the task in Rush.
@@ -50,6 +50,9 @@
 #' | 3.. |  1 |  1 | 2 |  12:04:13 | finished |
 #' ```
 #' Notice that a value of a field can store multiple columns of the table.
+#'
+#' The methods `$push_tasks()` and `$push_results()` write into multiple hashes.
+#' For example, `$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))` writes `xs` in two hashes.
 #'
 #' @section Task States:
 #' A task can go through four states `"queued"`, `"running"`, `"finished"` or `"failed"`.
