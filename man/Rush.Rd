@@ -11,7 +11,7 @@ It manages the workers and the tasks.
 
 A local worker runs on the same machine as the controller.
 We recommend to use the \code{future} package to spawn local workers.
-The \code{future} backends \code{multisession} and \code{multicore} run workers on the local machine.
+The \code{future} backend \code{multisession} run workers on the local machine.
 As many rush workers can be started as there are future workers available.
 }
 
@@ -41,6 +41,36 @@ The heartbeat process periodically signals that a worker is still alive.
 \section{Error Handling}{
 
 When evaluating tasks in a distributed system, many things can go wrong.
+}
+
+\section{Data Structures}{
+
+Rush writes a task and its result and additional meta information into a Redis \href{https://redis.io/docs/data-types/hashes/}{hash}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{key > xs | ys | extra
+}\if{html}{\out{</div>}}
+
+The key of the hash identifies the task in Rush.
+The fields are written by different methods, e.g. \verb{$push_result()} writes \code{ys} when the result is available.
+The value of a field is a serialized list e.g. unserializing \code{xs} gives \code{list(x1 = 1, x2 = 2)}.
+This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
+For example, three hashes from the above example are converted to the following table.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp |
+| key | x1 | x2 | y | timestamp |
+| key | x1 | x2 | y | timestamp |
+}\if{html}{\out{</div>}}
+
+Note that a value of a field stores multiple columns of the table.
+}
+
+\section{Fetch Tasks and Results}{
+
+The \verb{$fetch_*()} methods retrieve data from the Redis database.
+A matching method is defined for each task status e.g. \verb{$fetch_running_tasks()} and \verb{$fetch_finished_tasks()}.
+If only the result of the function evaluation is needed, \verb{$fetch_results()} and \verb{$fetch_latest_results()} are faster.
+The methods \verb{$fetch_results()} and \verb{$fetch_finished_tasks()} cache the already queried data.
+The \verb{$block_*()} variants wait until a new result is available.
 }
 
 \section{Public fields}{

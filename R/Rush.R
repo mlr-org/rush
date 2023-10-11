@@ -7,7 +7,7 @@
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
 #' We recommend to use the `future` package to spawn local workers.
-#' The `future` backends `multisession` and `multicore` run workers on the local machine.
+#' The `future` backend `multisession` run workers on the local machine.
 #' As many rush workers can be started as there are future workers available.
 #'
 #' @section Remote Workers:
@@ -29,6 +29,33 @@
 #'
 #' @section Error Handling:
 #' When evaluating tasks in a distributed system, many things can go wrong.
+#'
+#' @section Data Structures:
+#' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
+#'
+#' ```
+#' key > xs | ys | extra
+#' ```
+#'
+#' The key of the hash identifies the task in Rush.
+#' The fields are written by different methods, e.g. `$push_result()` writes `ys` when the result is available.
+#' The value of a field is a serialized list e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`.
+#' This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
+#' For example, three hashes from the above example are converted to the following table.
+#'
+#' ```
+#' | key | x1 | x2 | y | timestamp |
+#' | key | x1 | x2 | y | timestamp |
+#' | key | x1 | x2 | y | timestamp |
+#' ```
+#' A value of a field stores multiple columns of the table.
+#'
+#' @section Fetch Tasks and Results:
+#' The `$fetch_*()` methods retrieve data from the Redis database.
+#' A matching method is defined for each task status e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
+#' If only the result of the function evaluation is needed, `$fetch_results()` and `$fetch_latest_results()` are faster.
+#' The methods `$fetch_results()` and `$fetch_finished_tasks()` cache the already queried data.
+#' The `$block_*()` variants wait until a new result is available.
 #'
 #' @template param_instance_id
 #' @template param_config
