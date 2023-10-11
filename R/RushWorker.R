@@ -140,7 +140,12 @@ RushWorker = R6::R6Class("RushWorker",
 
       destination = if (status == "finished") "finished_tasks" else "failed_tasks"
 
-      # move key from running to finished
+      # move key from running to finished or failed
+      # keys of finished and failed tasks are stored in a list i.e. the are ordered by time.
+      # each rush instance only needs to record how many results it has already seen
+      # to cheaply get the latest results and cache the finished tasks
+      # under some conditions a set would be more advantageous e.g. to check if a task is finished,
+      # but at the moment a list seems to be the better option
       r$pipeline(.commands = list(
         c("SREM", private$.get_key("running_tasks"), keys),
         c("RPUSH", private$.get_key(destination), keys)

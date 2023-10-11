@@ -43,11 +43,11 @@ The heartbeat process periodically signals that a worker is still alive.
 When evaluating tasks in a distributed system, many things can go wrong.
 }
 
-\section{Data Structures}{
+\section{Data Structure}{
 
 Rush writes a task and its result and additional meta information into a Redis \href{https://redis.io/docs/data-types/hashes/}{hash}.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{key > xs | ys | extra
+\if{html}{\out{<div class="sourceCode">}}\preformatted{key > xs | ys | extra | status
 }\if{html}{\out{</div>}}
 
 The key of the hash identifies the task in Rush.
@@ -56,12 +56,22 @@ The value of a field is a serialized list e.g. unserializing \code{xs} gives \co
 This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
 For example, three hashes from the above example are converted to the following table.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp |
-| key | x1 | x2 | y | timestamp |
-| key | x1 | x2 | y | timestamp |
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp | status   |
+| 1.. |  3 |  4 | 7 |  12:04:11 | finished |
+| 2.. |  1 |  4 | 5 |  12:04:12 | finished |
+| 3.. |  1 |  1 | 2 |  12:04:13 | finished |
 }\if{html}{\out{</div>}}
 
-Note that a value of a field stores multiple columns of the table.
+Notice that a value of a field can store multiple columns of the table.
+}
+
+\section{Task States}{
+
+A task can go through four states \code{"queued"}, \code{"running"}, \code{"finished"} or \code{"failed"}.
+Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/data-types/lists/}{lists} and \href{https://redis.io/docs/data-types/sets/}{sets} to keep track of their status.
+Queued tasks are waiting to be evaluated.
+A worker pops a task from the queue and changes the status to \code{"running"} while evaluating the task.
+When the task is finished, the status is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
 }
 
 \section{Fetch Tasks and Results}{

@@ -30,11 +30,11 @@
 #' @section Error Handling:
 #' When evaluating tasks in a distributed system, many things can go wrong.
 #'
-#' @section Data Structures:
+#' @section Data Structure:
 #' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
 #'
 #' ```
-#' key > xs | ys | extra
+#' key > xs | ys | extra | status
 #' ```
 #'
 #' The key of the hash identifies the task in Rush.
@@ -44,11 +44,20 @@
 #' For example, three hashes from the above example are converted to the following table.
 #'
 #' ```
-#' | key | x1 | x2 | y | timestamp |
-#' | key | x1 | x2 | y | timestamp |
-#' | key | x1 | x2 | y | timestamp |
+#' | key | x1 | x2 | y | timestamp | status   |
+#' | 1.. |  3 |  4 | 7 |  12:04:11 | finished |
+#' | 2.. |  1 |  4 | 5 |  12:04:12 | finished |
+#' | 3.. |  1 |  1 | 2 |  12:04:13 | finished |
 #' ```
-#' A value of a field stores multiple columns of the table.
+#' Notice that a value of a field can store multiple columns of the table.
+#'
+#' @section Task States:
+#' A task can go through four states `"queued"`, `"running"`, `"finished"` or `"failed"`.
+#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/data-types/lists/) and [sets](https://redis.io/docs/data-types/sets/) to keep track of their status.
+#' Queued tasks are waiting to be evaluated.
+#' A worker pops a task from the queue and changes the status to `"running"` while evaluating the task.
+#' When the task is finished, the status is changed to `"finished" and the result is written to the data base.
+#' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
 #'
 #' @section Fetch Tasks and Results:
 #' The `$fetch_*()` methods retrieve data from the Redis database.
