@@ -34,4 +34,8 @@ run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbe
 
   # run worker loop
   invoke(worker_loop, rush = rush, .args = args)
+
+  rush$set_terminated()
+
+  return(NULL)
 }
