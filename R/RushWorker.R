@@ -50,12 +50,9 @@ RushWorker = R6::R6Class("RushWorker",
 
       super$initialize(instance_id = instance_id, config = config)
 
-      # set terminate key
-      r = self$connector
-      r$command(c("SET", private$.get_worker_key("terminated"), "FALSE"))
-
       # start heartbeat
       assert_numeric(heartbeat_period, null.ok = TRUE)
+      r = self$connector
       if (!is.null(heartbeat_period)) {
         assert_numeric(heartbeat_expire, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
@@ -175,9 +172,9 @@ RushWorker = R6::R6Class("RushWorker",
     #' Last step in the worker loop before the worker terminates.
     set_terminated = function() {
       r = self$connector
-      lg$debug("Worker %s terminated")
+      lg$debug("Worker %s terminated", self$worker_id)
       self$write_log()
-      r$command(c("HSET", private$.get_key(worker_id), "status", "terminated"))
+      r$command(c("HSET", private$.get_key(self$worker_id), "status", "terminated"))
       return(invisible(self))
     }
   ),
