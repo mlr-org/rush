@@ -247,9 +247,9 @@ Rush = R6::R6Class("Rush",
       bin_args = redux::object_to_bin(args)
       r$command(list("SET", private$.get_key("worker_script"), bin_args))
 
-      catn("Start worker with:")
-      catn(sprintf("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$instance_id, self$config$url))
-      catn("See ?rush::start_worker for more details.")
+      lg$info("Start worker with:")
+      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$instance_id, self$config$url)
+      lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
     },
@@ -285,6 +285,8 @@ Rush = R6::R6Class("Rush",
 
       if (type == "terminate") {
 
+        lg$debug("Terminating %i worker(s) %s", length(worker_ids), as_short_string(worker_ids))
+
         # Push terminate signal to worker
         cmds = map(worker_ids, function(worker_id) {
           c("SET", private$.get_worker_key("terminate", worker_id), "TRUE")
@@ -292,7 +294,6 @@ Rush = R6::R6Class("Rush",
         r$pipeline(.commands = cmds)
 
       } else if (type == "kill") {
-        # FIXME: replace with logical subset
         running_workers = self$worker_states[list("running"), worker_id, on = "status", nomatch = NULL]
         worker_info = self$worker_info[list(running_workers), , on = "worker_id"]
 
@@ -332,9 +333,12 @@ Rush = R6::R6Class("Rush",
     #' Workers with a heartbeat process are checked with the heartbeat.
     detect_lost_workers = function() {
       r = self$connector
-      # FIXME: replace with logical subset
-      running_workers = self$worker_states[list("running"), worker_id, on = "status", nomatch = NULL]
-      worker_info = self$worker_info[list(running_workers), , on = "worker_id"]
+
+      # get info of running workers
+      # optimized to quickly get the info of running workers
+      worker_info = self$worker_info
+      worker_states = private$.worker_states(worker_info$worker_id)
+      worker_info = worker_info[worker_states == "running", ]
       lost_workers = character(0)
 
       if (any(worker_info$heartbeat)) {
@@ -361,11 +365,10 @@ Rush = R6::R6Class("Rush",
       }
 
       if (length(lost_workers)) {
-
-        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
-
         # update state
         r$pipeline(.commands = map(lost_workers, function(worker_id) c("HSET", private$.get_key(worker_id), "status", "lost")))
+
+        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
       }
 
       return(invisible(self))
@@ -814,8 +817,7 @@ Rush = R6::R6Class("Rush",
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
       bin_status = redux::object_to_bin(list(status = status))
 
-      lg$debug("Writting %i hash(es) with %i field(s)",
-        length(keys), length(fields))
+      lg$debug("Writting %i hash(es) with %i field(s)", length(keys), length(fields))
 
       # construct list of redis commands to write hashes
       cmds = pmap(c(list(key = keys), values), function(key, ...) {
@@ -972,20 +974,19 @@ Rush = R6::R6Class("Rush",
       private$.cached_data
     },
 
-    #' @field worker_info ([data.table::data.table])\cr
+    #' @field worker_info ([data.table::data.table()])\cr
     #' Contains information about the workers.
-    #'
-    #' The methods `$detect_lost_workers()`, `$detect_lost_tasks()` and `$stop_workers()` update the status column.
     worker_info = function(rhs) {
       assert_ro_binding(rhs)
+
+      # worker info is cached so that functions like detect_lost_workers run fast
       if (nrow(private$.cached_worker_info) == self$n_workers) return(private$.cached_worker_info)
-      worker_ids = self$worker_ids
       r = self$connector
 
       fields = c("worker_id", "pid", "host", "heartbeat")
-      worker_info = set_names(rbindlist(map(worker_ids, function(worker_id) {
+      worker_info = set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
-      }), use.names = FALSE), fields)
+      })), fields)
 
       # fix types
       worker_info[, heartbeat := as.logical(heartbeat)]
@@ -996,13 +997,14 @@ Rush = R6::R6Class("Rush",
       worker_info
     },
 
+    #' @field worker_states ([data.table::data.table()])\cr
+    #' Contains the states of the workers.
     worker_states = function(rhs) {
       assert_ro_binding(rhs)
       r = self$connector
-      worker_ids = self$worker_ids
 
       fields = c("worker_id", "status")
-      set_names(rbindlist(map(worker_ids, function(worker_id) {
+      set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)
     },
@@ -1056,7 +1058,19 @@ Rush = R6::R6Class("Rush",
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
       sprintf("%s:%s:%s", self$instance_id, worker_id, key)
+    },
+
+    # quick access to the worker states
+    # helpful to subset worker info
+    # returns a character vector of the states
+    .worker_states = function(worker_ids) {
+      r = self$connector
+
+      cmds = map(worker_ids, function(worker_id) {
+        c("HGET", private$.get_key(worker_id), "status")
+      })
+
+      unlist(r$pipeline(.commands = cmds))
     }
   )
 )
-

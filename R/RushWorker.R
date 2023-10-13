@@ -61,11 +61,14 @@ RushWorker = R6::R6Class("RushWorker",
           instance_id = self$instance_id,
           config = self$config,
           worker_id = self$worker_id,
-          period = heartbeat_period,
-          expire = heartbeat_expire,
+          heartbeat_period = heartbeat_period,
+          heartbeat_expire = heartbeat_expire,
           pid = Sys.getpid()
         )
         self$heartbeat = callr::r_bg(fun_heartbeat, args = heartbeat_args, supervise = TRUE)
+
+        # wait until heartbeat process is able to work
+        Sys.sleep(1)
       }
 
       # save logging on worker
