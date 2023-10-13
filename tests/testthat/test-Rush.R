@@ -14,7 +14,6 @@ test_that("constructing a rush controller works", {
 })
 
 test_that("workers are started", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -45,7 +44,6 @@ test_that("workers are started", {
 })
 
 test_that("workers are started with a heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -65,7 +63,6 @@ test_that("workers are started with a heartbeat", {
 })
 
 test_that("additional workers are started", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -101,7 +98,6 @@ test_that("additional workers are started", {
 # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -141,7 +137,6 @@ test_that("worker can be started with script", {
 })
 
 test_that("packages are available on the worker", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -176,7 +171,6 @@ test_that("packages are available on the worker", {
 })
 
 test_that("globals are available on the worker", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -215,7 +209,6 @@ test_that("globals are available on the worker", {
 # future workers ----------------------------------------------------------
 
 test_that("a worker is terminated", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -243,7 +236,6 @@ test_that("a worker is terminated", {
 })
 
 test_that("a local worker is killed", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -271,7 +263,6 @@ test_that("a local worker is killed", {
 })
 
 test_that("a remote worker is killed via the heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
   skip_on_os("windows")
 
@@ -305,7 +296,6 @@ test_that("a remote worker is killed via the heartbeat", {
 # task evaluation --------------------------------------------------------------
 
 test_that("evaluating a task works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -348,7 +338,6 @@ test_that("evaluating a task works", {
 })
 
 test_that("evaluating tasks works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -393,7 +382,6 @@ test_that("evaluating tasks works", {
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
-  skip_on_ci()
   # skip_on_cran()
   skip_on_os("windows")
 
@@ -419,7 +407,6 @@ test_that("a segfault on a local worker is detected", {
 })
 
 test_that("a segfault on a worker is detected via the heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
   skip_on_os("windows")
 
@@ -447,7 +434,6 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 # fault detection --------------------------------------------------------------
 
 test_that("a simple error is catched", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -499,7 +485,6 @@ test_that("a simple error is catched", {
 })
 
 test_that("a lost task is detected", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -551,7 +536,6 @@ test_that("a lost task is detected", {
 # receiving results ------------------------------------------------------------
 
 test_that("blocking on new results works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -575,7 +559,6 @@ test_that("blocking on new results works", {
 })
 
 test_that("wait for tasks works when a task gets lost", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -601,7 +584,6 @@ test_that("wait for tasks works when a task gets lost", {
 # misc--------------------------------------------------------------------------
 
 test_that("saving lgr logs works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -635,6 +617,8 @@ test_that("saving lgr logs works", {
 })
 
 test_that("snapshot option works", {
+  # skip_on_cran()
+
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -655,7 +639,6 @@ test_that("snapshot option works", {
 })
 
 test_that("terminating workers on idle works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
