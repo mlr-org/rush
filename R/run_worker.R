@@ -29,9 +29,12 @@ run_worker = function(worker_loop, instance_id, config, host, worker_id, heartbe
     heartbeat_expire = heartbeat_expire,
     lgr_thresholds = lgr_thresholds)
 
-  # without waiting, the heartbeat process continues even though worker_loop has crashed
-  if (!is.null(rush$heartbeat)) Sys.sleep(1)
+  lg$debug("Worker %s started.", rush$worker_id)
 
   # run worker loop
   invoke(worker_loop, rush = rush, .args = args)
+
+  rush$set_terminated()
+
+  return(NULL)
 }

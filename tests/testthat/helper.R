@@ -16,3 +16,11 @@ expect_reset_rush = function(rush) {
   rush$reset()
   expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
 }
+
+clean_test_env = function(pids) {
+  walk(pids, tools::pskill)
+  future::plan("sequential")
+}
+
+lg$set_threshold(0)
+

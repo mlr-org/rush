@@ -50,12 +50,9 @@ RushWorker = R6::R6Class("RushWorker",
 
       super$initialize(instance_id = instance_id, config = config)
 
-      # set terminate key
-      r = self$connector
-      r$command(c("SET", private$.get_worker_key("terminate"), "FALSE"))
-
       # start heartbeat
       assert_numeric(heartbeat_period, null.ok = TRUE)
+      r = self$connector
       if (!is.null(heartbeat_period)) {
         assert_numeric(heartbeat_expire, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
@@ -64,11 +61,14 @@ RushWorker = R6::R6Class("RushWorker",
           instance_id = self$instance_id,
           config = self$config,
           worker_id = self$worker_id,
-          period = heartbeat_period,
-          expire = heartbeat_expire,
+          heartbeat_period = heartbeat_period,
+          heartbeat_expire = heartbeat_expire,
           pid = Sys.getpid()
         )
         self$heartbeat = callr::r_bg(fun_heartbeat, args = heartbeat_args, supervise = TRUE)
+
+        # wait until heartbeat process is able to work
+        Sys.sleep(1)
       }
 
       # save logging on worker
@@ -168,16 +168,36 @@ RushWorker = R6::R6Class("RushWorker",
       }
 
       return(invisible(self))
+    },
+
+    #' @description
+    #' Mark the worker as terminated.
+    #' Last step in the worker loop before the worker terminates.
+    set_terminated = function() {
+      r = self$connector
+      lg$debug("Worker %s terminated", self$worker_id)
+      self$write_log()
+      r$command(c("HSET", private$.get_key(self$worker_id), "status", "terminated"))
+      return(invisible(self))
     }
   ),
 
   active = list(
 
-    #' @field terminate (`logical(1)`)\cr
+    #' @field terminated (`logical(1)`)\cr
     #' Whether to shutdown the worker.
-    terminate = function() {
+    #' Used in the worker loop to determine whether to continue.
+    terminated = function() {
       r = self$connector
-      r$GET(private$.get_worker_key("terminate")) == "TRUE"
+      r$GET(private$.get_worker_key("terminate")) %??% "FALSE" == "TRUE"
+    },
+
+    #' @field terminate_on_idle (`logical(1)`)\cr
+    #' Whether to shutdown the worker if no tasks are queued.
+    #' Used in the worker loop to determine whether to continue.
+    terminated_on_idle = function() {
+      r = self$connector
+      r$GET(private$.get_key("terminate_on_idle")) %??% "FALSE" == "TRUE" && !as.logical(self$n_queued_tasks)
     }
   )
 )
