@@ -1,5 +1,7 @@
 runner = function(renv_project, times) {
 
+  system("redis-server --daemonize yes --save \"\" --appendonly no")
+
   # initialize environment
   renv::load(renv_project)
   project_id = renv::project()
