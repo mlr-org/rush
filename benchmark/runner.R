@@ -122,7 +122,7 @@ runner = function(renv_project, times) {
   priority_queue_1000 = rep(worker_id, 1000)
   priority_queue_10000 = rep(worker_id, 10000)
 
-  res[["bm_push_task"]] = microbenchmark(
+  res[["bm_push_priority"]] = microbenchmark(
     push_task_1 = rush$push_priority_tasks(list(xss_1), priority = priority_queue_1),
     push_task_10 = rush$push_priority_tasks(xss_10, priority = priority_queue_10),
     push_task_100 = rush$push_priority_tasks(xss_100, priority = priority_queue_100),
@@ -539,7 +539,7 @@ runner = function(renv_project, times) {
     rush$worker_info
   }
 
-  microbenchmark(
+  res[["bm_worker_info"]] =  microbenchmark(
     worker_info = rush$worker_info,
     times = 100,
     unit = "ms",
