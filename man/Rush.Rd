@@ -4,14 +4,14 @@
 \alias{Rush}
 \title{Rush Controller}
 \description{
-\link{Rush} is the controller of the asynchronous parallelization.
-It manages the workers and the tasks.
+\link{Rush} is the controller in a centralized rush network.
+The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 }
 \section{Local Workers}{
 
 A local worker runs on the same machine as the controller.
 We recommend to use the \code{future} package to spawn local workers.
-The \code{future} backend \code{multisession} run workers on the local machine.
+The \code{future} backend \code{multisession} spawns workers on the local machine.
 As many rush workers can be started as there are future workers available.
 }
 
@@ -36,18 +36,15 @@ Without a heartbeat process a remote worker cannot be killed (see section heartb
 \section{Heartbeat}{
 
 The heartbeat process periodically signals that a worker is still alive.
-}
-
-\section{Error Handling}{
-
-When evaluating tasks in a distributed system, many things can go wrong.
+This is implemented by setting a \href{https://redis.io/commands/expire/}{timeout} on the heartbeat key.
+Furthermore, the heartbeat process can kill the worker.
 }
 
 \section{Data Structure}{
 
 Rush writes a task and its result and additional meta information into a Redis \href{https://redis.io/docs/data-types/hashes/}{hash}.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{key > xs | ys | extra | status
+\if{html}{\out{<div class="sourceCode">}}\preformatted{key : xs | ys | extra | status
 }\if{html}{\out{</div>}}
 
 The key of the hash identifies the task in Rush.
@@ -63,6 +60,9 @@ For example, three hashes from the above example are converted to the following 
 }\if{html}{\out{</div>}}
 
 Notice that a value of a field can store multiple columns of the table.
+
+The methods \verb{$push_tasks()} and \verb{$push_results()} write into multiple hashes.
+For example, \verb{$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))} writes \code{xs} in two hashes.
 }
 
 \section{Task States}{
@@ -74,6 +74,14 @@ A worker pops a task from the queue and changes the status to \code{"running"} w
 When the task is finished, the status is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
 }
 
+\section{Queues}{
+
+Rush uses a shared queue and a queue for each worker.
+The shared queue is used to push tasks to the workers.
+The first worker that pops a task from the shared queue evaluates the task.
+The worker queues are used to push tasks to specific workers.
+}
+
 \section{Fetch Tasks and Results}{
 
 The \verb{$fetch_*()} methods retrieve data from the Redis database.
@@ -81,6 +89,24 @@ A matching method is defined for each task status e.g. \verb{$fetch_running_task
 If only the result of the function evaluation is needed, \verb{$fetch_results()} and \verb{$fetch_latest_results()} are faster.
 The methods \verb{$fetch_results()} and \verb{$fetch_finished_tasks()} cache the already queried data.
 The \verb{$block_*()} variants wait until a new result is available.
+}
+
+\section{Error Handling}{
+
+When evaluating tasks in a distributed system, many things can go wrong.
+Simple R errors in the worker loop are caught and written to the archive.
+The task is marked as \code{"failed"}.
+If the connection to a worker is lost, it looks like a task is \code{"running"} forever.
+The methods \verb{$detect_lost_workers()} and \verb{$detect_lost_tasks()} detect lost workers.
+Running these methods periodically adds a small overhead.
+}
+
+\section{Logging}{
+
+The worker logs all messages written with the \code{lgr} package to the data base.
+The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
+Saving log messages adds a small overhead but is useful for debugging.
+By default, no log messages are stored.
 }
 
 \section{Public fields}{
@@ -145,10 +171,11 @@ Number of all tasks.}
 \item{\code{data}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains all performed function calls.}
 
-\item{\code{worker_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
-Contains information about the workers.
+\item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
+Contains information about the workers.}
 
-The methods \verb{$detect_lost_workers()}, \verb{$detect_lost_tasks()} and \verb{$stop_workers()} update the status column.}
+\item{\code{worker_states}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
+Contains the states of the workers.}
 
 \item{\code{priority_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains the number of tasks in the priority queues.}
@@ -472,7 +499,7 @@ If \code{NULL} all worker ids are used.}
 Pushes a task to the queue.
 Task is added to queued tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL, terminate_workers = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -483,6 +510,9 @@ Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))
 
 \item{\code{extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{terminate_workers}}{(\code{logical(1)})\cr
+Whether to stop the workers after evaluating the tasks.}
 }
 \if{html}{\out{</div>}}
 }

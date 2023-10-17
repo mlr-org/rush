@@ -6,17 +6,45 @@ output: github_document
 
 # rush
 
-Rush is a package for asynchronous parallelization in R.
-Tasks are queued and distributed to workers in the background.
-It heavily uses Redis as a data base.
+*rush* is a package for parallel and distributed computing in R.
+It evaluates an R expression asynchronously on a cluster of workers and provides a shared storage between the workers.
+The shared storage is a [Redis](https://redis.io) data base.
+Rush offers a centralized and decentralized network architecture.
+The centralized network has a single controller (`Rush`) and multiple workers (`RushWorker`).
+Tasks are created centrally and distributed to workers by the controller.
+The decentralized network has no controller.
+The workers sample tasks and communicate the results asynchronously with other workers.
 
-![](man/figures/README-flow.png)
+# Features
+
+* Parallelize arbitrary R expressions.
+* Centralized and decentralized network architecture.
+* Small overhead of a few milliseconds per task.
+* Easy starting of workers with the [`future`](https://future.futureverse.org/) package.
+* Start workers on any platform with a batch script.
+* Designed to work with [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
+* Results are cached in the R session to minimize read and write operations.
+* Detect and recover from worker failures.
+* Start heartbeats to monitor workers on remote machines.
+* Snapshot the in-memory data base to disk.
+* Store [`lgr`](https://cran.r-project.org/web/packages/lgr/index.html) messages of the workers in the Redis data base.
+* Light on dependencies.
 
 ## Install
 
-[Install Redis](https://redis.io/docs/getting-started/installation/)
+Install the development version from GitHub.
 
-## Example
+```{r eval = FALSE}
+remotes::install_github("mlr-org/rush")
+```
+
+And install [Redis](https://redis.io/docs/getting-started/installation/).
+
+## Centralized Rush Network
+
+![](man/figures/README-flow.png)
+
+*Centralized network with a single controller and three workers.*
 
 ```{r, include=FALSE}
 future::plan("sequential")
@@ -25,13 +53,12 @@ r = redux::hiredis(config)
 r$FLUSHDB()
 ```
 
-Initialize the rush controller instance.
-The `instance_id` identifies the instance and worker in the network.
+The example below shows the evaluation of a simple function in a centralized network.
+The `instance_id` identifies the instance and workers in the network.
 The `config` is a list of parameters for the connection to Redis.
 
 ```{r}
 library(rush)
-library(redux)
 
 config = redux::redis_config()
 rush = Rush$new(instance_id = "test", config)
@@ -47,7 +74,7 @@ fun = function(x1, x2, ...) {
 }
 ```
 
-We start two worker with the [`future`](https://future.futureverse.org/) package.
+We start two workers with the [`future`](https://future.futureverse.org/) package.
 
 ```{r}
 future::plan("multisession", workers = 2)
@@ -69,21 +96,8 @@ And retrieve the results.
 rush$fetch_finished_tasks()
 ```
 
+## Decentralized Rush Network
 
-## Task States
+![](man/figures/README-flow-2.png)
 
-Tasks have four states: `queued`, `running`, `finished`, `failed`.
-
-* `queued` tasks are in the wait list.
-* `running` tasks are evaluated on a worker.
-* `finished` tasks pushed their result to the data base.
-* `failed` tasks threw an error.
-
-## Worker States
-
-Workers have four states: `running`, `terminated`, `killed`, `lost`.
-
-* `running` workers are evaluating tasks.
-* `terminated` workers are stopped.
-* `killed` workers were killed by the user.
-* `lost` workers crashed.
+*Decentralized network with four workers.*

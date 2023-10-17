@@ -1,13 +1,13 @@
 #' @title Rush Controller
 #'
 #' @description
-#' [Rush] is the controller of the asynchronous parallelization.
-#' It manages the workers and the tasks.
+#' [Rush] is the controller in a centralized rush network.
+#' The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
 #' We recommend to use the `future` package to spawn local workers.
-#' The `future` backend `multisession` run workers on the local machine.
+#' The `future` backend `multisession` spawns workers on the local machine.
 #' As many rush workers can be started as there are future workers available.
 #'
 #' @section Remote Workers:
@@ -26,9 +26,8 @@
 #'
 #' @section Heartbeat:
 #' The heartbeat process periodically signals that a worker is still alive.
-#'
-#' @section Error Handling:
-#' When evaluating tasks in a distributed system, many things can go wrong.
+#' This is implemented by setting a [timeout](https://redis.io/commands/expire/) on the heartbeat key.
+#' Furthermore, the heartbeat process can kill the worker.
 #'
 #' @section Data Structure:
 #' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
@@ -62,6 +61,12 @@
 #' When the task is finished, the status is changed to `"finished" and the result is written to the data base.
 #' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
 #'
+#' @section Queues:
+#' Rush uses a shared queue and a queue for each worker.
+#' The shared queue is used to push tasks to the workers.
+#' The first worker that pops a task from the shared queue evaluates the task.
+#' The worker queues are used to push tasks to specific workers.
+#'
 #' @section Fetch Tasks and Results:
 #' The `$fetch_*()` methods retrieve data from the Redis database.
 #' A matching method is defined for each task status e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
@@ -69,8 +74,19 @@
 #' The methods `$fetch_results()` and `$fetch_finished_tasks()` cache the already queried data.
 #' The `$block_*()` variants wait until a new result is available.
 #'
-#' @section Queues:
-#' Rush uses a shared queue and a queue for each worker.
+#' @section Error Handling:
+#' When evaluating tasks in a distributed system, many things can go wrong.
+#' Simple R errors in the worker loop are caught and written to the archive.
+#' The task is marked as `"failed"`.
+#' If the connection to a worker is lost, it looks like a task is `"running"` forever.
+#' The methods `$detect_lost_workers()` and `$detect_lost_tasks()` detect lost workers.
+#' Running these methods periodically adds a small overhead.
+#'
+#' @section Logging:
+#' The worker logs all messages written with the `lgr` package to the data base.
+#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
+#' Saving log messages adds a small overhead but is useful for debugging.
+#' By default, no log messages are stored.
 #'
 #' @template param_instance_id
 #' @template param_config

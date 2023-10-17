@@ -1,17 +1,11 @@
 #' @title Rush Worker
 #'
 #' @description
-#' [RushWorker] runs on a worker and executes tasks.
-#' The rush worker inherits from [Rush] and adds methods to pop tasks from the queue and push results to the data base.
+#' [RushWorker] evaluates tasks and writes results to the data base.
+#' The worker inherits from [Rush].
 #'
 #' @note
 #' The worker registers itself in the data base of the rush network.
-#'
-#' @section Logging:
-#' The worker logs all messages written with the `lgr` package to the data base.
-#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
-#' Saving log messages adds a small overhead but is useful for debugging.
-#' By default, no log messages are stored.
 #'
 #' @template param_instance_id
 #' @template param_config
@@ -91,6 +85,30 @@ RushWorker = R6::R6Class("RushWorker",
         "status", "running",
         "host", self$host,
         "heartbeat", as.character(!is.null(self$heartbeat))))
+    },
+
+    #' @description
+    #' Push a task to running tasks without queue.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_running_task = function(xss, extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      lg$debug("Pushing %i running task(s).", length(xss))
+
+      keys = self$write_hashes(xs = xss, xs_extra = extra, status = "running")
+      r$command(c("SADD", private$.get_key("running_tasks"), keys))
+      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+
+      return(invisible(keys))
     },
 
     #' @description
@@ -192,7 +210,7 @@ RushWorker = R6::R6Class("RushWorker",
       r$GET(private$.get_worker_key("terminate")) %??% "FALSE" == "TRUE"
     },
 
-    #' @field terminate_on_idle (`logical(1)`)\cr
+    #' @field terminated_on_idle (`logical(1)`)\cr
     #' Whether to shutdown the worker if no tasks are queued.
     #' Used in the worker loop to determine whether to continue.
     terminated_on_idle = function() {

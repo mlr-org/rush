@@ -3,25 +3,60 @@
 
 # rush
 
-Rush is a package for asynchronous parallelization in R. Tasks are
-queued and distributed to workers in the background. It heavily uses
-Redis as a data base.
+*rush* is a package for parallel and distributed computing in R. It
+evaluates an R expression asynchronously on a cluster of workers and
+provides a shared storage between the workers. The shared storage is a
+[Redis](https://redis.io) data base. Rush offers a centralized and
+decentralized network architecture. The centralized network has a single
+controller (`Rush`) and multiple workers (`RushWorker`). Tasks are
+created centrally and distributed to workers by the controller. The
+decentralized network has no controller. The workers sample tasks and
+communicate the results asynchronously with other workers.
 
-![](man/figures/README-flow.png)
+# Features
+
+  - Parallelize arbitrary R expressions.
+  - Centralized and decentralized network architecture.
+  - Small overhead of a few milliseconds per task.
+  - Easy starting of workers with the
+    [`future`](https://future.futureverse.org/) package.
+  - Start workers on any platform with a batch script.
+  - Designed to work with
+    [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
+  - Results are cached in the R session to minimize read and write
+    operations.
+  - Detect and recover from worker failures.
+  - Start heartbeats to monitor workers on remote machines.
+  - Snapshot the in-memory data base to disk.
+  - Store
+    [`lgr`](https://cran.r-project.org/web/packages/lgr/index.html)
+    messages of the workers in the Redis data base.
+  - Light on dependencies.
 
 ## Install
 
-[Install Redis](https://redis.io/docs/getting-started/installation/)
+Install the development version from GitHub.
 
-## Example
+``` r
+remotes::install_github("mlr-org/rush")
+```
 
-Initialize the rush controller instance. The `instance_id` identifies
-the instance and worker in the network. The `config` is a list of
-parameters for the connection to Redis.
+And install
+[Redis](https://redis.io/docs/getting-started/installation/).
+
+## Centralized Rush Network
+
+![](man/figures/README-flow.png)
+
+*Centralized network with a single controller and three workers.*
+
+The example below shows the evaluation of a simple function in a
+centralized network. The `instance_id` identifies the instance and
+workers in the network. The `config` is a list of parameters for the
+connection to Redis.
 
 ``` r
 library(rush)
-library(redux)
 
 config = redux::redis_config()
 rush = Rush$new(instance_id = "test", config)
@@ -45,8 +80,8 @@ fun = function(x1, x2, ...) {
 }
 ```
 
-We start two worker with the [`future`](https://future.futureverse.org/)
-package.
+We start two workers with the
+[`future`](https://future.futureverse.org/) package.
 
 ``` r
 future::plan("multisession", workers = 2)
@@ -69,26 +104,14 @@ rush$fetch_finished_tasks()
 ```
 
     ##    x1 x2    pid                            worker_id  y   status
-    ## 1:  4  6 545135 f79a2cef-5e37-43f0-a91c-61f444295990 10 finished
-    ## 2:  3  5 545136 7d03c5a0-f66b-49f1-9a09-38645342df02  8 finished
+    ## 1:  3  5 224861 aaa9bbea-ab25-4c47-a9ef-2cde95ee7144  8 finished
+    ## 2:  4  6 234065 858f7aa4-18bd-48e0-a69f-0f0297a9051c 10 finished
     ##                                    keys
-    ## 1: dfdc1544-e6f8-4bce-9888-81c072595fdc
-    ## 2: e8165475-2c2c-48b5-b7db-ac6d9557cff4
+    ## 1: c37c5467-693d-4df9-a1f6-fd2a5d0aaf65
+    ## 2: 0bd23506-eecb-42ee-beba-a37be45b51b8
 
-## Task States
+## Decentralized Rush Network
 
-Tasks have four states: `queued`, `running`, `finished`, `failed`.
+![](man/figures/README-flow-2.png)
 
-  - `queued` tasks are in the wait list.
-  - `running` tasks are evaluated on a worker.
-  - `finished` tasks pushed their result to the data base.
-  - `failed` tasks threw an error.
-
-## Worker States
-
-Workers have four states: `running`, `terminated`, `killed`, `lost`.
-
-  - `running` workers are evaluating tasks.
-  - `terminated` workers are stopped.
-  - `killed` workers were killed by the user.
-  - `lost` workers crashed.
+*Decentralized network with four workers.*
