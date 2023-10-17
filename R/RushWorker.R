@@ -1,17 +1,11 @@
 #' @title Rush Worker
 #'
 #' @description
-#' [RushWorker] runs on a worker and executes tasks.
-#' The rush worker inherits from [Rush] and adds methods to pop tasks from the queue and push results to the data base.
+#' [RushWorker] evaluates tasks and writes results to the data base.
+#' The worker inherits from [Rush].
 #'
 #' @note
 #' The worker registers itself in the data base of the rush network.
-#'
-#' @section Logging:
-#' The worker logs all messages written with the `lgr` package to the data base.
-#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
-#' Saving log messages adds a small overhead but is useful for debugging.
-#' By default, no log messages are stored.
 #'
 #' @template param_instance_id
 #' @template param_config
@@ -216,7 +210,7 @@ RushWorker = R6::R6Class("RushWorker",
       r$GET(private$.get_worker_key("terminate")) %??% "FALSE" == "TRUE"
     },
 
-    #' @field terminate_on_idle (`logical(1)`)\cr
+    #' @field terminated_on_idle (`logical(1)`)\cr
     #' Whether to shutdown the worker if no tasks are queued.
     #' Used in the worker loop to determine whether to continue.
     terminated_on_idle = function() {
