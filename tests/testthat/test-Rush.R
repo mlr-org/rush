@@ -379,159 +379,159 @@ test_that("evaluating tasks works", {
   clean_test_env(pids)
 })
 
-# # segfault detection -----------------------------------------------------------
+# segfault detection -----------------------------------------------------------
 
-# test_that("a segfault on a local worker is detected", {
-#   # skip_on_cran()
-#   skip_on_os("windows")
+test_that("a segfault on a local worker is detected", {
+  # skip_on_cran()
+  skip_on_os("windows")
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) {
-#     get("attach")(structure(list(), class = "UserDefinedDatabase"))
-#   }
-#   future::plan("cluster", workers = 1)
-#   rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) {
+    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  }
+  future::plan("cluster", workers = 1)
+  rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
 
-#   xss = list(list(x1 = 1, x2 = 2))
-#   rush$push_tasks(xss)
-#   Sys.sleep(2)
+  xss = list(list(x1 = 1, x2 = 2))
+  rush$push_tasks(xss)
+  Sys.sleep(2)
 
-#   expect_equal(rush$worker_states$status, "running")
-#   rush$detect_lost_workers()
-#   expect_equal(rush$worker_states$status, "lost")
+  expect_equal(rush$worker_states$status, "running")
+  rush$detect_lost_workers()
+  expect_equal(rush$worker_states$status, "lost")
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
-# test_that("a segfault on a worker is detected via the heartbeat", {
-#   # skip_on_cran()
-#   skip_on_os("windows")
+test_that("a segfault on a worker is detected via the heartbeat", {
+  # skip_on_cran()
+  skip_on_os("windows")
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) {
-#     get("attach")(structure(list(), class = "UserDefinedDatabase"))
-#   }
-#   future::plan("cluster", workers = 1)
-#   rush$start_workers(fun = fun, host = "remote", heartbeat_period = 1, heartbeat_expire = 3, await_workers = TRUE)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) {
+    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  }
+  future::plan("cluster", workers = 1)
+  rush$start_workers(fun = fun, host = "remote", heartbeat_period = 1, heartbeat_expire = 3, await_workers = TRUE)
 
-#   xss = list(list(x1 = 1, x2 = 2))
-#   rush$push_tasks(xss)
-#   Sys.sleep(15)
+  xss = list(list(x1 = 1, x2 = 2))
+  rush$push_tasks(xss)
+  Sys.sleep(15)
 
-#   expect_equal(rush$worker_states$status, "running")
-#   rush$detect_lost_workers()
-#   expect_equal(rush$worker_states$status, "lost")
+  expect_equal(rush$worker_states$status, "running")
+  rush$detect_lost_workers()
+  expect_equal(rush$worker_states$status, "lost")
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
-# # fault detection --------------------------------------------------------------
+# fault detection --------------------------------------------------------------
 
-# test_that("a simple error is catched", {
-#   # skip_on_cran()
+test_that("a simple error is catched", {
+  # skip_on_cran()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) {
-#     if (x1 < 1) stop("Test error")
-#     list(y = x1 + x2)
-#   }
-#   future::plan("multisession", workers = 2)
-#   rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) {
+    if (x1 < 1) stop("Test error")
+    list(y = x1 + x2)
+  }
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
 
-#   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
-#   keys = rush$push_tasks(xss)
-#   rush$await_tasks(keys)
-#   Sys.sleep(2)
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+  Sys.sleep(2)
 
-#   # check task count
-#   expect_equal(rush$n_tasks, 2)
-#   expect_equal(rush$n_queued_tasks, 0)
-#   expect_equal(rush$n_running_tasks, 0)
-#   expect_equal(rush$n_finished_tasks, 1)
-#   expect_equal(rush$n_failed_tasks, 1)
+  # check task count
+  expect_equal(rush$n_tasks, 2)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 1)
 
-#   # check keys in sets
-#   expect_character(rush$tasks, len = 2)
-#   expect_null(rush$queued_tasks)
-#   expect_null(rush$running_tasks)
-#   expect_string(rush$finished_tasks)
-#   expect_string(rush$failed_tasks)
+  # check keys in sets
+  expect_character(rush$tasks, len = 2)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_string(rush$finished_tasks)
+  expect_string(rush$failed_tasks)
 
-#   # check fetching
-#   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-#   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-#   expect_data_table(rush$fetch_tasks(), nrows = 2)
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_tasks(), nrows = 2)
 
-#   data = rush$fetch_finished_tasks()
-#   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
-#   expect_data_table(data, nrows = 1)
-#   expect_set_equal(data$status, "finished")
+  data = rush$fetch_finished_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_set_equal(data$status, "finished")
 
-#   data = rush$fetch_failed_tasks()
-#   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "status", "keys"))
-#   expect_data_table(data, nrows = 1)
-#   expect_set_equal(data$status, "failed")
+  data = rush$fetch_failed_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "status", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_set_equal(data$status, "failed")
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
-# test_that("a lost task is detected", {
-#   # skip_on_cran()
+test_that("a lost task is detected", {
+  # skip_on_cran()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
 
-#   # no task is running
-#   expect_class(rush$detect_lost_tasks(), "Rush")
+  # no task is running
+  expect_class(rush$detect_lost_tasks(), "Rush")
 
-#   fun = function(x1, x2, ...) {
-#     get("attach")(structure(list(), class = "UserDefinedDatabase"))
-#   }
-#   future::plan("cluster", workers = 1)
-#   rush$start_workers(fun = fun, await_workers = TRUE)
-#   xss = list(list(x1 = 1, x2 = 2))
-#   keys = rush$push_tasks(xss)
-#   Sys.sleep(2)
+  fun = function(x1, x2, ...) {
+    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  }
+  future::plan("cluster", workers = 1)
+  rush$start_workers(fun = fun, await_workers = TRUE)
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  Sys.sleep(2)
 
-#   rush$detect_lost_tasks()
+  rush$detect_lost_tasks()
 
-#   # check task count
-#   expect_equal(rush$n_tasks, 1)
-#   expect_equal(rush$n_queued_tasks, 0)
-#   expect_equal(rush$n_running_tasks, 0)
-#   expect_equal(rush$n_finished_tasks, 0)
-#   expect_equal(rush$n_failed_tasks, 1)
+  # check task count
+  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
 
-#   # check keys in sets
-#   expect_character(rush$tasks, len = 1)
-#   expect_null(rush$queued_tasks)
-#   expect_null(rush$running_tasks)
-#   expect_null(rush$finished_tasks)
-#   expect_string(rush$failed_tasks)
+  # check keys in sets
+  expect_character(rush$tasks, len = 1)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_null(rush$finished_tasks)
+  expect_string(rush$failed_tasks)
 
-#   # check fetching
-#   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-#   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-#   expect_data_table(rush$fetch_tasks(), nrows = 1)
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-#   data = rush$fetch_failed_tasks()
-#   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "status", "keys"))
-#   expect_data_table(data, nrows = 1)
-#   expect_set_equal(data$status, "lost")
+  data = rush$fetch_failed_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "status", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_set_equal(data$status, "lost")
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
 # # receiving results ------------------------------------------------------------
 
