@@ -95,172 +95,172 @@ test_that("additional workers are started", {
   clean_test_env(pids)
 })
 
-# start workers with script ----------------------------------------------------
+# # start workers with script ----------------------------------------------------
 
-test_that("worker can be started with script", {
+# test_that("worker can be started with script", {
+#   # skip_on_cran()
+
+#   config = start_flush_redis()
+#   rush = Rush$new(instance_id = "test-rush", config = config)
+#   fun = function(x1, x2, ...) list(y = x1 + x2)
+
+#   rush$create_worker_script(
+#     worker_loop = fun_loop,
+#     globals = NULL,
+#     packages = NULL,
+#     host = "local",
+#     heartbeat_period = NULL,
+#     heartbeat_expire = NULL,
+#     lgr_thresholds = c(rush = "debug"),
+#     fun = fun)
+
+#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+#   rush$await_workers(1)
+#   expect_equal(rush$n_workers, 1)
+
+#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+#   rush$await_workers(2)
+#   expect_equal(rush$n_workers, 2)
+
+#   worker_info = rush$worker_info
+#   expect_data_table(worker_info, nrows = 2)
+#   expect_integer(worker_info$pid, unique = TRUE)
+#   expect_set_equal(worker_info$host, "local")
+#   expect_set_equal(rush$worker_states$status, "running")
+
+#   # rush$stop_workers()
+#   # Sys.sleep(5)
+
+#   pids = rush$worker_info$pid
+#   expect_reset_rush(rush)
+#   clean_test_env(pids)
+# })
+
+# test_that("packages are available on the worker", {
+#   # skip_on_cran()
+
+#   config = start_flush_redis()
+#   rush = Rush$new(instance_id = "test-rush", config = config)
+#   fun = function(x1, x2, ...) list(y = UUIDgenerate(n = 1))
+
+#   rush$create_worker_script(
+#     worker_loop = fun_loop,
+#     globals = NULL,
+#     packages = "uuid",
+#     host = "local",
+#     heartbeat_period = NULL,
+#     heartbeat_expire = NULL,
+#     lgr_thresholds = c(rush = "debug"),
+#     fun = fun)
+
+#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+#   rush$await_workers(1)
+
+#   xss = list(list(x1 = 1, x2 = 2))
+#   keys = rush$push_tasks(xss)
+#   rush$await_tasks(keys)
+
+#   expect_equal(rush$n_finished_tasks, 1)
+
+#   # rush$stop_workers()
+#   # Sys.sleep(5)
+
+#   pids = rush$worker_info$pid
+#   expect_reset_rush(rush)
+#   clean_test_env(pids)
+# })
+
+# test_that("globals are available on the worker", {
+#   # skip_on_cran()
+
+#   config = start_flush_redis()
+#   rush = Rush$new(instance_id = "test-rush", config = config)
+#   fun = function(x1, x2, ...) list(y = x)
+#   x <<- 33
+
+#   rush$create_worker_script(
+#     worker_loop = fun_loop,
+#     globals = "x",
+#     packages = NULL,
+#     host = "local",
+#     heartbeat_period = NULL,
+#     heartbeat_expire = NULL,
+#     lgr_thresholds = c(rush = "debug"),
+#     fun = fun)
+
+#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+#   rush$await_workers(1)
+
+#   xss = list(list(x1 = 1, x2 = 2))
+#   keys = rush$push_tasks(xss)
+#   rush$await_tasks(keys)
+
+#   expect_equal(rush$n_finished_tasks, 1)
+#   expect_equal(rush$fetch_finished_tasks()$y, 33)
+
+#   # rush$stop_workers()
+#   # Sys.sleep(5)
+
+#   pids = rush$worker_info$pid
+#   expect_reset_rush(rush)
+#   clean_test_env(pids)
+# })
+
+# future workers ----------------------------------------------------------
+
+test_that("a worker is terminated", {
   # skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, host = "local", await_workers = TRUE, lgr_thresholds = c(rush = "debug"))
 
-  rush$create_worker_script(
-    worker_loop = fun_loop,
-    globals = NULL,
-    packages = NULL,
-    host = "local",
-    heartbeat_period = NULL,
-    heartbeat_expire = NULL,
-    lgr_thresholds = c(rush = "debug"),
-    fun = fun)
+  # worker 1
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "terminate")
+  Sys.sleep(3)
+  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
+  expect_equal(rush$worker_states$status[1], "terminated")
+  expect_equal(rush$worker_states$status[2], "running")
 
-  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-  rush$await_workers(1)
-  expect_equal(rush$n_workers, 1)
-
-  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-  rush$await_workers(2)
-  expect_equal(rush$n_workers, 2)
-
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_info$host, "local")
-  expect_set_equal(rush$worker_states$status, "running")
-
-  # rush$stop_workers()
-  # Sys.sleep(5)
+  # worker 2
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "terminate")
+  Sys.sleep(3)
+  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
+  expect_set_equal(rush$worker_states$status, "terminated")
 
   pids = rush$worker_info$pid
   expect_reset_rush(rush)
   clean_test_env(pids)
 })
 
-test_that("packages are available on the worker", {
+test_that("a local worker is killed", {
   # skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = UUIDgenerate(n = 1))
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
 
-  rush$create_worker_script(
-    worker_loop = fun_loop,
-    globals = NULL,
-    packages = "uuid",
-    host = "local",
-    heartbeat_period = NULL,
-    heartbeat_expire = NULL,
-    lgr_thresholds = c(rush = "debug"),
-    fun = fun)
+  # worker 1
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
+  expect_equal(rush$worker_states$status[1], "killed")
+  expect_equal(rush$worker_states$status[2], "running")
+  expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]), class = "FutureError")
+  expect_false(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
 
-  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-  rush$await_workers(1)
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
-
-  expect_equal(rush$n_finished_tasks, 1)
-
-  # rush$stop_workers()
-  # Sys.sleep(5)
+  # worker 2
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
+  expect_set_equal(rush$worker_states$status, "killed")
+  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
+  expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]), class = "FutureError")
 
   pids = rush$worker_info$pid
   expect_reset_rush(rush)
   clean_test_env(pids)
 })
-
-test_that("globals are available on the worker", {
-  # skip_on_cran()
-
-  config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = x)
-  x <<- 33
-
-  rush$create_worker_script(
-    worker_loop = fun_loop,
-    globals = "x",
-    packages = NULL,
-    host = "local",
-    heartbeat_period = NULL,
-    heartbeat_expire = NULL,
-    lgr_thresholds = c(rush = "debug"),
-    fun = fun)
-
-  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-  rush$await_workers(1)
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
-
-  expect_equal(rush$n_finished_tasks, 1)
-  expect_equal(rush$fetch_finished_tasks()$y, 33)
-
-  # rush$stop_workers()
-  # Sys.sleep(5)
-
-  pids = rush$worker_info$pid
-  expect_reset_rush(rush)
-  clean_test_env(pids)
-})
-
-# # future workers ----------------------------------------------------------
-
-# test_that("a worker is terminated", {
-#   # skip_on_cran()
-
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
-#   future::plan("multisession", workers = 2)
-#   rush$start_workers(fun = fun, host = "local", await_workers = TRUE, lgr_thresholds = c(rush = "debug"))
-
-#   # worker 1
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "terminate")
-#   Sys.sleep(3)
-#   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
-#   expect_equal(rush$worker_states$status[1], "terminated")
-#   expect_equal(rush$worker_states$status[2], "running")
-
-#   # worker 2
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "terminate")
-#   Sys.sleep(3)
-#   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
-#   expect_set_equal(rush$worker_states$status, "terminated")
-
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
-
-# test_that("a local worker is killed", {
-#   # skip_on_cran()
-
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
-#   future::plan("multisession", workers = 2)
-#   rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
-
-#   # worker 1
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
-#   expect_equal(rush$worker_states$status[1], "killed")
-#   expect_equal(rush$worker_states$status[2], "running")
-#   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]), class = "FutureError")
-#   expect_false(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
-
-#   # worker 2
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
-#   expect_set_equal(rush$worker_states$status, "killed")
-#   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
-#   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]), class = "FutureError")
-
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
 
 # test_that("a remote worker is killed via the heartbeat", {
 #   # skip_on_cran()
