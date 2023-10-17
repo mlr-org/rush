@@ -43,57 +43,57 @@ test_that("workers are started", {
   clean_test_env(pids)
 })
 
-# test_that("workers are started with a heartbeat", {
-#   # skip_on_cran()
+test_that("workers are started with a heartbeat", {
+  # skip_on_cran()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
 
-#   future::plan("multisession", workers = 2)
-#   worker_ids = rush$start_workers(fun = fun, heartbeat_period = 3, heartbeat_expire = 9, await_workers = TRUE)
+  future::plan("multisession", workers = 2)
+  worker_ids = rush$start_workers(fun = fun, heartbeat_period = 3, heartbeat_expire = 9, await_workers = TRUE)
 
-#   # check meta data from redis
-#   worker_info = rush$worker_info
-#   expect_true(all(worker_info$heartbeat))
+  # check meta data from redis
+  worker_info = rush$worker_info
+  expect_true(all(worker_info$heartbeat))
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
-# test_that("additional workers are started", {
-#   # skip_on_cran()
+test_that("additional workers are started", {
+  # skip_on_cran()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
-#   future::plan("multisession", workers = 4)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 4)
 
-#   worker_ids = rush$start_workers(fun = fun, n_workers = 2)
-#   rush$await_workers(2)
-#   expect_equal(rush$n_workers, 2)
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2)
+  rush$await_workers(2)
+  expect_equal(rush$n_workers, 2)
 
-#   worker_ids_2 = rush$start_workers(fun = fun, n_workers = 2)
-#   rush$await_workers(4)
-#   expect_equal(rush$n_workers, 4)
+  worker_ids_2 = rush$start_workers(fun = fun, n_workers = 2)
+  rush$await_workers(4)
+  expect_equal(rush$n_workers, 4)
 
-#   expect_length(rush$promises, 4)
-#   walk(rush$promises, function(promise) expect_class(promise, "Future"))
-#   expect_set_equal(rush$worker_ids, c(worker_ids, worker_ids_2))
-#   worker_info = rush$worker_info
-#   expect_data_table(worker_info, nrows = 4)
-#   expect_integer(worker_info$pid, unique = TRUE)
-#   expect_set_equal(worker_info$host, "local")
-#   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
-#   expect_set_equal(rush$worker_states$status, "running")
+  expect_length(rush$promises, 4)
+  walk(rush$promises, function(promise) expect_class(promise, "Future"))
+  expect_set_equal(rush$worker_ids, c(worker_ids, worker_ids_2))
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 4)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_info$host, "local")
+  expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
+  expect_set_equal(rush$worker_states$status, "running")
 
-#   expect_error(rush$start_workers(fun = fun, n_workers = 2), regexp = "No more than 0 rush workers can be started")
+  expect_error(rush$start_workers(fun = fun, n_workers = 2), regexp = "No more than 0 rush workers can be started")
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
 # # start workers with script ----------------------------------------------------
 
