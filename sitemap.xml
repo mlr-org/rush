@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mlr3.mlr-org.com/404.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/authors.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/index.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/Rush.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/RushWorker.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/fun_heartbeat.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/fun_loop.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/run_worker.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/rush-package.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/start_worker.html</loc>
+  </url>
+</urlset>
