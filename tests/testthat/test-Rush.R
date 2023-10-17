@@ -262,36 +262,36 @@ test_that("a local worker is killed", {
   clean_test_env(pids)
 })
 
-# test_that("a remote worker is killed via the heartbeat", {
-#   # skip_on_cran()
-#   skip_on_os("windows")
+test_that("a remote worker is killed via the heartbeat", {
+  # skip_on_cran()
+  skip_on_os("windows")
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
-#   future::plan("multisession", workers = 2)
-#   rush$start_workers(fun = fun, host = "remote", heartbeat_period = 3, heartbeat_expire = 9)
-#   rush$await_workers(2)
-#   worker_info = rush$worker_info
-#   expect_true(all(tools::pskill(worker_info$pid, signal = 0L)))
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(fun = fun, host = "remote", heartbeat_period = 3, heartbeat_expire = 9)
+  rush$await_workers(2)
+  worker_info = rush$worker_info
+  expect_true(all(tools::pskill(worker_info$pid, signal = 0L)))
 
-#   # worker 1
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
-#   Sys.sleep(15)
-#   expect_equal(rush$worker_states$status[1], "killed")
-#   expect_equal(rush$worker_states$status[2], "running")
-#   expect_false(tools::pskill(rush$worker_info$pid[1], signal = 0L))
+  # worker 1
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
+  Sys.sleep(15)
+  expect_equal(rush$worker_states$status[1], "killed")
+  expect_equal(rush$worker_states$status[2], "running")
+  expect_false(tools::pskill(rush$worker_info$pid[1], signal = 0L))
 
-#   # worker 2
-#   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
-#   Sys.sleep(15)
-#   expect_set_equal(rush$worker_states$status, "killed")
-#   expect_false(tools::pskill(rush$worker_info$pid[2], signal = 0L))
+  # worker 2
+  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
+  Sys.sleep(15)
+  expect_set_equal(rush$worker_states$status, "killed")
+  expect_false(tools::pskill(rush$worker_info$pid[2], signal = 0L))
 
-#   pids = rush$worker_info$pid
-#   expect_reset_rush(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})
 
 # # task evaluation --------------------------------------------------------------
 
