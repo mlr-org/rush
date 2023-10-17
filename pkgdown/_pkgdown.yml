@@ -47,3 +47,4 @@ reference:
       - fun_loop
       - start_worker
       - fun_heartbeat
+      - rush-package
