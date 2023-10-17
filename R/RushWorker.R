@@ -94,6 +94,30 @@ RushWorker = R6::R6Class("RushWorker",
     },
 
     #' @description
+    #' Push a task to running tasks without queue.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_running_task = function(xss, extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      lg$debug("Pushing %i running task(s).", length(xss))
+
+      keys = self$write_hashes(xs = xss, xs_extra = extra, status = "running")
+      r$command(c("SADD", private$.get_key("running_tasks"), keys))
+      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+
+      return(invisible(keys))
+    },
+
+    #' @description
     #' Pop a task from the queue.
     #' Task is moved to the running tasks.
     #'

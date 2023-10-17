@@ -6,11 +6,15 @@ output: github_document
 
 # rush
 
-Rush is a package for asynchronous parallelization in R.
-Tasks are queued and distributed to workers in the background.
-It heavily uses Redis as a data base.
+Rush is a package for parallel and distributed computing in R.
+It parallelizes the evaluation of R functions on a cluster of workers and provides a shared storage between the workers.
+The shared storage is a [Redis](https://redis.io) data base.
+Rush offers the option to define a single manager that distributes tasks to the workers.
+Alternatively, the workers can create tasks themselves and communicate the results with each other via Rush.
 
 ![](man/figures/README-flow.png)
+
+Single manager with multiple workers strategy.
 
 ## Install
 

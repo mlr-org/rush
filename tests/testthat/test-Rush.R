@@ -675,3 +675,40 @@ test_that("terminating workers on idle works", {
   expect_reset_rush(rush)
   clean_test_env(pids)
 })
+
+# rush network without controller ----------------------------------------------
+
+test_that("network without controller works", {
+
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+
+  fun = function(rush) {
+    while (rush$n_finished_tasks < 100) {
+      # ask
+      xs = list(
+        x1 = sample(seq(1000), 1),
+        x2 = sample(seq(1000), 1)
+      )
+      keys = rush$push_running_task(list(xs))
+
+      # evaluate
+      ys = list(y = xs$x1 + xs$x2)
+
+      # tell
+      rush$push_results(keys, list(ys))
+    }
+
+    return(NULL)
+  }
+
+  future::plan("multisession", workers = 2)
+  rush$start_workers(worker_loop = fun, n_workers = 2, await_workers = TRUE)
+
+  Sys.sleep(10)
+  expect_equal(rush$n_finished_tasks, 100)
+
+  pids = rush$worker_info$pid
+  expect_reset_rush(rush)
+  clean_test_env(pids)
+})

@@ -3,11 +3,17 @@
 
 # rush
 
-Rush is a package for asynchronous parallelization in R. Tasks are
-queued and distributed to workers in the background. It heavily uses
-Redis as a data base.
+Rush is a package for parallel and distributed computing in R. It
+parallelizes the evaluation of R functions on a cluster of workers and
+provides a shared storage between the workers. The shared storage is a
+[Redis](https://redis.io) data base. Rush offers the option to define a
+single manager who distributes tasks to the workers. Alternatively, the
+workers can create tasks themselves and communicate the results with
+each other via Rush.
 
 ![](man/figures/README-flow.png)
+
+Single manager with multiple workers strategy.
 
 ## Install
 
@@ -69,11 +75,11 @@ rush$fetch_finished_tasks()
 ```
 
     ##    x1 x2    pid                            worker_id  y   status
-    ## 1:  4  6 545135 f79a2cef-5e37-43f0-a91c-61f444295990 10 finished
-    ## 2:  3  5 545136 7d03c5a0-f66b-49f1-9a09-38645342df02  8 finished
+    ## 1:  4  6 189379 8219bdc4-a7e7-485e-b747-ba9ed83b8846 10 finished
+    ## 2:  3  5 189380 d1719b60-d066-4fd9-93be-94dffcfb08a5  8 finished
     ##                                    keys
-    ## 1: dfdc1544-e6f8-4bce-9888-81c072595fdc
-    ## 2: e8165475-2c2c-48b5-b7db-ac6d9557cff4
+    ## 1: acbf50d1-cafe-4628-a05d-a3ed72317aef
+    ## 2: 452e5a1b-8019-4ec9-98fe-ebf537878762
 
 ## Task States
 
