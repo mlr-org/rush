@@ -4,7 +4,7 @@
 #' @description
 #' Starts a worker.
 #' The function is called by the user after creating the worker script with `$create_worker_script()` of [Rush].
-#' The function is started with `Rscript -e 'start_worker(instance_id, url, ...)'`.
+#' The function is started with `Rscript -e 'start_worker(network_id, url, ...)'`.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
@@ -15,17 +15,17 @@
 #' @param ... (`any`)\cr
 #' Arguments passed to [redux::redis_config].
 #'
-#' @template param_instance_id
+#' @template param_network_id
 #'
 #' @export
 start_worker = function(
-  instance_id,
+  network_id,
   ...) {
-  checkmate::assert_string(instance_id)
+  checkmate::assert_string(network_id)
 
   config = mlr3misc::invoke(redux::redis_config, args = list(...))
   r = redux::hiredis(config)
-  bin_args = r$command(list("GET", sprintf("%s:worker_script", instance_id)))
+  bin_args = r$command(list("GET", sprintf("%s:worker_script", network_id)))
   args = redux::bin_to_object(bin_args)
 
   # load packages and globals to worker environment
@@ -33,5 +33,5 @@ start_worker = function(
   mlr3misc::iwalk(args$globals, function(value, name) assign(name, value, .GlobalEnv))
   args$packages = args$globals = NULL
 
-  mlr3misc::invoke(rush::run_worker, instance_id = instance_id, config = config, .args = args)
+  mlr3misc::invoke(rush::run_worker, network_id = network_id, config = config, .args = args)
 }

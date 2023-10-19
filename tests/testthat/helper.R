@@ -21,3 +21,5 @@ expect_rush_reset = function(rush) {
   rush$reset()
   expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
 }
+
+lg$set_threshold(0)

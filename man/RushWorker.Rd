@@ -93,7 +93,7 @@ Used in the worker loop to determine whether to continue.}
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
-  instance_id,
+  network_id,
   config = redux::redis_config(),
   host,
   worker_id = NULL,
@@ -106,7 +106,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}

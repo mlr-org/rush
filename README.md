@@ -51,7 +51,7 @@ And install
 *Centralized network with a single controller and three workers.*
 
 The example below shows the evaluation of a simple function in a
-centralized network. The `instance_id` identifies the instance and
+centralized network. The `network_id` identifies the instance and
 workers in the network. The `config` is a list of parameters for the
 connection to Redis.
 
@@ -59,7 +59,7 @@ connection to Redis.
 library(rush)
 
 config = redux::redis_config()
-rush = Rush$new(instance_id = "test", config)
+rush = Rush$new(network_id = "test", config)
 
 rush
 ```

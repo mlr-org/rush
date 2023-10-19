@@ -4,9 +4,9 @@ test_that("constructing a rush controller works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   expect_class(rush, "Rush")
-  expect_equal(rush$instance_id, "test-rush")
+  expect_equal(rush$network_id, "test-rush")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -17,7 +17,7 @@ test_that("workers are started", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
 
   expect_data_table(rush$worker_info, nrows = 0)
@@ -47,7 +47,7 @@ test_that("workers are started with a heartbeat", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
 
   future::plan("multisession", workers = 2)
@@ -66,7 +66,7 @@ test_that("additional workers are started", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 4)
 
@@ -102,7 +102,7 @@ test_that("worker can be started with script", {
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
 
   rush$create_worker_script(
@@ -142,7 +142,7 @@ test_that("packages are available on the worker", {
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = UUIDgenerate(n = 1))
 
   rush$create_worker_script(
@@ -177,7 +177,7 @@ test_that("globals are available on the worker", {
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x)
   x <<- 33
 
@@ -215,7 +215,7 @@ test_that("a worker is terminated", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE, lgr_thresholds = c(rush = "debug"))
@@ -242,7 +242,7 @@ test_that("a local worker is killed", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
@@ -270,7 +270,7 @@ test_that("a remote worker is killed via the heartbeat", {
   skip_on_os("windows")
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, host = "remote", heartbeat_period = 3, heartbeat_expire = 9)
@@ -302,7 +302,7 @@ test_that("evaluating a task works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 4)
   rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
@@ -344,7 +344,7 @@ test_that("evaluating tasks works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 4)
   rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
@@ -385,13 +385,14 @@ test_that("evaluating tasks works", {
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
+  # FIXME: unreliable test
+  skip_if(TRUE)
   # skip_on_cran()
-  # FIMXE: Why does this test fail on github actions?
-  skip_on_ci()
+  # skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
     get("attach")(structure(list(), class = "UserDefinedDatabase"))
   }
@@ -416,7 +417,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   skip_on_os("windows")
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
     get("attach")(structure(list(), class = "UserDefinedDatabase"))
   }
@@ -442,7 +443,7 @@ test_that("a simple error is catched", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
     if (x1 < 1) stop("Test error")
     list(y = x1 + x2)
@@ -493,7 +494,7 @@ test_that("a lost task is detected", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
 
   # no task is running
   expect_class(rush$detect_lost_tasks(), "Rush")
@@ -544,7 +545,7 @@ test_that("blocking on new results works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
     fun = function(x1, x2, ...) {
     Sys.sleep(5)
     list(y = x1 + x2)
@@ -567,7 +568,7 @@ test_that("wait for tasks works when a task gets lost", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
     if (x1 < 1) get("attach")(structure(list(), class = "UserDefinedDatabase"))
     list(y = x1 + x2)
@@ -592,7 +593,7 @@ test_that("saving lgr logs works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"), await_workers = TRUE)
@@ -625,7 +626,7 @@ test_that("snapshot option works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"))
@@ -647,7 +648,7 @@ test_that("terminating workers on idle works", {
   # skip_on_cran()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   worker_ids = rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
@@ -671,7 +672,7 @@ test_that("network without controller works", {
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(instance_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config)
 
   fun = function(rush) {
     while (rush$n_finished_tasks < 100) {

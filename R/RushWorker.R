@@ -7,7 +7,7 @@
 #' @note
 #' The worker registers itself in the data base of the rush network.
 #'
-#' @template param_instance_id
+#' @template param_network_id
 #' @template param_config
 #' @template param_host
 #' @template param_worker_id
@@ -38,11 +38,11 @@ RushWorker = R6::R6Class("RushWorker",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
+    initialize = function(network_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
 
-      super$initialize(instance_id = instance_id, config = config)
+      super$initialize(network_id = network_id, config = config)
 
       # start heartbeat
       assert_numeric(heartbeat_period, null.ok = TRUE)
@@ -52,7 +52,7 @@ RushWorker = R6::R6Class("RushWorker",
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
         r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
         heartbeat_args = list(
-          instance_id = self$instance_id,
+          network_id = self$network_id,
           config = self$config,
           worker_id = self$worker_id,
           heartbeat_period = heartbeat_period,

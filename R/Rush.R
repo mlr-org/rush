@@ -88,7 +88,7 @@
 #' Saving log messages adds a small overhead but is useful for debugging.
 #' By default, no log messages are stored.
 #'
-#' @template param_instance_id
+#' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
 #' @template param_globals
@@ -102,9 +102,9 @@
 Rush = R6::R6Class("Rush",
   public = list(
 
-    #' @field instance_id (`character(1)`)\cr
+    #' @field network_id (`character(1)`)\cr
     #' Identifier of the rush network.
-    instance_id = NULL,
+    network_id = NULL,
 
     #' @field config ([redux::redis_config])\cr
     #' Redis configuration options.
@@ -120,8 +120,8 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(instance_id = NULL, config = NULL) {
-      self$instance_id = assert_string(instance_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+    initialize = function(network_id = NULL, config = NULL) {
+      self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% redux::redis_config()
       self$connector = redux::hiredis(self$config)
       private$.pid_exists = choose_pid_exists()
@@ -195,13 +195,13 @@ Rush = R6::R6Class("Rush",
       }
 
       # start workers
-      instance_id = self$instance_id
+      network_id = self$network_id
       config = self$config
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
         future::future(run_worker(
             worker_loop = worker_loop,
-            instance_id = instance_id,
+            network_id = network_id,
             config = config,
             host = host,
             worker_id = worker_id,
@@ -210,7 +210,7 @@ Rush = R6::R6Class("Rush",
             lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
-          globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
+          globals = c(globals, "run_worker", "worker_loop", "network_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
 
@@ -264,7 +264,7 @@ Rush = R6::R6Class("Rush",
       r$command(list("SET", private$.get_key("worker_script"), bin_args))
 
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$instance_id, self$config$url)
+      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$network_id, self$config$url)
       lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
@@ -1067,13 +1067,13 @@ Rush = R6::R6Class("Rush",
 
     # prefix key with instance id
     .get_key = function(key) {
-      sprintf("%s:%s", self$instance_id, key)
+      sprintf("%s:%s", self$network_id, key)
     },
 
     # prefix key with instance id and worker id
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
-      sprintf("%s:%s:%s", self$instance_id, worker_id, key)
+      sprintf("%s:%s:%s", self$network_id, worker_id, key)
     },
 
     # quick access to the worker states

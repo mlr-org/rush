@@ -112,7 +112,7 @@ By default, no log messages are stored.
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
@@ -227,13 +227,13 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(instance_id = NULL, config = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}

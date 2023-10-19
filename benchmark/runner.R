@@ -261,7 +261,7 @@ runner = function(renv_project, times) {
 
   setup = function(rush, xss) {
     keys = rush$push_tasks(xss)
-    rush$connector$command(c("SADD", sprintf("%s:running_tasks", rush$instance_id), keys))
+    rush$connector$command(c("SADD", sprintf("%s:running_tasks", rush$network_id), keys))
   }
 
   setup(rush_1, list(xss_1))

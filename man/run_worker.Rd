@@ -6,7 +6,7 @@
 \usage{
 run_worker(
   worker_loop,
-  instance_id,
+  network_id,
   config,
   host,
   worker_id,
@@ -22,7 +22,7 @@ Loop run on the workers.
 Defaults to \link{fun_loop} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.}
 
-\item{instance_id}{(\code{character(1)})\cr
+\item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}

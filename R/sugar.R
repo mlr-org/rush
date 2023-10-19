@@ -3,12 +3,12 @@
 #' @description
 #' Function to construct a [Rush] controller.
 #'
-#' @template param_instance_id
+#' @template param_network_id
 #' @template param_config
 #'
 #' @export
 #' @examples
-#' rsh(instance_id = "benchmark")
-rsh = function(instance_id = NULL, config = NULL, ....) {
-  Rush$new(instance_id, config)
+#' rsh(network_id = "benchmark")
+rsh = function(network_id = NULL, config = NULL, ....) {
+  Rush$new(network_id, config)
 }

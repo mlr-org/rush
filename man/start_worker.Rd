@@ -4,10 +4,10 @@
 \alias{start_worker}
 \title{Start a worker}
 \usage{
-start_worker(instance_id, ...)
+start_worker(network_id, ...)
 }
 \arguments{
-\item{instance_id}{(\code{character(1)})\cr
+\item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
@@ -18,7 +18,7 @@ Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 \description{
 Starts a worker.
 The function is called by the user after creating the worker script with \verb{$create_worker_script()} of \link{Rush}.
-The function is started with \verb{Rscript -e 'start_worker(instance_id, url, ...)'}.
+The function is started with \verb{Rscript -e 'start_worker(network_id, url, ...)'}.
 }
 \note{
 The function initializes the connection to the Redis data base.

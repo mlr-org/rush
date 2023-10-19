@@ -5,7 +5,7 @@
 \title{Heartbeat Loop}
 \usage{
 fun_heartbeat(
-  instance_id,
+  network_id,
   config,
   worker_id,
   heartbeat_period,
@@ -14,7 +14,7 @@ fun_heartbeat(
 )
 }
 \arguments{
-\item{instance_id}{(\code{character(1)})\cr
+\item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}

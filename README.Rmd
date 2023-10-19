@@ -54,14 +54,14 @@ r$FLUSHDB()
 ```
 
 The example below shows the evaluation of a simple function in a centralized network.
-The `instance_id` identifies the instance and workers in the network.
+The `network_id` identifies the instance and workers in the network.
 The `config` is a list of parameters for the connection to Redis.
 
 ```{r}
 library(rush)
 
 config = redux::redis_config()
-rush = Rush$new(instance_id = "test", config)
+rush = Rush$new(network_id = "test", config)
 
 rush
 ```

@@ -4,10 +4,10 @@
 \alias{rsh}
 \title{Synctatic Sugar for Rush Controller Construction}
 \usage{
-rsh(instance_id = NULL, config = NULL, ....)
+rsh(network_id = NULL, config = NULL, ....)
 }
 \arguments{
-\item{instance_id}{(\code{character(1)})\cr
+\item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
@@ -20,5 +20,5 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 Function to construct a \link{Rush} controller.
 }
 \examples{
-rsh(instance_id = "benchmark")
+rsh(network_id = "benchmark")
 }
