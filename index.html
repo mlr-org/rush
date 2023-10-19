@@ -124,12 +124,12 @@
 </h2>
 <p><img src="reference/figures/README-flow.png"></p>
 <p><em>Centralized network with a single controller and three workers.</em></p>
-<p>The example below shows the evaluation of a simple function in a centralized network. The <code>instance_id</code> identifies the instance and workers in the network. The <code>config</code> is a list of parameters for the connection to Redis.</p>
+<p>The example below shows the evaluation of a simple function in a centralized network. The <code>network_id</code> identifies the instance and workers in the network. The <code>config</code> is a list of parameters for the connection to Redis.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">rush</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="va"><a href="reference/Rush.html">Rush</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>instance_id <span class="op">=</span> <span class="st">"test"</span>, <span class="va">config</span><span class="op">)</span></span>
+<span><span class="va">rush</span> <span class="op">=</span> <span class="va"><a href="reference/Rush.html">Rush</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test"</span>, <span class="va">config</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rush</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## &lt;Rush&gt;</span></span>

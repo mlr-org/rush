@@ -79,7 +79,7 @@ This function is normally not called by the user.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">run_worker</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
-<span>  <span class="va">instance_id</span>,</span>
+<span>  <span class="va">network_id</span>,</span>
 <span>  <span class="va">config</span>,</span>
 <span>  <span class="va">host</span>,</span>
 <span>  <span class="va">worker_id</span>,</span>
@@ -99,7 +99,7 @@ Defaults to <a href="fun_loop.html">fun_loop</a> which is called with <code>fun<
 Pass <code>fun</code> in <code>...</code>.</p></dd>
 
 
-<dt>instance_id</dt>
+<dt>network_id</dt>
 <dd><p>(<code>character(1)</code>)<br>
 Identifier of the rush network.
 Controller and workers must have the same instance id.
