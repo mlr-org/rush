@@ -9,12 +9,11 @@ test_that("constructing a rush controller works", {
   expect_equal(rush$instance_id, "test-rush")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("workers are started", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -40,12 +39,11 @@ test_that("workers are started", {
   expect_set_equal(rush$worker_states$status, "running")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("workers are started with a heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -60,12 +58,11 @@ test_that("workers are started with a heartbeat", {
   expect_true(all(worker_info$heartbeat))
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("additional workers are started", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -94,15 +91,15 @@ test_that("additional workers are started", {
   expect_error(rush$start_workers(fun = fun, n_workers = 2), regexp = "No more than 0 rush workers can be started")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
-# start workers with script ----------------------------------------------------
+# # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
-  skip_on_ci()
   # skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
@@ -136,13 +133,13 @@ test_that("worker can be started with script", {
   # Sys.sleep(5)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("packages are available on the worker", {
-  skip_on_ci()
   # skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
@@ -171,13 +168,13 @@ test_that("packages are available on the worker", {
   # Sys.sleep(5)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("globals are available on the worker", {
-  skip_on_ci()
   # skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
@@ -208,14 +205,13 @@ test_that("globals are available on the worker", {
   # Sys.sleep(5)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # future workers ----------------------------------------------------------
 
 test_that("a worker is terminated", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -238,12 +234,11 @@ test_that("a worker is terminated", {
   expect_set_equal(rush$worker_states$status, "terminated")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("a local worker is killed", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -266,12 +261,11 @@ test_that("a local worker is killed", {
   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]), class = "FutureError")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("a remote worker is killed via the heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
   skip_on_os("windows")
 
@@ -298,14 +292,13 @@ test_that("a remote worker is killed via the heartbeat", {
   expect_false(tools::pskill(rush$worker_info$pid[2], signal = 0L))
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # task evaluation --------------------------------------------------------------
 
 test_that("evaluating a task works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -343,12 +336,11 @@ test_that("evaluating a task works", {
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("evaluating tasks works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -386,15 +378,16 @@ test_that("evaluating tasks works", {
   expect_data_table(rush$fetch_tasks(), nrows = 10)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
-  skip_on_ci()
   # skip_on_cran()
+  # FIMXE: Why does this test fail on github actions?
+  skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -414,12 +407,11 @@ test_that("a segfault on a local worker is detected", {
   expect_equal(rush$worker_states$status, "lost")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("a segfault on a worker is detected via the heartbeat", {
-  skip_on_ci()
   # skip_on_cran()
   skip_on_os("windows")
 
@@ -440,14 +432,13 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   expect_equal(rush$worker_states$status, "lost")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # fault detection --------------------------------------------------------------
 
 test_that("a simple error is catched", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -494,12 +485,11 @@ test_that("a simple error is catched", {
   expect_set_equal(data$status, "failed")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("a lost task is detected", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -544,14 +534,13 @@ test_that("a lost task is detected", {
   expect_set_equal(data$status, "lost")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # receiving results ------------------------------------------------------------
 
 test_that("blocking on new results works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -570,12 +559,11 @@ test_that("blocking on new results works", {
   expect_data_table(rush$block_latest_results(timeout = 1), nrows = 0)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("wait for tasks works when a task gets lost", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -594,14 +582,13 @@ test_that("wait for tasks works when a task gets lost", {
   expect_class(rush$await_tasks(keys, detect_lost_tasks = TRUE), "Rush")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 # misc--------------------------------------------------------------------------
 
 test_that("saving lgr logs works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -630,11 +617,13 @@ test_that("saving lgr logs works", {
   expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("snapshot option works", {
+  # skip_on_cran()
+
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -650,12 +639,11 @@ test_that("snapshot option works", {
   expect_equal(rush$snapshot_schedule, "")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
 test_that("terminating workers on idle works", {
-  skip_on_ci()
   # skip_on_cran()
 
   config = start_flush_redis()
@@ -672,13 +660,15 @@ test_that("terminating workers on idle works", {
   expect_set_equal(rush$worker_states$status, "terminated")
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
 
-# rush network without controller ----------------------------------------------
+# # rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {
+  # skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(instance_id = "test-rush", config = config)
@@ -709,6 +699,6 @@ test_that("network without controller works", {
   expect_equal(rush$n_finished_tasks, 100)
 
   pids = rush$worker_info$pid
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
   clean_test_env(pids)
 })
