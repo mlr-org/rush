@@ -120,9 +120,9 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(instance_id, config = redux::redis_config()) {
-      self$instance_id = assert_string(instance_id)
-      self$config = assert_class(config, "redis_config")
+    initialize = function(instance_id = NULL, config = NULL) {
+      self$instance_id = assert_string(instance_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+      self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% redux::redis_config()
       self$connector = redux::hiredis(self$config)
       private$.pid_exists = choose_pid_exists()
     },
