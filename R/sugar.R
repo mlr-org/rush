@@ -10,6 +10,6 @@
 #' @export
 #' @examples
 #' rsh(network_id = "benchmark")
-rsh = function(network_id = NULL, config = NULL, ....) {
+rsh = function(network_id = NULL, config = NULL, ...) {
   Rush$new(network_id, config)
 }

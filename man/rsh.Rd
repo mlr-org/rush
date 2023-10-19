@@ -4,7 +4,7 @@
 \alias{rsh}
 \title{Synctatic Sugar for Rush Controller Construction}
 \usage{
-rsh(network_id = NULL, config = NULL, ....)
+rsh(network_id = NULL, config = NULL, ...)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
