@@ -8,7 +8,7 @@ test_that("constructing a rush worker works", {
   expect_string(rush$worker_id)
   expect_equal(rush$host, "local")
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 
   # pass worker id
   config = start_flush_redis()
@@ -16,7 +16,7 @@ test_that("constructing a rush worker works", {
   rush = RushWorker$new(instance_id = "test-rush", config = config, host = "local", worker_id = worker_id)
   expect_equal(rush$worker_id, worker_id)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("active bindings work after construction", {
@@ -41,7 +41,7 @@ test_that("active bindings work after construction", {
   expect_null(rush$finished_tasks)
   expect_null(rush$failed_tasks)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("a worker is registered", {
@@ -61,7 +61,7 @@ test_that("a worker is registered", {
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_states$status, "running")
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("a heartbeat is started", {
@@ -74,7 +74,7 @@ test_that("a heartbeat is started", {
   expect_true(rush$heartbeat$is_alive())
   expect_true(rush$worker_info$heartbeat)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("reading and writing a hash works", {
@@ -195,7 +195,7 @@ test_that("pushing a task to the queue works", {
   expect_set_equal(data$status, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("pushing a task with extras to the queue works", {
@@ -234,7 +234,7 @@ test_that("pushing a task with extras to the queue works", {
   expect_equal(data$timestamp, timestamp)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("pushing tasks to the queue works", {
@@ -271,7 +271,7 @@ test_that("pushing tasks to the queue works", {
   expect_set_equal(data$status, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("pushing tasks with extras to the queue works", {
@@ -311,7 +311,7 @@ test_that("pushing tasks with extras to the queue works", {
   expect_equal(data$timestamp, c(timestamp, timestamp))
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("popping a task from the queue works", {
@@ -324,7 +324,7 @@ test_that("popping a task from the queue works", {
 
   # check task
   task = rush$pop_task()
-  expect_task(task)
+  expect_rush_task(task)
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -350,7 +350,7 @@ test_that("popping a task from the queue works", {
   expect_set_equal(data$status, "running")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("pushing a finished task works", {
@@ -388,7 +388,7 @@ test_that("pushing a finished task works", {
   expect_set_equal(data$status, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("pushing a failed tasks works", {
@@ -426,7 +426,7 @@ test_that("pushing a failed tasks works", {
   expect_set_equal(data$status, "failed")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("moving and fetching tasks works", {
@@ -501,7 +501,7 @@ test_that("moving and fetching tasks works", {
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("latest results are fetched", {
@@ -543,7 +543,7 @@ test_that("latest results are fetched", {
   expect_set_equal(latest_results$y, c(5, 6))
   expect_data_table(rush$fetch_latest_results(), nrows = 0)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("priority queues work", {
@@ -575,7 +575,7 @@ test_that("priority queues work", {
   expect_equal(priority_info[list(rush_1$worker_id), n_tasks, on = "worker_id"], 2)
   expect_equal(priority_info[list(rush_2$worker_id), n_tasks, on = "worker_id"], 1)
 
-  expect_task(rush_2$pop_task())
+  expect_rush_task(rush_2$pop_task())
 
   expect_equal(rush$n_queued_priority_tasks, 2)
   expect_data_table(rush$fetch_priority_tasks(), nrows = 2)
@@ -585,18 +585,18 @@ test_that("priority queues work", {
   expect_equal(priority_info[list(rush_2$worker_id), n_tasks, on = "worker_id"], 0)
 
   expect_null(rush_2$pop_task())
-  expect_task(rush_1$pop_task())
+  expect_rush_task(rush_1$pop_task())
   expect_equal(rush$n_queued_priority_tasks, 1)
   priority_info = rush$priority_info
   expect_data_table(priority_info, nrows = 2)
   expect_equal(priority_info[list(rush_1$worker_id), n_tasks, on = "worker_id"], 1)
   expect_equal(priority_info[list(rush_2$worker_id), n_tasks, on = "worker_id"], 0)
 
-  expect_task(rush_1$pop_task())
+  expect_rush_task(rush_1$pop_task())
   expect_equal(rush$n_queued_priority_tasks, 0)
   expect_set_equal(rush$priority_info$n_tasks, 0)
 
-  expect_reset_rush(rush)
+  expect_rush_reset(rush)
 })
 
 test_that("mixing priority queues and default queue work", {
