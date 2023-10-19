@@ -97,114 +97,117 @@ test_that("additional workers are started", {
 
 # # start workers with script ----------------------------------------------------
 
-# test_that("worker can be started with script", {
-#   # skip_on_cran()
+test_that("worker can be started with script", {
+  # skip_on_cran()
+  skip_on_ci()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x1 + x2)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
 
-#   rush$create_worker_script(
-#     worker_loop = fun_loop,
-#     globals = NULL,
-#     packages = NULL,
-#     host = "local",
-#     heartbeat_period = NULL,
-#     heartbeat_expire = NULL,
-#     lgr_thresholds = c(rush = "debug"),
-#     fun = fun)
+  rush$create_worker_script(
+    worker_loop = fun_loop,
+    globals = NULL,
+    packages = NULL,
+    host = "local",
+    heartbeat_period = NULL,
+    heartbeat_expire = NULL,
+    lgr_thresholds = c(rush = "debug"),
+    fun = fun)
 
-#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-#   rush$await_workers(1)
-#   expect_equal(rush$n_workers, 1)
+  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+  rush$await_workers(1)
+  expect_equal(rush$n_workers, 1)
 
-#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-#   rush$await_workers(2)
-#   expect_equal(rush$n_workers, 2)
+  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+  rush$await_workers(2)
+  expect_equal(rush$n_workers, 2)
 
-#   worker_info = rush$worker_info
-#   expect_data_table(worker_info, nrows = 2)
-#   expect_integer(worker_info$pid, unique = TRUE)
-#   expect_set_equal(worker_info$host, "local")
-#   expect_set_equal(rush$worker_states$status, "running")
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_info$host, "local")
+  expect_set_equal(rush$worker_states$status, "running")
 
-#   # rush$stop_workers()
-#   # Sys.sleep(5)
+  # rush$stop_workers()
+  # Sys.sleep(5)
 
-#   pids = rush$worker_info$pid
-#   expect_rush_reset(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+})
 
-# test_that("packages are available on the worker", {
-#   # skip_on_cran()
+test_that("packages are available on the worker", {
+  # skip_on_cran()
+  skip_on_ci()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = UUIDgenerate(n = 1))
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = UUIDgenerate(n = 1))
 
-#   rush$create_worker_script(
-#     worker_loop = fun_loop,
-#     globals = NULL,
-#     packages = "uuid",
-#     host = "local",
-#     heartbeat_period = NULL,
-#     heartbeat_expire = NULL,
-#     lgr_thresholds = c(rush = "debug"),
-#     fun = fun)
+  rush$create_worker_script(
+    worker_loop = fun_loop,
+    globals = NULL,
+    packages = "uuid",
+    host = "local",
+    heartbeat_period = NULL,
+    heartbeat_expire = NULL,
+    lgr_thresholds = c(rush = "debug"),
+    fun = fun)
 
-#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-#   rush$await_workers(1)
+  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+  rush$await_workers(1)
 
-#   xss = list(list(x1 = 1, x2 = 2))
-#   keys = rush$push_tasks(xss)
-#   rush$await_tasks(keys)
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
 
-#   expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_finished_tasks, 1)
 
-#   # rush$stop_workers()
-#   # Sys.sleep(5)
+  # rush$stop_workers()
+  # Sys.sleep(5)
 
-#   pids = rush$worker_info$pid
-#   expect_rush_reset(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+})
 
-# test_that("globals are available on the worker", {
-#   # skip_on_cran()
+test_that("globals are available on the worker", {
+  # skip_on_cran()
+  skip_on_ci()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
-#   fun = function(x1, x2, ...) list(y = x)
-#   x <<- 33
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x)
+  x <<- 33
 
-#   rush$create_worker_script(
-#     worker_loop = fun_loop,
-#     globals = "x",
-#     packages = NULL,
-#     host = "local",
-#     heartbeat_period = NULL,
-#     heartbeat_expire = NULL,
-#     lgr_thresholds = c(rush = "debug"),
-#     fun = fun)
+  rush$create_worker_script(
+    worker_loop = fun_loop,
+    globals = "x",
+    packages = NULL,
+    host = "local",
+    heartbeat_period = NULL,
+    heartbeat_expire = NULL,
+    lgr_thresholds = c(rush = "debug"),
+    fun = fun)
 
-#   system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
-#   rush$await_workers(1)
+  system2(command = "Rscript", args = "-e 'rush::start_worker(\"test-rush\", url = \"redis://127.0.0.1:6379\")'", wait = FALSE, stdout = NULL, stderr = NULL)
+  rush$await_workers(1)
 
-#   xss = list(list(x1 = 1, x2 = 2))
-#   keys = rush$push_tasks(xss)
-#   rush$await_tasks(keys)
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
 
-#   expect_equal(rush$n_finished_tasks, 1)
-#   expect_equal(rush$fetch_finished_tasks()$y, 33)
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$fetch_finished_tasks()$y, 33)
 
-#   # rush$stop_workers()
-#   # Sys.sleep(5)
+  # rush$stop_workers()
+  # Sys.sleep(5)
 
-#   pids = rush$worker_info$pid
-#   expect_rush_reset(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+})
 
 # future workers ----------------------------------------------------------
 
@@ -663,37 +666,39 @@ test_that("terminating workers on idle works", {
 
 # # rush network without controller ----------------------------------------------
 
-# test_that("network without controller works", {
+test_that("network without controller works", {
+  # skip_on_cran()
+  skip_on_ci()
 
-#   config = start_flush_redis()
-#   rush = Rush$new(instance_id = "test-rush", config = config)
+  config = start_flush_redis()
+  rush = Rush$new(instance_id = "test-rush", config = config)
 
-#   fun = function(rush) {
-#     while (rush$n_finished_tasks < 100) {
-#       # ask
-#       xs = list(
-#         x1 = sample(seq(1000), 1),
-#         x2 = sample(seq(1000), 1)
-#       )
-#       keys = rush$push_running_task(list(xs))
+  fun = function(rush) {
+    while (rush$n_finished_tasks < 100) {
+      # ask
+      xs = list(
+        x1 = sample(seq(1000), 1),
+        x2 = sample(seq(1000), 1)
+      )
+      keys = rush$push_running_task(list(xs))
 
-#       # evaluate
-#       ys = list(y = xs$x1 + xs$x2)
+      # evaluate
+      ys = list(y = xs$x1 + xs$x2)
 
-#       # tell
-#       rush$push_results(keys, list(ys))
-#     }
+      # tell
+      rush$push_results(keys, list(ys))
+    }
 
-#     return(NULL)
-#   }
+    return(NULL)
+  }
 
-#   future::plan("multisession", workers = 2)
-#   rush$start_workers(worker_loop = fun, n_workers = 2, await_workers = TRUE)
+  future::plan("multisession", workers = 2)
+  rush$start_workers(worker_loop = fun, n_workers = 2, await_workers = TRUE)
 
-#   Sys.sleep(10)
-#   expect_equal(rush$n_finished_tasks, 100)
+  Sys.sleep(10)
+  expect_equal(rush$n_finished_tasks, 100)
 
-#   pids = rush$worker_info$pid
-#   expect_rush_reset(rush)
-#   clean_test_env(pids)
-# })
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+})
