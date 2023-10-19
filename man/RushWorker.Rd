@@ -190,7 +190,7 @@ Pushes results to the data base.
   yss = list(),
   extra = list(),
   conditions = list(),
-  status = "finished"
+  state = "finished"
 )}\if{html}{\out{</div>}}
 }
 
@@ -209,7 +209,7 @@ List of lists of additional information stored along with the results.}
 \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
 
-\item{\code{status}}{(\code{character(1)})\cr
+\item{\code{state}}{(\code{character(1)})\cr
 Status of the tasks.
 If \code{"finished"} the tasks are moved to the finished tasks.
 If \code{"error"} the tasks are moved to the failed tasks.}

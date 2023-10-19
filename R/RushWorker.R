@@ -82,7 +82,7 @@ RushWorker = R6::R6Class("RushWorker",
         "HSET", private$.get_key(self$worker_id),
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
-        "status", "running",
+        "state", "running",
         "host", self$host,
         "heartbeat", as.character(!is.null(self$heartbeat))))
     },
@@ -104,7 +104,7 @@ RushWorker = R6::R6Class("RushWorker",
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, status = "running")
+      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "running")
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("SADD", private$.get_key("all_tasks"), keys))
 
@@ -123,7 +123,7 @@ RushWorker = R6::R6Class("RushWorker",
       key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
       if (is.null(key)) return(NULL)
-      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key, status = "running")
+      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key, state = "running")
 
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
@@ -141,22 +141,22 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of additional information stored along with the results.
     #' @param conditions (named `list()`)\cr
     #' List of lists of conditions.
-    #' @param status (`character(1)`)\cr
+    #' @param state (`character(1)`)\cr
     #' Status of the tasks.
     #' If `"finished"` the tasks are moved to the finished tasks.
     #' If `"error"` the tasks are moved to the failed tasks.
-    push_results = function(keys, yss = list(), extra = list(), conditions = list(), status = "finished") {
+    push_results = function(keys, yss = list(), extra = list(), conditions = list(), state = "finished") {
       assert_string(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list")
       assert_list(conditions, types = "list")
-      assert_choice(status, c("finished", "failed"))
+      assert_choice(state, c("finished", "failed"))
       r = self$connector
 
       # write result to hash
-      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys, status = status)
+      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys, state = state)
 
-      destination = if (status == "finished") "finished_tasks" else "failed_tasks"
+      destination = if (state == "finished") "finished_tasks" else "failed_tasks"
 
       # move key from running to finished or failed
       # keys of finished and failed tasks are stored in a list i.e. the are ordered by time.
@@ -195,7 +195,7 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
       self$write_log()
-      r$command(c("HSET", private$.get_key(self$worker_id), "status", "terminated"))
+      r$command(c("HSET", private$.get_key(self$worker_id), "state", "terminated"))
       return(invisible(self))
     }
   ),

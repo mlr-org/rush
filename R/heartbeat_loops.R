@@ -25,7 +25,7 @@ fun_heartbeat = function(network_id, config, worker_id, heartbeat_period, heartb
     kill = r$command(c("BLPOP", kill_key, heartbeat_period))[[2]]
     if (!is.null(kill)) {
       r$command(c("DEL", heartbeat_key, kill_key))
-      r$command(c("HSET", worker_id_key, "status", "killed"))
+      r$command(c("HSET", worker_id_key, "state", "killed"))
       tools::pskill(pid, tools::SIGKILL)
       break
     }

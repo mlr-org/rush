@@ -15,6 +15,8 @@ Keys in Redis are prefixed with the instance id.}
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.
 See \link[redux:redis_config]{redux::redis_config} for details.}
+
+\item{...}{(ignored).}
 }
 \description{
 Function to construct a \link{Rush} controller.

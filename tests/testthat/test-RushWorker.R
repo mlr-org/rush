@@ -59,7 +59,7 @@ test_that("a worker is registered", {
   expect_equal(worker_info$host, "local")
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
-  expect_equal(rush$worker_states$status, "running")
+  expect_equal(rush$worker_states$state, "running")
 
   expect_rush_reset(rush)
 })
@@ -147,19 +147,19 @@ test_that("writing hashes to specific keys works", {
   expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
 })
 
-test_that("writting a hash with a status works", {
+test_that("writting a hash with a state works", {
   # skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
   # one element
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), status = "queued")
-  expect_equal(rush$read_hashes(keys, c("xs", "status")), list(list(x1 = 1, x2 = 2, status = "queued")))
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = "queued")
+  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "queued")))
 
   # two elements
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), status = "queued")
-  expect_equal(rush$read_hashes(keys, c("xs", "status")), list(list(x1 = 1, x2 = 2, status = "queued"), list(x1 = 1, x2 = 3, status = "queued")))
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), state = "queued")
+  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "queued"), list(x1 = 1, x2 = 3, state = "queued")))
 })
 
 test_that("pushing a task to the queue works", {
@@ -190,9 +190,9 @@ test_that("pushing a task to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "queued")
+  expect_set_equal(data$state, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush)
@@ -228,9 +228,9 @@ test_that("pushing a task with extras to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "queued")
+  expect_set_equal(data$state, "queued")
   expect_equal(data$timestamp, timestamp)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
@@ -265,10 +265,10 @@ test_that("pushing tasks to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "state", "keys"))
   expect_data_table(data, nrows = 2)
   expect_character(data$keys, unique = TRUE, len = 2)
-  expect_set_equal(data$status, "queued")
+  expect_set_equal(data$state, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   expect_rush_reset(rush)
@@ -304,10 +304,10 @@ test_that("pushing tasks with extras to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "state", "keys"))
   expect_data_table(data, nrows = 2)
   expect_character(data$keys, unique = TRUE, len = 2)
-  expect_set_equal(data$status, "queued")
+  expect_set_equal(data$state, "queued")
   expect_equal(data$timestamp, c(timestamp, timestamp))
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
@@ -345,9 +345,9 @@ test_that("popping a task from the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_running_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "running")
+  expect_set_equal(data$state, "running")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush)
@@ -383,9 +383,9 @@ test_that("pushing a finished task works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "finished")
+  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush)
@@ -400,7 +400,7 @@ test_that("pushing a failed tasks works", {
   rush$push_tasks(xss)
   task = rush$pop_task()
 
-  rush$push_results(task$key, condition = list(list(message = "error")), status = "failed")
+  rush$push_results(task$key, condition = list(list(message = "error")), state = "failed")
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -421,9 +421,9 @@ test_that("pushing a failed tasks works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "failed")
+  expect_set_equal(data$state, "failed")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush)
@@ -479,7 +479,7 @@ test_that("moving and fetching tasks works", {
 
   # push failed task
   task = rush$pop_task()
-  rush$push_results(task$key, condition = list(list(message = "error")), status = "failed")
+  rush$push_results(task$key, condition = list(list(message = "error")), state = "failed")
   queued_tasks = rush$fetch_queued_tasks()
   expect_data_table(queued_tasks, nrows = 1)
   expect_character(queued_tasks$keys, unique = TRUE)

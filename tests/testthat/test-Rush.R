@@ -36,7 +36,7 @@ test_that("workers are started", {
   expect_set_equal(worker_info$host, "local")
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$status, "running")
+  expect_set_equal(rush$worker_states$state, "running")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -86,7 +86,7 @@ test_that("additional workers are started", {
   expect_integer(worker_info$pid, unique = TRUE)
   expect_set_equal(worker_info$host, "local")
   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
-  expect_set_equal(rush$worker_states$status, "running")
+  expect_set_equal(rush$worker_states$state, "running")
 
   expect_error(rush$start_workers(fun = fun, n_workers = 2), regexp = "No more than 0 rush workers can be started")
 
@@ -127,7 +127,7 @@ test_that("worker can be started with script", {
   expect_data_table(worker_info, nrows = 2)
   expect_integer(worker_info$pid, unique = TRUE)
   expect_set_equal(worker_info$host, "local")
-  expect_set_equal(rush$worker_states$status, "running")
+  expect_set_equal(rush$worker_states$state, "running")
 
   # rush$stop_workers()
   # Sys.sleep(5)
@@ -224,14 +224,14 @@ test_that("a worker is terminated", {
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "terminate")
   Sys.sleep(3)
   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
-  expect_equal(rush$worker_states$status[1], "terminated")
-  expect_equal(rush$worker_states$status[2], "running")
+  expect_equal(rush$worker_states$state[1], "terminated")
+  expect_equal(rush$worker_states$state[2], "running")
 
   # worker 2
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "terminate")
   Sys.sleep(3)
   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
-  expect_set_equal(rush$worker_states$status, "terminated")
+  expect_set_equal(rush$worker_states$state, "terminated")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -249,14 +249,14 @@ test_that("a local worker is killed", {
 
   # worker 1
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
-  expect_equal(rush$worker_states$status[1], "killed")
-  expect_equal(rush$worker_states$status[2], "running")
+  expect_equal(rush$worker_states$state[1], "killed")
+  expect_equal(rush$worker_states$state[2], "running")
   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]), class = "FutureError")
   expect_false(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
 
   # worker 2
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
-  expect_set_equal(rush$worker_states$status, "killed")
+  expect_set_equal(rush$worker_states$state, "killed")
   expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]), class = "FutureError")
 
@@ -281,14 +281,14 @@ test_that("a remote worker is killed via the heartbeat", {
   # worker 1
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
   Sys.sleep(15)
-  expect_equal(rush$worker_states$status[1], "killed")
-  expect_equal(rush$worker_states$status[2], "running")
+  expect_equal(rush$worker_states$state[1], "killed")
+  expect_equal(rush$worker_states$state[2], "running")
   expect_false(tools::pskill(rush$worker_info$pid[1], signal = 0L))
 
   # worker 2
   rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
   Sys.sleep(15)
-  expect_set_equal(rush$worker_states$status, "killed")
+  expect_set_equal(rush$worker_states$state, "killed")
   expect_false(tools::pskill(rush$worker_info$pid[2], signal = 0L))
 
   pids = rush$worker_info$pid
@@ -330,9 +330,9 @@ test_that("evaluating a task works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "finished")
+  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   pids = rush$worker_info$pid
@@ -372,9 +372,9 @@ test_that("evaluating tasks works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
   expect_data_table(data, nrows = 10)
-  expect_set_equal(data$status, "finished")
+  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 10)
 
   pids = rush$worker_info$pid
@@ -403,9 +403,9 @@ test_that("a segfault on a local worker is detected", {
   rush$push_tasks(xss)
   Sys.sleep(2)
 
-  expect_equal(rush$worker_states$status, "running")
+  expect_equal(rush$worker_states$state, "running")
   rush$detect_lost_workers()
-  expect_equal(rush$worker_states$status, "lost")
+  expect_equal(rush$worker_states$state, "lost")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -428,9 +428,9 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   rush$push_tasks(xss)
   Sys.sleep(15)
 
-  expect_equal(rush$worker_states$status, "running")
+  expect_equal(rush$worker_states$state, "running")
   rush$detect_lost_workers()
-  expect_equal(rush$worker_states$status, "lost")
+  expect_equal(rush$worker_states$state, "lost")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -476,14 +476,14 @@ test_that("a simple error is catched", {
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "finished")
+  expect_set_equal(data$state, "finished")
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "failed")
+  expect_set_equal(data$state, "failed")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -530,9 +530,9 @@ test_that("a lost task is detected", {
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "status", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$status, "lost")
+  expect_set_equal(data$state, "lost")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -658,7 +658,7 @@ test_that("terminating workers on idle works", {
   rush$await_tasks(keys)
   Sys.sleep(5)
 
-  expect_set_equal(rush$worker_states$status, "terminated")
+  expect_set_equal(rush$worker_states$state, "terminated")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)

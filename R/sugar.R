@@ -5,6 +5,7 @@
 #'
 #' @template param_network_id
 #' @template param_config
+#' @param ... (ignored).
 #'
 #' @export
 #' @examples
