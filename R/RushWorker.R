@@ -78,13 +78,18 @@ RushWorker = R6::R6Class("RushWorker",
 
       # register worker
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
+      r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
+      if (!is.null(self$heartbeat)) {
+        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
+      } else if (host == "local") {
+        r$SADD(private$.get_key("local_pids"), Sys.getpid())
+      }
       r$command(c(
         "HSET", private$.get_key(self$worker_id),
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
-        "state", "running",
         "host", self$host,
-        "heartbeat", as.character(!is.null(self$heartbeat))))
+        "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
     },
 
     #' @description
@@ -195,7 +200,7 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
       self$write_log()
-      r$command(c("HSET", private$.get_key(self$worker_id), "state", "terminated"))
+      r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
       return(invisible(self))
     }
   ),

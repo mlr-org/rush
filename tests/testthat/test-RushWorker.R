@@ -7,6 +7,8 @@ test_that("constructing a rush worker works", {
   expect_equal(rush$network_id, "test-rush")
   expect_string(rush$worker_id)
   expect_equal(rush$host, "local")
+  expect_equal(rush$worker_ids, rush$worker_id)
+  expect_equal(rush$running_worker_ids, rush$worker_id)
 
   expect_rush_reset(rush)
 
@@ -60,6 +62,20 @@ test_that("a worker is registered", {
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_states$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+test_that("a worker is terminated", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  expect_equal(rush$running_worker_ids, rush$worker_id)
+
+  rush$set_terminated()
+  expect_null(rush$running_worker_ids)
+  expect_equal(rush$terminated_worker_ids, rush$worker_id)
 
   expect_rush_reset(rush)
 })
@@ -603,7 +619,6 @@ test_that("mixing priority queues and default queue work", {
   # FIXME: add expect
   skip_if(TRUE)
   # skip_on_cran()
-
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)

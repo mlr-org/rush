@@ -95,7 +95,7 @@ test_that("additional workers are started", {
   clean_test_env(pids)
 })
 
-# # start workers with script ----------------------------------------------------
+# start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
   # skip_on_cran()
@@ -209,7 +209,7 @@ test_that("globals are available on the worker", {
   clean_test_env(pids)
 })
 
-# future workers ----------------------------------------------------------
+# stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {
   # skip_on_cran()
@@ -219,19 +219,22 @@ test_that("a worker is terminated", {
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE, lgr_thresholds = c(rush = "debug"))
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
 
   # worker 1
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "terminate")
+  rush$stop_workers(worker_ids = worker_id_1, type = "terminate")
   Sys.sleep(3)
-  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
-  expect_equal(rush$worker_states$state[1], "terminated")
-  expect_equal(rush$worker_states$state[2], "running")
+  expect_true(future::resolved(rush$promises[[worker_id_1]]))
+  expect_equal(rush$terminated_worker_ids, worker_id_1)
+  expect_equal(rush$running_worker_ids, worker_id_2)
 
   # worker 2
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "terminate")
+  rush$stop_workers(worker_ids = worker_id_2, type = "terminate")
   Sys.sleep(3)
-  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
-  expect_set_equal(rush$worker_states$state, "terminated")
+  expect_true(future::resolved(rush$promises[[worker_id_2]]))
+  expect_set_equal(rush$terminated_worker_ids, c(worker_id_1, worker_id_2))
+  expect_null(rush$running_worker_ids, worker_id_2)
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -246,9 +249,11 @@ test_that("a local worker is killed", {
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
 
   # worker 1
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
+  rush$stop_workers(worker_ids = worker_id_1, type = "kill")
   expect_equal(rush$worker_states$state[1], "killed")
   expect_equal(rush$worker_states$state[2], "running")
   expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]), class = "FutureError")
@@ -397,15 +402,15 @@ test_that("a segfault on a local worker is detected", {
     get("attach")(structure(list(), class = "UserDefinedDatabase"))
   }
   future::plan("cluster", workers = 1)
-  rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
+  worker_ids = rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
-  Sys.sleep(2)
+  Sys.sleep(5)
 
-  expect_equal(rush$worker_states$state, "running")
+  expect_null(rush$lost_worker_ids)
   rush$detect_lost_workers()
-  expect_equal(rush$worker_states$state, "lost")
+  expect_equal(rush$lost_worker_ids, worker_ids)
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -422,15 +427,15 @@ test_that("a segfault on a worker is detected via the heartbeat", {
     get("attach")(structure(list(), class = "UserDefinedDatabase"))
   }
   future::plan("cluster", workers = 1)
-  rush$start_workers(fun = fun, host = "remote", heartbeat_period = 1, heartbeat_expire = 3, await_workers = TRUE)
+  worker_ids = rush$start_workers(fun = fun, host = "remote", heartbeat_period = 1, heartbeat_expire = 2, await_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
-  Sys.sleep(15)
+  Sys.sleep(5)
 
-  expect_equal(rush$worker_states$state, "running")
+  expect_null(rush$lost_worker_ids)
   rush$detect_lost_workers()
-  expect_equal(rush$worker_states$state, "lost")
+  expect_equal(rush$lost_worker_ids, worker_ids)
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
