@@ -360,7 +360,7 @@ Rush = R6::R6Class("Rush",
         # fastest method on unix systems
         # on windows, heartbeat might be faster
         # check local and remote workers started with a heartbeat
-        running = map_lgl(heartbeat_keys, function(worker_id) as.logical(r$command(c("EXISTS", private$.get_worker_key("heartbeat", worker_id)))))
+        running = map_lgl(heartbeat_keys, function(heartbeat_key) as.logical(r$command(c("EXISTS", heartbeat_key))))
         if (all(running)) return(invisible(self))
 
         heartbeat_keys = heartbeat_keys[!running]
