@@ -130,10 +130,28 @@ List of futures running \link{run_worker}.}
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers.}
+
+\item{\code{n_running_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
 \item{\code{worker_ids}}{(\code{character()})\cr
 Ids of workers.}
+
+\item{\code{running_worker_ids}}{(\code{character()})\cr
+Ids of running workers.}
+
+\item{\code{terminated_worker_ids}}{(\code{character()})\cr
+Ids of terminated workers.}
+
+\item{\code{killed_worker_ids}}{(\code{character()})\cr
+Ids of killed workers.}
+
+\item{\code{lost_worker_ids}}{(\code{character()})\cr
+Ids of lost workers.}
+
+\item{\code{tasks}}{(\code{character()})\cr
+Keys of all tasks.}
 
 \item{\code{queued_tasks}}{(\code{character()})\cr
 Keys of queued tasks.}
@@ -146,9 +164,6 @@ Keys of finished tasks.}
 
 \item{\code{failed_tasks}}{(\code{character()})\cr
 Keys of failed tasks.}
-
-\item{\code{tasks}}{(\code{character()})\cr
-Keys of all tasks.}
 
 \item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
 Number of queued tasks.}
@@ -444,8 +459,9 @@ If \code{NULL} all workers are stopped.}
 \subsection{Method \code{detect_lost_workers()}}{
 Detect lost workers.
 The state of the worker is changed to \code{"lost"}.
-Local workers without a heartbeat are checked with \code{tools::pskill()}.
-Checking local workers on windows might be very slow.
+Local workers without a heartbeat are checked by their process id.
+Checking local workers on unix systems only takes a few microseconds per worker.
+But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
@@ -527,8 +543,9 @@ Keys of the tasks.
 \subsection{Method \code{push_priority_tasks()}}{
 Pushes a task to the queue of a specific worker.
 Task is added to queued priority tasks.
-A worker evaluates the tasks in the priority queue before the normal queue.
-If \code{priority} is \code{NA} the task is added to the normal queue.
+A worker evaluates the tasks in the priority queue before the shared queue.
+If \code{priority} is \code{NA} the task is added to the shared queue.
+If the worker is lost or worker id is not known, the task is added to the shared queue.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_priority_tasks(xss, extra = NULL, priority = NULL)}\if{html}{\out{</div>}}
 }

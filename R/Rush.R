@@ -143,7 +143,7 @@ Rush = R6::R6Class("Rush",
     #' @return (`character()`).
     print = function() {
       catn(format(self))
-      catf(str_indent("* Running Workers:", self$n_workers))
+      catf(str_indent("* Running Workers:", self$n_running_workers))
       catf(str_indent("* Queued Tasks:", self$n_queued_tasks))
       catf(str_indent("* Queued Priority Tasks:", self$n_queued_priority_tasks))
       catf(str_indent("* Running Tasks:", self$n_running_tasks))
@@ -507,8 +507,9 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Pushes a task to the queue of a specific worker.
     #' Task is added to queued priority tasks.
-    #' A worker evaluates the tasks in the priority queue before the normal queue.
-    #' If `priority` is `NA` the task is added to the normal queue.
+    #' A worker evaluates the tasks in the priority queue before the shared queue.
+    #' If `priority` is `NA` the task is added to the shared queue.
+    #' If the worker is lost or worker id is not known, the task is added to the shared queue.
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
@@ -523,10 +524,12 @@ Rush = R6::R6Class("Rush",
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       assert_character(priority, len = length(xss))
-      assert_subset(priority, c(NA_character_, self$worker_ids))
+
+      # redirect to shared queue when worker is lost or worker id is not known
+      priority[priority %nin% self$running_worker_ids] = NA_character_
       r = self$connector
 
-      lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the default queue",
+      lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the shared queue.",
         sum(!is.na(priority)), length(unique(priority[!is.na(priority)])), sum(is.na(priority)))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, state = "queued")
