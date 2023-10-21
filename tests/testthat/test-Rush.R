@@ -55,7 +55,7 @@ test_that("workers are started with a heartbeat", {
 
   # check meta data from redis
   worker_info = rush$worker_info
-  expect_true(all(worker_info$heartbeat))
+  expect_character(worker_info$heartbeat, unique = TRUE)
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -254,16 +254,16 @@ test_that("a local worker is killed", {
 
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
-  expect_equal(rush$worker_states$state[1], "killed")
-  expect_equal(rush$worker_states$state[2], "running")
-  expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]), class = "FutureError")
-  expect_false(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]))
+  expect_equal(rush$killed_worker_ids, worker_id_1)
+  expect_equal(rush$running_worker_ids, worker_id_2)
+  expect_error(future::resolved(rush$promises[[worker_id_1]]), class = "FutureError")
+  expect_false(future::resolved(rush$promises[[worker_id_2]]))
 
   # worker 2
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
-  expect_set_equal(rush$worker_states$state, "killed")
-  expect_true(future::resolved(rush$promises[[rush$worker_states$worker_id[1]]]))
-  expect_error(future::resolved(rush$promises[[rush$worker_states$worker_id[2]]]), class = "FutureError")
+  rush$stop_workers(worker_ids = worker_id_2, type = "kill")
+  expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
+  expect_true(future::resolved(rush$promises[[worker_id_1]]))
+  expect_error(future::resolved(rush$promises[[worker_id_2]]), class = "FutureError")
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -278,23 +278,25 @@ test_that("a remote worker is killed via the heartbeat", {
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
-  rush$start_workers(fun = fun, host = "remote", heartbeat_period = 3, heartbeat_expire = 9)
+  rush$start_workers(fun = fun, host = "remote", heartbeat_period = 1, heartbeat_expire = 2)
   rush$await_workers(2)
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
   worker_info = rush$worker_info
   expect_true(all(tools::pskill(worker_info$pid, signal = 0L)))
 
   # worker 1
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[1], type = "kill")
+  rush$stop_workers(worker_ids = worker_id_1, type = "kill")
   Sys.sleep(15)
-  expect_equal(rush$worker_states$state[1], "killed")
-  expect_equal(rush$worker_states$state[2], "running")
-  expect_false(tools::pskill(rush$worker_info$pid[1], signal = 0L))
+  expect_equal(rush$killed_worker_ids, worker_id_1)
+  expect_equal(rush$running_worker_ids, worker_id_2)
+  expect_false(tools::pskill(worker_info[worker_id == worker_id[1], pid], signal = 0L))
 
   # worker 2
-  rush$stop_workers(worker_ids = rush$worker_states$worker_id[2], type = "kill")
+  rush$stop_workers(worker_ids = worker_id_2, type = "kill")
   Sys.sleep(15)
-  expect_set_equal(rush$worker_states$state, "killed")
-  expect_false(tools::pskill(rush$worker_info$pid[2], signal = 0L))
+  expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
+  expect_false(tools::pskill( worker_info[worker_id == worker_id[2], pid], signal = 0L))
 
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
@@ -390,8 +392,6 @@ test_that("evaluating tasks works", {
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
-  # FIXME: unreliable test
-  skip_if(TRUE)
   # skip_on_cran()
   # skip_on_ci()
   skip_on_os("windows")
@@ -431,7 +431,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
-  Sys.sleep(5)
+  Sys.sleep(15)
 
   expect_null(rush$lost_worker_ids)
   rush$detect_lost_workers()

@@ -56,7 +56,7 @@ test_that("a worker is registered", {
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
   expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "host", "heartbeat"))
-  expect_false(worker_info$heartbeat)
+  expect_na(worker_info$heartbeat)
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_equal(worker_info$host, "local")
   expect_equal(worker_info$pid, Sys.getpid())
@@ -88,7 +88,7 @@ test_that("a heartbeat is started", {
 
   expect_class(rush$heartbeat, "r_process")
   expect_true(rush$heartbeat$is_alive())
-  expect_true(rush$worker_info$heartbeat)
+  expect_string(worker_info$heartbeat)
 
   expect_rush_reset(rush)
 })
