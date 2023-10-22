@@ -349,38 +349,41 @@ Rush = R6::R6Class("Rush",
     detect_lost_workers = function() {
       r = self$connector
 
-      # the workers add their heartbeat key or pid to one of the sets
-      # this determines which method is used to detect if the worker is lost
-      # the function is optimized to be called over and over again without much overhead
+      # check workers with a heartbeat
       heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
-      local_pids = r$SMEMBERS(private$.get_key("local_pids"))
-
-      lost_workers = if (length(heartbeat_keys)) {
-        # check local and remote workers with a heartbeat
-        running = map_lgl(heartbeat_keys, function(heartbeat_key) as.logical(r$command(c("EXISTS", heartbeat_key))))
+      if (length(heartbeat_keys)) {
+        lg$debug("Checking %i worker(s) with heartbeat", length(heartbeat_keys))
+        running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
         if (all(running)) return(invisible(self))
 
+        # search for associated worker ids
         heartbeat_keys = heartbeat_keys[!running]
-        self$worker_info[heartbeat == heartbeat_keys, worker_id]
-      } else if (length(local_pids)) {
-        # check local workers without a heartbeat
-        # fastest method on unix systems
-        # adds only a few microseconds overhead per worker
-        # on windows, heartbeat might be faster
+        lost_workers = self$worker_info[heartbeat == heartbeat_keys, worker_id]
+
+        # move worker ids to lost workers set and remove heartbeat keys
+        cmds = map(lost_workers, function(worker_id) c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id))
+        r$pipeline(.commands =  c(cmds, list(c("SREM", "heartbeat_keys", heartbeat_keys))))
+        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
+      }
+
+      # check local workers without a heartbeat
+      local_pids = r$SMEMBERS(private$.get_key("local_pids"))
+      if (length(local_pids)) {
+        lg$debug("Checking %i worker(s) with process id", length(local_pids))
         running = map_lgl(local_pids, function(pid) private$.pid_exists(pid))
         if (all(running)) return(invisible(self))
 
+        # search for associated worker ids
         local_pids = local_pids[!running]
-        self$worker_info[pid == local_pids, worker_id]
+        lost_workers = self$worker_info[pid == local_pids, worker_id]
+
+        # move worker ids to lost workers set and remove pids
+        cmds = map(lost_workers, function(worker_id) c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id))
+        r$pipeline(.commands =  c(cmds, list(c("SREM", private$.get_key("local_pids"), local_pids))))
+        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
       }
 
-      # move lost worker ids
-      r$pipeline(.commands = map(lost_workers, function(worker_id) {
-         c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id)
-      }))
-      lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
-
-      return(invisible(lost_workers))
+      return(invisible(self))
     },
 
     #' @description

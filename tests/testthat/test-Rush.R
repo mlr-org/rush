@@ -544,6 +544,56 @@ test_that("a lost task is detected", {
   clean_test_env(pids)
 })
 
+test_that("a lost task is detected when waiting", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  # no task is running
+  expect_class(rush$detect_lost_tasks(), "Rush")
+
+  fun = function(x1, x2, ...) {
+    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  }
+  future::plan("cluster", workers = 1)
+  rush$start_workers(fun = fun, await_workers = TRUE)
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  Sys.sleep(2)
+
+  rush$await_tasks(keys, detect_lost_tasks = TRUE)
+
+  # check task count
+  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+
+  # check keys in sets
+  expect_character(rush$tasks, len = 1)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_null(rush$finished_tasks)
+  expect_string(rush$failed_tasks)
+
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_tasks(), nrows = 1)
+
+  data = rush$fetch_failed_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_set_equal(data$state, "lost")
+
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+})
+
+
 # receiving results ------------------------------------------------------------
 
 test_that("blocking on new results works", {
