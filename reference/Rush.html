@@ -1019,7 +1019,7 @@ The stored elements should be lists themselves.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))</code> becomes <code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.</p><div class="section">
 <h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span>, state <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span>, state <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -1044,7 +1044,7 @@ If <code>NULL</code> new keys are generated.</p></dd>
 
 <dt><code>state</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
-Status of the hashes.</p></dd>
+State of the hashes.</p></dd>
 
 
 </dl><p></p></div>
