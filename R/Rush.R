@@ -826,16 +826,24 @@ Rush = R6::R6Class("Rush",
     #' Keys of the hashes.
     #' If `NULL` new keys are generated.
     #' @param state (`character(1)`)\cr
-    #' Status of the hashes.
+    #' State of the hashes.
     #'
     #' @return (`character()`)\cr
     #' Keys of the hashes.
-    write_hashes = function(..., .values = list(), keys = NULL, state = NA) {
+    write_hashes = function(..., .values = list(), keys = NULL, state = NA_character_) {
       values = discard(c(list(...), .values), function(l) !length(l))
       assert_list(values, names = "unique", types = "list", min.len = 1)
       fields = names(values)
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
-      bin_state = redux::object_to_bin(list(state = state))
+      assert_string(state, na.ok = TRUE)
+      bin_state = switch(state,
+        "queued" = queued_state,
+        "running" = running_state,
+        "failed" = failed_state,
+        "finished" = finished_state,
+        `NA_character_` = na_state,
+        redux::object_to_bin(list(state = state))
+      )
 
       lg$debug("Writting %i hash(es) with %i field(s)", length(keys), length(fields))
 
@@ -844,8 +852,7 @@ Rush = R6::R6Class("Rush",
           # serialize lists
           bin_values = map(list(...), redux::object_to_bin)
 
-          lg$debug("Serialzing %i value(s) to %s",
-            length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
+          lg$debug("Serialzing %i value(s) to %s", length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
 
           # merge fields and values alternatively
           # c and rbind are fastest option in R
@@ -1119,3 +1126,11 @@ Rush = R6::R6Class("Rush",
     }
   )
 )
+
+# common state for all tasks
+# used in $write_hashes()
+queued_state = redux::object_to_bin(list(state = "queued"))
+running_state = redux::object_to_bin(list(state = "running"))
+failed_state = redux::object_to_bin(list(state = "failed"))
+finished_state = redux::object_to_bin(list(state = "finished"))
+na_state = redux::object_to_bin(list(state = NA_character_))

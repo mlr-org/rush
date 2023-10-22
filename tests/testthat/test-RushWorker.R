@@ -178,6 +178,27 @@ test_that("writting a hash with a state works", {
   expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "queued"), list(x1 = 1, x2 = 3, state = "queued")))
 })
 
+test_that("writting a hash with a NA state works", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = NA_character_)
+  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = NA_character_)))
+})
+
+
+test_that("writting a hash with a arbitrary state works", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = "test")
+  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "test")))
+})
+
 test_that("pushing a task to the queue works", {
   # skip_on_cran()
 
