@@ -7,6 +7,8 @@ test_that("constructing a rush worker works", {
   expect_equal(rush$network_id, "test-rush")
   expect_string(rush$worker_id)
   expect_equal(rush$host, "local")
+  expect_equal(rush$worker_ids, rush$worker_id)
+  expect_equal(rush$running_worker_ids, rush$worker_id)
 
   expect_rush_reset(rush)
 
@@ -54,12 +56,26 @@ test_that("a worker is registered", {
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
   expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "host", "heartbeat"))
-  expect_false(worker_info$heartbeat)
+  expect_string(worker_info$heartbeat, na.ok = TRUE)
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_equal(worker_info$host, "local")
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_states$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+test_that("a worker is terminated", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  expect_equal(rush$running_worker_ids, rush$worker_id)
+
+  rush$set_terminated()
+  expect_null(rush$running_worker_ids)
+  expect_equal(rush$terminated_worker_ids, rush$worker_id)
 
   expect_rush_reset(rush)
 })
@@ -72,7 +88,7 @@ test_that("a heartbeat is started", {
 
   expect_class(rush$heartbeat, "r_process")
   expect_true(rush$heartbeat$is_alive())
-  expect_true(rush$worker_info$heartbeat)
+  expect_string(rush$worker_info$heartbeat)
 
   expect_rush_reset(rush)
 })
@@ -599,19 +615,51 @@ test_that("priority queues work", {
   expect_rush_reset(rush)
 })
 
-test_that("mixing priority queues and default queue work", {
-  # FIXME: add expect
-  skip_if(TRUE)
+test_that("redirecting to shared queue works", {
   # skip_on_cran()
-
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
+
   rush_1 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   rush_2 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 5)), priority = c(rep(rush_1$worker_id, 2), NA_character_))
+  keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2)), priority = rush_1$worker_id)
 
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_queued_priority_tasks, 1)
+  expect_data_table(rush$fetch_priority_tasks(), nrows = 1)
+  expect_null(rush_2$pop_task())
+  expect_rush_task(rush_1$pop_task())
+
+  keys = rush$push_priority_tasks(list(list(x1 = 2, x2 = 2)), priority = uuid::UUIDgenerate())
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_queued_priority_tasks, 0)
+  expect_rush_task(rush_1$pop_task())
+
+  rush_1$set_terminated()
+  keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2)), priority = rush_1$worker_id)
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_queued_priority_tasks, 0)
+})
+
+test_that("mixing priority queue and shared queue works", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  rush_1 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush_2 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 2)), priority = c(rush_1$worker_id, NA_character_))
+
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_queued_priority_tasks, 1)
+  expect_data_table(rush$fetch_priority_tasks(), nrows = 1)
+  expect_rush_task(rush_2$pop_task())
+  expect_null(rush_2$pop_task())
+  expect_rush_task(rush_1$pop_task())
 })
 
 test_that("saving lgr logs works", {
