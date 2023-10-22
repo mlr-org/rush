@@ -812,9 +812,13 @@ Rush = R6::R6Class("Rush",
     #' The function can iterate over multiple lists simultaneously.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` creates two hashes with the fields `xs` and `ys`.
     #' Different lengths are recycled.
-    #' The stored elements should be lists themselves.
+    #' The stored elements must be lists themselves.
     #' The reading functions combine the hashes to a table where the names of the inner lists are the column names.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+    #' Vectors in list columns must be wrapped in lists.
+    #' Otherwise, `$read_values()` will expand the table by the length of the vectors.
+    #' For example, `xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work.
+    #' Pass `xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
     #'
     #' @param ... (named `list()`)\cr
     #' Lists to be written to the hashes.

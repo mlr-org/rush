@@ -720,7 +720,7 @@ test_that("terminating workers on idle works", {
   clean_test_env(pids)
 })
 
-# # rush network without controller ----------------------------------------------
+# rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {
   # skip_on_cran()

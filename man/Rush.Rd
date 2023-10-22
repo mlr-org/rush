@@ -854,9 +854,12 @@ For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes
 The function can iterate over multiple lists simultaneously.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} creates two hashes with the fields \code{xs} and \code{ys}.
 Different lengths are recycled.
-The stored elements should be lists themselves.
+The stored elements must be lists themselves.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
+Vectors in list columns must be wrapped in lists.
+Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
+For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, state = NA_character_)}\if{html}{\out{</div>}}
 }
