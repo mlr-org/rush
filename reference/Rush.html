@@ -206,12 +206,42 @@ List of futures running <a href="run_worker.html">run_worker</a>.</p></dd>
     <h2 id="active-bindings">Active bindings<a class="anchor" aria-label="anchor" href="#active-bindings"></a></h2>
     <p></p><div class="r6-active-bindings"><dl><dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
+Number of workers.</p></dd>
+
+
+<dt><code>n_running_workers</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
 Number of running workers.</p></dd>
 
 
 <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Ids of workers.</p></dd>
+
+
+<dt><code>running_worker_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Ids of running workers.</p></dd>
+
+
+<dt><code>terminated_worker_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Ids of terminated workers.</p></dd>
+
+
+<dt><code>killed_worker_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Ids of killed workers.</p></dd>
+
+
+<dt><code>lost_worker_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Ids of lost workers.</p></dd>
+
+
+<dt><code>tasks</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Keys of all tasks.</p></dd>
 
 
 <dt><code>queued_tasks</code></dt>
@@ -232,11 +262,6 @@ Keys of finished tasks.</p></dd>
 <dt><code>failed_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of failed tasks.</p></dd>
-
-
-<dt><code>tasks</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of all tasks.</p></dd>
 
 
 <dt><code>n_queued_tasks</code></dt>
@@ -585,8 +610,9 @@ If <code>NULL</code> all workers are stopped.</p></dd>
 <h3 id="method-detect-lost-workers-">Method <code>detect_lost_workers()</code><a class="anchor" aria-label="anchor" href="#method-detect-lost-workers-"></a></h3>
 <p>Detect lost workers.
 The state of the worker is changed to <code>"lost"</code>.
-Local workers without a heartbeat are checked with <code><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">tools::pskill()</a></code>.
-Checking local workers on windows might be very slow.
+Local workers without a heartbeat are checked by their process id.
+Checking local workers on unix systems only takes a few microseconds per worker.
+But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -665,8 +691,9 @@ Keys of the tasks.</p>
 <h3 id="method-push-priority-tasks-">Method <code>push_priority_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-priority-tasks-"></a></h3>
 <p>Pushes a task to the queue of a specific worker.
 Task is added to queued priority tasks.
-A worker evaluates the tasks in the priority queue before the normal queue.
-If <code>priority</code> is <code>NA</code> the task is added to the normal queue.</p><div class="section">
+A worker evaluates the tasks in the priority queue before the shared queue.
+If <code>priority</code> is <code>NA</code> the task is added to the shared queue.
+If the worker is lost or worker id is not known, the task is added to the shared queue.</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_priority_tasks</span><span class="op">(</span><span class="va">xss</span>, extra <span class="op">=</span> <span class="cn">NULL</span>, priority <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
