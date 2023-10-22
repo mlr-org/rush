@@ -858,7 +858,7 @@ The stored elements should be lists themselves.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, state = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, state = NA_character_)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -877,7 +877,7 @@ Keys of the hashes.
 If \code{NULL} new keys are generated.}
 
 \item{\code{state}}{(\code{character(1)})\cr
-Status of the hashes.}
+State of the hashes.}
 }
 \if{html}{\out{</div>}}
 }
