@@ -1,13 +1,13 @@
 #' @title Rush Controller
 #'
 #' @description
-#' [Rush] is the controller of the asynchronous parallelization.
-#' It manages the workers and the tasks.
+#' [Rush] is the controller in a centralized rush network.
+#' The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
 #' We recommend to use the `future` package to spawn local workers.
-#' The `future` backend `multisession` run workers on the local machine.
+#' The `future` backend `multisession` spawns workers on the local machine.
 #' As many rush workers can be started as there are future workers available.
 #'
 #' @section Remote Workers:
@@ -26,15 +26,14 @@
 #'
 #' @section Heartbeat:
 #' The heartbeat process periodically signals that a worker is still alive.
-#'
-#' @section Error Handling:
-#' When evaluating tasks in a distributed system, many things can go wrong.
+#' This is implemented by setting a [timeout](https://redis.io/commands/expire/) on the heartbeat key.
+#' Furthermore, the heartbeat process can kill the worker.
 #'
 #' @section Data Structure:
 #' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
 #'
 #' ```
-#' key : xs | ys | extra | status
+#' key : xs | ys | extra | state
 #' ```
 #'
 #' The key of the hash identifies the task in Rush.
@@ -44,7 +43,7 @@
 #' For example, three hashes from the above example are converted to the following table.
 #'
 #' ```
-#' | key | x1 | x2 | y | timestamp | status   |
+#' | key | x1 | x2 | y | timestamp | state   |
 #' | 1.. |  3 |  4 | 7 |  12:04:11 | finished |
 #' | 2.. |  1 |  4 | 5 |  12:04:12 | finished |
 #' | 3.. |  1 |  1 | 2 |  12:04:13 | finished |
@@ -56,23 +55,40 @@
 #'
 #' @section Task States:
 #' A task can go through four states `"queued"`, `"running"`, `"finished"` or `"failed"`.
-#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/data-types/lists/) and [sets](https://redis.io/docs/data-types/sets/) to keep track of their status.
+#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/data-types/lists/) and [sets](https://redis.io/docs/data-types/sets/) to keep track of their state.
 #' Queued tasks are waiting to be evaluated.
-#' A worker pops a task from the queue and changes the status to `"running"` while evaluating the task.
-#' When the task is finished, the status is changed to `"finished" and the result is written to the data base.
+#' A worker pops a task from the queue and changes the state to `"running"` while evaluating the task.
+#' When the task is finished, the state is changed to `"finished" and the result is written to the data base.
 #' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
+#'
+#' @section Queues:
+#' Rush uses a shared queue and a queue for each worker.
+#' The shared queue is used to push tasks to the workers.
+#' The first worker that pops a task from the shared queue evaluates the task.
+#' The worker queues are used to push tasks to specific workers.
 #'
 #' @section Fetch Tasks and Results:
 #' The `$fetch_*()` methods retrieve data from the Redis database.
-#' A matching method is defined for each task status e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
+#' A matching method is defined for each task state e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
 #' If only the result of the function evaluation is needed, `$fetch_results()` and `$fetch_latest_results()` are faster.
 #' The methods `$fetch_results()` and `$fetch_finished_tasks()` cache the already queried data.
 #' The `$block_*()` variants wait until a new result is available.
 #'
-#' @section Queues:
-#' Rush uses a shared queue and a queue for each worker.
+#' @section Error Handling:
+#' When evaluating tasks in a distributed system, many things can go wrong.
+#' Simple R errors in the worker loop are caught and written to the archive.
+#' The task is marked as `"failed"`.
+#' If the connection to a worker is lost, it looks like a task is `"running"` forever.
+#' The methods `$detect_lost_workers()` and `$detect_lost_tasks()` detect lost workers.
+#' Running these methods periodically adds a small overhead.
 #'
-#' @template param_instance_id
+#' @section Logging:
+#' The worker logs all messages written with the `lgr` package to the data base.
+#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
+#' Saving log messages adds a small overhead but is useful for debugging.
+#' By default, no log messages are stored.
+#'
+#' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
 #' @template param_globals
@@ -86,9 +102,9 @@
 Rush = R6::R6Class("Rush",
   public = list(
 
-    #' @field instance_id (`character(1)`)\cr
+    #' @field network_id (`character(1)`)\cr
     #' Identifier of the rush network.
-    instance_id = NULL,
+    network_id = NULL,
 
     #' @field config ([redux::redis_config])\cr
     #' Redis configuration options.
@@ -104,9 +120,9 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(instance_id, config = redux::redis_config()) {
-      self$instance_id = assert_string(instance_id)
-      self$config = assert_class(config, "redis_config")
+    initialize = function(network_id = NULL, config = NULL) {
+      self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+      self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% redux::redis_config()
       self$connector = redux::hiredis(self$config)
       private$.pid_exists = choose_pid_exists()
     },
@@ -127,7 +143,7 @@ Rush = R6::R6Class("Rush",
     #' @return (`character()`).
     print = function() {
       catn(format(self))
-      catf(str_indent("* Running Workers:", self$n_workers))
+      catf(str_indent("* Running Workers:", self$n_running_workers))
       catf(str_indent("* Queued Tasks:", self$n_queued_tasks))
       catf(str_indent("* Queued Priority Tasks:", self$n_queued_priority_tasks))
       catf(str_indent("* Running Tasks:", self$n_running_tasks))
@@ -179,13 +195,13 @@ Rush = R6::R6Class("Rush",
       }
 
       # start workers
-      instance_id = self$instance_id
+      network_id = self$network_id
       config = self$config
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
         future::future(run_worker(
             worker_loop = worker_loop,
-            instance_id = instance_id,
+            network_id = network_id,
             config = config,
             host = host,
             worker_id = worker_id,
@@ -194,7 +210,7 @@ Rush = R6::R6Class("Rush",
             lgr_thresholds = lgr_thresholds,
             args = dots),
           seed = TRUE,
-          globals = c(globals, "run_worker", "worker_loop", "instance_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
+          globals = c(globals, "run_worker", "worker_loop", "network_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
           packages = packages)
       }), worker_ids))
 
@@ -248,7 +264,7 @@ Rush = R6::R6Class("Rush",
       r$command(list("SET", private$.get_key("worker_script"), bin_args))
 
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$instance_id, self$config$url)
+      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$network_id, self$config$url)
       lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
@@ -279,8 +295,7 @@ Rush = R6::R6Class("Rush",
     #' If `"kill"` the workers are stopped immediately.
     stop_workers = function(type = "terminate", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
-      assert_character(worker_ids, null.ok = TRUE)
-      worker_ids = worker_ids %??% self$worker_ids
+      worker_ids = assert_subset(worker_ids, self$running_worker_ids) %??% self$running_worker_ids
       r = self$connector
 
       if (type == "terminate") {
@@ -294,29 +309,28 @@ Rush = R6::R6Class("Rush",
         r$pipeline(.commands = cmds)
 
       } else if (type == "kill") {
-        running_workers = self$worker_states[list("running"), worker_id, on = "status", nomatch = NULL]
-        worker_info = self$worker_info[list(running_workers), , on = "worker_id"]
+        worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
 
         # kill local
-        local_workers = worker_info[list("local", worker_ids), , on = c("host", "worker_id"), nomatch = NULL]
+        local_workers = worker_info[list("local"), , on = c("host"), nomatch = NULL]
 
         if (nrow(local_workers)) {
           tools::pskill(local_workers$pid)
           cmds = map(local_workers$worker_id, function(worker_id) {
-            c("HSET", private$.get_key(worker_id), "status", "killed")
+            c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), worker_id)
           })
           r$pipeline(.commands = cmds)
         }
 
         # kill remote
-        remote_workers = worker_info[list("remote", worker_ids), worker_id, on = c("host", "worker_id"), nomatch = NULL]
+        remote_workers = worker_info[list("remote"), worker_id, on = c("host"), nomatch = NULL]
 
         if (length(remote_workers)) {
           # push kill signal to heartbeat
           cmds = unlist(map(remote_workers, function(worker_id) {
             list(
               c("LPUSH", private$.get_worker_key("kill", worker_id), "TRUE"),
-              c("HSET", private$.get_key(worker_id), "status", "killed"))
+              c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), worker_id))
           }), recursive = FALSE)
           r$pipeline(.commands = cmds)
         }
@@ -327,47 +341,45 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Detect lost workers.
-    #' The status of the worker is changed to `"lost"`.
-    #' Local workers without a heartbeat are checked with `tools::pskill()`.
-    #' Checking local workers on windows might be very slow.
+    #' The state of the worker is changed to `"lost"`.
+    #' Local workers without a heartbeat are checked by their process id.
+    #' Checking local workers on unix systems only takes a few microseconds per worker.
+    #' But checking local workers on windows might be very slow.
     #' Workers with a heartbeat process are checked with the heartbeat.
     detect_lost_workers = function() {
       r = self$connector
 
-      # get info of running workers
-      # optimized to quickly get the info of running workers
-      worker_info = self$worker_info
-      worker_states = private$.worker_states(worker_info$worker_id)
-      worker_info = worker_info[worker_states == "running", ]
-      lost_workers = character(0)
+      # check workers with a heartbeat
+      heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
+      if (length(heartbeat_keys)) {
+        lg$debug("Checking %i worker(s) with heartbeat", length(heartbeat_keys))
+        running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
+        if (all(running)) return(invisible(self))
 
-      if (any(worker_info$heartbeat)) {
-        # check local and remote workers started with a heartbeat
-        # comes with an overhead for running the heartbeat process
-        heartbeat_workers = worker_info[list(TRUE), worker_id, on = c("heartbeat"), nomatch = NULL]
+        # search for associated worker ids
+        heartbeat_keys = heartbeat_keys[!running]
+        lost_workers = self$worker_info[heartbeat == heartbeat_keys, worker_id]
 
-        if (length(heartbeat_workers)) {
-          lost = map_lgl(heartbeat_workers, function(worker_id) as.logical(!r$command(c("EXISTS", private$.get_worker_key("heartbeat", worker_id)))))
-          lost_workers = heartbeat_workers[lost]
-        }
+        # move worker ids to lost workers set and remove heartbeat keys
+        cmds = map(lost_workers, function(worker_id) c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id))
+        r$pipeline(.commands =  c(cmds, list(c("SREM", "heartbeat_keys", heartbeat_keys))))
+        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
       }
 
-      if (any(worker_info$host %in% "local") && !is.null(private$.pid_exists)) {
-        # check local workers without a heartbeat
-        # covers local workers started with future and batch
-        # fastest method on unix systems
-        # on windows, heartbeat might be faster
-        pid_exists = private$.pid_exists
-        local_workers = worker_info[list("local", FALSE), list(worker_id, pid), on = c("host", "heartbeat"), nomatch = NULL]
+      # check local workers without a heartbeat
+      local_pids = r$SMEMBERS(private$.get_key("local_pids"))
+      if (length(local_pids)) {
+        lg$debug("Checking %i worker(s) with process id", length(local_pids))
+        running = map_lgl(local_pids, function(pid) private$.pid_exists(pid))
+        if (all(running)) return(invisible(self))
 
-        lost = map_lgl(local_workers$pid, function(pid) !pid_exists(pid))
-        lost_workers = c(lost_workers, local_workers$worker_id[lost])
-      }
+        # search for associated worker ids
+        local_pids = local_pids[!running]
+        lost_workers = self$worker_info[pid == local_pids, worker_id]
 
-      if (length(lost_workers)) {
-        # update state
-        r$pipeline(.commands = map(lost_workers, function(worker_id) c("HSET", private$.get_key(worker_id), "status", "lost")))
-
+        # move worker ids to lost workers set and remove pids
+        cmds = map(lost_workers, function(worker_id) c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id))
+        r$pipeline(.commands =  c(cmds, list(c("SREM", private$.get_key("local_pids"), local_pids))))
         lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
       }
 
@@ -376,22 +388,21 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Detect lost tasks.
-    #' Changes the status of tasks to `"lost"` if the worker crashed.
+    #' Changes the state of tasks to `"lost"` if the worker crashed.
     detect_lost_tasks = function() {
       r = self$connector
       if (!self$n_workers) return(invisible(self))
       self$detect_lost_workers()
-      running_tasks = self$fetch_running_tasks(fields = "worker_extra")
-
-      lost_workers = self$worker_states[list("lost"), worker_id, on = c("status"), nomatch = NULL]
+      lost_workers = self$lost_worker_ids
 
       if (length(lost_workers)) {
-        bin_status = redux::object_to_bin(list(status = "lost"))
+        running_tasks = self$fetch_running_tasks(fields = "worker_extra")
+        bin_state = redux::object_to_bin(list(state = "lost"))
         keys = running_tasks[lost_workers, keys, on = "worker_id"]
 
         cmds = unlist(map(keys, function(key) {
           list(
-            c("HSET", key, "status", list(bin_status)),
+            c("HSET", key, "state", list(bin_state)),
             c("SREM", private$.get_key("running_tasks"), key),
             c("RPUSH", private$.get_key("failed_tasks"), key))
         }), recursive = FALSE)
@@ -435,8 +446,14 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("all_tasks"))
       r$DEL(private$.get_key("terminate"))
       r$DEL(private$.get_key("worker_ids"))
+      r$DEL(private$.get_key("running_worker_ids"))
+      r$DEL(private$.get_key("terminated_worker_ids"))
+      r$DEL(private$.get_key("killed_worker_ids"))
+      r$DEL(private$.get_key("lost_worker_ids"))
       r$DEL(private$.get_key("worker_script"))
       r$DEL(private$.get_key("terminate_on_idle"))
+      r$DEL(private$.get_key("local_pids"))
+      r$DEL(private$.get_key("heartbeat_keys"))
 
       # reset counters and caches
       private$.cached_results = data.table()
@@ -482,7 +499,7 @@ Rush = R6::R6Class("Rush",
 
       lg$debug("Pushing %i task(s) to the shared queue", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, status = "queued")
+      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "queued")
       r$command(c("LPUSH", private$.get_key("queued_tasks"), keys))
       r$command(c("SADD", private$.get_key("all_tasks"), keys))
       if (terminate_workers) r$command(c("SET", private$.get_key("terminate_on_idle"), "TRUE"))
@@ -493,8 +510,9 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Pushes a task to the queue of a specific worker.
     #' Task is added to queued priority tasks.
-    #' A worker evaluates the tasks in the priority queue before the normal queue.
-    #' If `priority` is `NA` the task is added to the normal queue.
+    #' A worker evaluates the tasks in the priority queue before the shared queue.
+    #' If `priority` is `NA` the task is added to the shared queue.
+    #' If the worker is lost or worker id is not known, the task is added to the shared queue.
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
@@ -509,13 +527,15 @@ Rush = R6::R6Class("Rush",
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       assert_character(priority, len = length(xss))
-      assert_subset(priority, c(NA_character_, self$worker_ids))
+
+      # redirect to shared queue when worker is lost or worker id is not known
+      priority[priority %nin% self$running_worker_ids] = NA_character_
       r = self$connector
 
-      lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the default queue",
+      lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the shared queue.",
         sum(!is.na(priority)), length(unique(priority[!is.na(priority)])), sum(is.na(priority)))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, status = "queued")
+      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "queued")
       cmds = pmap(list(priority, keys), function(worker_id, key) {
         if (is.na(worker_id)) {
           c("LPUSH", private$.get_key("queued_tasks"), key)
@@ -608,11 +628,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "state")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued tasks.
-    fetch_queued_tasks = function(fields = c("xs", "xs_extra", "status")) {
+    fetch_queued_tasks = function(fields = c("xs", "xs_extra", "state")) {
       r = self$connector
       assert_character(fields)
 
@@ -629,11 +649,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "state")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued priority tasks.
-    fetch_priority_tasks = function(fields = c("xs", "xs_extra", "status")) {
+    fetch_priority_tasks = function(fields = c("xs", "xs_extra", "state")) {
       r = self$connector
       assert_character(fields)
 
@@ -653,11 +673,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "state")`.
     #'
     #' @return `data.table()`\cr
     #' Table of running tasks.
-    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "status")) {
+    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "state")) {
       r = self$connector
       assert_character(fields)
 
@@ -675,13 +695,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")`.
     #' @param reset_cache (`logical(1)`)\cr
     #' Whether to reset the cache.
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
-    fetch_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"), reset_cache = FALSE) {
+    fetch_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"), reset_cache = FALSE) {
       r = self$connector
       assert_character(fields)
       assert_flag(reset_cache)
@@ -707,13 +727,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")`.
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for a result in seconds.
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
-    block_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"), timeout = Inf) {
+    block_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"), timeout = Inf) {
       start_time = Sys.time()
       while(start_time + timeout > Sys.time()) {
         if (self$n_finished_tasks > nrow(private$.cached_data)) return(self$fetch_finished_tasks(fields))
@@ -727,11 +747,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "condition", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "condition", "state")`.
     #'
     #' @return `data.table()`\cr
     #' Table of failed tasks.
-    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition", "status")) {
+    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition", "state")) {
       r = self$connector
       assert_character(fields)
 
@@ -748,11 +768,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "status")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")`.
     #'
     #' @return `data.table()`\cr
     #' Table of all tasks.
-    fetch_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "status")) {
+    fetch_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")) {
       r = self$connector
       assert_character(fields)
 
@@ -792,9 +812,13 @@ Rush = R6::R6Class("Rush",
     #' The function can iterate over multiple lists simultaneously.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` creates two hashes with the fields `xs` and `ys`.
     #' Different lengths are recycled.
-    #' The stored elements should be lists themselves.
+    #' The stored elements must be lists themselves.
     #' The reading functions combine the hashes to a table where the names of the inner lists are the column names.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+    #' Vectors in list columns must be wrapped in lists.
+    #' Otherwise, `$read_values()` will expand the table by the length of the vectors.
+    #' For example, `xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work.
+    #' Pass `xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
     #'
     #' @param ... (named `list()`)\cr
     #' Lists to be written to the hashes.
@@ -805,17 +829,25 @@ Rush = R6::R6Class("Rush",
     #' @param keys (character())\cr
     #' Keys of the hashes.
     #' If `NULL` new keys are generated.
-    #' @param status (`character(1)`)\cr
-    #' Status of the hashes.
+    #' @param state (`character(1)`)\cr
+    #' State of the hashes.
     #'
     #' @return (`character()`)\cr
     #' Keys of the hashes.
-    write_hashes = function(..., .values = list(), keys = NULL, status = NA) {
+    write_hashes = function(..., .values = list(), keys = NULL, state = NA_character_) {
       values = discard(c(list(...), .values), function(l) !length(l))
       assert_list(values, names = "unique", types = "list", min.len = 1)
       fields = names(values)
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
-      bin_status = redux::object_to_bin(list(status = status))
+      assert_string(state, na.ok = TRUE)
+      bin_state = switch(state,
+        "queued" = queued_state,
+        "running" = running_state,
+        "failed" = failed_state,
+        "finished" = finished_state,
+        `NA_character_` = na_state,
+        redux::object_to_bin(list(state = state))
+      )
 
       lg$debug("Writting %i hash(es) with %i field(s)", length(keys), length(fields))
 
@@ -824,13 +856,12 @@ Rush = R6::R6Class("Rush",
           # serialize lists
           bin_values = map(list(...), redux::object_to_bin)
 
-          lg$debug("Serialzing %i value(s) to %s",
-            length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
+          lg$debug("Serialzing %i value(s) to %s", length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
 
           # merge fields and values alternatively
           # c and rbind are fastest option in R
           # data is not copied
-          c("HSET", key, c(rbind(fields, bin_values)), "status", list(bin_status))
+          c("HSET", key, c(rbind(fields, bin_values)), "state", list(bin_state))
         })
 
       self$connector$pipeline(.commands = cmds)
@@ -853,8 +884,7 @@ Rush = R6::R6Class("Rush",
     #' The inner list is the combination of the lists stored at the different fields.
     read_hashes = function(keys, fields) {
 
-      lg$debug("Reading %i hash(es) with %i field(s)",
-        length(keys), length(fields))
+      lg$debug("Reading %i hash(es) with %i field(s)", length(keys), length(fields))
 
       # construct list of redis commands to read hashes
       cmds = map(keys, function(key) c("HMGET", key, fields))
@@ -874,11 +904,19 @@ Rush = R6::R6Class("Rush",
   active = list(
 
     #' @field n_workers (`integer(1)`)\cr
-    #' Number of running workers.
+    #' Number of workers.
     n_workers = function(rhs) {
       assert_ro_binding(rhs)
       r = self$connector
       as.integer(r$SCARD(private$.get_key("worker_ids"))) %??% 0
+    },
+
+    #' @field n_running_workers (`integer(1)`)\cr
+    #' Number of running workers.
+    n_running_workers = function(rhs) {
+      assert_ro_binding(rhs)
+      r = self$connector
+      as.integer(r$SCARD(private$.get_key("running_worker_ids"))) %??% 0
     },
 
     #' @field worker_ids (`character()`)\cr
@@ -886,6 +924,41 @@ Rush = R6::R6Class("Rush",
     worker_ids = function() {
       r = self$connector
       unlist(r$SMEMBERS(private$.get_key("worker_ids")))
+    },
+
+    #' @field running_worker_ids (`character()`)\cr
+    #' Ids of running workers.
+    running_worker_ids = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("running_worker_ids")))
+    },
+
+    #' @field terminated_worker_ids (`character()`)\cr
+    #' Ids of terminated workers.
+    terminated_worker_ids = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("terminated_worker_ids")))
+    },
+
+    #' @field killed_worker_ids (`character()`)\cr
+    #' Ids of killed workers.
+    killed_worker_ids = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("killed_worker_ids")))
+    },
+
+    #' @field lost_worker_ids (`character()`)\cr
+    #' Ids of lost workers.
+    lost_worker_ids = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("lost_worker_ids")))
+    },
+
+    #' @field tasks (`character()`)\cr
+    #' Keys of all tasks.
+    tasks = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("all_tasks")))
     },
 
     #' @field queued_tasks (`character()`)\cr
@@ -916,12 +989,6 @@ Rush = R6::R6Class("Rush",
       unlist(r$LRANGE(private$.get_key("failed_tasks"), 0, -1))
     },
 
-    #' @field tasks (`character()`)\cr
-    #' Keys of all tasks.
-    tasks = function() {
-      r = self$connector
-      unlist(r$SMEMBERS(private$.get_key("all_tasks")))
-    },
 
     #' @field n_queued_tasks (`integer(1)`)\cr
     #' Number of queued tasks.
@@ -978,9 +1045,8 @@ Rush = R6::R6Class("Rush",
     #' Contains information about the workers.
     worker_info = function(rhs) {
       assert_ro_binding(rhs)
-
-      # worker info is cached so that functions like detect_lost_workers run fast
       if (nrow(private$.cached_worker_info) == self$n_workers) return(private$.cached_worker_info)
+
       r = self$connector
 
       fields = c("worker_id", "pid", "host", "heartbeat")
@@ -988,8 +1054,7 @@ Rush = R6::R6Class("Rush",
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)
 
-      # fix types
-      worker_info[, heartbeat := as.logical(heartbeat)]
+      # fix type
       worker_info[, pid := as.integer(pid)][]
 
       # cache result
@@ -1003,10 +1068,14 @@ Rush = R6::R6Class("Rush",
       assert_ro_binding(rhs)
       r = self$connector
 
-      fields = c("worker_id", "status")
-      set_names(rbindlist(map(self$worker_ids, function(worker_id) {
-        r$command(c("HMGET", private$.get_key(worker_id), fields))
-      })), fields)
+      worker_ids = list(
+        running = data.table(worker_id = self$running_worker_ids),
+        terminated =  data.table(worker_id = self$terminated_worker_ids),
+        killed =  data.table(worker_id = self$killed_worker_ids),
+        lost =  data.table(worker_id = self$lost_worker_ids)
+      )
+
+      rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
     },
 
     #' @field priority_info ([data.table::data.table])\cr
@@ -1051,26 +1120,21 @@ Rush = R6::R6Class("Rush",
 
     # prefix key with instance id
     .get_key = function(key) {
-      sprintf("%s:%s", self$instance_id, key)
+      sprintf("%s:%s", self$network_id, key)
     },
 
     # prefix key with instance id and worker id
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
-      sprintf("%s:%s:%s", self$instance_id, worker_id, key)
-    },
-
-    # quick access to the worker states
-    # helpful to subset worker info
-    # returns a character vector of the states
-    .worker_states = function(worker_ids) {
-      r = self$connector
-
-      cmds = map(worker_ids, function(worker_id) {
-        c("HGET", private$.get_key(worker_id), "status")
-      })
-
-      unlist(r$pipeline(.commands = cmds))
+      sprintf("%s:%s:%s", self$network_id, worker_id, key)
     }
   )
 )
+
+# common state for all tasks
+# used in $write_hashes()
+queued_state = redux::object_to_bin(list(state = "queued"))
+running_state = redux::object_to_bin(list(state = "running"))
+failed_state = redux::object_to_bin(list(state = "failed"))
+finished_state = redux::object_to_bin(list(state = "finished"))
+na_state = redux::object_to_bin(list(state = NA_character_))

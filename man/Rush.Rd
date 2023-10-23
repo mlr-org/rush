@@ -4,14 +4,14 @@
 \alias{Rush}
 \title{Rush Controller}
 \description{
-\link{Rush} is the controller of the asynchronous parallelization.
-It manages the workers and the tasks.
+\link{Rush} is the controller in a centralized rush network.
+The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 }
 \section{Local Workers}{
 
 A local worker runs on the same machine as the controller.
 We recommend to use the \code{future} package to spawn local workers.
-The \code{future} backend \code{multisession} run workers on the local machine.
+The \code{future} backend \code{multisession} spawns workers on the local machine.
 As many rush workers can be started as there are future workers available.
 }
 
@@ -36,18 +36,15 @@ Without a heartbeat process a remote worker cannot be killed (see section heartb
 \section{Heartbeat}{
 
 The heartbeat process periodically signals that a worker is still alive.
-}
-
-\section{Error Handling}{
-
-When evaluating tasks in a distributed system, many things can go wrong.
+This is implemented by setting a \href{https://redis.io/commands/expire/}{timeout} on the heartbeat key.
+Furthermore, the heartbeat process can kill the worker.
 }
 
 \section{Data Structure}{
 
 Rush writes a task and its result and additional meta information into a Redis \href{https://redis.io/docs/data-types/hashes/}{hash}.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{key > xs | ys | extra | status
+\if{html}{\out{<div class="sourceCode">}}\preformatted{key : xs | ys | extra | state
 }\if{html}{\out{</div>}}
 
 The key of the hash identifies the task in Rush.
@@ -56,37 +53,66 @@ The value of a field is a serialized list e.g. unserializing \code{xs} gives \co
 This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
 For example, three hashes from the above example are converted to the following table.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp | status   |
+\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp | state   |
 | 1.. |  3 |  4 | 7 |  12:04:11 | finished |
 | 2.. |  1 |  4 | 5 |  12:04:12 | finished |
 | 3.. |  1 |  1 | 2 |  12:04:13 | finished |
 }\if{html}{\out{</div>}}
 
 Notice that a value of a field can store multiple columns of the table.
+
+The methods \verb{$push_tasks()} and \verb{$push_results()} write into multiple hashes.
+For example, \verb{$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))} writes \code{xs} in two hashes.
 }
 
 \section{Task States}{
 
 A task can go through four states \code{"queued"}, \code{"running"}, \code{"finished"} or \code{"failed"}.
-Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/data-types/lists/}{lists} and \href{https://redis.io/docs/data-types/sets/}{sets} to keep track of their status.
+Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/data-types/lists/}{lists} and \href{https://redis.io/docs/data-types/sets/}{sets} to keep track of their state.
 Queued tasks are waiting to be evaluated.
-A worker pops a task from the queue and changes the status to \code{"running"} while evaluating the task.
-When the task is finished, the status is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
+A worker pops a task from the queue and changes the state to \code{"running"} while evaluating the task.
+When the task is finished, the state is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
+}
+
+\section{Queues}{
+
+Rush uses a shared queue and a queue for each worker.
+The shared queue is used to push tasks to the workers.
+The first worker that pops a task from the shared queue evaluates the task.
+The worker queues are used to push tasks to specific workers.
 }
 
 \section{Fetch Tasks and Results}{
 
 The \verb{$fetch_*()} methods retrieve data from the Redis database.
-A matching method is defined for each task status e.g. \verb{$fetch_running_tasks()} and \verb{$fetch_finished_tasks()}.
+A matching method is defined for each task state e.g. \verb{$fetch_running_tasks()} and \verb{$fetch_finished_tasks()}.
 If only the result of the function evaluation is needed, \verb{$fetch_results()} and \verb{$fetch_latest_results()} are faster.
 The methods \verb{$fetch_results()} and \verb{$fetch_finished_tasks()} cache the already queried data.
 The \verb{$block_*()} variants wait until a new result is available.
 }
 
+\section{Error Handling}{
+
+When evaluating tasks in a distributed system, many things can go wrong.
+Simple R errors in the worker loop are caught and written to the archive.
+The task is marked as \code{"failed"}.
+If the connection to a worker is lost, it looks like a task is \code{"running"} forever.
+The methods \verb{$detect_lost_workers()} and \verb{$detect_lost_tasks()} detect lost workers.
+Running these methods periodically adds a small overhead.
+}
+
+\section{Logging}{
+
+The worker logs all messages written with the \code{lgr} package to the data base.
+The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
+Saving log messages adds a small overhead but is useful for debugging.
+By default, no log messages are stored.
+}
+
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
@@ -104,10 +130,28 @@ List of futures running \link{run_worker}.}
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers.}
+
+\item{\code{n_running_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
 \item{\code{worker_ids}}{(\code{character()})\cr
 Ids of workers.}
+
+\item{\code{running_worker_ids}}{(\code{character()})\cr
+Ids of running workers.}
+
+\item{\code{terminated_worker_ids}}{(\code{character()})\cr
+Ids of terminated workers.}
+
+\item{\code{killed_worker_ids}}{(\code{character()})\cr
+Ids of killed workers.}
+
+\item{\code{lost_worker_ids}}{(\code{character()})\cr
+Ids of lost workers.}
+
+\item{\code{tasks}}{(\code{character()})\cr
+Keys of all tasks.}
 
 \item{\code{queued_tasks}}{(\code{character()})\cr
 Keys of queued tasks.}
@@ -120,9 +164,6 @@ Keys of finished tasks.}
 
 \item{\code{failed_tasks}}{(\code{character()})\cr
 Keys of failed tasks.}
-
-\item{\code{tasks}}{(\code{character()})\cr
-Keys of all tasks.}
 
 \item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
 Number of queued tasks.}
@@ -145,10 +186,11 @@ Number of all tasks.}
 \item{\code{data}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains all performed function calls.}
 
-\item{\code{worker_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
-Contains information about the workers.
+\item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
+Contains information about the workers.}
 
-The methods \verb{$detect_lost_workers()}, \verb{$detect_lost_tasks()} and \verb{$stop_workers()} update the status column.}
+\item{\code{worker_states}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
+Contains the states of the workers.}
 
 \item{\code{priority_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains the number of tasks in the priority queues.}
@@ -200,13 +242,13 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(instance_id, config = redux::redis_config())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
@@ -416,9 +458,10 @@ If \code{NULL} all workers are stopped.}
 \if{latex}{\out{\hypertarget{method-Rush-detect_lost_workers}{}}}
 \subsection{Method \code{detect_lost_workers()}}{
 Detect lost workers.
-The status of the worker is changed to \code{"lost"}.
-Local workers without a heartbeat are checked with \code{tools::pskill()}.
-Checking local workers on windows might be very slow.
+The state of the worker is changed to \code{"lost"}.
+Local workers without a heartbeat are checked by their process id.
+Checking local workers on unix systems only takes a few microseconds per worker.
+But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
@@ -430,7 +473,7 @@ Workers with a heartbeat process are checked with the heartbeat.
 \if{latex}{\out{\hypertarget{method-Rush-detect_lost_tasks}{}}}
 \subsection{Method \code{detect_lost_tasks()}}{
 Detect lost tasks.
-Changes the status of tasks to \code{"lost"} if the worker crashed.
+Changes the state of tasks to \code{"lost"} if the worker crashed.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_tasks()}\if{html}{\out{</div>}}
 }
@@ -472,7 +515,7 @@ If \code{NULL} all worker ids are used.}
 Pushes a task to the queue.
 Task is added to queued tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL, terminate_workers = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -483,6 +526,9 @@ Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))
 
 \item{\code{extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{terminate_workers}}{(\code{logical(1)})\cr
+Whether to stop the workers after evaluating the tasks.}
 }
 \if{html}{\out{</div>}}
 }
@@ -497,8 +543,9 @@ Keys of the tasks.
 \subsection{Method \code{push_priority_tasks()}}{
 Pushes a task to the queue of a specific worker.
 Task is added to queued priority tasks.
-A worker evaluates the tasks in the priority queue before the normal queue.
-If \code{priority} is \code{NA} the task is added to the normal queue.
+A worker evaluates the tasks in the priority queue before the shared queue.
+If \code{priority} is \code{NA} the task is added to the shared queue.
+If the worker is lost or worker id is not known, the task is added to the shared queue.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_priority_tasks(xss, extra = NULL, priority = NULL)}\if{html}{\out{</div>}}
 }
@@ -603,7 +650,7 @@ Results.
 \subsection{Method \code{fetch_queued_tasks()}}{
 Fetch queued tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "status"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "state"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -611,7 +658,7 @@ Fetch queued tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "state")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -626,7 +673,7 @@ Table of queued tasks.
 \subsection{Method \code{fetch_priority_tasks()}}{
 Fetch queued priority tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra", "status"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra", "state"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -634,7 +681,7 @@ Fetch queued priority tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "state")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -649,9 +696,7 @@ Table of queued priority tasks.
 \subsection{Method \code{fetch_running_tasks()}}{
 Fetch running tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "status")
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra", "state"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -659,7 +704,7 @@ Fetch running tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "state")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -676,7 +721,7 @@ Fetch finished tasks from the data base.
 Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"),
+  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
   reset_cache = FALSE
 )}\if{html}{\out{</div>}}
 }
@@ -686,7 +731,7 @@ Finished tasks are cached.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
@@ -706,7 +751,7 @@ Block process until a new finished task is available.
 Returns all finished tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$block_finished_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status"),
+  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
   timeout = Inf
 )}\if{html}{\out{</div>}}
 }
@@ -716,7 +761,7 @@ Returns all finished tasks or \code{NULL} if no new task is available after \cod
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
@@ -734,9 +779,7 @@ Table of finished tasks.
 \subsection{Method \code{fetch_failed_tasks()}}{
 Fetch failed tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(
-  fields = c("xs", "worker_extra", "condition", "status")
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition", "state"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -744,7 +787,7 @@ Fetch failed tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "condition", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "condition", "state")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -760,7 +803,7 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "status")
+  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")
 )}\if{html}{\out{</div>}}
 }
 
@@ -769,7 +812,7 @@ Fetch all tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "status")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -811,11 +854,14 @@ For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes
 The function can iterate over multiple lists simultaneously.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} creates two hashes with the fields \code{xs} and \code{ys}.
 Different lengths are recycled.
-The stored elements should be lists themselves.
+The stored elements must be lists themselves.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
+Vectors in list columns must be wrapped in lists.
+Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
+For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, status = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, state = NA_character_)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -833,8 +879,8 @@ The names of the list are used as fields.}
 Keys of the hashes.
 If \code{NULL} new keys are generated.}
 
-\item{\code{status}}{(\code{character(1)})\cr
-Status of the hashes.}
+\item{\code{state}}{(\code{character(1)})\cr
+State of the hashes.}
 }
 \if{html}{\out{</div>}}
 }

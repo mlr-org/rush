@@ -22,7 +22,7 @@ fun_loop = function(fun, rush) {
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)
-        rush$push_results(task$key, conditions = list(condition), status = "failed")
+        rush$push_results(task$key, conditions = list(condition), state = "failed")
       })
     } else {
       if (rush$terminated_on_idle) break

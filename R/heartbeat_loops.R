@@ -7,25 +7,25 @@
 #' @param pid (`integer(1)`)\cr
 #' Process ID of the worker.
 #'
-#' @template param_instance_id
+#' @template param_network_id
 #' @template param_config
 #' @template param_worker_id
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #'
 #' @export
-fun_heartbeat = function(instance_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
+fun_heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
-  worker_id_key = sprintf("%s:%s", instance_id, worker_id)
-  heartbeat_key = sprintf("%s:%s:heartbeat", instance_id, worker_id)
-  kill_key = sprintf("%s:%s:kill", instance_id, worker_id)
+  worker_id_key = sprintf("%s:%s", network_id, worker_id)
+  heartbeat_key = sprintf("%s:%s:heartbeat", network_id, worker_id)
+  kill_key = sprintf("%s:%s:kill", network_id, worker_id)
 
   repeat {
     r$command(c("EXPIRE", heartbeat_key, heartbeat_expire))
     kill = r$command(c("BLPOP", kill_key, heartbeat_period))[[2]]
     if (!is.null(kill)) {
       r$command(c("DEL", heartbeat_key, kill_key))
-      r$command(c("HSET", worker_id_key, "status", "killed"))
+      r$command(c("HSET", worker_id_key, "state", "killed"))
       tools::pskill(pid, tools::SIGKILL)
       break
     }

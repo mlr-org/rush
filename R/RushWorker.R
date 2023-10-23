@@ -1,19 +1,13 @@
 #' @title Rush Worker
 #'
 #' @description
-#' [RushWorker] runs on a worker and executes tasks.
-#' The rush worker inherits from [Rush] and adds methods to pop tasks from the queue and push results to the data base.
+#' [RushWorker] evaluates tasks and writes results to the data base.
+#' The worker inherits from [Rush].
 #'
 #' @note
 #' The worker registers itself in the data base of the rush network.
 #'
-#' @section Logging:
-#' The worker logs all messages written with the `lgr` package to the data base.
-#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
-#' Saving log messages adds a small overhead but is useful for debugging.
-#' By default, no log messages are stored.
-#'
-#' @template param_instance_id
+#' @template param_network_id
 #' @template param_config
 #' @template param_host
 #' @template param_worker_id
@@ -44,11 +38,11 @@ RushWorker = R6::R6Class("RushWorker",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(instance_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
+    initialize = function(network_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
 
-      super$initialize(instance_id = instance_id, config = config)
+      super$initialize(network_id = network_id, config = config)
 
       # start heartbeat
       assert_numeric(heartbeat_period, null.ok = TRUE)
@@ -58,7 +52,7 @@ RushWorker = R6::R6Class("RushWorker",
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
         r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
         heartbeat_args = list(
-          instance_id = self$instance_id,
+          network_id = self$network_id,
           config = self$config,
           worker_id = self$worker_id,
           heartbeat_period = heartbeat_period,
@@ -84,13 +78,42 @@ RushWorker = R6::R6Class("RushWorker",
 
       # register worker
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
+      r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
+      if (!is.null(self$heartbeat)) {
+        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
+      } else if (host == "local") {
+        r$SADD(private$.get_key("local_pids"), Sys.getpid())
+      }
       r$command(c(
         "HSET", private$.get_key(self$worker_id),
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
-        "status", "running",
         "host", self$host,
-        "heartbeat", as.character(!is.null(self$heartbeat))))
+        "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
+    },
+
+    #' @description
+    #' Push a task to running tasks without queue.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_running_task = function(xss, extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      lg$debug("Pushing %i running task(s).", length(xss))
+
+      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "running")
+      r$command(c("SADD", private$.get_key("running_tasks"), keys))
+      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+
+      return(invisible(keys))
     },
 
     #' @description
@@ -105,7 +128,7 @@ RushWorker = R6::R6Class("RushWorker",
       key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
       if (is.null(key)) return(NULL)
-      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key, status = "running")
+      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key, state = "running")
 
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
@@ -123,22 +146,22 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of additional information stored along with the results.
     #' @param conditions (named `list()`)\cr
     #' List of lists of conditions.
-    #' @param status (`character(1)`)\cr
+    #' @param state (`character(1)`)\cr
     #' Status of the tasks.
     #' If `"finished"` the tasks are moved to the finished tasks.
     #' If `"error"` the tasks are moved to the failed tasks.
-    push_results = function(keys, yss = list(), extra = list(), conditions = list(), status = "finished") {
+    push_results = function(keys, yss = list(), extra = list(), conditions = list(), state = "finished") {
       assert_string(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list")
       assert_list(conditions, types = "list")
-      assert_choice(status, c("finished", "failed"))
+      assert_choice(state, c("finished", "failed"))
       r = self$connector
 
       # write result to hash
-      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys, status = status)
+      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys, state = state)
 
-      destination = if (status == "finished") "finished_tasks" else "failed_tasks"
+      destination = if (state == "finished") "finished_tasks" else "failed_tasks"
 
       # move key from running to finished or failed
       # keys of finished and failed tasks are stored in a list i.e. the are ordered by time.
@@ -177,7 +200,7 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
       self$write_log()
-      r$command(c("HSET", private$.get_key(self$worker_id), "status", "terminated"))
+      r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
       return(invisible(self))
     }
   ),
@@ -192,7 +215,7 @@ RushWorker = R6::R6Class("RushWorker",
       r$GET(private$.get_worker_key("terminate")) %??% "FALSE" == "TRUE"
     },
 
-    #' @field terminate_on_idle (`logical(1)`)\cr
+    #' @field terminated_on_idle (`logical(1)`)\cr
     #' Whether to shutdown the worker if no tasks are queued.
     #' Used in the worker loop to determine whether to continue.
     terminated_on_idle = function() {

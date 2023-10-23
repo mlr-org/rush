@@ -4,20 +4,12 @@
 \alias{RushWorker}
 \title{Rush Worker}
 \description{
-\link{RushWorker} runs on a worker and executes tasks.
-The rush worker inherits from \link{Rush} and adds methods to pop tasks from the queue and push results to the data base.
+\link{RushWorker} evaluates tasks and writes results to the data base.
+The worker inherits from \link{Rush}.
 }
 \note{
 The worker registers itself in the data base of the rush network.
 }
-\section{Logging}{
-
-The worker logs all messages written with the \code{lgr} package to the data base.
-The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
-Saving log messages adds a small overhead but is useful for debugging.
-By default, no log messages are stored.
-}
-
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }
@@ -41,8 +33,13 @@ Buffer that saves all log messages.}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{terminate}}{(\code{logical(1)})\cr
-Whether to shutdown the worker.}
+\item{\code{terminated}}{(\code{logical(1)})\cr
+Whether to shutdown the worker.
+Used in the worker loop to determine whether to continue.}
+
+\item{\code{terminated_on_idle}}{(\code{logical(1)})\cr
+Whether to shutdown the worker if no tasks are queued.
+Used in the worker loop to determine whether to continue.}
 }
 \if{html}{\out{</div>}}
 }
@@ -50,9 +47,11 @@ Whether to shutdown the worker.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
+\item \href{#method-RushWorker-push_running_task}{\code{RushWorker$push_running_task()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
 \item \href{#method-RushWorker-write_log}{\code{RushWorker$write_log()}}
+\item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
 }
@@ -94,7 +93,7 @@ Whether to shutdown the worker.}
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
-  instance_id,
+  network_id,
   config = redux::redis_config(),
   host,
   worker_id = NULL,
@@ -107,7 +106,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{instance_id}}{(\code{character(1)})\cr
+\item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
@@ -134,6 +133,31 @@ Time to live of the heartbeat in seconds.}
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-push_running_task"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-push_running_task}{}}}
+\subsection{Method \code{push_running_task()}}{
+Push a task to running tasks without queue.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_running_task(xss, extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+
+\item{\code{extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Keys of the tasks.
 }
 }
 \if{html}{\out{<hr>}}
@@ -166,7 +190,7 @@ Pushes results to the data base.
   yss = list(),
   extra = list(),
   conditions = list(),
-  status = "finished"
+  state = "finished"
 )}\if{html}{\out{</div>}}
 }
 
@@ -185,7 +209,7 @@ List of lists of additional information stored along with the results.}
 \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
 
-\item{\code{status}}{(\code{character(1)})\cr
+\item{\code{state}}{(\code{character(1)})\cr
 Status of the tasks.
 If \code{"finished"} the tasks are moved to the finished tasks.
 If \code{"error"} the tasks are moved to the failed tasks.}
@@ -200,6 +224,17 @@ If \code{"error"} the tasks are moved to the failed tasks.}
 Write log message written with the \code{lgr} package to the database.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$write_log()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-set_terminated"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-set_terminated}{}}}
+\subsection{Method \code{set_terminated()}}{
+Mark the worker as terminated.
+Last step in the worker loop before the worker terminates.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$set_terminated()}\if{html}{\out{</div>}}
 }
 
 }
