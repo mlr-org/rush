@@ -826,6 +826,7 @@ Table of all tasks.
 \if{latex}{\out{\hypertarget{method-Rush-await_tasks}{}}}
 \subsection{Method \code{await_tasks()}}{
 Wait until tasks are finished.
+The function also unblocks when no worker is running or all tasks failed.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$await_tasks(keys, detect_lost_tasks = FALSE)}\if{html}{\out{</div>}}
 }

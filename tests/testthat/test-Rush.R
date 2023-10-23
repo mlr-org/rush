@@ -560,7 +560,7 @@ test_that("a lost task is detected when waiting", {
   }
   future::plan("cluster", workers = 1)
   rush$start_workers(fun = fun, await_workers = TRUE)
-  xss = list(list(x1 = 1, x2 = 2))
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
   Sys.sleep(2)
 

@@ -787,6 +787,7 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Wait until tasks are finished.
+    #' The function also unblocks when no worker is running or all tasks failed.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the tasks to wait for.
@@ -797,7 +798,7 @@ Rush = R6::R6Class("Rush",
       assert_character(keys, min.len = 1)
       assert_flag(detect_lost_tasks)
 
-      while (any(keys %nin% c(self$finished_tasks, self$failed_tasks))) {
+      while (any(keys %nin% c(self$finished_tasks, self$failed_tasks)) && self$n_running_workers > 0) {
         if (detect_lost_tasks) self$detect_lost_tasks()
         Sys.sleep(0.01)
       }
