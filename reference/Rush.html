@@ -985,7 +985,8 @@ Table of all tasks.</p>
 
 </div><p></p><hr><a id="method-Rush-await_tasks"></a><div class="section">
 <h3 id="method-await-tasks-">Method <code>await_tasks()</code><a class="anchor" aria-label="anchor" href="#method-await-tasks-"></a></h3>
-<p>Wait until tasks are finished.</p><div class="section">
+<p>Wait until tasks are finished.
+The function also unblocks when no worker is running or all tasks failed.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">await_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_tasks <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
