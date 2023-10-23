@@ -539,6 +539,8 @@ test_that("a lost task is detected", {
   expect_data_table(data, nrows = 1)
   expect_set_equal(data$state, "lost")
 
+  expect_class(rush$detect_lost_tasks(), "Rush")
+
   pids = rush$worker_info$pid
   expect_rush_reset(rush)
   clean_test_env(pids)

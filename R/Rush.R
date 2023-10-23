@@ -397,6 +397,7 @@ Rush = R6::R6Class("Rush",
 
       if (length(lost_workers)) {
         running_tasks = self$fetch_running_tasks(fields = "worker_extra")
+        if (!nrow(running_tasks)) return(invisible(self))
         bin_state = redux::object_to_bin(list(state = "lost"))
         keys = running_tasks[lost_workers, keys, on = "worker_id"]
 
