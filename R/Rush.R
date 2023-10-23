@@ -183,7 +183,7 @@ Rush = R6::R6Class("Rush",
       assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-      assert_named(lgr_thresholds)
+      assert_character(lgr_thresholds, null.ok = TRUE, names = "named")
       assert_flag(await_workers)
       dots = list(...)
       r = self$connector
