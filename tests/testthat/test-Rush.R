@@ -562,7 +562,7 @@ test_that("a lost task is detected when waiting", {
   rush$start_workers(fun = fun, await_workers = TRUE)
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
-  Sys.sleep(2)
+  Sys.sleep(5)
 
   rush$await_tasks(keys, detect_lost_tasks = TRUE)
 
