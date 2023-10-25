@@ -218,6 +218,9 @@ test_that("a worker is terminated", {
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
+
+  exepect_class(rush$stop_workers(), "Rush")
+
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE, lgr_thresholds = c(rush = "debug"))
   worker_id_1 = rush$running_worker_ids[1]
   worker_id_2 = rush$running_worker_ids[2]
@@ -248,6 +251,9 @@ test_that("a local worker is killed", {
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
   future::plan("multisession", workers = 2)
+
+  exepect_class(rush$stop_workers(type = "kill"))
+
   rush$start_workers(fun = fun, host = "local", await_workers = TRUE)
   worker_id_1 = rush$running_worker_ids[1]
   worker_id_2 = rush$running_worker_ids[2]

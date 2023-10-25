@@ -6,7 +6,7 @@
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
-#' We recommend to use the `future` package to spawn local workers.
+#' We recommend to using`future` package to spawn local workers.
 #' The `future` backend `multisession` spawns workers on the local machine.
 #' As many rush workers can be started as there are future workers available.
 #'
@@ -296,6 +296,7 @@ Rush = R6::R6Class("Rush",
     stop_workers = function(type = "terminate", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
       worker_ids = assert_subset(worker_ids, self$running_worker_ids) %??% self$running_worker_ids
+      if (is.null(worker_ids)) return(invisible(self))
       r = self$connector
 
       if (type == "terminate") {
