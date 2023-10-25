@@ -573,23 +573,23 @@ test_that("a lost task is detected when waiting", {
   rush$await_tasks(keys, detect_lost_tasks = TRUE)
 
   # check task count
-  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$n_tasks, 2)
   expect_equal(rush$n_queued_tasks, 0)
   expect_equal(rush$n_running_tasks, 0)
   expect_equal(rush$n_finished_tasks, 0)
   expect_equal(rush$n_failed_tasks, 1)
 
   # check keys in sets
-  expect_character(rush$tasks, len = 1)
-  expect_null(rush$queued_tasks)
+  expect_character(rush$tasks, len = 2)
+  expect_string(rush$queued_tasks)
   expect_null(rush$running_tasks)
   expect_null(rush$finished_tasks)
   expect_string(rush$failed_tasks)
 
   # check fetching
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 1)
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_tasks(), nrows = 1)
+  expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   data = rush$fetch_failed_tasks()
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
