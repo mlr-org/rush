@@ -574,7 +574,7 @@ test_that("a lost task is detected when waiting", {
 
   # check task count
   expect_equal(rush$n_tasks, 2)
-  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_queued_tasks, 1)
   expect_equal(rush$n_running_tasks, 0)
   expect_equal(rush$n_finished_tasks, 0)
   expect_equal(rush$n_failed_tasks, 1)
