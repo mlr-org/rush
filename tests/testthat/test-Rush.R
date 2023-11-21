@@ -766,3 +766,66 @@ test_that("network without controller works", {
   expect_rush_reset(rush)
   clean_test_env(pids)
 })
+
+# alternative start ------------------------------------------------------------
+
+test_that("workers 2 are started", {
+  # skip_on_cran()
+
+    task = tsk("oml", data_id = 1596)
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+
+  future::plan("multisession", workers = 5)
+  system.time({
+    rush$start_workers_2(fun = fun, host = "local", lgr_threshold = c(rush = "debug"), globals = "task")
+    rush$await_workers(5)})
+
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+
+
+  future::plan("multisession", workers = 5)
+  system.time({
+    rush$start_workers(fun = fun, host = "local", lgr_threshold = c(rush = "debug"), await_workers = FALSE, globals = "task")
+    rush$await_workers(5)})
+
+  pids = rush$worker_info$pid
+  expect_rush_reset(rush)
+  clean_test_env(pids)
+
+
+
+  # check fields
+  walk(rush$promises, function(promise) expect_class(promise, "Future"))
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+
+  # check meta data from redis
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_info$host, "local")
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_states$state, "running")
+
+
+})
+
+future::value(rush$promises[[2]])
+
+
+

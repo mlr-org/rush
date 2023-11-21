@@ -25,7 +25,7 @@ start_worker = function(
 
   config = mlr3misc::invoke(redux::redis_config, args = list(...))
   r = redux::hiredis(config)
-  bin_args = r$command(list("GET", sprintf("%s:worker_script", network_id)))
+  bin_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
   args = redux::bin_to_object(bin_args)
 
   # load packages and globals to worker environment

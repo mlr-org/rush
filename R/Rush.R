@@ -220,6 +220,63 @@ Rush = R6::R6Class("Rush",
       return(invisible(worker_ids))
     },
 
+
+    start_workers_2 = function(
+      worker_loop = fun_loop,
+      n_workers = NULL,
+      globals = NULL,
+      packages = NULL,
+      host = "local",
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
+      lgr_thresholds = NULL,
+      ...) {
+
+      assert_function(worker_loop)
+      assert_character(globals, null.ok = TRUE)
+      assert_character(packages, null.ok = TRUE)
+      assert_choice(host, c("local", "remote"))
+      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
+      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      assert_named(lgr_thresholds)
+      dots = list(...)
+      r = self$connector
+
+      # check free workers
+      if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
+      if (n_workers > future::nbrOfFreeWorkers()) {
+        stopf("No more than %i rush workers can be started. For starting more workers, change the number of workers in the future plan.", future::nbrOfFreeWorkers())
+      }
+
+      # identify globals by name
+      # returns a named list of values of the globals
+      globals = globalsByName(globals)
+
+      # serialize arguments needed for starting the worker
+      args = list(
+        worker_loop = worker_loop,
+        globals = globals,
+        packages = packages,
+        host = host,
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        args = dots)
+      bin_args = redux::object_to_bin(args)
+      r$command(list("SET", private$.get_key("start_args"), bin_args))
+
+      network_id = self$network_id
+      url = self$config$url
+      worker_ids = uuid::UUIDgenerate(n = n_workers)
+
+      self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
+        future::future(rush::start_worker(network_id, url = url), packages = "rush")
+      }), worker_ids))
+
+
+      return(invisible(worker_ids))
+    },
+
     #' @description
     #' Create script to start workers.
     #' The worker is started with [start_worker()].
@@ -261,7 +318,7 @@ Rush = R6::R6Class("Rush",
         lgr_thresholds = lgr_thresholds,
         args = dots)
       bin_args = redux::object_to_bin(args)
-      r$command(list("SET", private$.get_key("worker_script"), bin_args))
+      r$command(list("SET", private$.get_key("start_args"), bin_args))
 
       lg$info("Start worker with:")
       lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$network_id, self$config$url)
