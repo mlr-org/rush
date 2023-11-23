@@ -264,7 +264,7 @@ Rush = R6::R6Class("Rush",
       r$command(list("SET", private$.get_key("worker_script"), bin_args))
 
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$network_id, self$config$url)
+      lg$info("Rscript -e 'rush::start_worker(\"%s\", url = \"%s\")'", self$network_id, self$config$url)
       lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
