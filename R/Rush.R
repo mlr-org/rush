@@ -121,7 +121,7 @@ Rush = R6::R6Class("Rush",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(network_id = NULL, config = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
-      self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% redux::redis_config()
+      self$config = assert_class(config %??% rush_env$config, "redis_config", null.ok = TRUE)
       self$connector = redux::hiredis(self$config)
       private$.hostname = get_hostname()
       private$.pid_exists = choose_pid_exists()
@@ -173,7 +173,7 @@ Rush = R6::R6Class("Rush",
       worker_loop = worker_loop_default,
       ...
       ){
-      assert_count(n_workers)
+      n_workers = assert_count(n_workers %??% rush_env$n_workers)
       assert_function(worker_loop)
       assert_list(globals, null.ok = TRUE, names = "named")
       assert_character(packages, null.ok = TRUE)
