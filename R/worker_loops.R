@@ -11,14 +11,14 @@
 #' Rush worker instance.
 #'
 #' @export
-worker_loop_default = function(fun, rush) {
+worker_loop_default = function(fun, constants, rush) {
   assert_function(fun)
 
   while(!rush$terminated) {
     task = rush$pop_task()
     if (!is.null(task)) {
       tryCatch({
-        ys = mlr3misc::invoke(fun, .args = task$xs)
+        ys = mlr3misc::invoke(fun, .args = c(task$xs, constants))
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)

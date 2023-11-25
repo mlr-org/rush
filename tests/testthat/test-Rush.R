@@ -668,6 +668,19 @@ test_that("terminating workers on idle works", {
   clean_test_env(pids)
 })
 
+test_that("constants works", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, x3, ...) list(y = x1 + x2 + x3)
+  rush$start_workers(fun = fun, n_workers = 4, constants = list(x3 = 5), await_workers = TRUE)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+})
+
 # rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {

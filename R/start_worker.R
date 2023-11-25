@@ -56,7 +56,7 @@ start_worker = function(
   lg$debug("Worker %s started.", rush$worker_id)
 
   # run worker loop
-  mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
+  mlr3misc::invoke(start_args$worker_loop, rush = rush, constants = start_args$constants, .args = start_args$worker_loop_args)
 
   rush$set_terminated()
 
