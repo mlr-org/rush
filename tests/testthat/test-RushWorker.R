@@ -55,7 +55,7 @@ test_that("a worker is registered", {
   # check meta data from redis
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
-  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "host", "heartbeat"))
+  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "host", "hostname", "heartbeat"))
   expect_string(worker_info$heartbeat, na.ok = TRUE)
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_equal(worker_info$host, "local")

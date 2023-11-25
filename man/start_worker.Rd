@@ -4,7 +4,7 @@
 \alias{start_worker}
 \title{Start a worker}
 \usage{
-start_worker(network_id, ...)
+start_worker(network_id, worker_id = NULL, hostname, ...)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
@@ -12,17 +12,24 @@ Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
 
+\item{worker_id}{(\code{character(1)})\cr
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
+
+\item{hostname}{(\code{character(1)})\cr
+Hostname of the rush controller instance.
+Used to determine if the worker is started on a local or remote host.}
+
 \item{...}{(\code{any})\cr
 Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 }
 \description{
 Starts a worker.
-The function is called by the user after creating the worker script with \verb{$create_worker_script()} of \link{Rush}.
-The function is started with \verb{Rscript -e 'start_worker(network_id, url, ...)'}.
+The function loads the globals and packages, initializes the \link{RushWorker} instance and invokes the worker loop.
+This function is called by \verb{$start_workers()} or by the user after creating the worker script with \verb{$create_worker_script()}.
 }
 \note{
 The function initializes the connection to the Redis data base.
 It loads the packages and copies the globals to the global environment of the worker.
-The function calls \link{run_worker} to initialize the \link{RushWorker} instance and starts the worker loop.
-This function is only called when the worker is started with a script.
+The function initialize the \link{RushWorker} instance and starts the worker loop.
 }

@@ -19,7 +19,7 @@ run_worker(
 \arguments{
 \item{worker_loop}{(\code{function})\cr
 Loop run on the workers.
-Defaults to \link{fun_loop} which is called with \code{fun}.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.}
 
 \item{network_id}{(\code{character(1)})\cr

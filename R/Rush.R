@@ -6,13 +6,12 @@
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
-#' We recommend to using`future` package to spawn local workers.
-#' The `future` backend `multisession` spawns workers on the local machine.
-#' As many rush workers can be started as there are future workers available.
+#' Local workers are are spawned with the `$start_workers() method via the `processx` package.
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
-#' Remote workers can be started with a script or with the `future` package.
+#' Remote workers are started manually with the `$create_worker_script()` method.
+#' Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 #' Only a heartbeat process can kill remote workers.
 #' The heartbeat process also monitors the remote workers for crashes.
 #'
@@ -114,9 +113,9 @@ Rush = R6::R6Class("Rush",
     #' Returns a connection to Redis.
     connector = NULL,
 
-    #' @field promises ([future::Future()])\cr
-    #' List of futures running [run_worker].
-    promises = NULL,
+    #' @field processes ([processx::process])\cr
+    #' List of processes started with `$start_workers()`.
+    processes = NULL,
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
@@ -124,6 +123,7 @@ Rush = R6::R6Class("Rush",
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% redux::redis_config()
       self$connector = redux::hiredis(self$config)
+      private$.hostname = get_hostname()
       private$.pid_exists = choose_pid_exists()
     },
 
@@ -152,127 +152,58 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Start workers with the future package.
-    #' Alternatively, use `$create_worker_script()` to create a script for starting workers.
+    #' Start workers locally with `processx`.
+    #' The [processx::process] are stored in `$processes`.
+    #' Alternatively, use `$create_worker_script()` to create a script for starting workers on remote machines.
     #'
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' If `NULL` the maximum number of free workers is used.
     #' @param await_workers (`logical(1)`)\cr
     #' Whether to wait until all workers are available.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    #'
-    #' @return (`character()`)\cr
-    #' Worker ids.
     start_workers = function(
-      worker_loop = fun_loop,
       n_workers = NULL,
       globals = NULL,
       packages = NULL,
-      host = "local",
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       await_workers = TRUE,
-      ...) {
-
-      assert_character(globals, null.ok = TRUE)
-      assert_character(packages, null.ok = TRUE)
-      assert_count(n_workers, positive = TRUE, null.ok = TRUE)
-      assert_choice(host, c("local", "remote"))
-      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
-      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-      assert_character(lgr_thresholds, null.ok = TRUE, names = "named")
-      assert_flag(await_workers)
-      dots = list(...)
-      r = self$connector
-
-      # check free workers
-      if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
-      if (n_workers > future::nbrOfFreeWorkers()) {
-        stopf("No more than %i rush workers can be started. For starting more workers, change the number of workers in the future plan.", future::nbrOfFreeWorkers())
-      }
-
-      # start workers
-      network_id = self$network_id
-      config = self$config
-      worker_ids = uuid::UUIDgenerate(n = n_workers)
-      self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
-        future::future(run_worker(
-            worker_loop = worker_loop,
-            network_id = network_id,
-            config = config,
-            host = host,
-            worker_id = worker_id,
-            heartbeat_period = heartbeat_period,
-            heartbeat_expire = heartbeat_expire,
-            lgr_thresholds = lgr_thresholds,
-            args = dots),
-          seed = TRUE,
-          globals = c(globals, "run_worker", "worker_loop", "network_id", "config", "worker_id", "host", "heartbeat_period", "heartbeat_expire", "lgr_thresholds", "dots"),
-          packages = packages)
-      }), worker_ids))
-
-
-      if (await_workers) self$await_workers(n_workers)
-
-      return(invisible(worker_ids))
-    },
-
-
-    start_workers_2 = function(
-      worker_loop = fun_loop,
-      n_workers = NULL,
-      globals = NULL,
-      packages = NULL,
-      host = "local",
-      heartbeat_period = NULL,
-      heartbeat_expire = NULL,
-      lgr_thresholds = NULL,
-      ...) {
-
+      worker_loop = worker_loop_default,
+      ...
+      ){
+      assert_count(n_workers)
       assert_function(worker_loop)
-      assert_character(globals, null.ok = TRUE)
+      assert_list(globals, null.ok = TRUE, names = "named")
       assert_character(packages, null.ok = TRUE)
-      assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
       assert_named(lgr_thresholds)
       dots = list(...)
       r = self$connector
 
-      # check free workers
-      if (is.null(n_workers)) n_workers = future::nbrOfWorkers()
-      if (n_workers > future::nbrOfFreeWorkers()) {
-        stopf("No more than %i rush workers can be started. For starting more workers, change the number of workers in the future plan.", future::nbrOfFreeWorkers())
-      }
-
-      # identify globals by name
-      # returns a named list of values of the globals
-      globals = globalsByName(globals)
-
       # serialize arguments needed for starting the worker
-      args = list(
-        worker_loop = worker_loop,
-        globals = globals,
-        packages = packages,
-        host = host,
+      worker_args = list(
         heartbeat_period = heartbeat_period,
         heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds,
-        args = dots)
-      bin_args = redux::object_to_bin(args)
-      r$command(list("SET", private$.get_key("start_args"), bin_args))
+        lgr_thresholds = lgr_thresholds)
+      start_args = list(
+        worker_loop = worker_loop,
+        worker_loop_args = dots,
+        globals = globals,
+        packages = packages,
+        worker_args = worker_args)
 
-      network_id = self$network_id
-      url = self$config$url
+      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
+
       worker_ids = uuid::UUIDgenerate(n = n_workers)
-
-      self$promises = c(self$promises, setNames(map(worker_ids, function(worker_id) {
-        future::future(rush::start_worker(network_id, url = url), packages = "rush")
+      hostname = get_hostname()
+      self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
+       processx::process$new("Rscript", args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')", self$network_id, worker_id, private$.hostname, self$config$url)))
       }), worker_ids))
 
+      if (await_workers) self$await_workers(n_workers)
 
       return(invisible(worker_ids))
     },
@@ -284,44 +215,40 @@ Rush = R6::R6Class("Rush",
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     create_worker_script = function(
-      worker_loop = fun_loop,
       globals = NULL,
       packages = NULL,
-      host = "local",
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
-      ...) {
-
+      worker_loop = worker_loop_default,
+      ...
+      ){
       assert_function(worker_loop)
-      assert_character(globals, null.ok = TRUE)
+      assert_list(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
-      assert_choice(host, c("local", "remote"))
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      if (!is.null(heartbeat_period)) require_namespaces("callr")
       assert_named(lgr_thresholds)
       dots = list(...)
       r = self$connector
 
-      # identify globals by name
-      # returns a named list of values of the globals
-      globals = globalsByName(globals)
-
       # serialize arguments needed for starting the worker
-      args = list(
-        worker_loop = worker_loop,
-        globals = globals,
-        packages = packages,
-        host = host,
+      worker_args = list(
         heartbeat_period = heartbeat_period,
         heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds,
-        args = dots)
-      bin_args = redux::object_to_bin(args)
-      r$command(list("SET", private$.get_key("start_args"), bin_args))
+        lgr_thresholds = lgr_thresholds)
+      start_args = list(
+        worker_loop = worker_loop,
+        worker_loop_args = dots,
+        globals = globals,
+        packages = packages,
+        worker_args = worker_args)
+
+      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
 
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(%s, url = \"%s\")'", self$network_id, self$config$url)
+      lg$info("Rscript -e 'rush::start_worker('%s', hostname = '%s', url = '%s')'", self$network_id, private$.hostname, self$config$url)
       lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
@@ -480,7 +407,7 @@ Rush = R6::R6Class("Rush",
       self$stop_workers()
 
       # reset fields set by starting workers
-      self$promises = NULL
+      self$processes = NULL
 
       # remove worker info, heartbeat, terminate and kill
       walk(self$worker_ids, function(worker_id) {
@@ -509,7 +436,7 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("terminated_worker_ids"))
       r$DEL(private$.get_key("killed_worker_ids"))
       r$DEL(private$.get_key("lost_worker_ids"))
-      r$DEL(private$.get_key("worker_script"))
+      r$DEL(private$.get_key("start_args"))
       r$DEL(private$.get_key("terminate_on_idle"))
       r$DEL(private$.get_key("local_pids"))
       r$DEL(private$.get_key("heartbeat_keys"))
@@ -1109,7 +1036,7 @@ Rush = R6::R6Class("Rush",
 
       r = self$connector
 
-      fields = c("worker_id", "pid", "host", "heartbeat")
+      fields = c("worker_id", "pid", "host", "hostname", "heartbeat")
       worker_info = set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)
@@ -1177,6 +1104,8 @@ Rush = R6::R6Class("Rush",
     .pid_exists = NULL,
 
     .snapshot_schedule = NULL,
+
+    .hostname = NULL,
 
     # prefix key with instance id
     .get_key = function(key) {

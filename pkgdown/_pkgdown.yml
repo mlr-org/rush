@@ -45,7 +45,7 @@ reference:
   - title: Misc
     contents:
       - run_worker
-      - fun_loop
+      - worker_loop_default
       - start_worker
       - fun_heartbeat
       - rush-package

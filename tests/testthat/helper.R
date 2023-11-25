@@ -1,5 +1,4 @@
 start_flush_redis = function() {
-  future::plan("sequential")
   config = redux::redis_config()
   r = redux::hiredis(config)
   r$FLUSHDB()
@@ -8,7 +7,6 @@ start_flush_redis = function() {
 
 clean_test_env = function(pids) {
   walk(pids, tools::pskill)
-  future::plan("sequential")
 }
 
 expect_rush_task = function(task) {

@@ -20,7 +20,7 @@ The workers sample tasks and communicate the results asynchronously with other w
 * Parallelize arbitrary R expressions.
 * Centralized and decentralized network architecture.
 * Small overhead of a few milliseconds per task.
-* Easy starting of workers with the [`future`](https://future.futureverse.org/) package.
+* Easy start of local workers with `processx`
 * Start workers on any platform with a batch script.
 * Designed to work with [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
 * Results are cached in the R session to minimize read and write operations.
@@ -47,7 +47,6 @@ And install [Redis](https://redis.io/docs/getting-started/installation/).
 *Centralized network with a single controller and three workers.*
 
 ```{r, include=FALSE}
-future::plan("sequential")
 config = redux::redis_config()
 r = redux::hiredis(config)
 r$FLUSHDB()
@@ -74,12 +73,10 @@ fun = function(x1, x2, ...) {
 }
 ```
 
-We start two workers with the [`future`](https://future.futureverse.org/) package.
+We start two workers.
 
 ```{r}
-future::plan("multisession", workers = 2)
-
-rush$start_workers(fun = fun)
+rush$start_workers(fun = fun, n_workers = 2)
 ```
 
 Now we can push tasks to the workers.

@@ -10,15 +10,14 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
 \section{Local Workers}{
 
 A local worker runs on the same machine as the controller.
-We recommend to use the \code{future} package to spawn local workers.
-The \code{future} backend \code{multisession} spawns workers on the local machine.
-As many rush workers can be started as there are future workers available.
+Local workers are are spawned with the \verb{$start_workers() method via the }processx` package.
 }
 
 \section{Remote Workers}{
 
 A remote worker runs on a different machine than the controller.
-Remote workers can be started with a script or with the \code{future} package.
+Remote workers are started manually with the \verb{$create_worker_script()} method.
+Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 Only a heartbeat process can kill remote workers.
 The heartbeat process also monitors the remote workers for crashes.
 }
@@ -121,8 +120,8 @@ Redis configuration options.}
 \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
 Returns a connection to Redis.}
 
-\item{\code{promises}}{(\code{\link[future:Future-class]{future::Future()}})\cr
-List of futures running \link{run_worker}.}
+\item{\code{processes}}{(\link[processx:process]{processx::process})\cr
+List of processes started with \verb{$start_workers()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -297,19 +296,19 @@ Print method.
 \if{html}{\out{<a id="method-Rush-start_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_workers}{}}}
 \subsection{Method \code{start_workers()}}{
-Start workers with the future package.
-Alternatively, use \verb{$create_worker_script()} to create a script for starting workers.
+Start workers locally with \code{processx}.
+The \link[processx:process]{processx::process} are stored in \verb{$processes}.
+Alternatively, use \verb{$create_worker_script()} to create a script for starting workers on remote machines.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
-  worker_loop = fun_loop,
   n_workers = NULL,
   globals = NULL,
   packages = NULL,
-  host = "local",
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   await_workers = TRUE,
+  worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -317,24 +316,14 @@ Alternatively, use \verb{$create_worker_script()} to create a script for startin
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{fun_loop} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.}
-
 \item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.
-If \code{NULL} the maximum number of free workers is used.}
+Number of workers to be started.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{host}}{(\code{character(1)})\cr
-Worker is started on a local or remote host.
-See \link{Rush} for details.}
 
 \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.}
@@ -348,14 +337,15 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 \item{\code{await_workers}}{(\code{logical(1)})\cr
 Whether to wait until all workers are available.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
-Worker ids.
 }
 }
 \if{html}{\out{<hr>}}
@@ -366,13 +356,12 @@ Create script to start workers.
 The worker is started with \code{\link[=start_worker]{start_worker()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$create_worker_script(
-  worker_loop = fun_loop,
   globals = NULL,
   packages = NULL,
-  host = "local",
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
+  worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -380,20 +369,11 @@ The worker is started with \code{\link[=start_worker]{start_worker()}}.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{fun_loop} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.}
-
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{host}}{(\code{character(1)})\cr
-Worker is started on a local or remote host.
-See \link{Rush} for details.}
 
 \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.}
@@ -403,6 +383,11 @@ Time to live of the heartbeat in seconds.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}

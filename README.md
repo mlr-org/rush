@@ -15,23 +15,22 @@ communicate the results asynchronously with other workers.
 
 # Features
 
-  - Parallelize arbitrary R expressions.
-  - Centralized and decentralized network architecture.
-  - Small overhead of a few milliseconds per task.
-  - Easy starting of workers with the
-    [`future`](https://future.futureverse.org/) package.
-  - Start workers on any platform with a batch script.
-  - Designed to work with
+-   Parallelize arbitrary R expressions.
+-   Centralized and decentralized network architecture.
+-   Small overhead of a few milliseconds per task.
+-   Easy start of local workers with `processx`
+-   Start workers on any platform with a batch script.
+-   Designed to work with
     [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
-  - Results are cached in the R session to minimize read and write
+-   Results are cached in the R session to minimize read and write
     operations.
-  - Detect and recover from worker failures.
-  - Start heartbeats to monitor workers on remote machines.
-  - Snapshot the in-memory data base to disk.
-  - Store
+-   Detect and recover from worker failures.
+-   Start heartbeats to monitor workers on remote machines.
+-   Snapshot the in-memory data base to disk.
+-   Store
     [`lgr`](https://cran.r-project.org/web/packages/lgr/index.html)
     messages of the workers in the Redis data base.
-  - Light on dependencies.
+-   Light on dependencies.
 
 ## Install
 
@@ -80,13 +79,10 @@ fun = function(x1, x2, ...) {
 }
 ```
 
-We start two workers with the
-[`future`](https://future.futureverse.org/) package.
+We start two workers.
 
 ``` r
-future::plan("multisession", workers = 2)
-
-rush$start_workers(fun = fun)
+rush$start_workers(fun = fun, n_workers = 2)
 ```
 
 Now we can push tasks to the workers.
@@ -103,12 +99,14 @@ And retrieve the results.
 rush$fetch_finished_tasks()
 ```
 
-    ##    x1 x2    pid                            worker_id  y   status
-    ## 1:  3  5 224861 aaa9bbea-ab25-4c47-a9ef-2cde95ee7144  8 finished
-    ## 2:  4  6 234065 858f7aa4-18bd-48e0-a69f-0f0297a9051c 10 finished
+    ##       x1    x2    pid                            worker_id     y    state
+    ##    <num> <num>  <int>                               <char> <num>   <char>
+    ## 1:     3     5 334357 999e4669-6733-4a0a-b59f-2b7592fea479     8 finished
+    ## 2:     4     6 334354 bc58f319-177f-41de-bcde-04cf34ac5ef3    10 finished
     ##                                    keys
-    ## 1: c37c5467-693d-4df9-a1f6-fd2a5d0aaf65
-    ## 2: 0bd23506-eecb-42ee-beba-a37be45b51b8
+    ##                                  <char>
+    ## 1: 5231bcf8-d540-43f7-b519-4d3b6a586774
+    ## 2: aa6d2f4c-d2f2-452d-a831-4d36d00c4bf3
 
 ## Decentralized Rush Network
 
