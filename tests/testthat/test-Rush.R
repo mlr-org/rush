@@ -186,6 +186,34 @@ test_that("a remote worker is started", {
   expect_set_equal(rush$worker_info$host, "remote")
 })
 
+# start workers with script ----------------------------------------------------
+
+test_that("worker can be started with script", {
+  # skip_on_cran()
+  skip_on_ci()
+  skip_if(TRUE)
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  rush$create_worker_script(fun = fun)
+})
+
+test_that("a remote worker is started", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  withr::with_envvar(list("HOST" = "remote_host"), {
+    rush$start_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, await_workers = TRUE)
+  })
+
+  expect_set_equal(rush$worker_info$host, "remote")
+})
+
 # stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {
@@ -679,6 +707,23 @@ test_that("terminating workers on idle works", {
   Sys.sleep(5)
 
   expect_set_equal(rush$worker_states$state, "terminated")
+
+  expect_rush_reset(rush)
+})
+
+test_that("constants works", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, x3, ...) list(y = x1 + x2 + x3)
+  rush$start_workers(fun = fun, n_workers = 4, constants = list(x3 = 5), await_workers = TRUE)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$await_tasks(keys)
+
+  expect_equal(rush$fetch_finished_tasks()$y, 8)
 
   expect_rush_reset(rush)
 })

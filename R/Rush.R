@@ -159,6 +159,8 @@ Rush = R6::R6Class("Rush",
     #' Start workers locally with `processx`.
     #' The [processx::process] are stored in `$processes`.
     #' Alternatively, use `$create_worker_script()` to create a script for starting workers on remote machines.
+    #' By default, [worker_loop_default()] is used as worker loop.
+    #' This function takes the arguments `fun` and optionally `constants` which are passed in `...`.
     #'
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.

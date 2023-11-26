@@ -42,9 +42,16 @@ reference:
       - Rush
       - RushWorker
       - rsh
+  - title: Plan
+      - rush_plan
+      - rush_available
+      - rush_config
+  - title: Worker Loop
+    contents:
+      - start_worker
+      - worker_loop_default
+      - heartbeat
   - title: Misc
     contents:
-      - worker_loop_default
-      - start_worker
-      - fun_heartbeat
+      - get_hostname
       - rush-package
