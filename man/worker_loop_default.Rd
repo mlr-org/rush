@@ -4,11 +4,14 @@
 \alias{worker_loop_default}
 \title{Single Task Worker Loop}
 \usage{
-worker_loop_default(fun, constants, rush)
+worker_loop_default(fun, constants = NULL, rush)
 }
 \arguments{
 \item{fun}{(\code{function})\cr
 Function to be executed.}
+
+\item{constants}{(\code{list})\cr
+List of constants passed to \code{fun}.}
 
 \item{rush}{(\link{RushWorker})\cr
 Rush worker instance.}

@@ -302,6 +302,8 @@ Print method.
 Start workers locally with \code{processx}.
 The \link[processx:process]{processx::process} are stored in \verb{$processes}.
 Alternatively, use \verb{$create_worker_script()} to create a script for starting workers on remote machines.
+By default, \code{\link[=worker_loop_default]{worker_loop_default()}} is used as worker loop.
+This function takes the arguments \code{fun} and optionally \code{constants} which are passed in \code{...}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
   n_workers = NULL,
@@ -311,7 +313,6 @@ Alternatively, use \verb{$create_worker_script()} to create a script for startin
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   await_workers = TRUE,
-  constants = NULL,
   worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
