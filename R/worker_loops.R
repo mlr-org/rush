@@ -7,6 +7,8 @@
 #'
 #' @param fun (`function`)\cr
 #' Function to be executed.
+#' @param constants (`list`)\cr
+#' List of constants passed to `fun`.
 #' @param rush ([RushWorker])\cr
 #' Rush worker instance.
 #'

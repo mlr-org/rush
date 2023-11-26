@@ -4,7 +4,7 @@
 \alias{worker_loop_default}
 \title{Single Task Worker Loop}
 \usage{
-worker_loop_default(fun, rush)
+worker_loop_default(fun, constants, rush)
 }
 \arguments{
 \item{fun}{(\code{function})\cr

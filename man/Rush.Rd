@@ -254,6 +254,9 @@ Keys in Redis are prefixed with the instance id.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.
+If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is used.
+If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
+If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
 }
 \if{html}{\out{</div>}}
@@ -308,6 +311,7 @@ Alternatively, use \verb{$create_worker_script()} to create a script for startin
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   await_workers = TRUE,
+  constants = NULL,
   worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}

@@ -11,5 +11,5 @@ rush_config()
 A redis config file.
 }
 \description{
-Returns the redis config file (\code{\link[redux:redis_config]{redux::redis_config()}}) that was set by \code{\link[=rush_plan]{rush_plan()}}.
+Returns the redis config file (\link[redux:redis_config]{redux::redis_config}) that was set by \code{\link[=rush_plan]{rush_plan()}}.
 }

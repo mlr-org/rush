@@ -121,7 +121,11 @@ Rush = R6::R6Class("Rush",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(network_id = NULL, config = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
-      self$config = assert_class(config %??% rush_env$config, "redis_config", null.ok = TRUE)
+      self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
+      if (is.null(self$config)) self$config = redux::redis_config()
+      if (!redux::redis_available(self$config)) {
+        stop("Can't connect to Redis. Check the configuration.")
+      }
       self$connector = redux::hiredis(self$config)
       private$.hostname = get_hostname()
       private$.pid_exists = choose_pid_exists()
@@ -170,7 +174,6 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       await_workers = TRUE,
-      constants = NULL,
       worker_loop = worker_loop_default,
       ...
       ){
@@ -194,7 +197,6 @@ Rush = R6::R6Class("Rush",
         worker_loop = worker_loop,
         worker_loop_args = dots,
         globals = globals,
-        constants = constants,
         packages = packages,
         worker_args = worker_args)
 
@@ -407,7 +409,7 @@ Rush = R6::R6Class("Rush",
       r = self$connector
 
       # stop workers
-      self$stop_workers()
+      self$stop_workers(type = "kill")
 
       # reset fields set by starting workers
       self$processes = NULL

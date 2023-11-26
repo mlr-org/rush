@@ -1,5 +1,6 @@
 test_that("constructing a rush worker works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -22,7 +23,8 @@ test_that("constructing a rush worker works", {
 })
 
 test_that("active bindings work after construction", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -47,7 +49,8 @@ test_that("active bindings work after construction", {
 })
 
 test_that("a worker is registered", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -67,7 +70,8 @@ test_that("a worker is registered", {
 })
 
 test_that("a worker is terminated", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -81,7 +85,8 @@ test_that("a worker is terminated", {
 })
 
 test_that("a heartbeat is started", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", heartbeat_period = 3)
@@ -94,7 +99,8 @@ test_that("a heartbeat is started", {
 })
 
 test_that("reading and writing a hash works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -120,7 +126,8 @@ test_that("reading and writing a hash works", {
 })
 
 test_that("reading and writing hashes works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -143,7 +150,8 @@ test_that("reading and writing hashes works", {
 })
 
 test_that("writing hashes to specific keys works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -164,7 +172,8 @@ test_that("writing hashes to specific keys works", {
 })
 
 test_that("writing a hash with a state works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -179,7 +188,8 @@ test_that("writing a hash with a state works", {
 })
 
 test_that("writing a hash with a NA state works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -189,7 +199,8 @@ test_that("writing a hash with a NA state works", {
 })
 
 test_that("writing a hash with a arbitrary state works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -199,7 +210,8 @@ test_that("writing a hash with a arbitrary state works", {
 })
 
 test_that("writing list columns works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -230,7 +242,8 @@ test_that("writing list columns works", {
 })
 
 test_that("pushing a task to the queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -266,7 +279,8 @@ test_that("pushing a task to the queue works", {
 })
 
 test_that("pushing a task with extras to the queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -305,7 +319,8 @@ test_that("pushing a task with extras to the queue works", {
 })
 
 test_that("pushing tasks to the queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -342,7 +357,8 @@ test_that("pushing tasks to the queue works", {
 })
 
 test_that("pushing tasks with extras to the queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -382,7 +398,8 @@ test_that("pushing tasks with extras to the queue works", {
 })
 
 test_that("popping a task from the queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -421,7 +438,8 @@ test_that("popping a task from the queue works", {
 })
 
 test_that("pushing a finished task works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -459,7 +477,8 @@ test_that("pushing a finished task works", {
 })
 
 test_that("pushing a failed tasks works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -497,7 +516,8 @@ test_that("pushing a failed tasks works", {
 })
 
 test_that("moving and fetching tasks works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -572,7 +592,8 @@ test_that("moving and fetching tasks works", {
 })
 
 test_that("latest results are fetched", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -614,7 +635,8 @@ test_that("latest results are fetched", {
 })
 
 test_that("priority queues work", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -667,7 +689,8 @@ test_that("priority queues work", {
 })
 
 test_that("redirecting to shared queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -695,7 +718,8 @@ test_that("redirecting to shared queue works", {
 })
 
 test_that("mixing priority queue and shared queue works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -714,7 +738,8 @@ test_that("mixing priority queue and shared queue works", {
 })
 
 test_that("saving lgr logs works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
 

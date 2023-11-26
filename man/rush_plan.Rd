@@ -4,12 +4,19 @@
 \alias{rush_plan}
 \title{Create Rush Plan}
 \usage{
-rush_plan(config, n_workers)
+rush_plan(n_workers, config = NULL)
 }
 \arguments{
-\item{config}{\code{\link[redux:redis_config]{redux::redis_config()}}\cr
-A redis config file.}
+\item{n_workers}{(\code{integer(1)})\cr
+Number of workers to be started.}
+
+\item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
+Configuration options used to connect to Redis.
+If \code{NULL}, the \code{REDIS_URL} environment variable is parsed.
+If \code{REDIS_URL} is not set, a default configuration is used.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 }
 \description{
-Stores a redis config file (\code{\link[redux:redis_config]{redux::redis_config()}}) that can be used by \code{Rush} to connect to a redis server.
+Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.
+The function tests the connection to Redis and throws an error if the connection fails.
 }
