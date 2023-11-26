@@ -16,10 +16,10 @@
     <loc>https://mlr3.mlr-org.com/reference/RushWorker.html</loc>
   </url>
   <url>
-    <loc>https://mlr3.mlr-org.com/reference/fun_heartbeat.html</loc>
+    <loc>https://mlr3.mlr-org.com/reference/get_hostname.html</loc>
   </url>
   <url>
-    <loc>https://mlr3.mlr-org.com/reference/fun_loop.html</loc>
+    <loc>https://mlr3.mlr-org.com/reference/heartbeat.html</loc>
   </url>
   <url>
     <loc>https://mlr3.mlr-org.com/reference/index.html</loc>
@@ -28,12 +28,21 @@
     <loc>https://mlr3.mlr-org.com/reference/rsh.html</loc>
   </url>
   <url>
-    <loc>https://mlr3.mlr-org.com/reference/run_worker.html</loc>
-  </url>
-  <url>
     <loc>https://mlr3.mlr-org.com/reference/rush-package.html</loc>
   </url>
   <url>
+    <loc>https://mlr3.mlr-org.com/reference/rush_available.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/rush_config.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/rush_plan.html</loc>
+  </url>
+  <url>
     <loc>https://mlr3.mlr-org.com/reference/start_worker.html</loc>
+  </url>
+  <url>
+    <loc>https://mlr3.mlr-org.com/reference/worker_loop_default.html</loc>
   </url>
 </urlset>

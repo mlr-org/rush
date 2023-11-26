@@ -78,16 +78,15 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
     
 
 <p>A local worker runs on the same machine as the controller.
-We recommend to use the <code>future</code> package to spawn local workers.
-The <code>future</code> backend <code>multisession</code> spawns workers on the local machine.
-As many rush workers can be started as there are future workers available.</p>
+Local workers are are spawned with the <code>$start_workers() method via the </code>processx` package.</p>
     </div>
     <div class="section level2">
     <h2 id="remote-workers">Remote Workers<a class="anchor" aria-label="anchor" href="#remote-workers"></a></h2>
     
 
 <p>A remote worker runs on a different machine than the controller.
-Remote workers can be started with a script or with the <code>future</code> package.
+Remote workers are started manually with the <code>$create_worker_script()</code> method.
+Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 Only a heartbeat process can kill remote workers.
 The heartbeat process also monitors the remote workers for crashes.</p>
     </div>
@@ -195,9 +194,9 @@ Redis configuration options.</p></dd>
 Returns a connection to Redis.</p></dd>
 
 
-<dt><code>promises</code></dt>
-<dd><p>(<code><a href="https://future.futureverse.org/reference/Future-class.html" class="external-link">future::Future()</a></code>)<br>
-List of futures running <a href="run_worker.html">run_worker</a>.</p></dd>
+<dt><code>processes</code></dt>
+<dd><p>(<a href="http://processx.r-lib.org/reference/process.html" class="external-link">processx::process</a>)<br>
+List of processes started with <code>$start_workers()</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -377,6 +376,9 @@ Keys in Redis are prefixed with the instance id.</p></dd>
 <dt><code>config</code></dt>
 <dd><p>(<a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.
+If <code>NULL</code>, configuration set by <code><a href="rush_plan.html">rush_plan()</a></code> is used.
+If <code><a href="rush_plan.html">rush_plan()</a></code> has not been called, the <code>REDIS_URL</code> environment variable is parsed.
+If <code>REDIS_URL</code> is not set, a default configuration is used.
 See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
 
 
@@ -417,36 +419,30 @@ See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-li
 
 </div><p></p><hr><a id="method-Rush-start_workers"></a><div class="section">
 <h3 id="method-start-workers-">Method <code>start_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-workers-"></a></h3>
-<p>Start workers with the future package.
-Alternatively, use <code>$create_worker_script()</code> to create a script for starting workers.</p><div class="section">
+<p>Start workers locally with <code>processx</code>.
+The <a href="http://processx.r-lib.org/reference/process.html" class="external-link">processx::process</a> are stored in <code>$processes</code>.
+Alternatively, use <code>$create_worker_script()</code> to create a script for starting workers on remote machines.
+By default, <code><a href="worker_loop_default.html">worker_loop_default()</a></code> is used as worker loop.
+This function takes the arguments <code>fun</code> and optionally <code>constants</code> which are passed in <code>...</code>.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">fun_loop</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  host <span class="op">=</span> <span class="st">"local"</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  await_workers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop_default</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
-<dd><p>(<code>function</code>)<br>
-Loop run on the workers.
-Defaults to <a href="fun_loop.html">fun_loop</a> which is called with <code>fun</code>.
-Pass <code>fun</code> in <code>...</code>.</p></dd>
-
-
-<dt><code>n_workers</code></dt>
+<p></p><div class="arguments"><dl><dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
-Number of workers to be started.
-If <code>NULL</code> the maximum number of free workers is used.</p></dd>
+Number of workers to be started.</p></dd>
 
 
 <dt><code>globals</code></dt>
@@ -457,12 +453,6 @@ Global variables to be loaded to the workers global environment.</p></dd>
 <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
-
-
-<dt><code>host</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-Worker is started on a local or remote host.
-See Rush for details.</p></dd>
 
 
 <dt><code>heartbeat_period</code></dt>
@@ -485,17 +475,19 @@ Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 Whether to wait until all workers are available.</p></dd>
 
 
+<dt><code>worker_loop</code></dt>
+<dd><p>(<code>function</code>)<br>
+Loop run on the workers.
+Defaults to <a href="worker_loop_default.html">worker_loop_default</a> which is called with <code>fun</code>.
+Pass <code>fun</code> in <code>...</code>.</p></dd>
+
+
 <dt><code>...</code></dt>
 <dd><p>(<code>any</code>)<br>
 Arguments passed to <code>worker_loop</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Worker ids.</p>
 </div>
 
 </div><p></p><hr><a id="method-Rush-create_worker_script"></a><div class="section">
@@ -504,27 +496,19 @@ Worker ids.</p>
 The worker is started with <code><a href="start_worker.html">start_worker()</a></code>.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">create_worker_script</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">fun_loop</span>,</span>
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  host <span class="op">=</span> <span class="st">"local"</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop_default</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
-<dd><p>(<code>function</code>)<br>
-Loop run on the workers.
-Defaults to <a href="fun_loop.html">fun_loop</a> which is called with <code>fun</code>.
-Pass <code>fun</code> in <code>...</code>.</p></dd>
-
-
-<dt><code>globals</code></dt>
+<p></p><div class="arguments"><dl><dt><code>globals</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Global variables to be loaded to the workers global environment.</p></dd>
 
@@ -532,12 +516,6 @@ Global variables to be loaded to the workers global environment.</p></dd>
 <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
-
-
-<dt><code>host</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-Worker is started on a local or remote host.
-See Rush for details.</p></dd>
 
 
 <dt><code>heartbeat_period</code></dt>
@@ -553,6 +531,13 @@ Time to live of the heartbeat in seconds.</p></dd>
 <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
 Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
+
+
+<dt><code>worker_loop</code></dt>
+<dd><p>(<code>function</code>)<br>
+Loop run on the workers.
+Defaults to <a href="worker_loop_default.html">worker_loop_default</a> which is called with <code>fun</code>.
+Pass <code>fun</code> in <code>...</code>.</p></dd>
 
 
 <dt><code>...</code></dt>
@@ -682,7 +667,7 @@ Whether to stop the workers after evaluating the tasks.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
@@ -718,7 +703,7 @@ Worker ids to which the tasks should be pushed.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
@@ -740,7 +725,7 @@ Fields to be read from the hashes.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p><code>data.table()</code><br>
 Latest results.</p>
 </div>
@@ -768,7 +753,7 @@ Time to wait for a result in seconds.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p><code>data.table()</code><br>
 Latest results.</p>
 </div>
@@ -797,7 +782,7 @@ Whether to reset the cache.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p><code>data.table()</code>
 Results.</p>
 </div>
@@ -820,7 +805,7 @@ Defaults to <code>c("xs", "xs_extra", "state")</code>.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p><code>data.table()</code><br>
 Table of queued tasks.</p>
 </div>
@@ -843,7 +828,7 @@ Defaults to <code>c("xs", "xs_extra", "state")</code>.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p><code>data.table()</code><br>
 Table of queued priority tasks.</p>
 </div>
@@ -866,7 +851,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_extra", "state")</code>.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p><code>data.table()</code><br>
 Table of running tasks.</p>
 </div>
@@ -898,7 +883,7 @@ Whether to reset the cache.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p><code>data.table()</code><br>
 Table of finished tasks.</p>
 </div>
@@ -930,7 +915,7 @@ Time to wait for a result in seconds.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p><code>data.table()</code><br>
 Table of finished tasks.</p>
 </div>
@@ -953,7 +938,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_extra", "condition", "state")</cod
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p><code>data.table()</code><br>
 Table of failed tasks.</p>
 </div>
@@ -978,7 +963,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "conditi
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p><code>data.table()</code><br>
 Table of all tasks.</p>
 </div>
@@ -1054,7 +1039,7 @@ State of the hashes.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the hashes.</p>
 </div>
@@ -1083,7 +1068,7 @@ Fields to be read from the hashes.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>(list of <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
