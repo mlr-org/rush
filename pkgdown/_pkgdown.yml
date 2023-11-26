@@ -43,6 +43,7 @@ reference:
       - RushWorker
       - rsh
   - title: Plan
+    contents:
       - rush_plan
       - rush_available
       - rush_config
