@@ -44,7 +44,6 @@ reference:
       - rsh
   - title: Misc
     contents:
-      - run_worker
       - worker_loop_default
       - start_worker
       - fun_heartbeat
