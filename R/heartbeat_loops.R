@@ -6,9 +6,10 @@
 #'
 #' @param pid (`integer(1)`)\cr
 #' Process ID of the worker.
+#' @param config ([redux::redis_config])\cr
+#' Redis configuration options.
 #'
 #' @template param_network_id
-#' @template param_config
 #' @template param_worker_id
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire

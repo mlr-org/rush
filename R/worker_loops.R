@@ -18,7 +18,7 @@ worker_loop_default = function(fun, rush) {
     task = rush$pop_task()
     if (!is.null(task)) {
       tryCatch({
-        ys = mlr3misc::invoke(fun, rush = rush, .args = task$xs)
+        ys = mlr3misc::invoke(fun, .args = task$xs)
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)

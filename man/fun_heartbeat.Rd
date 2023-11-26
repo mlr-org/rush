@@ -20,8 +20,7 @@ Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration options.
-See \link[redux:redis_config]{redux::redis_config} for details.}
+Redis configuration options.}
 
 \item{worker_id}{(\code{character(1)})\cr
 Identifier of the worker.
