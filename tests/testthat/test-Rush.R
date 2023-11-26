@@ -87,7 +87,6 @@ test_that("additional workers are started", {
 test_that("packages are available on the worker", {
   skip_on_cran()
   skip_on_ci()
-    skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -107,7 +106,6 @@ test_that("packages are available on the worker", {
 test_that("globals are available on the worker", {
   skip_on_cran()
   skip_on_ci()
-    skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -131,7 +129,6 @@ test_that("globals are available on the worker", {
 test_that("worker can be started with script", {
   skip_on_cran()
   skip_on_ci()
-    skip_on_ci()
   skip_if(TRUE)
 
   config = start_flush_redis()
@@ -144,64 +141,6 @@ test_that("worker can be started with script", {
 test_that("a remote worker is started", {
   skip_on_cran()
   skip_on_ci()
-
-  config = start_flush_redis()
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush = Rush$new(network_id = "test-rush", config = config)
-
-  withr::with_envvar(list("HOST" = "remote_host"), {
-    rush$start_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, await_workers = TRUE)
-  })
-
-  expect_set_equal(rush$worker_info$host, "remote")
-})
-
-# start workers with script ----------------------------------------------------
-
-test_that("worker can be started with script", {
-  skip_on_cran()
-  skip_on_ci()
-    skip_on_ci()
-  skip_if(TRUE)
-
-  config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-
-  rush$create_worker_script(fun = fun)
-})
-
-test_that("a remote worker is started", {
-  skip_on_cran()
-  skip_on_ci()
-
-  config = start_flush_redis()
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush = Rush$new(network_id = "test-rush", config = config)
-
-  withr::with_envvar(list("HOST" = "remote_host"), {
-    rush$start_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, await_workers = TRUE)
-  })
-
-  expect_set_equal(rush$worker_info$host, "remote")
-})
-
-# start workers with script ----------------------------------------------------
-
-test_that("worker can be started with script", {
-  # skip_on_cran()
-  skip_on_ci()
-  skip_if(TRUE)
-
-  config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-
-  rush$create_worker_script(fun = fun)
-})
-
-test_that("a remote worker is started", {
-  # skip_on_cran()
 
   config = start_flush_redis()
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -400,7 +339,6 @@ test_that("evaluating tasks works", {
 test_that("a segfault on a local worker is detected", {
   skip_on_cran()
   skip_on_ci()
-  #   skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -712,7 +650,8 @@ test_that("terminating workers on idle works", {
 })
 
 test_that("constants works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
