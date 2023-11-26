@@ -2,8 +2,8 @@
 
 export(Rush)
 export(RushWorker)
-export(fun_heartbeat)
 export(get_hostname)
+export(heartbeat)
 export(rsh)
 export(rush_available)
 export(rush_config)

@@ -60,7 +60,7 @@ RushWorker = R6::R6Class("RushWorker",
           heartbeat_expire = heartbeat_expire,
           pid = Sys.getpid()
         )
-        self$heartbeat = callr::r_bg(fun_heartbeat, args = heartbeat_args, supervise = TRUE)
+        self$heartbeat = callr::r_bg(heartbeat, args = heartbeat_args, supervise = TRUE)
 
         # wait until heartbeat process is able to work
         Sys.sleep(1)

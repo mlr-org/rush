@@ -15,7 +15,7 @@
 #' @template param_heartbeat_expire
 #'
 #' @export
-fun_heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
+heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
   worker_id_key = sprintf("%s:%s", network_id, worker_id)
   heartbeat_key = sprintf("%s:%s:heartbeat", network_id, worker_id)

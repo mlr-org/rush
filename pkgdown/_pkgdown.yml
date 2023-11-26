@@ -50,7 +50,7 @@ reference:
     contents:
       - start_worker
       - worker_loop_default
-      - fun_heartbeat
+      - heartbeat
   - title: Misc
     contents:
       - get_hostname
