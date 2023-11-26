@@ -404,7 +404,7 @@ Rush = R6::R6Class("Rush",
       r = self$connector
 
       # stop workers
-      self$stop_workers()
+      self$stop_workers(type = "kill")
 
       # reset fields set by starting workers
       self$processes = NULL
