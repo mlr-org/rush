@@ -182,7 +182,6 @@ Rush = R6::R6Class("Rush",
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
       assert_function(worker_loop)
       assert_list(globals, null.ok = TRUE, names = "named")
-      assert_list(constants, null.ok = TRUE, names = "named")
       assert_character(packages, null.ok = TRUE)
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)

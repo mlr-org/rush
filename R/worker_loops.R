@@ -15,6 +15,7 @@
 #' @export
 worker_loop_default = function(fun, constants = NULL, rush) {
   assert_function(fun)
+  assert_list(constants, null.ok = TRUE, names = "named")
 
   while(!rush$terminated) {
     task = rush$pop_task()

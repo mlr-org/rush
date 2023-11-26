@@ -722,6 +722,10 @@ test_that("constants works", {
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
   rush$await_tasks(keys)
+
+  expect_equal(rush$fetch_finished_tasks()$y, 8)
+
+  expect_rush_reset(rush)
 })
 
 # rush network without controller ----------------------------------------------
