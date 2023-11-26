@@ -101,12 +101,12 @@ rush$fetch_finished_tasks()
 
     ##       x1    x2    pid                            worker_id     y    state
     ##    <num> <num>  <int>                               <char> <num>   <char>
-    ## 1:     3     5 334357 999e4669-6733-4a0a-b59f-2b7592fea479     8 finished
-    ## 2:     4     6 334354 bc58f319-177f-41de-bcde-04cf34ac5ef3    10 finished
+    ## 1:     4     6 594799 4c987f0e-0a36-4531-bef8-26dadd17cac6    10 finished
+    ## 2:     3     5 594797 d9937b02-513c-4c2f-ab27-f9146f867666     8 finished
     ##                                    keys
     ##                                  <char>
-    ## 1: 5231bcf8-d540-43f7-b519-4d3b6a586774
-    ## 2: aa6d2f4c-d2f2-452d-a831-4d36d00c4bf3
+    ## 1: f49b93aa-d48d-4695-81bc-8a03eb74af92
+    ## 2: df0f9e17-8085-493b-873a-d91bf23dec55
 
 ## Decentralized Rush Network
 
