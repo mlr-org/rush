@@ -35,9 +35,7 @@ test_that("workers are started", {
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_states$state, "running")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("workers are started with a heartbeat", {
@@ -53,9 +51,7 @@ test_that("workers are started with a heartbeat", {
   worker_info = rush$worker_info
   expect_character(worker_info$heartbeat, unique = TRUE)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("additional workers are started", {
@@ -81,9 +77,7 @@ test_that("additional workers are started", {
   expect_set_equal(worker_info$host, "local")
   expect_set_equal(rush$worker_states$state, "running")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("packages are available on the worker", {
@@ -102,9 +96,7 @@ test_that("packages are available on the worker", {
 
   expect_equal(rush$n_finished_tasks, 1)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("globals are available on the worker", {
@@ -125,9 +117,35 @@ test_that("globals are available on the worker", {
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$y, 33)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
+})
+
+# start workers with script ----------------------------------------------------
+
+test_that("worker can be started with script", {
+  # skip_on_cran()
+  skip_on_ci()
+  skip_if(TRUE)
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  rush$create_worker_script(fun = fun)
+})
+
+test_that("a remote worker is started", {
+  # skip_on_cran()
+
+  config = start_flush_redis()
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  withr::with_envvar(list("HOST" = "remote_host"), {
+    rush$start_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, await_workers = TRUE)
+  })
+
+  expect_set_equal(rush$worker_info$host, "remote")
 })
 
 # start workers with script ----------------------------------------------------
@@ -187,9 +205,7 @@ test_that("a worker is terminated", {
   expect_set_equal(rush$terminated_worker_ids, c(worker_id_1, worker_id_2))
   expect_null(rush$running_worker_ids, worker_id_2)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("a local worker is killed", {
@@ -218,9 +234,7 @@ test_that("a local worker is killed", {
   expect_false(rush$processes[[worker_id_1]]$is_alive())
   expect_false(rush$processes[[worker_id_2]]$is_alive())
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("a remote worker is killed via the heartbeat", {
@@ -253,9 +267,7 @@ test_that("a remote worker is killed via the heartbeat", {
   expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
   expect_false(tools::pskill(worker_info[worker_id == worker_id_2, pid], signal = 0L))
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 # task evaluation --------------------------------------------------------------
@@ -296,9 +308,7 @@ test_that("evaluating a task works", {
   expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("evaluating tasks works", {
@@ -337,9 +347,7 @@ test_that("evaluating tasks works", {
   expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 10)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 # segfault detection -----------------------------------------------------------
@@ -364,9 +372,7 @@ test_that("a segfault on a local worker is detected", {
   rush$detect_lost_workers()
   expect_equal(rush$lost_worker_ids, worker_ids)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("a segfault on a worker is detected via the heartbeat", {
@@ -391,9 +397,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   rush$detect_lost_workers()
   expect_equal(rush$lost_worker_ids, worker_ids)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 # fault detection --------------------------------------------------------------
@@ -443,9 +447,7 @@ test_that("a simple error is catched", {
   expect_data_table(data, nrows = 1)
   expect_set_equal(data$state, "failed")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("a lost task is detected", {
@@ -493,9 +495,7 @@ test_that("a lost task is detected", {
 
   expect_class(rush$detect_lost_tasks(), "Rush")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("a lost task is detected when waiting", {
@@ -541,9 +541,7 @@ test_that("a lost task is detected when waiting", {
   expect_data_table(data, nrows = 1)
   expect_set_equal(data$state, "lost")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 
@@ -566,9 +564,7 @@ test_that("blocking on new results works", {
   expect_data_table(rush$block_latest_results(timeout = 10), nrows = 1)
   expect_data_table(rush$block_latest_results(timeout = 1), nrows = 0)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("wait for tasks works when a task gets lost", {
@@ -588,9 +584,7 @@ test_that("wait for tasks works when a task gets lost", {
 
   expect_class(rush$await_tasks(keys, detect_lost_tasks = TRUE), "Rush")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 # misc--------------------------------------------------------------------------
@@ -622,9 +616,7 @@ test_that("saving lgr logs works", {
   expect_data_table(log, nrows = 18)
   expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("snapshot option works", {
@@ -643,9 +635,7 @@ test_that("snapshot option works", {
   expect_equal(rush$connector$CONFIG_GET("save")[[2]], "")
   expect_equal(rush$snapshot_schedule, "")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 test_that("terminating workers on idle works", {
@@ -663,9 +653,7 @@ test_that("terminating workers on idle works", {
 
   expect_set_equal(rush$worker_states$state, "terminated")
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
 
 # rush network without controller ----------------------------------------------
@@ -701,7 +689,5 @@ test_that("network without controller works", {
   Sys.sleep(10)
   expect_gt(rush$n_finished_tasks, 100)
 
-  pids = rush$worker_info$pid
   expect_rush_reset(rush)
-  clean_test_env(pids)
 })
