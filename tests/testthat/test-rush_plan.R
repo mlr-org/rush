@@ -27,6 +27,8 @@ test_that("start workers", {
   config = redux::redis_config()
   rush_plan(n_workers = 2, config)
 
+  expect_equal(rush_env$n_workers, 2)
+
   rush = rsh("test-rush")
   fun = function(x1, x2, ...) list(y = x1 + x2)
   rush$start_workers(fun = fun)

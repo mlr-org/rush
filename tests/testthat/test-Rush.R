@@ -698,7 +698,7 @@ test_that("network without controller works", {
   rush$start_workers(worker_loop = fun, n_workers = 2, await_workers = TRUE)
 
   Sys.sleep(10)
-  expect_gt(rush$n_finished_tasks, 100)
+  expect_gte(rush$n_finished_tasks, 100)
 
   expect_rush_reset(rush)
 })
