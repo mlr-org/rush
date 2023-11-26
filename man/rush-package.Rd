@@ -4,9 +4,9 @@
 \name{rush-package}
 \alias{rush}
 \alias{rush-package}
-\title{rush: Parallele Programmierung}
+\title{rush: Parallel and Distributed Programming}
 \description{
-Parallel programmierung with future and redis.
+Parallel programming package.
 }
 \author{
 \strong{Maintainer}: Marc Becker \email{marcbecker@posteo.de} (\href{https://orcid.org/0000-0002-8115-0400}{ORCID})

@@ -1,3 +1,28 @@
+#' @title Get the computer name of the current host
+#'
+#' @description
+#' Returns the computer name of the current host.
+#' First it tries to get the computer name from the environment variables `HOST`, `HOSTNAME` or `COMPUTERNAME`.
+#' If this fails it tries to get the computer name from the function `Sys.info()`.
+#' Finally, if this fails it queries the computer name from the command `uname -n`.
+#' Copied from the `R.utils` package.
+#'
+#' @export
+get_hostname = function() {
+  host = Sys.getenv(c("HOST", "HOSTNAME", "COMPUTERNAME"))
+  host = host[host != ""]
+  if (length(host) == 0) {
+    # Sys.info() is not implemented on all machines, if not it returns NULL,
+    # which the below code will handle properly.
+    host = Sys.info()["nodename"]
+    host = host[host != ""]
+    if (length(host) == 0) {
+      host <- readLines(pipe("/usr/bin/env uname -n"))
+    }
+  }
+  host[1]
+}
+
 # internal pid_exists functions from parallelly package by Henrik Bengtsson
 # for more information see
 # https://github.com/HenrikBengtsson/parallelly/blob/78a1b44021df2973d05224bfaa0b1a7abaf791ff/R/utils%2Cpid.R

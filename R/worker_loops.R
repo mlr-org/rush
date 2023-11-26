@@ -11,7 +11,7 @@
 #' Rush worker instance.
 #'
 #' @export
-fun_loop = function(fun, rush) {
+worker_loop_default = function(fun, rush) {
   assert_function(fun)
 
   while(!rush$terminated) {

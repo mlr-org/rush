@@ -28,7 +28,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' Worker is started on a local or remote host.
     host = NULL,
 
-    #' @field heartbeat ([callr::r_process])\cr
+    #' @field heartbeat (`r_process``)\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
 
@@ -48,6 +48,7 @@ RushWorker = R6::R6Class("RushWorker",
       assert_numeric(heartbeat_period, null.ok = TRUE)
       r = self$connector
       if (!is.null(heartbeat_period)) {
+        require_namespaces("callr")
         assert_numeric(heartbeat_expire, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
         r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
@@ -89,6 +90,7 @@ RushWorker = R6::R6Class("RushWorker",
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
         "host", self$host,
+        "hostname", rush::get_hostname(),
         "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
     },
 

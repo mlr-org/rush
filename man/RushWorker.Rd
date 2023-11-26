@@ -22,7 +22,7 @@ Identifier of the worker.}
 \item{\code{host}}{(\code{character(1)})\cr
 Worker is started on a local or remote host.}
 
-\item{\code{heartbeat}}{(\link[callr:r_process]{callr::r_process})\cr
+\item{\code{heartbeat}}{(`r_process``)\cr
 Background process for the heartbeat.}
 
 \item{\code{lgr_buffer}}{(\link[lgr:AppenderBuffer]{lgr::AppenderBuffer})\cr

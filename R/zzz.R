@@ -1,11 +1,9 @@
 #' @import data.table
 #' @import redux
 #' @import mlr3misc
-#' @import future
 #' @import checkmate
-#' @importFrom globals globalsByName
+#' @importFrom processx process
 #' @importFrom uuid UUIDgenerate
-#' @importFrom callr r_bg
 #' @importFrom utils str
 "_PACKAGE"
 
