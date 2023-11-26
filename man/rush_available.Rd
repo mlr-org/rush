@@ -10,5 +10,5 @@ rush_available()
 \code{logical(1)}
 }
 \description{
-Returns \code{TRUE} if a redis config file (\code{\link[redux:redis_config]{redux::redis_config()}}) has been set by \code{\link[=rush_plan]{rush_plan()}}.
+Returns \code{TRUE} if a redis config file (\link[redux:redis_config]{redux::redis_config}) has been set by \code{\link[=rush_plan]{rush_plan()}}.
 }

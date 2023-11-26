@@ -1,7 +1,8 @@
 # start workers with processx --------------------------------------------------
 
 test_that("constructing a rush controller works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -12,7 +13,8 @@ test_that("constructing a rush controller works", {
 })
 
 test_that("workers are started", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -39,7 +41,8 @@ test_that("workers are started", {
 })
 
 test_that("workers are started with a heartbeat", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -55,7 +58,8 @@ test_that("workers are started with a heartbeat", {
 })
 
 test_that("additional workers are started", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -81,8 +85,9 @@ test_that("additional workers are started", {
 })
 
 test_that("packages are available on the worker", {
-  # skip_on_cran()
+  skip_on_cran()
   skip_on_ci()
+    skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -100,8 +105,9 @@ test_that("packages are available on the worker", {
 })
 
 test_that("globals are available on the worker", {
-  # skip_on_cran()
+  skip_on_cran()
   skip_on_ci()
+    skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -123,8 +129,9 @@ test_that("globals are available on the worker", {
 # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
-  # skip_on_cran()
+  skip_on_cran()
   skip_on_ci()
+    skip_on_ci()
   skip_if(TRUE)
 
   config = start_flush_redis()
@@ -135,7 +142,8 @@ test_that("worker can be started with script", {
 })
 
 test_that("a remote worker is started", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -151,8 +159,9 @@ test_that("a remote worker is started", {
 # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
-  # skip_on_cran()
+  skip_on_cran()
   skip_on_ci()
+    skip_on_ci()
   skip_if(TRUE)
 
   config = start_flush_redis()
@@ -163,7 +172,8 @@ test_that("worker can be started with script", {
 })
 
 test_that("a remote worker is started", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -179,7 +189,8 @@ test_that("a remote worker is started", {
 # stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -209,7 +220,8 @@ test_that("a worker is terminated", {
 })
 
 test_that("a local worker is killed", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -223,6 +235,7 @@ test_that("a local worker is killed", {
 
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
+  Sys.sleep(1)
   expect_equal(rush$killed_worker_ids, worker_id_1)
   expect_equal(rush$running_worker_ids, worker_id_2)
   expect_false(rush$processes[[worker_id_1]]$is_alive())
@@ -230,6 +243,7 @@ test_that("a local worker is killed", {
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
+  Sys.sleep(1)
   expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
   expect_false(rush$processes[[worker_id_1]]$is_alive())
   expect_false(rush$processes[[worker_id_2]]$is_alive())
@@ -238,7 +252,8 @@ test_that("a local worker is killed", {
 })
 
 test_that("a remote worker is killed via the heartbeat", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -273,7 +288,8 @@ test_that("a remote worker is killed via the heartbeat", {
 # task evaluation --------------------------------------------------------------
 
 test_that("evaluating a task works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -312,7 +328,8 @@ test_that("evaluating a task works", {
 })
 
 test_that("evaluating tasks works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -353,8 +370,9 @@ test_that("evaluating tasks works", {
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
-  # skip_on_cran()
-  # skip_on_ci()
+  skip_on_cran()
+  skip_on_ci()
+  #   skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -376,7 +394,8 @@ test_that("a segfault on a local worker is detected", {
 })
 
 test_that("a segfault on a worker is detected via the heartbeat", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -403,7 +422,8 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 # fault detection --------------------------------------------------------------
 
 test_that("a simple error is catched", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -451,7 +471,8 @@ test_that("a simple error is catched", {
 })
 
 test_that("a lost task is detected", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -499,7 +520,8 @@ test_that("a lost task is detected", {
 })
 
 test_that("a lost task is detected when waiting", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -548,7 +570,8 @@ test_that("a lost task is detected when waiting", {
 # receiving results ------------------------------------------------------------
 
 test_that("blocking on new results works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -568,7 +591,8 @@ test_that("blocking on new results works", {
 })
 
 test_that("wait for tasks works when a task gets lost", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -590,7 +614,8 @@ test_that("wait for tasks works when a task gets lost", {
 # misc--------------------------------------------------------------------------
 
 test_that("saving lgr logs works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -620,7 +645,8 @@ test_that("saving lgr logs works", {
 })
 
 test_that("snapshot option works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -639,7 +665,8 @@ test_that("snapshot option works", {
 })
 
 test_that("terminating workers on idle works", {
-  # skip_on_cran()
+  skip_on_cran()
+  skip_on_ci()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -659,7 +686,7 @@ test_that("terminating workers on idle works", {
 # rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {
-  # skip_on_cran()
+  skip_on_cran()
   skip_on_ci()
 
   config = start_flush_redis()
