@@ -13,6 +13,7 @@ Depends:
 Imports:
     checkmate,
     data.table,
+    jsonlite,
     lgr,
     mlr3misc,
     processx,

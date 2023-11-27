@@ -14,6 +14,7 @@
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
+#' @template param_lgr_buffer_size
 #'
 #' @export
 RushWorker = R6::R6Class("RushWorker",
@@ -32,26 +33,35 @@ RushWorker = R6::R6Class("RushWorker",
     #' Background process for the heartbeat.
     heartbeat = NULL,
 
-    #' @field lgr_buffer ([lgr::AppenderBuffer])\cr
-    #' Buffer that saves all log messages.
-    lgr_buffer = NULL,
-
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(network_id, config = redux::redis_config(), host, worker_id = NULL, heartbeat_period = NULL, heartbeat_expire = NULL, lgr_thresholds = NULL) {
-      self$host = assert_choice(host, c("local", "remote"))
-      self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
-
+    initialize = function(
+      network_id,
+      config = NULL,
+      host,
+      worker_id = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = 0
+      ) {
       super$initialize(network_id = network_id, config = config)
 
-      # start heartbeat
-      assert_numeric(heartbeat_period, null.ok = TRUE)
+      self$host = assert_choice(host, c("local", "remote"))
+      self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
       r = self$connector
+
+      # setup heartbeat
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
+        assert_numeric(heartbeat_period, null.ok = TRUE)
         assert_numeric(heartbeat_expire, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
+
+        # set heartbeat key
         r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
+
+        # start heartbeat process
         heartbeat_args = list(
           network_id = self$network_id,
           config = self$config,
@@ -66,25 +76,41 @@ RushWorker = R6::R6Class("RushWorker",
         Sys.sleep(1)
       }
 
-      # save logging on worker
+      # setup logger
       if (!is.null(lgr_thresholds)) {
-        self$lgr_buffer = lgr::AppenderBuffer$new()
+        assert_vector(lgr_thresholds, names = "named")
+        assert_count(lgr_buffer_size)
+
+        # add redis appender
+        appender = AppenderRedis$new(
+          config = self$config,
+          key = private$.get_worker_key("events"),
+          buffer_size = lgr_buffer_size
+        )
+        root_logger = lgr::get_logger("root")
+        root_logger$add_appender(appender)
+        root_logger$remove_appender("console")
+
+        # restore log levels
         for (package in names(lgr_thresholds)) {
           logger = lgr::get_logger(package)
           threshold = lgr_thresholds[package]
           logger$set_threshold(threshold)
-          logger$add_appender(self$lgr_buffer)
         }
       }
 
-      # register worker
+      # register worker ids
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
       r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
+
+      # if worker is started with a heartbeat, monitor with heartbeat, otherwise monitor with pid
       if (!is.null(self$heartbeat)) {
         r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
       } else if (host == "local") {
         r$SADD(private$.get_key("local_pids"), Sys.getpid())
       }
+
+      # register worker info in
       r$command(c(
         "HSET", private$.get_key(self$worker_id),
         "worker_id", self$worker_id,

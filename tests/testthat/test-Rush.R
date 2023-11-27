@@ -596,7 +596,7 @@ test_that("saving lgr logs works", {
 
   log = rush$read_log()
   expect_data_table(log, nrows = 6)
-  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2), list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -605,7 +605,7 @@ test_that("saving lgr logs works", {
 
   log = rush$read_log()
   expect_data_table(log, nrows = 18)
-  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "msg"))
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
 
   expect_rush_reset(rush)
 })

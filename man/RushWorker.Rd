@@ -24,9 +24,6 @@ Worker is started on a local or remote host.}
 
 \item{\code{heartbeat}}{(`r_process``)\cr
 Background process for the heartbeat.}
-
-\item{\code{lgr_buffer}}{(\link[lgr:AppenderBuffer]{lgr::AppenderBuffer})\cr
-Buffer that saves all log messages.}
 }
 \if{html}{\out{</div>}}
 }
@@ -94,12 +91,13 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
   network_id,
-  config = redux::redis_config(),
+  config = NULL,
   host,
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
-  lgr_thresholds = NULL
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -134,6 +132,11 @@ Time to live of the heartbeat in seconds.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 }
 \if{html}{\out{</div>}}
 }

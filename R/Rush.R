@@ -96,6 +96,7 @@
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
+#' @template param_lgr_buffer_size
 #'
 #' @export
 Rush = R6::R6Class("Rush",
@@ -170,49 +171,45 @@ Rush = R6::R6Class("Rush",
     #' Arguments passed to `worker_loop`.
     start_workers = function(
       n_workers = NULL,
+      await_workers = TRUE,
       globals = NULL,
       packages = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
-      await_workers = TRUE,
+      lgr_buffer_size = 0,
+
       worker_loop = worker_loop_default,
       ...
-      ){
+      ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
-      assert_function(worker_loop)
-      assert_list(globals, null.ok = TRUE, names = "named")
-      assert_character(packages, null.ok = TRUE)
-      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
-      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-      assert_named(lgr_thresholds)
-      dots = list(...)
-      r = self$connector
+      assert_flag(await_workers)
 
-      # serialize arguments needed for starting the worker
-      worker_args = list(
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds)
-      start_args = list(
-        worker_loop = worker_loop,
-        worker_loop_args = dots,
+      # push worker config to redis
+      private$.push_worker_config(
         globals = globals,
         packages = packages,
-        worker_args = worker_args)
-
-      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        lgr_buffer_size = lgr_buffer_size,
+        worker_loop = worker_loop,
+        ...
+      )
 
       worker_ids = uuid::UUIDgenerate(n = n_workers)
-      hostname = get_hostname()
       self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
-       processx::process$new("Rscript", args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')", self$network_id, worker_id, private$.hostname, self$config$url)))
+       processx::process$new("Rscript",
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
+          self$network_id, worker_id, private$.hostname, self$config$url)))
       }), worker_ids))
 
       if (await_workers) self$await_workers(n_workers)
 
       return(invisible(worker_ids))
     },
+
+
 
     #' @description
     #' Create script to start workers.
@@ -226,35 +223,26 @@ Rush = R6::R6Class("Rush",
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
+      lgr_buffer_size = 0,
       worker_loop = worker_loop_default,
       ...
-      ){
-      assert_function(worker_loop)
-      assert_list(globals, null.ok = TRUE)
-      assert_character(packages, null.ok = TRUE)
-      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
-      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-      if (!is.null(heartbeat_period)) require_namespaces("callr")
-      assert_named(lgr_thresholds)
-      dots = list(...)
-      r = self$connector
+      ) {
 
-      # serialize arguments needed for starting the worker
-      worker_args = list(
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds)
-      start_args = list(
-        worker_loop = worker_loop,
-        worker_loop_args = dots,
+      # push worker config to redis
+      private$.push_worker_config(
         globals = globals,
         packages = packages,
-        worker_args = worker_args)
-
-      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        lgr_buffer_size = lgr_buffer_size,
+        worker_loop = worker_loop,
+        ...
+      )
 
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker('%s', hostname = '%s', url = '%s')'", self$network_id, private$.hostname, self$config$url)
+      lg$info("Rscript -e 'rush::start_worker(network_id = '%s', hostname = '%s', url = '%s')'",
+        self$network_id, private$.hostname, self$config$url)
       lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
@@ -423,6 +411,7 @@ Rush = R6::R6Class("Rush",
         r$DEL(private$.get_worker_key("heartbeat", worker_id))
         r$DEL(private$.get_worker_key("queued_tasks", worker_id))
         r$DEL(private$.get_worker_key("log", worker_id))
+        r$DEL(private$.get_worker_key("events", worker_id))
       })
 
       # remove all tasks
@@ -465,9 +454,13 @@ Rush = R6::R6Class("Rush",
     read_log = function(worker_ids = NULL) {
       worker_ids = worker_ids %??% self$worker_ids
       r = self$connector
-      cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("log", worker_id), 0, -1))
-      bin_logs = unlist(setNames(r$pipeline(.commands = cmds), worker_ids), recursive = FALSE)
-      rbindlist(map(bin_logs, redux::bin_to_object), use.names = TRUE, fill = TRUE, idcol = "worker_id")
+      cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("events", worker_id), 0, -1))
+      worker_logs = set_names(r$pipeline(.commands = cmds), worker_ids)
+      tab = rbindlist(set_names(map(worker_logs, function(logs) {
+        rbindlist(map(logs, jsonlite::fromJSON))
+      }), worker_ids), idcol = "worker_id")
+      if (nrow(tab)) setkeyv(tab, "timestamp")
+      tab[]
     },
 
     #' @description
@@ -1122,6 +1115,47 @@ Rush = R6::R6Class("Rush",
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
       sprintf("%s:%s:%s", self$network_id, worker_id, key)
+    },
+
+    # push worker config to redis
+    .push_worker_config = function(
+      globals = NULL,
+      packages = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = 0,
+      worker_loop = worker_loop_default,
+      ...
+    ) {
+      assert_list(globals, null.ok = TRUE, names = "named")
+      assert_character(packages, null.ok = TRUE)
+      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
+      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
+      if (!is.null(heartbeat_period)) require_namespaces("callr")
+      assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
+      assert_count(lgr_buffer_size)
+      assert_function(worker_loop)
+      dots = list(...)
+      r = self$connector
+
+      # arguments needed for initializing RushWorker
+      worker_args = list(
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        lgr_buffer_size = lgr_buffer_size)
+
+      # arguments needed for initializing the worker
+      start_args = list(
+        worker_loop = worker_loop,
+        worker_loop_args = dots,
+        globals = globals,
+        packages = packages,
+        worker_args = worker_args)
+
+      # serialize and push arguments to redis
+      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
     }
   )
 )

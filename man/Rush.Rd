@@ -307,12 +307,13 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
   n_workers = NULL,
+  await_workers = TRUE,
   globals = NULL,
   packages = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
-  await_workers = TRUE,
+  lgr_buffer_size = 0,
   worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
@@ -323,6 +324,9 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \describe{
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
+
+\item{\code{await_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -339,8 +343,10 @@ Time to live of the heartbeat in seconds.}
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
-\item{\code{await_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
@@ -366,6 +372,7 @@ The worker is started with \code{\link[=start_worker]{start_worker()}}.
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
+  lgr_buffer_size = 0,
   worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
@@ -388,6 +395,11 @@ Time to live of the heartbeat in seconds.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
