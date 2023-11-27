@@ -52,6 +52,7 @@ reference:
       - start_worker
       - worker_loop_default
       - heartbeat
+      - AppenderRedis
   - title: Misc
     contents:
       - get_hostname

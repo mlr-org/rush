@@ -737,26 +737,76 @@ test_that("mixing priority queue and shared queue works", {
   expect_rush_task(rush_1$pop_task())
 })
 
-test_that("saving lgr logs works", {
+test_that("saving logs with redis appender works", {
   skip_on_cran()
   skip_on_ci()
+  appenders = lgr::get_logger("root")$appenders
+
+  on.exit({
+    lgr::get_logger("root")$set_appenders(appenders)
+  })
 
   config = start_flush_redis()
-
+  rush = RushWorker$new(
+    network_id = "test-rush",
+    config = config,
+    host = "local",
+    lgr_thresholds = c(rush = "info"),
+    lgr_buffer_size = 0)
   lg = lgr::get_logger("rush")
 
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", lgr_thresholds = c(rush = "info"))
+  lg$info("test-1")
 
-  capture.output({lg$info("test")})
-  expect_data_table(rush$lgr_buffer$dt, nrows = 1)
+  log = rush$read_log()
+  expect_data_table(log, nrows = 1)
+  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
+  expect_equal(log$msg, "[rush] test-1")
 
-  rush$write_log()
-  expect_data_table(rush$lgr_buffer$dt, nrows = 0)
-  expect_data_table(rush$read_log(rush$worker_id), nrows = 1)
+  lg$info("test-2")
 
-  capture.output({lg$info("test_2")})
-  rush$write_log()
-  expect_data_table(rush$read_log(rush$worker_id), nrows = 2)
+  log = rush$read_log()
+  expect_data_table(log, nrows = 2)
+  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
+  expect_equal(log$msg, c("[rush] test-1", "[rush] test-2"))
+})
+
+test_that("settings the buffer size in redis appender works", {
+  skip_on_cran()
+  skip_on_ci()
+  appenders = lgr::get_logger("root")$appenders
+
+  on.exit({
+    lgr::get_logger("root")$set_appenders(appenders)
+  })
+
+  config = start_flush_redis()
+  rush = RushWorker$new(
+    network_id = "test-rush",
+    config = config,
+    host = "local",
+    lgr_thresholds = c(rush = "info"),
+    lgr_buffer_size = 2)
+  lg = lgr::get_logger("rush")
+
+  lg$info("test-1")
+  expect_data_table(rush$read_log(), nrows = 0)
+
+  lg$info("test-2")
+  expect_data_table(rush$read_log(), nrows = 0)
+
+  lg$info("test-3")
+
+  log = rush$read_log()
+  expect_data_table(log, nrows = 3)
+  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
+  expect_equal(log$msg, "[rush] test-1")
+
+  lg$info("test-2")
+
+  log = rush$read_log()
+  expect_data_table(log, nrows = 3)
+  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
+  expect_equal(log$msg, c("[rush] test-1", "[rush] test-2", "[rush] test-3"))
 })
 
 test_that("pushing tasks and terminating worker works", {
