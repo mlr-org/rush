@@ -1114,7 +1114,7 @@ Rush = R6::R6Class("Rush",
       worker_loop = worker_loop_default,
       ...
     ) {
-      assert_list(globals, null.ok = TRUE, names = "named")
+      assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
@@ -1124,6 +1124,15 @@ Rush = R6::R6Class("Rush",
       assert_function(worker_loop)
       dots = list(...)
       r = self$connector
+
+      # find globals
+      if (!is.null(globals)) {
+        globals = set_names(map(globals, function(global) {
+          value = get(global, envir = parent.frame(), inherits = TRUE)
+          if (is.null(value)) stopf("Global `%s` not found", global)
+          value
+        }), globals)
+      }
 
       # arguments needed for initializing RushWorker
       worker_args = list(

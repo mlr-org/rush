@@ -112,7 +112,7 @@ test_that("globals are available on the worker", {
   fun = function(x1, x2, ...) list(y = x)
   x = 33
 
-  rush$start_workers(fun = fun, n_workers = 2, globals = list(x = x), await_workers = TRUE)
+  rush$start_workers(fun = fun, n_workers = 2, globals = "x", await_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
