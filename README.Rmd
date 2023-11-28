@@ -84,7 +84,7 @@ Now we can push tasks to the workers.
 ```{r}
 xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
 keys = rush$push_tasks(xss)
-rush$await_tasks(keys)
+rush$wait_for_tasks(keys)
 ```
 
 And retrieve the results.

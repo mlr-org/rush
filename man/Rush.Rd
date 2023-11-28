@@ -220,16 +220,16 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-fetch_latest_results}{\code{Rush$fetch_latest_results()}}
-\item \href{#method-Rush-block_latest_results}{\code{Rush$block_latest_results()}}
+\item \href{#method-Rush-wait_for_latest_results}{\code{Rush$wait_for_latest_results()}}
 \item \href{#method-Rush-fetch_results}{\code{Rush$fetch_results()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
 \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
-\item \href{#method-Rush-block_finished_tasks}{\code{Rush$block_finished_tasks()}}
+\item \href{#method-Rush-wait_for_finished_tasks}{\code{Rush$wait_for_finished_tasks()}}
 \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
 \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
-\item \href{#method-Rush-await_tasks}{\code{Rush$await_tasks()}}
+\item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
@@ -487,9 +487,20 @@ Changes the state of tasks to \code{"lost"} if the worker crashed.
 \subsection{Method \code{reset()}}{
 Stop workers and delete data stored in redis.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reset()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$reset(type = "kill")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{(\code{character(1)})\cr
+Type of stopping.
+Either \code{"terminate"} or \code{"kill"}.
+If \code{"terminate"} the workers evaluate the currently running task and then terminate.
+If \code{"kill"} the workers are stopped immediately.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_log"></a>}}
@@ -577,7 +588,7 @@ Keys of the tasks.
 \subsection{Method \code{fetch_latest_results()}}{
 Fetch latest results from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_latest_results(fields = "ys")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_latest_results(fields = "ys", data_format = "data.table")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -585,6 +596,11 @@ Fetch latest results from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -594,13 +610,17 @@ Latest results.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-block_latest_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-block_latest_results}{}}}
-\subsection{Method \code{block_latest_results()}}{
+\if{html}{\out{<a id="method-Rush-wait_for_latest_results"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-wait_for_latest_results}{}}}
+\subsection{Method \code{wait_for_latest_results()}}{
 Block process until a new result is available.
 Returns latest results or \code{NULL} if no result is available after \code{timeout} seconds.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$block_latest_results(fields = "ys", timeout = Inf)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_latest_results(
+  fields = "ys",
+  timeout = Inf,
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -611,6 +631,11 @@ Fields to be read from the hashes.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -626,7 +651,11 @@ Latest results.
 Fetch results from the data base.
 Results are cached.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_results(fields = "ys", reset_cache = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_results(
+  fields = "ys",
+  reset_cache = FALSE,
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -638,6 +667,11 @@ Defaults to \code{"ys"}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -652,7 +686,10 @@ Results.
 \subsection{Method \code{fetch_queued_tasks()}}{
 Fetch queued tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "state"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(
+  fields = c("xs", "xs_extra", "state"),
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -661,6 +698,11 @@ Fetch queued tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "state")}.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -675,7 +717,10 @@ Table of queued tasks.
 \subsection{Method \code{fetch_priority_tasks()}}{
 Fetch queued priority tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra", "state"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(
+  fields = c("xs", "xs_extra", "state"),
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -684,6 +729,11 @@ Fetch queued priority tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "state")}.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -698,7 +748,10 @@ Table of queued priority tasks.
 \subsection{Method \code{fetch_running_tasks()}}{
 Fetch running tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra", "state"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(
+  fields = c("xs", "xs_extra", "worker_extra", "state"),
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -707,6 +760,11 @@ Fetch running tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra", "state")}.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -724,7 +782,8 @@ Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
   fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
-  reset_cache = FALSE
+  reset_cache = FALSE,
+  data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
 
@@ -737,6 +796,11 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -746,15 +810,16 @@ Table of finished tasks.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-block_finished_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-block_finished_tasks}{}}}
-\subsection{Method \code{block_finished_tasks()}}{
+\if{html}{\out{<a id="method-Rush-wait_for_finished_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-wait_for_finished_tasks}{}}}
+\subsection{Method \code{wait_for_finished_tasks()}}{
 Block process until a new finished task is available.
 Returns all finished tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$block_finished_tasks(
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_finished_tasks(
   fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
-  timeout = Inf
+  timeout = Inf,
+  data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
 
@@ -767,6 +832,11 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -781,7 +851,10 @@ Table of finished tasks.
 \subsection{Method \code{fetch_failed_tasks()}}{
 Fetch failed tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition", "state"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(
+  fields = c("xs", "worker_extra", "condition", "state"),
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -790,6 +863,11 @@ Fetch failed tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra", "condition", "state")}.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -805,7 +883,8 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")
+  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state"),
+  data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
 
@@ -815,6 +894,11 @@ Fetch all tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")}.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -824,13 +908,13 @@ Table of all tasks.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-await_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-await_tasks}{}}}
-\subsection{Method \code{await_tasks()}}{
+\if{html}{\out{<a id="method-Rush-wait_for_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-wait_for_tasks}{}}}
+\subsection{Method \code{wait_for_tasks()}}{
 Wait until tasks are finished.
 The function also unblocks when no worker is running or all tasks failed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$await_tasks(keys, detect_lost_tasks = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_tasks(keys, detect_lost_tasks = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

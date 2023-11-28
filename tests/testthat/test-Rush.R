@@ -96,7 +96,7 @@ test_that("packages are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
 
   expect_equal(rush$n_finished_tasks, 1)
 
@@ -116,7 +116,7 @@ test_that("globals are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
 
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$y, 33)
@@ -265,7 +265,7 @@ test_that("evaluating a task works", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -305,7 +305,7 @@ test_that("evaluating tasks works", {
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
 
   # check task count
   expect_equal(rush$n_tasks, 10)
@@ -401,7 +401,7 @@ test_that("a simple error is catched", {
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
   Sys.sleep(2)
 
   # check task count
@@ -503,7 +503,7 @@ test_that("a lost task is detected when waiting", {
   keys = rush$push_tasks(xss)
   Sys.sleep(5)
 
-  rush$await_tasks(keys, detect_lost_tasks = TRUE)
+  rush$wait_for_tasks(keys, detect_lost_tasks = TRUE)
 
   # check task count
   expect_equal(rush$n_tasks, 2)
@@ -549,9 +549,9 @@ test_that("blocking on new results works", {
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  expect_data_table(rush$block_latest_results(timeout = 1), nrows = 0)
-  expect_data_table(rush$block_latest_results(timeout = 10), nrows = 1)
-  expect_data_table(rush$block_latest_results(timeout = 1), nrows = 0)
+  expect_data_table(rush$wait_for_latest_results(timeout = 1), nrows = 0)
+  expect_data_table(rush$wait_for_latest_results(timeout = 10), nrows = 1)
+  expect_data_table(rush$wait_for_latest_results(timeout = 1), nrows = 0)
 
   expect_rush_reset(rush)
 })
@@ -572,7 +572,7 @@ test_that("wait for tasks works when a task gets lost", {
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  expect_class(rush$await_tasks(keys, detect_lost_tasks = TRUE), "Rush")
+  expect_class(rush$wait_for_tasks(keys, detect_lost_tasks = TRUE), "Rush")
 
   expect_rush_reset(rush)
 })
@@ -591,7 +591,7 @@ test_that("saving lgr logs works", {
 
   xss = list(list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
   Sys.sleep(5)
 
   log = rush$read_log()
@@ -600,7 +600,7 @@ test_that("saving lgr logs works", {
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2), list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
   Sys.sleep(5)
 
   log = rush$read_log()
@@ -641,7 +641,7 @@ test_that("terminating workers on idle works", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss, terminate_workers = TRUE)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
   Sys.sleep(5)
 
   expect_set_equal(rush$worker_states$state, "terminated")
@@ -660,7 +660,7 @@ test_that("constants works", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$await_tasks(keys)
+  rush$wait_for_tasks(keys)
 
   expect_equal(rush$fetch_finished_tasks()$y, 8)
 

@@ -11,9 +11,9 @@ expect_rush_task = function(task) {
   expect_list(task, names = "unique")
 }
 
-expect_rush_reset = function(rush) {
+expect_rush_reset = function(rush, type = "kill") {
   processes = rush$processes
-  rush$reset()
+  rush$reset(type = type)
   expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
   walk(processes, function(p) p$kill())
 }
