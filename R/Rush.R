@@ -443,7 +443,7 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("heartbeat_keys"))
 
       # reset counters and caches
-      private$.cached_results = data.table()
+      private$.cached_results_dt = data.table()
       private$.cached_tasks_dt = data.table()
       private$.cached_worker_info = data.table()
       private$.n_seen_results = 0
@@ -1070,7 +1070,7 @@ Rush = R6::R6Class("Rush",
 
     # cache of the finished tasks and results
     # we split the data.table and list caches so that a key can be set on the data.table
-    .cached_results = data.table(),
+    .cached_results_dt = data.table(),
 
     .cached_results_list = list(),
 

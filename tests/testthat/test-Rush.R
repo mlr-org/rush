@@ -334,6 +334,45 @@ test_that("evaluating tasks works", {
   expect_rush_reset(rush)
 })
 
+test_that("caching results works", {
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  rush$start_workers(fun = fun, n_workers = 2, await_workers = TRUE)
+
+  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
+  expect_data_table(get_private(rush)$.cached_tasks_dt, nrows = 10)
+
+  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 10)
+  expect_list(get_private(rush)$.cached_tasks_list, len = 10)
+
+  expect_data_table(rush$fetch_results(), nrows = 10)
+  expect_data_table(get_private(rush)$.cached_results_dt, nrows = 10)
+
+  expect_list(rush$fetch_results(data_format = "list"), len = 10)
+  expect_list(get_private(rush)$.cached_results_list, len = 10)
+
+  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 20)
+  expect_data_table(get_private(rush)$.cached_tasks_dt, nrows = 20)
+
+  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 20)
+  expect_list(get_private(rush)$.cached_tasks_list, len = 20)
+
+  expect_data_table(rush$fetch_results(), nrows = 20)
+  expect_data_table(get_private(rush)$.cached_results_dt, nrows = 20)
+
+  expect_list(rush$fetch_results(data_format = "list"), len = 20)
+  expect_list(get_private(rush)$.cached_results_list, len = 20)
+})
+
 # segfault detection -----------------------------------------------------------
 
 test_that("a segfault on a local worker is detected", {
