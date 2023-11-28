@@ -5,6 +5,7 @@
 #' @importFrom processx process
 #' @importFrom uuid UUIDgenerate
 #' @importFrom utils str
+#' @importFrom jsonlite fromJSON
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

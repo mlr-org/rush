@@ -90,7 +90,7 @@ Now we can push tasks to the workers.
 ``` r
 xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
 keys = rush$push_tasks(xss)
-rush$await_tasks(keys)
+rush$wait_for_tasks(keys)
 ```
 
 And retrieve the results.
@@ -99,14 +99,14 @@ And retrieve the results.
 rush$fetch_finished_tasks()
 ```
 
-    ##       x1    x2    pid                            worker_id     y    state
-    ##    <num> <num>  <int>                               <char> <num>   <char>
-    ## 1:     4     6 594799 4c987f0e-0a36-4531-bef8-26dadd17cac6    10 finished
-    ## 2:     3     5 594797 d9937b02-513c-4c2f-ab27-f9146f867666     8 finished
+    ##       x1    x2   pid                            worker_id     y    state
+    ##    <num> <num> <int>                               <char> <num>   <char>
+    ## 1:     4     6 40827 d4c55759-70d0-49ce-8d67-bd912fb184b9    10 finished
+    ## 2:     3     5 40829 c80ec3fe-7656-47e4-97a7-33043c3db331     8 finished
     ##                                    keys
     ##                                  <char>
-    ## 1: f49b93aa-d48d-4695-81bc-8a03eb74af92
-    ## 2: df0f9e17-8085-493b-873a-d91bf23dec55
+    ## 1: 2242649d-a29a-4624-ac2e-91b8d04be4fa
+    ## 2: 0c2fa5d9-d012-488f-b8d6-e92266dc2837
 
 ## Decentralized Rush Network
 
