@@ -344,16 +344,16 @@ For more details see <a href="https://redis.io/docs/management/persistence/#snap
 <li><p><a href="#method-Rush-push_tasks"><code>Rush$push_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-push_priority_tasks"><code>Rush$push_priority_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_latest_results"><code>Rush$fetch_latest_results()</code></a></p></li>
-<li><p><a href="#method-Rush-block_latest_results"><code>Rush$block_latest_results()</code></a></p></li>
+<li><p><a href="#method-Rush-wait_for_latest_results"><code>Rush$wait_for_latest_results()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_results"><code>Rush$fetch_results()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_queued_tasks"><code>Rush$fetch_queued_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_priority_tasks"><code>Rush$fetch_priority_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_running_tasks"><code>Rush$fetch_running_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_finished_tasks"><code>Rush$fetch_finished_tasks()</code></a></p></li>
-<li><p><a href="#method-Rush-block_finished_tasks"><code>Rush$block_finished_tasks()</code></a></p></li>
+<li><p><a href="#method-Rush-wait_for_finished_tasks"><code>Rush$wait_for_finished_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_failed_tasks"><code>Rush$fetch_failed_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-fetch_tasks"><code>Rush$fetch_tasks()</code></a></p></li>
-<li><p><a href="#method-Rush-await_tasks"><code>Rush$await_tasks()</code></a></p></li>
+<li><p><a href="#method-Rush-wait_for_tasks"><code>Rush$wait_for_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-write_hashes"><code>Rush$write_hashes()</code></a></p></li>
 <li><p><a href="#method-Rush-read_hashes"><code>Rush$read_hashes()</code></a></p></li>
 <li><p><a href="#method-Rush-clone"><code>Rush$clone()</code></a></p></li>
@@ -633,9 +633,21 @@ Changes the state of tasks to <code>"lost"</code> if the worker crashed.</p><div
 <h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
 <p>Stop workers and delete data stored in redis.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"kill"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Type of stopping.
+Either <code>"terminate"</code> or <code>"kill"</code>.
+If <code>"terminate"</code> the workers evaluate the currently running task and then terminate.
+If <code>"kill"</code> the workers are stopped immediately.</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-Rush-read_log"></a><div class="section">
 <h3 id="method-read-log-">Method <code>read_log()</code><a class="anchor" aria-label="anchor" href="#method-read-log-"></a></h3>
@@ -645,7 +657,7 @@ Changes the state of tasks to <code>"lost"</code> if the worker crashed.</p><div
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_ids</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Worker ids.
@@ -664,7 +676,7 @@ Task is added to queued tasks.</p><div class="section">
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
@@ -700,7 +712,7 @@ If the worker is lost or worker id is not known, the task is added to the shared
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
@@ -728,14 +740,21 @@ Keys of the tasks.</p>
 <h3 id="method-fetch-latest-results-">Method <code>fetch_latest_results()</code><a class="anchor" aria-label="anchor" href="#method-fetch-latest-results-"></a></h3>
 <p>Fetch latest results from the data base.</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_latest_results</span><span class="op">(</span>fields <span class="op">=</span> <span class="st">"ys"</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_latest_results</span><span class="op">(</span>fields <span class="op">=</span> <span class="st">"ys"</span>, data_format <span class="op">=</span> <span class="st">"data.table"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -746,16 +765,20 @@ Fields to be read from the hashes.</p></dd>
 Latest results.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-block_latest_results"></a><div class="section">
-<h3 id="method-block-latest-results-">Method <code>block_latest_results()</code><a class="anchor" aria-label="anchor" href="#method-block-latest-results-"></a></h3>
+</div><p></p><hr><a id="method-Rush-wait_for_latest_results"></a><div class="section">
+<h3 id="method-wait-for-latest-results-">Method <code>wait_for_latest_results()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-latest-results-"></a></h3>
 <p>Block process until a new result is available.
 Returns latest results or <code>NULL</code> if no result is available after <code>timeout</code> seconds.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">block_latest_results</span><span class="op">(</span>fields <span class="op">=</span> <span class="st">"ys"</span>, timeout <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_latest_results</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="st">"ys"</span>,</span>
+<span>  timeout <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.</p></dd>
@@ -764,6 +787,13 @@ Fields to be read from the hashes.</p></dd>
 <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>
 Time to wait for a result in seconds.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -779,11 +809,15 @@ Latest results.</p>
 <p>Fetch results from the data base.
 Results are cached.</p><div class="section">
 <h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_results</span><span class="op">(</span>fields <span class="op">=</span> <span class="st">"ys"</span>, reset_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_results</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="st">"ys"</span>,</span>
+<span>  reset_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
@@ -793,6 +827,13 @@ Defaults to <code>"ys"</code>.</p></dd>
 <dt><code>reset_cache</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to reset the cache.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -807,15 +848,25 @@ Results.</p>
 <h3 id="method-fetch-queued-tasks-">Method <code>fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-queued-tasks-"></a></h3>
 <p>Fetch queued tasks from the data base.</p><div class="section">
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"state"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "state")</code>.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -830,15 +881,25 @@ Table of queued tasks.</p>
 <h3 id="method-fetch-priority-tasks-">Method <code>fetch_priority_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-priority-tasks-"></a></h3>
 <p>Fetch queued priority tasks from the data base.</p><div class="section">
 <h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_priority_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"state"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_priority_tasks</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "state")</code>.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -853,15 +914,25 @@ Table of queued priority tasks.</p>
 <h3 id="method-fetch-running-tasks-">Method <code>fetch_running_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-running-tasks-"></a></h3>
 <p>Fetch running tasks from the data base.</p><div class="section">
 <h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"state"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "worker_extra", "state")</code>.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -879,39 +950,8 @@ Finished tasks are cached.</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys"</span>, <span class="st">"ys_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
-<span>  reset_cache <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>fields</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")</code>.</p></dd>
-
-
-<dt><code>reset_cache</code></dt>
-<dd><p>(<code>logical(1)</code>)<br>
-Whether to reset the cache.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
-<p><code>data.table()</code><br>
-Table of finished tasks.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-block_finished_tasks"></a><div class="section">
-<h3 id="method-block-finished-tasks-">Method <code>block_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-block-finished-tasks-"></a></h3>
-<p>Block process until a new finished task is available.
-Returns all finished tasks or <code>NULL</code> if no new task is available after <code>timeout</code> seconds.</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">block_finished_tasks</span><span class="op">(</span></span>
-<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys"</span>, <span class="st">"ys_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
-<span>  timeout <span class="op">=</span> <span class="cn">Inf</span></span>
+<span>  reset_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -923,9 +963,56 @@ Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")</code>.</p></dd>
 
 
+<dt><code>reset_cache</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether to reset the cache.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p><code>data.table()</code><br>
+Table of finished tasks.</p>
+</div>
+
+</div><p></p><hr><a id="method-Rush-wait_for_finished_tasks"></a><div class="section">
+<h3 id="method-wait-for-finished-tasks-">Method <code>wait_for_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-finished-tasks-"></a></h3>
+<p>Block process until a new finished task is available.
+Returns all finished tasks or <code>NULL</code> if no new task is available after <code>timeout</code> seconds.</p><div class="section">
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_finished_tasks</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys"</span>, <span class="st">"ys_extra"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  timeout <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>fields</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Fields to be read from the hashes.
+Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")</code>.</p></dd>
+
+
 <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>
 Time to wait for a result in seconds.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -940,15 +1027,25 @@ Table of finished tasks.</p>
 <h3 id="method-fetch-failed-tasks-">Method <code>fetch_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-failed-tasks-"></a></h3>
 <p>Fetch failed tasks from the data base.</p><div class="section">
 <h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"worker_extra"</span>, <span class="st">"condition"</span>, <span class="st">"state"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"worker_extra"</span>, <span class="st">"condition"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "worker_extra", "condition", "state")</code>.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -964,16 +1061,24 @@ Table of failed tasks.</p>
 <p>Fetch all tasks from the data base.</p><div class="section">
 <h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span></span>
-<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span>, <span class="st">"state"</span><span class="op">)</span></span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span>, <span class="st">"state"</span><span class="op">)</span>,</span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
 Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")</code>.</p></dd>
+
+
+<dt><code>data_format</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Returned data format.
+Choose <code>"data.table"</code> or "list".
+The default is <code>"data.table"</code> but <code>"list"</code> is easier when list columns are present.</p></dd>
 
 
 </dl><p></p></div>
@@ -984,16 +1089,16 @@ Defaults to <code>c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "conditi
 Table of all tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-await_tasks"></a><div class="section">
-<h3 id="method-await-tasks-">Method <code>await_tasks()</code><a class="anchor" aria-label="anchor" href="#method-await-tasks-"></a></h3>
+</div><p></p><hr><a id="method-Rush-wait_for_tasks"></a><div class="section">
+<h3 id="method-wait-for-tasks-">Method <code>wait_for_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-tasks-"></a></h3>
 <p>Wait until tasks are finished.
 The function also unblocks when no worker is running or all tasks failed.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">await_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_tasks <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_tasks <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks to wait for.</p></dd>
@@ -1028,7 +1133,7 @@ For example, <code>xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra =
 </div>
 
 <div class="section">
-<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Lists to be written to the hashes.
@@ -1070,7 +1175,7 @@ The values of a hash are deserialized and combined into a single list.</p><div c
 </div>
 
 <div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the hashes.</p></dd>
@@ -1098,7 +1203,7 @@ The inner list is the combination of the lists stored at the different fields.</
 </div>
 
 <div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
