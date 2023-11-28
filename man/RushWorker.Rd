@@ -55,7 +55,6 @@ Used in the worker loop to determine whether to continue.}
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="await_workers"><a href='../../rush/html/Rush.html#method-Rush-await_workers'><code>rush::Rush$await_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href='../../rush/html/Rush.html#method-Rush-create_worker_script'><code>rush::Rush$create_worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_tasks"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_tasks'><code>rush::Rush$detect_lost_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
@@ -79,6 +78,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_finished_tasks'><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_latest_results"><a href='../../rush/html/Rush.html#method-Rush-wait_for_latest_results'><code>rush::Rush$wait_for_latest_results()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>rush::Rush$wait_for_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href='../../rush/html/Rush.html#method-Rush-wait_for_workers'><code>rush::Rush$wait_for_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>rush::Rush$write_hashes()</code></a></span></li>
 </ul>
 </details>

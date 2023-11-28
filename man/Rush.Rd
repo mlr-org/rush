@@ -211,7 +211,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-print}{\code{Rush$print()}}
 \item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
-\item \href{#method-Rush-await_workers}{\code{Rush$await_workers()}}
+\item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-detect_lost_tasks}{\code{Rush$detect_lost_tasks()}}
@@ -307,7 +307,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
   n_workers = NULL,
-  await_workers = TRUE,
+  wait_for_workers = TRUE,
   globals = NULL,
   packages = NULL,
   heartbeat_period = NULL,
@@ -325,7 +325,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
 
-\item{\code{await_workers}}{(\code{logical(1)})\cr
+\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
 Whether to wait until all workers are available.}
 
 \item{\code{globals}}{(\code{character()})\cr
@@ -413,12 +413,12 @@ Arguments passed to \code{worker_loop}.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-await_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-await_workers}{}}}
-\subsection{Method \code{await_workers()}}{
+\if{html}{\out{<a id="method-Rush-wait_for_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-wait_for_workers}{}}}
+\subsection{Method \code{wait_for_workers()}}{
 Wait until \code{n} workers are available.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$await_workers(n)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

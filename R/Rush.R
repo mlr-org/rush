@@ -166,13 +166,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' @param await_workers (`logical(1)`)\cr
+    #' @param wait_for_workers (`logical(1)`)\cr
     #' Whether to wait until all workers are available.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     start_workers = function(
       n_workers = NULL,
-      await_workers = TRUE,
+      wait_for_workers = TRUE,
       globals = NULL,
       packages = NULL,
       heartbeat_period = NULL,
@@ -184,7 +184,7 @@ Rush = R6::R6Class("Rush",
       ...
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
-      assert_flag(await_workers)
+      assert_flag(wait_for_workers)
 
       # push worker config to redis
       private$.push_worker_config(
@@ -205,7 +205,7 @@ Rush = R6::R6Class("Rush",
           self$network_id, worker_id, private$.hostname, self$config$url)))
       }), worker_ids))
 
-      if (await_workers) self$await_workers(n_workers)
+      if (wait_for_workers) self$wait_for_workers(n_workers)
 
       return(invisible(worker_ids))
     },
@@ -254,7 +254,7 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param n (`integer(1)`)\cr
     #' Number of workers to wait for.
-    await_workers = function(n) {
+    wait_for_workers = function(n) {
       assert_count(n)
       while(self$n_workers < n) Sys.sleep(0.01)
 
@@ -620,11 +620,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "state")`.
+    #' Defaults to `c("xs", "xs_extra")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued tasks.
-    fetch_queued_tasks = function(fields = c("xs", "xs_extra", "state"), data_format = "data.table") {
+    fetch_queued_tasks = function(fields = c("xs", "xs_extra"), data_format = "data.table") {
       keys = self$queued_tasks
       private$.fetch_default(keys, fields, data_format)
     },
@@ -634,11 +634,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "state")`.
+    #' Defaults to `c("xs", "xs_extra")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued priority tasks.
-    fetch_priority_tasks = function(fields = c("xs", "xs_extra", "state"), data_format = "data.table") {
+    fetch_priority_tasks = function(fields = c("xs", "xs_extra"), data_format = "data.table") {
       assert_character(fields)
       assert_choice(data_format, c("data.table", "list"))
       r = self$connector
@@ -658,11 +658,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "state")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra")`.
     #'
     #' @return `data.table()`\cr
     #' Table of running tasks.
-    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "state"), data_format = "data.table") {
+    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra"), data_format = "data.table") {
       keys = self$running_tasks
       private$.fetch_default(keys, fields, data_format)
     },
@@ -673,13 +673,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
     #' @param reset_cache (`logical(1)`)\cr
     #' Whether to reset the cache.
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
-    fetch_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"), reset_cache = FALSE, data_format = "data.table") {
+    fetch_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), reset_cache = FALSE, data_format = "data.table") {
       r = self$connector
       assert_character(fields)
       assert_flag(reset_cache)
@@ -697,13 +697,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for a result in seconds.
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
-    wait_for_finished_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"), timeout = Inf, data_format = "data.table") {
+    wait_for_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), timeout = Inf, data_format = "data.table") {
       start_time = Sys.time()
 
       while(start_time + timeout > Sys.time()) {
@@ -722,11 +722,11 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_extra", "condition", "state")`.
+    #' Defaults to `c("xs", "xs_extra", "worker_extra", "condition"`.
     #'
     #' @return `data.table()`\cr
     #' Table of failed tasks.
-    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition", "state"), data_format = "data.table") {
+    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition"), data_format = "data.table") {
       keys = self$failed_tasks
       private$.fetch_default(keys, fields, data_format)
     },
@@ -740,7 +740,7 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of all tasks.
-    fetch_tasks = function(fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state"), data_format = "data.table") {
+    fetch_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra",  "ys_extra", "condition", "state"), data_format = "data.table") {
       keys = self$tasks
       private$.fetch_default(keys, fields, data_format)
     },
