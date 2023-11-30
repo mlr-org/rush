@@ -24,7 +24,7 @@ test_that("start workers", {
   skip_on_cran()
   skip_on_ci()
 
-  config = redux::redis_config()
+  config = start_flush_redis()
   rush_plan(n_workers = 2, config)
 
   expect_equal(rush_env$n_workers, 2)

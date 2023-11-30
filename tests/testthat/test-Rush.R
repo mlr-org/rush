@@ -110,7 +110,7 @@ test_that("globals are available on the worker", {
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x)
-  x = 33
+  x <<- 33
 
   rush$start_workers(fun = fun, n_workers = 2, globals = "x", wait_for_workers = TRUE)
 
@@ -129,7 +129,6 @@ test_that("globals are available on the worker", {
 test_that("worker can be started with script", {
   skip_on_cran()
   skip_on_ci()
-  skip_if(TRUE)
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -173,15 +172,15 @@ test_that("a worker is terminated", {
   rush$stop_workers(worker_ids = worker_id_1, type = "terminate")
   Sys.sleep(3)
   expect_false(rush$processes[[worker_id_1]]$is_alive())
-  expect_equal(rush$terminated_worker_ids, worker_id_1)
   expect_equal(rush$running_worker_ids, worker_id_2)
+  expect_equal(worker_id_1, rush$terminated_worker_ids)
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "terminate")
   Sys.sleep(3)
   expect_false(rush$processes[[worker_id_2]]$is_alive())
-  expect_set_equal(rush$terminated_worker_ids, c(worker_id_1, worker_id_2))
-  expect_null(rush$running_worker_ids, worker_id_2)
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
+  expect_null(rush$running_worker_ids)
 
   expect_rush_reset(rush)
 })
@@ -203,15 +202,14 @@ test_that("a local worker is killed", {
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
   Sys.sleep(1)
-  expect_equal(rush$killed_worker_ids, worker_id_1)
-  expect_equal(rush$running_worker_ids, worker_id_2)
+  expect_equal(worker_id_1, rush$killed_worker_ids)
   expect_false(rush$processes[[worker_id_1]]$is_alive())
   expect_true(rush$processes[[worker_id_2]]$is_alive())
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
   Sys.sleep(1)
-  expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
   expect_false(rush$processes[[worker_id_1]]$is_alive())
   expect_false(rush$processes[[worker_id_2]]$is_alive())
 
@@ -239,15 +237,36 @@ test_that("a remote worker is killed via the heartbeat", {
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
   Sys.sleep(1)
-  expect_equal(rush$killed_worker_ids, worker_id_1)
+  expect_equal(worker_id_1, rush$killed_worker_ids)
   expect_equal(rush$running_worker_ids, worker_id_2)
   expect_false(tools::pskill(worker_info[worker_id == worker_id_1, pid], signal = 0L))
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
   Sys.sleep(1)
-  expect_set_equal(rush$killed_worker_ids, c(worker_id_1, worker_id_2))
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
   expect_false(tools::pskill(worker_info[worker_id == worker_id_2, pid], signal = 0L))
+
+  expect_rush_reset(rush)
+})
+
+# restart workers --------------------------------------------------------------
+
+test_that("restarting a worker works", {
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE)
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
+
+  tools::pskill(rush$worker_info[worker_id == worker_id_1, pid])
+  Sys.sleep(1)
+  expect_false(rush$processes[[worker_id_1]]$is_alive())
+
+  rush$detect_lost_workers(restart = TRUE)
+  expect_true(rush$processes[[worker_id_1]]$is_alive())
 
   expect_rush_reset(rush)
 })
@@ -286,9 +305,8 @@ test_that("evaluating a task works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush)
@@ -326,9 +344,8 @@ test_that("evaluating tasks works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "keys"))
   expect_data_table(data, nrows = 10)
-  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 10)
 
   expect_rush_reset(rush)
@@ -383,13 +400,13 @@ test_that("a segfault on a local worker is detected", {
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
-    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+    tools::pskill(Sys.getpid())
   }
   worker_ids = rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
-  Sys.sleep(5)
+  Sys.sleep(3)
 
   expect_null(rush$lost_worker_ids)
   rush$detect_lost_workers()
@@ -406,7 +423,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) {
-    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+    tools::pskill(Sys.getpid())
   }
 
   withr::with_envvar(list("HOST" = "remote_host"), {
@@ -463,14 +480,12 @@ test_that("a simple error is catched", {
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "finished")
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "failed")
 
   expect_rush_reset(rush)
 })
@@ -483,17 +498,17 @@ test_that("a lost task is detected", {
   rush = Rush$new(network_id = "test-rush", config = config)
 
   # no task is running
-  expect_class(rush$detect_lost_tasks(), "Rush")
+  expect_class(rush$detect_lost_workers(), "Rush")
 
   fun = function(x1, x2, ...) {
-    get("attach")(structure(list(), class = "UserDefinedDatabase"))
+    tools::pskill(Sys.getpid())
   }
   rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
   Sys.sleep(2)
 
-  rush$detect_lost_tasks()
+  rush$detect_lost_workers()
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -515,11 +530,10 @@ test_that("a lost task is detected", {
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "lost")
 
-  expect_class(rush$detect_lost_tasks(), "Rush")
+  expect_class(rush$detect_lost_workers(), "Rush")
 
   expect_rush_reset(rush)
 })
@@ -532,7 +546,7 @@ test_that("a lost task is detected when waiting", {
   rush = Rush$new(network_id = "test-rush", config = config)
 
   # no task is running
-  expect_class(rush$detect_lost_tasks(), "Rush")
+  expect_class(rush$detect_lost_workers(), "Rush")
 
   fun = function(x1, x2, ...) {
     get("attach")(structure(list(), class = "UserDefinedDatabase"))
@@ -542,7 +556,7 @@ test_that("a lost task is detected when waiting", {
   keys = rush$push_tasks(xss)
   Sys.sleep(5)
 
-  rush$wait_for_tasks(keys, detect_lost_tasks = TRUE)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
 
   # check task count
   expect_equal(rush$n_tasks, 2)
@@ -564,9 +578,8 @@ test_that("a lost task is detected when waiting", {
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "lost")
 
   expect_rush_reset(rush)
 })
@@ -611,7 +624,7 @@ test_that("wait for tasks works when a task gets lost", {
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  expect_class(rush$wait_for_tasks(keys, detect_lost_tasks = TRUE), "Rush")
+  expect_class(rush$wait_for_tasks(keys, detect_lost_workers = TRUE), "Rush")
 
   expect_rush_reset(rush)
 })
