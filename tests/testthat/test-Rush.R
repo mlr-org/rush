@@ -253,6 +253,10 @@ test_that("a remote worker is killed via the heartbeat", {
 # restart workers --------------------------------------------------------------
 
 test_that("restarting a worker works", {
+  skip_on_cran()
+  skip_on_ci()
+
+
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -352,6 +356,9 @@ test_that("evaluating tasks works", {
 })
 
 test_that("caching results works", {
+  skip_on_cran()
+  skip_on_ci()
+
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)

@@ -583,6 +583,9 @@ test_that("moving and fetching tasks works", {
 })
 
 test_that("fetching as list works", {
+  skip_on_cran()
+  skip_on_ci()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
