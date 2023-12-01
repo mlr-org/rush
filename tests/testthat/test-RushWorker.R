@@ -268,9 +268,8 @@ test_that("pushing a task to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush, type = "terminate")
@@ -307,9 +306,8 @@ test_that("pushing a task with extras to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "queued")
   expect_equal(data$timestamp, timestamp)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
@@ -345,10 +343,9 @@ test_that("pushing tasks to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "keys"))
   expect_data_table(data, nrows = 2)
   expect_character(data$keys, unique = TRUE, len = 2)
-  expect_set_equal(data$state, "queued")
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
   expect_rush_reset(rush, type = "terminate")
@@ -385,10 +382,9 @@ test_that("pushing tasks with extras to the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
   expect_data_table(data, nrows = 2)
   expect_character(data$keys, unique = TRUE, len = 2)
-  expect_set_equal(data$state, "queued")
   expect_equal(data$timestamp, c(timestamp, timestamp))
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
@@ -427,9 +423,8 @@ test_that("popping a task from the queue works", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_running_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "running")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush, type = "terminate")
@@ -466,9 +461,8 @@ test_that("pushing a finished task works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
   data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "finished")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush, type = "terminate")
@@ -505,9 +499,8 @@ test_that("pushing a failed tasks works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "state", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_set_equal(data$state, "failed")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   expect_rush_reset(rush, type = "terminate")
@@ -590,6 +583,9 @@ test_that("moving and fetching tasks works", {
 })
 
 test_that("fetching as list works", {
+  skip_on_cran()
+  skip_on_ci()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 

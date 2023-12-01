@@ -30,7 +30,6 @@ worker_loop_default = function(fun, constants = NULL, rush) {
     } else {
       if (rush$terminated_on_idle) break
     }
-    rush$write_log()
   }
 
   return(NULL)

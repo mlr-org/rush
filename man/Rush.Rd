@@ -210,11 +210,11 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-format}{\code{Rush$format()}}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
 \item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
+\item \href{#method-Rush-restart_workers}{\code{Rush$restart_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
-\item \href{#method-Rush-detect_lost_tasks}{\code{Rush$detect_lost_tasks()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
@@ -314,6 +314,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
+  supervise = TRUE,
   worker_loop = worker_loop_default,
   ...
 )}\if{html}{\out{</div>}}
@@ -348,6 +349,9 @@ By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in 
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
 
+\item{\code{supervise}}{(\code{logical(1)})\cr
+Whether to kill the workers when the main R process is shut down.}
+
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
 Defaults to \link{worker_loop_default} which is called with \code{fun}.
@@ -355,6 +359,24 @@ Pass \code{fun} in \code{...}.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-restart_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-restart_workers}{}}}
+\subsection{Method \code{restart_workers()}}{
+Restart workers.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_workers(worker_ids)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{worker_ids}}{(\code{character()})\cr
+Worker ids to be restarted.}
 }
 \if{html}{\out{</div>}}
 }
@@ -465,21 +487,19 @@ Local workers without a heartbeat are checked by their process id.
 Checking local workers on unix systems only takes a few microseconds per worker.
 But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
+Lost tasks are marked as \code{"lost"}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{restart}}{(\code{logical(1)})\cr
+Whether to restart lost workers.}
 }
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-detect_lost_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-detect_lost_tasks}{}}}
-\subsection{Method \code{detect_lost_tasks()}}{
-Detect lost tasks.
-Changes the state of tasks to \code{"lost"} if the worker crashed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_tasks()}\if{html}{\out{</div>}}
+\if{html}{\out{</div>}}
 }
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-reset"></a>}}
@@ -687,7 +707,7 @@ Results.
 Fetch queued tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(
-  fields = c("xs", "xs_extra", "state"),
+  fields = c("xs", "xs_extra"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -697,7 +717,7 @@ Fetch queued tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "state")}.}
+Defaults to \code{c("xs", "xs_extra")}.}
 
 \item{\code{data_format}}{(\code{character()})\cr
 Returned data format.
@@ -718,7 +738,7 @@ Table of queued tasks.
 Fetch queued priority tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(
-  fields = c("xs", "xs_extra", "state"),
+  fields = c("xs", "xs_extra"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -728,7 +748,7 @@ Fetch queued priority tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "state")}.}
+Defaults to \code{c("xs", "xs_extra")}.}
 
 \item{\code{data_format}}{(\code{character()})\cr
 Returned data format.
@@ -749,7 +769,7 @@ Table of queued priority tasks.
 Fetch running tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "state"),
+  fields = c("xs", "xs_extra", "worker_extra"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -759,7 +779,7 @@ Fetch running tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "state")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra")}.}
 
 \item{\code{data_format}}{(\code{character()})\cr
 Returned data format.
@@ -781,7 +801,7 @@ Fetch finished tasks from the data base.
 Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
   reset_cache = FALSE,
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
@@ -792,7 +812,7 @@ Finished tasks are cached.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
@@ -817,7 +837,7 @@ Block process until a new finished task is available.
 Returns all finished tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_finished_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state"),
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
   timeout = Inf,
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
@@ -828,7 +848,7 @@ Returns all finished tasks or \code{NULL} if no new task is available after \cod
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "state")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
@@ -852,7 +872,7 @@ Table of finished tasks.
 Fetch failed tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(
-  fields = c("xs", "worker_extra", "condition", "state"),
+  fields = c("xs", "worker_extra", "condition"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -862,7 +882,7 @@ Fetch failed tasks from the data base.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_extra", "condition", "state")}.}
+Defaults to \verb{c("xs", "xs_extra", "worker_extra", "condition"}.}
 
 \item{\code{data_format}}{(\code{character()})\cr
 Returned data format.
@@ -883,7 +903,7 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state"),
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition", "state"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -914,7 +934,7 @@ Table of all tasks.
 Wait until tasks are finished.
 The function also unblocks when no worker is running or all tasks failed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_tasks(keys, detect_lost_tasks = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_tasks(keys, detect_lost_workers = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -923,7 +943,7 @@ The function also unblocks when no worker is running or all tasks failed.
 \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to wait for.}
 
-\item{\code{detect_lost_tasks}}{(\code{logical(1)})\cr
+\item{\code{detect_lost_workers}}{(\code{logical(1)})\cr
 Whether to detect failed tasks.
 Comes with an overhead.}
 }

@@ -107,7 +107,7 @@ RushWorker = R6::R6Class("RushWorker",
       if (!is.null(self$heartbeat)) {
         r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
       } else if (host == "local") {
-        r$SADD(private$.get_key("local_pids"), Sys.getpid())
+        r$SADD(private$.get_key("local_workers"), self$worker_id)
       }
 
       # register worker info in
@@ -206,28 +206,11 @@ RushWorker = R6::R6Class("RushWorker",
     },
 
     #' @description
-    #' Write log message written with the `lgr` package to the database.
-    write_log = function() {
-      if (!is.null(self$lgr_buffer)) {
-        r = self$connector
-        tab = self$lgr_buffer$dt
-        if (nrow(tab)) {
-          bin_log = redux::object_to_bin(self$lgr_buffer$dt)
-          r$command(list("RPUSH", private$.get_worker_key("log"), bin_log))
-          self$lgr_buffer$flush()
-        }
-      }
-
-      return(invisible(self))
-    },
-
-    #' @description
     #' Mark the worker as terminated.
     #' Last step in the worker loop before the worker terminates.
     set_terminated = function() {
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
-      self$write_log()
       r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
       return(invisible(self))
     }
