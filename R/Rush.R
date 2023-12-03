@@ -180,6 +180,7 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
+      max_retries = 0,
       supervise = TRUE,
       worker_loop = worker_loop_default,
       ...
@@ -187,6 +188,10 @@ Rush = R6::R6Class("Rush",
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
       assert_flag(wait_for_workers)
       assert_flag(supervise)
+      r = self$connector
+
+      # set global maximum retries of tasks
+      private$.max_retries = assert_count(max_retries)
 
       # push worker config to redis
       private$.push_worker_config(
@@ -196,6 +201,7 @@ Rush = R6::R6Class("Rush",
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
+        max_retries = max_retries,
         worker_loop = worker_loop,
         ...
       )
@@ -306,7 +312,7 @@ Rush = R6::R6Class("Rush",
 
         # Push terminate signal to worker
         cmds = map(worker_ids, function(worker_id) {
-          c("SET", private$.get_worker_key("terminate", worker_id), "TRUE")
+          c("SET", private$.get_worker_key("terminate", worker_id), "1")
         })
         r$pipeline(.commands = cmds)
 
@@ -353,10 +359,11 @@ Rush = R6::R6Class("Rush",
     #' Workers with a heartbeat process are checked with the heartbeat.
     #' Lost tasks are marked as `"lost"`.
     #'
-    #' @param restart (`logical(1)`)\cr
+    #' @param restart_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
-    detect_lost_workers = function(restart = FALSE) {
-      assert_flag(restart)
+    detect_lost_workers = function(restart_workers = FALSE, restart_tasks = FALSE) {
+      assert_flag(restart_workers)
+      assert_flag(restart_tasks)
       r = self$connector
 
       # check workers with a heartbeat
@@ -392,7 +399,7 @@ Rush = R6::R6Class("Rush",
         lost_workers = local_workers[!running]
         lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
 
-        if (restart) {
+        if (restart_workers) {
           self$restart_workers(unlist(lost_workers))
           lost_workers
         } else {
@@ -412,17 +419,34 @@ Rush = R6::R6Class("Rush",
       if (length(lost_workers)) {
         running_tasks = self$fetch_running_tasks(fields = "worker_extra")
         if (!nrow(running_tasks)) return(invisible(self))
-        keys = running_tasks[lost_workers, keys, on = "worker_id"]
+        lost_workers = unlist(lost_workers)
+        keys = running_tasks[list(lost_workers), keys, on = "worker_id"]
 
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
 
-        cmds = unlist(map(keys, function(key) {
-          list(
-            list("HSET", key, "state", failed_state),
-            c("SREM", private$.get_key("running_tasks"), key),
-            c("RPUSH", private$.get_key("failed_tasks"), key))
-        }), recursive = FALSE)
-        r$pipeline(.commands = cmds)
+        if (restart_tasks) {
+
+          # check whether the tasks should be retried
+          retry = self$n_tries(keys) < private$.max_retries
+          keys = keys[retry]
+
+          if (length(keys)) {
+            lg$error("Retry %i lost task(s): %s", length(keys), str_collapse(keys))
+            cmds = map(keys, function(key) {
+              c("HINCRBY", key, "n_tries", 1)
+            })
+            cmds = c(cmds, list(
+              c("RPUSH", private$.get_key("queued_tasks"), keys),
+              c("SREM", private$.get_key("running_tasks"), keys)
+            ))
+            r$pipeline(.commands = cmds)
+          }
+        } else {
+          cmds = list(
+            c("RPUSH", private$.get_key("failed_tasks"), keys),
+            c("SREM", private$.get_key("running_tasks"), keys))
+          r$pipeline(.commands = cmds)
+        }
       }
 
       return(invisible(self))
@@ -523,10 +547,10 @@ Rush = R6::R6Class("Rush",
 
       lg$debug("Pushing %i task(s) to the shared queue", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "queued")
+      keys = self$write_hashes(xs = xss, xs_extra = extra)
       r$command(c("LPUSH", private$.get_key("queued_tasks"), keys))
       r$command(c("SADD", private$.get_key("all_tasks"), keys))
-      if (terminate_workers) r$command(c("SET", private$.get_key("terminate_on_idle"), "TRUE"))
+      if (terminate_workers) r$command(c("SET", private$.get_key("terminate_on_idle"), 1))
 
       return(invisible(keys))
     },
@@ -559,7 +583,7 @@ Rush = R6::R6Class("Rush",
       lg$debug("Pushing %i task(s) to %i priority queue(s) and %i task(s) to the shared queue.",
         sum(!is.na(priority)), length(unique(priority[!is.na(priority)])), sum(is.na(priority)))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "queued")
+      keys = self$write_hashes(xs = xss, xs_extra = extra)
       cmds = pmap(list(priority, keys), function(worker_id, key) {
         if (is.na(worker_id)) {
           c("LPUSH", private$.get_key("queued_tasks"), key)
@@ -824,25 +848,14 @@ Rush = R6::R6Class("Rush",
     #' @param keys (character())\cr
     #' Keys of the hashes.
     #' If `NULL` new keys are generated.
-    #' @param state (`character(1)`)\cr
-    #' State of the hashes.
     #'
     #' @return (`character()`)\cr
     #' Keys of the hashes.
-    write_hashes = function(..., .values = list(), keys = NULL, state = NA_character_) {
+    write_hashes = function(..., .values = list(), keys = NULL) {
       values = discard(c(list(...), .values), function(l) !length(l))
       assert_list(values, names = "unique", types = "list", min.len = 1)
       fields = names(values)
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
-      assert_string(state, na.ok = TRUE)
-      bin_state = switch(state,
-        "queued" = queued_state,
-        "running" = running_state,
-        "failed" = failed_state,
-        "finished" = finished_state,
-        `NA_character_` = na_state,
-        redux::object_to_bin(list(state = state))
-      )
 
       lg$debug("Writting %i hash(es) with %i field(s)", length(keys), length(fields))
 
@@ -856,7 +869,7 @@ Rush = R6::R6Class("Rush",
           # merge fields and values alternatively
           # c and rbind are fastest option in R
           # data is not copied
-          c("HSET", key, c(rbind(fields, bin_values)), "state", list(bin_state))
+          c("HSET", key, c(rbind(fields, bin_values)))
         })
 
       self$connector$pipeline(.commands = cmds)
@@ -893,6 +906,23 @@ Rush = R6::R6Class("Rush",
       # unserialize lists of the second level
       # combine elements of the third level to one list
       map(hashes, function(hash) unlist(map_if(hash, function(x) !is.null(x), redux::bin_to_object), recursive = FALSE))
+    },
+
+    #' @description
+    #' Returns the number of attempts to evaluate a task.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks.
+    #'
+    #' @return (`integer()`)\cr
+    #' Number of attempts.
+    n_tries = function(keys) {
+      assert_character(keys)
+      r = self$connector
+
+      # n_retries is not set when the task never failed before
+      n_tries = r$pipeline(.commands = map(keys, function(key) c("HGET", key, "n_tries")))
+      map_int(n_tries, function(value) if (is.null(value)) 0L else as.integer(value))
     }
   ),
 
@@ -1119,6 +1149,8 @@ Rush = R6::R6Class("Rush",
     #
     .hostname = NULL,
 
+    .max_retries = NULL,
+
     # prefix key with instance id
     .get_key = function(key) {
       sprintf("%s:%s", self$network_id, key)
@@ -1138,6 +1170,7 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
+      max_retries = 0,
       worker_loop = worker_loop_default,
       ...
     ) {
@@ -1148,6 +1181,7 @@ Rush = R6::R6Class("Rush",
       if (!is.null(heartbeat_period)) require_namespaces("callr")
       assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
       assert_count(lgr_buffer_size)
+      assert_count(max_retries)
       assert_function(worker_loop)
       dots = list(...)
       r = self$connector
@@ -1166,7 +1200,8 @@ Rush = R6::R6Class("Rush",
         heartbeat_period = heartbeat_period,
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size)
+        lgr_buffer_size = lgr_buffer_size,
+        max_retries = max_retries)
 
       # arguments needed for initializing the worker
       start_args = list(
@@ -1241,10 +1276,3 @@ Rush = R6::R6Class("Rush",
   )
 )
 
-# common state for all tasks
-# used in $write_hashes()
-queued_state = redux::object_to_bin(list(state = "queued"))
-running_state = redux::object_to_bin(list(state = "running"))
-failed_state = redux::object_to_bin(list(state = "failed"))
-finished_state = redux::object_to_bin(list(state = "finished"))
-na_state = redux::object_to_bin(list(state = NA_character_))

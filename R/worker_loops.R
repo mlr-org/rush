@@ -25,7 +25,7 @@ worker_loop_default = function(fun, constants = NULL, rush) {
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)
-        rush$push_results(task$key, conditions = list(condition), state = "failed")
+        rush$push_failed(task$key, conditions = list(condition))
       })
     } else {
       if (rush$terminated_on_idle) break

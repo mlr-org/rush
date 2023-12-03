@@ -43,12 +43,14 @@ RushWorker = R6::R6Class("RushWorker",
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = 0
+      lgr_buffer_size = 0,
+      max_retries = 0
       ) {
       super$initialize(network_id = network_id, config = config)
 
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
+      private$.max_retries = assert_count(max_retries)
       r = self$connector
 
       # setup heartbeat
@@ -137,7 +139,7 @@ RushWorker = R6::R6Class("RushWorker",
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, state = "running")
+      keys = self$write_hashes(xs = xss, xs_extra = extra)
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("SADD", private$.get_key("all_tasks"), keys))
 
@@ -156,7 +158,7 @@ RushWorker = R6::R6Class("RushWorker",
       key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
       if (is.null(key)) return(NULL)
-      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key, state = "running")
+      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key)
 
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
@@ -178,20 +180,16 @@ RushWorker = R6::R6Class("RushWorker",
     #' Status of the tasks.
     #' If `"finished"` the tasks are moved to the finished tasks.
     #' If `"error"` the tasks are moved to the failed tasks.
-    push_results = function(keys, yss = list(), extra = list(), conditions = list(), state = "finished") {
+    push_results = function(keys, yss = list(), extra = list(), conditions = list()) {
       assert_string(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list")
-      assert_list(conditions, types = "list")
-      assert_choice(state, c("finished", "failed"))
       r = self$connector
 
       # write result to hash
-      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys, state = state)
+      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys)
 
-      destination = if (state == "finished") "finished_tasks" else "failed_tasks"
-
-      # move key from running to finished or failed
+      # move key from running to finished
       # keys of finished and failed tasks are stored in a list i.e. the are ordered by time.
       # each rush instance only needs to record how many results it has already seen
       # to cheaply get the latest results and cache the finished tasks
@@ -199,7 +197,24 @@ RushWorker = R6::R6Class("RushWorker",
       # but at the moment a list seems to be the better option
       r$pipeline(.commands = list(
         c("SREM", private$.get_key("running_tasks"), keys),
-        c("RPUSH", private$.get_key(destination), keys)
+        c("RPUSH", private$.get_key("finished_tasks"), keys)
+      ))
+
+      return(invisible(self))
+    },
+
+    push_failed = function(keys, conditions) {
+      assert_string(keys)
+      assert_list(conditions, types = "list")
+      r = self$connector
+
+      # write condition to hash
+      self$write_hashes(condition = conditions, keys = keys)
+
+      # move key from running to failed
+      r$pipeline(.commands = list(
+        c("SREM", private$.get_key("running_tasks"), keys),
+        c("RPUSH", private$.get_key("failed_tasks"), keys)
       ))
 
       return(invisible(self))
@@ -223,7 +238,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' Used in the worker loop to determine whether to continue.
     terminated = function() {
       r = self$connector
-      r$GET(private$.get_worker_key("terminate")) %??% "FALSE" == "TRUE"
+      as.logical(r$EXISTS(private$.get_worker_key("terminate")))
     },
 
     #' @field terminated_on_idle (`logical(1)`)\cr
@@ -231,7 +246,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' Used in the worker loop to determine whether to continue.
     terminated_on_idle = function() {
       r = self$connector
-      r$GET(private$.get_key("terminate_on_idle")) %??% "FALSE" == "TRUE" && !as.logical(self$n_queued_tasks)
+      as.logical(r$EXISTS(private$.get_key("terminate_on_idle"))) && !as.logical(self$n_queued_tasks)
     }
   )
 )
