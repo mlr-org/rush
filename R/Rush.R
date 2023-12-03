@@ -441,13 +441,10 @@ Rush = R6::R6Class("Rush",
             ))
             r$pipeline(.commands = cmds)
           }
-
         } else {
-          cmds = unlist(map(keys, function(key) {
-            list(
-              c("SREM", private$.get_key("running_tasks"), key),
-              c("RPUSH", private$.get_key("failed_tasks"), key))
-          }), recursive = FALSE)
+          cmds = list(
+            c("RPUSH", private$.get_key("failed_tasks"), keys),
+            c("SREM", private$.get_key("running_tasks"), keys))
           r$pipeline(.commands = cmds)
         }
       }
