@@ -356,6 +356,7 @@ For more details see <a href="https://redis.io/docs/management/persistence/#snap
 <li><p><a href="#method-Rush-wait_for_tasks"><code>Rush$wait_for_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-write_hashes"><code>Rush$write_hashes()</code></a></p></li>
 <li><p><a href="#method-Rush-read_hashes"><code>Rush$read_hashes()</code></a></p></li>
+<li><p><a href="#method-Rush-n_tries"><code>Rush$n_tries()</code></a></p></li>
 <li><p><a href="#method-Rush-clone"><code>Rush$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Rush-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -434,6 +435,7 @@ This function takes the arguments <code>fun</code> and optionally <code>constant
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  max_retries <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  supervise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  worker_loop <span class="op">=</span> <span class="va">worker_loop_default</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -640,12 +642,12 @@ But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as <code>"lost"</code>.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span>restart_workers <span class="op">=</span> <span class="cn">FALSE</span>, restart_tasks <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>restart</code></dt>
+<p></p><div class="arguments"><dl><dt><code>restart_workers</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to restart lost workers.</p></dd>
 
@@ -1153,7 +1155,7 @@ Vectors in list columns must be wrapped in lists.
 Otherwise, <code>$read_values()</code> will expand the table by the length of the vectors.
 For example, <code>xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass </code>xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.</p><div class="section">
 <h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span>, state <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -1174,11 +1176,6 @@ The names of the list are used as fields.</p></dd>
 <dd><p>(character())<br>
 Keys of the hashes.
 If <code>NULL</code> new keys are generated.</p></dd>
-
-
-<dt><code>state</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-State of the hashes.</p></dd>
 
 
 </dl><p></p></div>
@@ -1219,15 +1216,37 @@ The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
-<p>The objects of this class are cloneable with this method.</p><div class="section">
+</div><p></p><hr><a id="method-Rush-n_tries"></a><div class="section">
+<h3 id="method-n-tries-">Method <code>n_tries()</code><a class="anchor" aria-label="anchor" href="#method-n-tries-"></a></h3>
+<p>Returns the number of attempts to evaluate a task.</p><div class="section">
 <h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">n_tries</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Keys of the tasks.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<p>(<code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code>)<br>
+Number of attempts.</p>
+</div>
+
+</div><p></p><hr><a id="method-Rush-clone"></a><div class="section">
+<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+<p>The objects of this class are cloneable with this method.</p><div class="section">
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
