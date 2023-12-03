@@ -232,6 +232,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
+\item \href{#method-Rush-n_tries}{\code{Rush$n_tries()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
 }
 }
@@ -314,6 +315,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
+  max_retries = 0,
   supervise = TRUE,
   worker_loop = worker_loop_default,
   ...
@@ -489,13 +491,13 @@ But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as \code{"lost"}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_workers = FALSE, restart_tasks = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{restart}}{(\code{logical(1)})\cr
+\item{\code{restart_workers}}{(\code{logical(1)})\cr
 Whether to restart lost workers.}
 }
 \if{html}{\out{</div>}}
@@ -968,7 +970,7 @@ Vectors in list columns must be wrapped in lists.
 Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL, state = NA_character_)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -985,9 +987,6 @@ The names of the list are used as fields.}
 \item{\code{keys}}{(character())\cr
 Keys of the hashes.
 If \code{NULL} new keys are generated.}
-
-\item{\code{state}}{(\code{character(1)})\cr
-State of the hashes.}
 }
 \if{html}{\out{</div>}}
 }
@@ -1022,6 +1021,28 @@ Fields to be read from the hashes.}
 (list of \code{list()})\cr
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-n_tries"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-n_tries}{}}}
+\subsection{Method \code{n_tries()}}{
+Returns the number of attempts to evaluate a task.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$n_tries(keys)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{integer()})\cr
+Number of attempts.
 }
 }
 \if{html}{\out{<hr>}}

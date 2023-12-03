@@ -171,43 +171,6 @@ test_that("writing hashes to specific keys works", {
   expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
 })
 
-test_that("writing a hash with a state works", {
-  skip_on_cran()
-  skip_on_ci()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-
-  # one element
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = "queued")
-  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "queued")))
-
-  # two elements
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), state = "queued")
-  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "queued"), list(x1 = 1, x2 = 3, state = "queued")))
-})
-
-test_that("writing a hash with a NA state works", {
-  skip_on_cran()
-  skip_on_ci()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = NA_character_)
-  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = NA_character_)))
-})
-
-test_that("writing a hash with a arbitrary state works", {
-  skip_on_cran()
-  skip_on_ci()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), state = "test")
-  expect_equal(rush$read_hashes(keys, c("xs", "state")), list(list(x1 = 1, x2 = 2, state = "test")))
-})
 
 test_that("writing list columns works", {
   skip_on_cran()
@@ -216,7 +179,7 @@ test_that("writing list columns works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))), state = "finished")
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
 
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
@@ -224,7 +187,7 @@ test_that("writing list columns works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))), state = "finished")
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
 
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
@@ -232,7 +195,7 @@ test_that("writing list columns works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))), state = "finished")
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
   rush$read_hashes(keys, c("xs", "xs_extra"))
 
@@ -478,7 +441,7 @@ test_that("pushing a failed tasks works", {
   rush$push_tasks(xss)
   task = rush$pop_task()
 
-  rush$push_results(task$key, condition = list(list(message = "error")), state = "failed")
+  rush$push_failed(task$key, condition = list(list(message = "error")))
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -557,7 +520,7 @@ test_that("moving and fetching tasks works", {
 
   # push failed task
   task = rush$pop_task()
-  rush$push_results(task$key, condition = list(list(message = "error")), state = "failed")
+  rush$push_failed(task$key, condition = list(list(message = "error")))
   queued_tasks = rush$fetch_queued_tasks()
   expect_data_table(queued_tasks, nrows = 1)
   expect_character(queued_tasks$keys, unique = TRUE)
@@ -643,7 +606,7 @@ test_that("fetching as list works", {
 
   # push failed task
   task = rush$pop_task()
-  rush$push_results(task$key, condition = list(list(message = "error")), state = "failed")
+  rush$push_failed(task$key, condition = list(list(message = "error")))
   failed_tasks = rush$fetch_failed_tasks(data_format = "list")
   expect_list(failed_tasks, len = 1)
   expect_names(names(failed_tasks), identical.to = task$key)
@@ -889,3 +852,40 @@ test_that("pushing tasks and terminating worker works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
+test_that("n_retries method works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  expect_equal(rush$n_tries(keys), 0)
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  expect_equal(rush$n_tries(keys), c(0, 0))
+
+  rush$connector$command(c("HINCRBY", keys[1], "n_tries", 1))
+
+  expect_equal(rush$n_tries(keys), c(1L, 0))
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("terminate on idle works", {
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss, terminate_workers = TRUE)
+  expect_false(rush$terminated_on_idle)
+
+  rush$pop_task()
+  expect_true(rush$terminated_on_idle)
+
+  expect_rush_reset(rush, type = "terminate")
+})

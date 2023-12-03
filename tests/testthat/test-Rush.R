@@ -129,12 +129,23 @@ test_that("globals are available on the worker", {
 test_that("worker can be started with script", {
   skip_on_cran()
   skip_on_ci()
+  set.seed(1) # make log messages reproducible
+
+  root_logger = lgr::get_logger("root")
+  old_fmt = root_logger$appenders$cons$layout$fmt
+  root_logger$appenders$cons$layout$set_fmt("%L (%n): %m")
+
+  on.exit({
+    root_logger$appenders$cons$layout$set_fmt(old_fmt)
+  })
 
   config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
+  withr::with_envvar(list("HOST" = "host"), {
+    rush = Rush$new(network_id = "test-rush", config = config)
+  })
   fun = function(x1, x2, ...) list(y = x1 + x2)
 
-  rush$create_worker_script(fun = fun)
+  expect_snapshot(rush$create_worker_script(fun = fun))
 })
 
 test_that("a remote worker is started", {
@@ -246,31 +257,6 @@ test_that("a remote worker is killed via the heartbeat", {
   Sys.sleep(1)
   expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
   expect_false(tools::pskill(worker_info[worker_id == worker_id_2, pid], signal = 0L))
-
-  expect_rush_reset(rush)
-})
-
-# restart workers --------------------------------------------------------------
-
-test_that("restarting a worker works", {
-  skip_on_cran()
-  skip_on_ci()
-
-
-  config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-
-  rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE)
-  worker_id_1 = rush$running_worker_ids[1]
-  worker_id_2 = rush$running_worker_ids[2]
-
-  tools::pskill(rush$worker_info[worker_id == worker_id_1, pid])
-  Sys.sleep(1)
-  expect_false(rush$processes[[worker_id_1]]$is_alive())
-
-  rush$detect_lost_workers(restart = TRUE)
-  expect_true(rush$processes[[worker_id_1]]$is_alive())
 
   expect_rush_reset(rush)
 })
@@ -402,7 +388,7 @@ test_that("caching results works", {
 test_that("a segfault on a local worker is detected", {
   skip_on_cran()
   skip_on_ci()
-  skip_on_os("windows")
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -425,7 +411,7 @@ test_that("a segfault on a local worker is detected", {
 test_that("a segfault on a worker is detected via the heartbeat", {
   skip_on_cran()
   skip_on_ci()
-  skip_on_os("windows")
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -453,6 +439,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 test_that("a simple error is catched", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -464,7 +451,7 @@ test_that("a simple error is catched", {
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
   Sys.sleep(2)
 
   # check task count
@@ -500,6 +487,7 @@ test_that("a simple error is catched", {
 test_that("a lost task is detected", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -548,6 +536,7 @@ test_that("a lost task is detected", {
 test_that("a lost task is detected when waiting", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -591,6 +580,53 @@ test_that("a lost task is detected when waiting", {
   expect_rush_reset(rush)
 })
 
+# restart tasks and workers ----------------------------------------------------
+
+test_that("restarting a worker works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE)
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
+
+  tools::pskill(rush$worker_info[worker_id == worker_id_1, pid])
+  Sys.sleep(1)
+  expect_false(rush$processes[[worker_id_1]]$is_alive())
+
+  rush$detect_lost_workers(restart_workers = TRUE)
+  expect_true(rush$processes[[worker_id_1]]$is_alive())
+
+  expect_rush_reset(rush)
+})
+
+test_that("a task is restarted when a worker is lost", {
+  skip_on_cran()
+  skip_on_ci()
+  set.seed(1) # make log messages reproducible
+  skip_if(TRUE) # does not work in testthat on environment
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) {
+    tools::pskill(Sys.getpid())
+  }
+
+  rush$start_workers(fun = fun, n_workers = 1, max_retries = 1, wait_for_workers = TRUE)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  rush$detect_lost_workers(restart_workers = TRUE, restart_tasks = TRUE)
+
+  expect_equal(rush$n_tries(keys), 1)
+
+  expect_rush_reset(rush)
+})
 
 # receiving results ------------------------------------------------------------
 
