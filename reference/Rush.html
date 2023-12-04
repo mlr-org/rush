@@ -435,7 +435,7 @@ This function takes the arguments <code>fun</code> and optionally <code>constant
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  max_retries <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  max_tries <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  supervise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  worker_loop <span class="op">=</span> <span class="va">worker_loop_default</span>,</span>
@@ -485,6 +485,11 @@ Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
+
+
+<dt><code>max_tries</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Maximum number of tries for a task before it is considered failed.</p></dd>
 
 
 <dt><code>seed</code></dt>
@@ -656,6 +661,11 @@ Lost tasks are marked as <code>"lost"</code>.</p><div class="section">
 <p></p><div class="arguments"><dl><dt><code>restart_workers</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to restart lost workers.</p></dd>
+
+
+<dt><code>restart_tasks</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether to restart lost tasks.</p></dd>
 
 
 </dl><p></p></div>

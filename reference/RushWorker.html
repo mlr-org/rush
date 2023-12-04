@@ -170,7 +170,7 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_retries <span class="op">=</span> <span class="fl">0</span></span>
+<span>  max_tries <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -229,6 +229,11 @@ This improves the performance of the logging.</p></dd>
 <dt><code>seed</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Seed for the random number generator.</p></dd>
+
+
+<dt><code>max_tries</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Maximum number of tries for a task before it is considered failed.</p></dd>
 
 
 </dl><p></p></div>
@@ -325,12 +330,25 @@ If <code>"error"</code> the tasks are moved to the failed tasks.</p></dd>
 
 </div><p></p><hr><a id="method-RushWorker-push_failed"></a><div class="section">
 <h3 id="method-push-failed-">Method <code>push_failed()</code><a class="anchor" aria-label="anchor" href="#method-push-failed-"></a></h3>
-
-<div class="section">
+<p>Pushes failed tasks to the data base.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RushWorker</span><span class="op">$</span><span class="fu">push_failed</span><span class="op">(</span><span class="va">keys</span>, <span class="va">conditions</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Keys of the associated tasks.</p></dd>
+
+
+<dt><code>conditions</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of lists of conditions.</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-RushWorker-set_seed"></a><div class="section">
 <h3 id="method-set-seed-">Method <code>set_seed()</code><a class="anchor" aria-label="anchor" href="#method-set-seed-"></a></h3>
@@ -341,7 +359,7 @@ Updates the seed table if necessary.</p><div class="section">
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>key</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Key of the task.</p></dd>
@@ -367,7 +385,7 @@ Last step in the worker loop before the worker terminates.</p><div class="sectio
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
