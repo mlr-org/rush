@@ -818,5 +818,12 @@ test_that("seed is set correctly on two workers", {
   expect_equal(finished_tasks[.keys[3], y, on = "keys"], 2926)
   expect_equal(finished_tasks[.keys[4], y, on = "keys"], 4937)
 
+  .keys = rush$push_tasks(list(list(x1 = 5, x2 = 3), list(x1 = 5, x2 = 4)))
+  rush$wait_for_tasks(.keys)
+
+  finished_tasks = rush$fetch_finished_tasks()
+  expect_equal(finished_tasks[.keys[1], y, on = "keys"], 7814)
+  expect_equal(finished_tasks[.keys[2], y, on = "keys"], 713)
+
   expect_rush_reset(rush, type = "terminate")
 })
