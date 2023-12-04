@@ -215,7 +215,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
           self$network_id, worker_id, private$.hostname, self$config$url)),
-        supervise = supervise)
+        supervise = supervise) # , stdout = "|", stderr = "|"
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers)

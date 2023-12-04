@@ -110,6 +110,8 @@ RushWorker = R6::R6Class("RushWorker",
         walk(self$tasks, function(key) {
           .lec.CreateStream(key)
         })
+      } else {
+        private$.seed = FALSE
       }
 
       # register worker ids

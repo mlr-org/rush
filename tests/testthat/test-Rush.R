@@ -96,7 +96,7 @@ test_that("packages are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
 
   expect_equal(rush$n_finished_tasks, 1)
 
@@ -116,7 +116,7 @@ test_that("globals are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
 
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$y, 33)
