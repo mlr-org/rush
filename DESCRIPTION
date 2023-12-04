@@ -18,6 +18,7 @@ Imports:
     mlr3misc,
     processx,
     redux,
+    rlecuyer,
     uuid
 Suggests:
     callr,

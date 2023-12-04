@@ -15,6 +15,7 @@
 #' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
+#' @template param_seed
 #'
 #' @export
 RushWorker = R6::R6Class("RushWorker",
@@ -44,6 +45,7 @@ RushWorker = R6::R6Class("RushWorker",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
+      seed = NULL,
       max_retries = 0
       ) {
       super$initialize(network_id = network_id, config = config)
@@ -101,6 +103,15 @@ RushWorker = R6::R6Class("RushWorker",
         }
       }
 
+      # initialize seed table
+      if (!is.null(seed)) {
+        private$.seed = TRUE
+        .lec.SetPackageSeed(seed)
+        walk(self$tasks, function(key) {
+          .lec.CreateStream(key)
+        })
+      }
+
       # register worker ids
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
       r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
@@ -141,7 +152,7 @@ RushWorker = R6::R6Class("RushWorker",
 
       keys = self$write_hashes(xs = xss, xs_extra = extra)
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
-      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+      r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
       return(invisible(keys))
     },
@@ -221,6 +232,28 @@ RushWorker = R6::R6Class("RushWorker",
     },
 
     #' @description
+    #' Sets the seed for `key`.
+    #' Updates the seed table if necessary.
+    #'
+    #' @param key (`character(1)`)\cr
+    #' Key of the task.
+    set_seed = function(key) {
+      if (!private$.seed) return(invisible(self))
+      r = self$connector
+
+      # update seed table
+      n_streams = length(.lec.Random.seed.table$name)
+      if (self$n_tasks > n_streams) {
+        keys = r$LRANGE(private$.get_key("all_tasks"), n_streams, -1)
+        walk(keys, function(key) .lec.CreateStream(key))
+      }
+
+      # set seed
+      .lec.CurrentStream(key)
+      return(invisible(self))
+    },
+
+    #' @description
     #' Mark the worker as terminated.
     #' Last step in the worker loop before the worker terminates.
     set_terminated = function() {
@@ -248,5 +281,9 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
       as.logical(r$EXISTS(private$.get_key("terminate_on_idle"))) && !as.logical(self$n_queued_tasks)
     }
+  ),
+
+  private = list(
+    .seed = NULL
   )
 )

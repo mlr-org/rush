@@ -20,6 +20,8 @@ worker_loop_default = function(fun, constants = NULL, rush) {
   while(!rush$terminated) {
     task = rush$pop_task()
     if (!is.null(task)) {
+      # set seed
+      rush$set_seed(task$key)
       tryCatch({
         ys = mlr3misc::invoke(fun, .args = c(task$xs, constants))
         rush$push_results(task$key, yss = list(ys))

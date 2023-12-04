@@ -48,6 +48,7 @@ Used in the worker loop to determine whether to continue.}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
 \item \href{#method-RushWorker-push_failed}{\code{RushWorker$push_failed()}}
+\item \href{#method-RushWorker-set_seed}{\code{RushWorker$set_seed()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
@@ -99,6 +100,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
+  seed = NULL,
   max_retries = 0
 )}\if{html}{\out{</div>}}
 }
@@ -139,6 +141,9 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
+
+\item{\code{seed}}{(\code{integer(1)})\cr
+Seed for the random number generator.}
 }
 \if{html}{\out{</div>}}
 }
@@ -232,6 +237,25 @@ If \code{"error"} the tasks are moved to the failed tasks.}
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_failed(keys, conditions)}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-set_seed"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-set_seed}{}}}
+\subsection{Method \code{set_seed()}}{
+Sets the seed for \code{key}.
+Updates the seed table if necessary.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$set_seed(key)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{(\code{character(1)})\cr
+Key of the task.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-set_terminated"></a>}}
