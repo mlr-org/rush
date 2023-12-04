@@ -436,6 +436,7 @@ This function takes the arguments <code>fun</code> and optionally <code>constant
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  max_retries <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  supervise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  worker_loop <span class="op">=</span> <span class="va">worker_loop_default</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -484,6 +485,11 @@ Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
+
+
+<dt><code>seed</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Seed for the random number generator.</p></dd>
 
 
 <dt><code>supervise</code></dt>
