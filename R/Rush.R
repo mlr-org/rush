@@ -97,7 +97,9 @@
 #' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
+#' @template param_seed
 #' @template param_data_format
+#'
 #'
 #' @export
 Rush = R6::R6Class("Rush",
@@ -181,6 +183,7 @@ Rush = R6::R6Class("Rush",
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
       max_retries = 0,
+      seed = NULL,
       supervise = TRUE,
       worker_loop = worker_loop_default,
       ...
@@ -202,6 +205,7 @@ Rush = R6::R6Class("Rush",
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
         max_retries = max_retries,
+        seed = seed,
         worker_loop = worker_loop,
         ...
       )
@@ -211,7 +215,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
           self$network_id, worker_id, private$.hostname, self$config$url)),
-        supervise = supervise)
+        supervise = supervise) # , stdout = "|", stderr = "|"
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers)
@@ -548,8 +552,10 @@ Rush = R6::R6Class("Rush",
       lg$debug("Pushing %i task(s) to the shared queue", length(xss))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra)
-      r$command(c("LPUSH", private$.get_key("queued_tasks"), keys))
-      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+      cmds = list(
+        c("RPUSH", private$.get_key("all_tasks"), keys),
+        c("LPUSH", private$.get_key("queued_tasks"), keys))
+      r$pipeline(.commands = cmds)
       if (terminate_workers) r$command(c("SET", private$.get_key("terminate_on_idle"), 1))
 
       return(invisible(keys))
@@ -592,7 +598,7 @@ Rush = R6::R6Class("Rush",
         }
       })
       r$pipeline(.commands = cmds)
-      r$command(c("SADD", private$.get_key("all_tasks"), keys))
+      r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
       return(invisible(keys))
     },
@@ -983,7 +989,7 @@ Rush = R6::R6Class("Rush",
     #' Keys of all tasks.
     tasks = function() {
       r = self$connector
-      unlist(r$SMEMBERS(private$.get_key("all_tasks")))
+      unlist(r$LRANGE(private$.get_key("all_tasks"), 0, -1))
     },
 
     #' @field queued_tasks (`character()`)\cr
@@ -1055,7 +1061,7 @@ Rush = R6::R6Class("Rush",
     #' Number of all tasks.
     n_tasks = function() {
       r = self$connector
-      as.integer(r$SCARD(private$.get_key("all_tasks"))) %??% 0
+      as.integer(r$LLEN(private$.get_key("all_tasks"))) %??% 0
     },
 
     #' @field data ([data.table::data.table])\cr
@@ -1171,6 +1177,7 @@ Rush = R6::R6Class("Rush",
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
       max_retries = 0,
+      seed = NULL,
       worker_loop = worker_loop_default,
       ...
     ) {
@@ -1182,6 +1189,7 @@ Rush = R6::R6Class("Rush",
       assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
       assert_count(lgr_buffer_size)
       assert_count(max_retries)
+      assert_int(seed, null.ok = TRUE)
       assert_function(worker_loop)
       dots = list(...)
       r = self$connector
@@ -1201,6 +1209,7 @@ Rush = R6::R6Class("Rush",
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
+        seed = seed,
         max_retries = max_retries)
 
       # arguments needed for initializing the worker

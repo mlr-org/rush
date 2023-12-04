@@ -316,6 +316,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   max_retries = 0,
+  seed = NULL,
   supervise = TRUE,
   worker_loop = worker_loop_default,
   ...
@@ -350,6 +351,9 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
+
+\item{\code{seed}}{(\code{integer(1)})\cr
+Seed for the random number generator.}
 
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}

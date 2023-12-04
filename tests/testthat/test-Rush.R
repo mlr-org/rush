@@ -96,7 +96,7 @@ test_that("packages are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
 
   expect_equal(rush$n_finished_tasks, 1)
 
@@ -116,7 +116,7 @@ test_that("globals are available on the worker", {
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
 
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$y, 33)
@@ -796,4 +796,34 @@ test_that("network without controller works", {
   expect_gte(rush$n_finished_tasks, 100)
 
   expect_rush_reset(rush)
+})
+
+# seed -------------------------------------------------------------------------
+
+test_that("seed is set correctly on two workers", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = sample(10000, 1))
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2, seed = 123456, wait_for_workers = TRUE)
+
+  .keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 2, x2 = 3), list(x1 = 2, x2 = 4)))
+  rush$wait_for_tasks(.keys)
+
+  finished_tasks = rush$fetch_finished_tasks()
+  expect_equal(finished_tasks[.keys[1], y, on = "keys"], 4492)
+  expect_equal(finished_tasks[.keys[2], y, on = "keys"], 9223)
+  expect_equal(finished_tasks[.keys[3], y, on = "keys"], 2926)
+  expect_equal(finished_tasks[.keys[4], y, on = "keys"], 4937)
+
+  .keys = rush$push_tasks(list(list(x1 = 5, x2 = 3), list(x1 = 5, x2 = 4)))
+  rush$wait_for_tasks(.keys)
+
+  finished_tasks = rush$fetch_finished_tasks()
+  expect_equal(finished_tasks[.keys[1], y, on = "keys"], 7814)
+  expect_equal(finished_tasks[.keys[2], y, on = "keys"], 713)
+
+  expect_rush_reset(rush, type = "terminate")
 })

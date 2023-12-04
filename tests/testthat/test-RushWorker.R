@@ -877,6 +877,9 @@ test_that("n_retries method works", {
 })
 
 test_that("terminate on idle works", {
+  skip_on_cran()
+  skip_on_ci()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
@@ -886,6 +889,33 @@ test_that("terminate on idle works", {
 
   rush$pop_task()
   expect_true(rush$terminated_on_idle)
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+
+# seed -------------------------------------------------------------------------
+
+test_that("seed is set correctly", {
+  skip_on_cran()
+  skip_on_ci()
+
+  on.exit({
+    .lec.exit()
+  })
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123456)
+
+  expect_null(.lec.Random.seed.table$name)
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  task = rush$pop_task()
+  rush$set_seed(task$key)
+
+  expect_equal(.lec.Random.seed.table$name, task$key)
+
+  expect_equal(sample(seq(100000), 1), 86412)
 
   expect_rush_reset(rush, type = "terminate")
 })
