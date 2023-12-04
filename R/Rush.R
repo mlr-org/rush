@@ -99,6 +99,7 @@
 #' @template param_lgr_buffer_size
 #' @template param_seed
 #' @template param_data_format
+#' @template param_max_tries
 #'
 #'
 #' @export
@@ -182,7 +183,7 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      max_retries = 0,
+      max_tries = 0,
       seed = NULL,
       supervise = TRUE,
       worker_loop = worker_loop_default,
@@ -194,7 +195,7 @@ Rush = R6::R6Class("Rush",
       r = self$connector
 
       # set global maximum retries of tasks
-      private$.max_retries = assert_count(max_retries)
+      private$.max_tries = assert_count(max_tries)
 
       # push worker config to redis
       private$.push_worker_config(
@@ -204,7 +205,7 @@ Rush = R6::R6Class("Rush",
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
-        max_retries = max_retries,
+        max_tries = max_tries,
         seed = seed,
         worker_loop = worker_loop,
         ...
@@ -365,6 +366,8 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param restart_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
+    #' @param restart_tasks (`logical(1)`)\cr
+    #' Whether to restart lost tasks.
     detect_lost_workers = function(restart_workers = FALSE, restart_tasks = FALSE) {
       assert_flag(restart_workers)
       assert_flag(restart_tasks)
@@ -431,7 +434,7 @@ Rush = R6::R6Class("Rush",
         if (restart_tasks) {
 
           # check whether the tasks should be retried
-          retry = self$n_tries(keys) < private$.max_retries
+          retry = self$n_tries(keys) < private$.max_tries
           keys = keys[retry]
 
           if (length(keys)) {
@@ -1155,7 +1158,7 @@ Rush = R6::R6Class("Rush",
     #
     .hostname = NULL,
 
-    .max_retries = NULL,
+    .max_tries = NULL,
 
     # prefix key with instance id
     .get_key = function(key) {
@@ -1176,7 +1179,7 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      max_retries = 0,
+      max_tries = 0,
       seed = NULL,
       worker_loop = worker_loop_default,
       ...
@@ -1188,7 +1191,7 @@ Rush = R6::R6Class("Rush",
       if (!is.null(heartbeat_period)) require_namespaces("callr")
       assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
       assert_count(lgr_buffer_size)
-      assert_count(max_retries)
+      assert_count(max_tries)
       assert_int(seed, null.ok = TRUE)
       assert_function(worker_loop)
       dots = list(...)
@@ -1210,7 +1213,7 @@ Rush = R6::R6Class("Rush",
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
         seed = seed,
-        max_retries = max_retries)
+        max_tries = max_tries)
 
       # arguments needed for initializing the worker
       start_args = list(

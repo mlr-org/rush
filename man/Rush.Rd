@@ -315,7 +315,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
-  max_retries = 0,
+  max_tries = 0,
   seed = NULL,
   supervise = TRUE,
   worker_loop = worker_loop_default,
@@ -351,6 +351,9 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
+
+\item{\code{max_tries}}{(\code{integer(1)})\cr
+Maximum number of tries for a task before it is considered failed.}
 
 \item{\code{seed}}{(\code{integer(1)})\cr
 Seed for the random number generator.}
@@ -503,6 +506,9 @@ Lost tasks are marked as \code{"lost"}.
 \describe{
 \item{\code{restart_workers}}{(\code{logical(1)})\cr
 Whether to restart lost workers.}
+
+\item{\code{restart_tasks}}{(\code{logical(1)})\cr
+Whether to restart lost tasks.}
 }
 \if{html}{\out{</div>}}
 }

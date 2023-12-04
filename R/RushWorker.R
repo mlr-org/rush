@@ -16,6 +16,7 @@
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_seed
+#' @template param_max_tries
 #'
 #' @export
 RushWorker = R6::R6Class("RushWorker",
@@ -46,13 +47,13 @@ RushWorker = R6::R6Class("RushWorker",
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
       seed = NULL,
-      max_retries = 0
+      max_tries = 0
       ) {
       super$initialize(network_id = network_id, config = config)
 
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
-      private$.max_retries = assert_count(max_retries)
+      private$.max_tries = assert_count(max_tries)
       r = self$connector
 
       # setup heartbeat
@@ -216,6 +217,13 @@ RushWorker = R6::R6Class("RushWorker",
       return(invisible(self))
     },
 
+    #' @description
+    #' Pushes failed tasks to the data base.
+    #'
+    #' @param keys (`character(1)`)\cr
+    #' Keys of the associated tasks.
+    #' @param conditions (named `list()`)\cr
+    #' List of lists of conditions.
     push_failed = function(keys, conditions) {
       assert_string(keys)
       assert_list(conditions, types = "list")

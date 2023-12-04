@@ -616,7 +616,7 @@ test_that("a task is restarted when a worker is lost", {
     tools::pskill(Sys.getpid())
   }
 
-  rush$start_workers(fun = fun, n_workers = 1, max_retries = 1, wait_for_workers = TRUE)
+  rush$start_workers(fun = fun, n_workers = 1, max_tries = 1, wait_for_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -633,6 +633,7 @@ test_that("a task is restarted when a worker is lost", {
 test_that("blocking on new results works", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -677,6 +678,7 @@ test_that("wait for tasks works when a task gets lost", {
 test_that("saving lgr logs works", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)

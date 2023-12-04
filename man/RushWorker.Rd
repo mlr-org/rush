@@ -101,7 +101,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   seed = NULL,
-  max_retries = 0
+  max_tries = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -144,6 +144,9 @@ This improves the performance of the logging.}
 
 \item{\code{seed}}{(\code{integer(1)})\cr
 Seed for the random number generator.}
+
+\item{\code{max_tries}}{(\code{integer(1)})\cr
+Maximum number of tries for a task before it is considered failed.}
 }
 \if{html}{\out{</div>}}
 }
@@ -233,10 +236,22 @@ If \code{"error"} the tasks are moved to the failed tasks.}
 \if{html}{\out{<a id="method-RushWorker-push_failed"></a>}}
 \if{latex}{\out{\hypertarget{method-RushWorker-push_failed}{}}}
 \subsection{Method \code{push_failed()}}{
+Pushes failed tasks to the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_failed(keys, conditions)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character(1)})\cr
+Keys of the associated tasks.}
+
+\item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-set_seed"></a>}}
