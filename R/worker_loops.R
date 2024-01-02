@@ -36,3 +36,35 @@ worker_loop_default = function(fun, constants = NULL, rush) {
 
   return(NULL)
 }
+
+worker_loop_callr = function(fun, constants = NULL, rush) {
+  assert_function(fun)
+  assert_list(constants, null.ok = TRUE, names = "named")
+
+  while(!rush$terminated) {
+    task = rush$pop_task()
+    if (!is.null(task)) {
+      # set seed
+      rush$set_seed(task$key)
+
+      px = callr::r_bg(fun, args = c(task$xs, constants))
+
+      repeat {
+        if (!px$is_alive()) {
+          tryCatch({
+            res = px$get_result()
+            rush$push_results(task$key, yss = list(res))
+          }, error = function(e) {
+            condition = list(message = e$parent$message)
+            rush$push_failed(task$key, conditions = list(condition))
+          })
+          break
+        }
+      }
+    } else {
+      if (rush$terminated_on_idle) break
+    }
+  }
+
+  return(NULL)
+}
