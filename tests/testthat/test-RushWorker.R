@@ -105,24 +105,25 @@ test_that("reading and writing a hash works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  # one field
+  # one field with list
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
   expect_equal(rush$read_hashes(key, "xs"), list(list(x1 = 1, x2 = 2)))
 
-  # two fields
+  # one field with atomic
+  key = rush$write_hashes(timeout = 1)
+  expect_equal(rush$read_hashes(key, "timeout"), list(list(timeout = 1)))
+
+  # two fields with lists
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
   expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3)))
 
-  # two fields, one empty
+  # two fields with list and empty list
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
   expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2)))
 
-  # one field with empty list
-  key = rush$write_hashes(xs = list(list()))
-  expect_equal(rush$read_hashes(key, "xs"), list(list()))
-
-  # one empty field
-  expect_error(rush$write_hashes(xs = list()), "Assertion on 'values' failed")
+  # two fields with list and atomic
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
+  expect_equal(rush$read_hashes(key, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1)))
 })
 
 test_that("reading and writing hashes works", {
@@ -132,13 +133,29 @@ test_that("reading and writing hashes works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
-  # one field
+  # one field with list
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
   expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+
+  # one field atomic
+  keys = rush$write_hashes(timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, "timeout"), list(list(timeout = 1), list(timeout = 1)))
+
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
 
   # two fields
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3), list(y = 4)))
   expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 4)))
+
+  # two fields with list and atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
 
   # two fields, one empty
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list())
@@ -366,6 +383,47 @@ test_that("popping a task from the queue works", {
   # check task
   task = rush$pop_task()
   expect_rush_task(task)
+
+  # check task count
+  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 1)
+  expect_equal(rush$n_finished_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 0)
+
+  # check keys in sets
+  expect_string(rush$tasks)
+  expect_null(rush$queued_tasks)
+  expect_string(rush$running_tasks)
+  expect_null(rush$finished_tasks)
+  expect_null(rush$failed_tasks)
+
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
+  data = rush$fetch_running_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_data_table(rush$fetch_tasks(), nrows = 1)
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("popping a task with seed, max_retries and timeout works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  xss = list(list(x1 = 1, x2 = 2))
+  rush$push_tasks(xss, seed = list(123456), max_retries = 2, timeout = 1)
+
+  # check task
+  task = rush$pop_task(fields = c("xs", "seed", "max_retries", "timeout"))
+  expect_rush_task(task)
+
+  rush$fetch_running_tasks(fields = c("xs", "seed", "max_retries", "timeout"))
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -852,30 +910,6 @@ test_that("pushing tasks and terminating worker works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-test_that("n_retries method works", {
-  skip_on_cran()
-  skip_on_ci()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-
-  expect_equal(rush$n_tries(keys), 0)
-
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 2))
-  keys = rush$push_tasks(xss)
-
-  expect_equal(rush$n_tries(keys), c(0, 0))
-
-  rush$connector$command(c("HINCRBY", keys[1], "n_tries", 1))
-
-  expect_equal(rush$n_tries(keys), c(1L, 0))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
 test_that("terminate on idle works", {
   skip_on_cran()
   skip_on_ci()
@@ -895,6 +929,24 @@ test_that("terminate on idle works", {
 
 
 # seed -------------------------------------------------------------------------
+
+test_that("popping a task with seed from the queue works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123)
+  xss = list(list(x1 = 1, x2 = 2))
+  rush$push_tasks(xss)
+
+  # check task seed
+  task = rush$pop_task()
+  expect_true(is_lecyer_cmrg_seed(task$seed))
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+
 
 test_that("seed is set correctly", {
   skip_on_cran()

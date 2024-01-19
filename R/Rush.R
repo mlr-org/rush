@@ -87,6 +87,13 @@
 #' Saving log messages adds a small overhead but is useful for debugging.
 #' By default, no log messages are stored.
 #'
+#' @section Seed:
+#' Setting a seed is important for reproducibility.
+#' The tasks can be evaluated with a specific L'Ecuyer-CMRG seed.
+#' If an initial seed is passed, the seed is used to generate L'Ecuyer-CMRG seeds for each task.
+#' Each task is then evaluated with a separate RNG stream.
+#' See [parallel::nextRNGStream] for more details.
+#'
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
@@ -99,7 +106,6 @@
 #' @template param_lgr_buffer_size
 #' @template param_seed
 #' @template param_data_format
-#' @template param_max_tries
 #'
 #'
 #' @export
@@ -124,7 +130,7 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(network_id = NULL, config = NULL) {
+    initialize = function(network_id = NULL, config = NULL, seed = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
       if (is.null(self$config)) self$config = redux::redis_config()
@@ -133,6 +139,26 @@ Rush = R6::R6Class("Rush",
       }
       self$connector = redux::hiredis(self$config)
       private$.hostname = get_hostname()
+
+      if (!is.null(seed)) {
+        if (is_lecyer_cmrg_seed(seed)) {
+          # use supplied L'Ecuyer-CMRG seed
+          private$.seed = seed
+        } else {
+          # generate new L'Ecuyer-CMRG seed
+          assert_count(seed)
+
+          # save old rng state and kind and switch to L'Ecuyer-CMRG
+          oseed = get_random_seed()
+          okind = RNGkind("L'Ecuyer-CMRG")[1]
+
+          # restore old rng state and kind
+          on.exit(set_random_seed(oseed, kind = okind), add = TRUE)
+
+          set.seed(seed)
+          private$.seed = get_random_seed()
+        }
+      }
     },
 
     #' @description
@@ -183,8 +209,6 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      max_tries = 0,
-      seed = NULL,
       supervise = TRUE,
       worker_loop = worker_loop_default,
       ...
@@ -194,9 +218,6 @@ Rush = R6::R6Class("Rush",
       assert_flag(supervise)
       r = self$connector
 
-      # set global maximum retries of tasks
-      private$.max_tries = assert_count(max_tries)
-
       # push worker config to redis
       private$.push_worker_config(
         globals = globals,
@@ -205,8 +226,6 @@ Rush = R6::R6Class("Rush",
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
-        max_tries = max_tries,
-        seed = seed,
         worker_loop = worker_loop,
         ...
       )
@@ -216,7 +235,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
           self$network_id, worker_id, private$.hostname, self$config$url)),
-        supervise = supervise) # , stdout = "|", stderr = "|"
+        supervise = supervise, stdout = "|", stderr = "|") # , stdout = "|", stderr = "|"
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers)
@@ -431,28 +450,22 @@ Rush = R6::R6Class("Rush",
 
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
 
+        # try to restart tasks
         if (restart_tasks) {
+          # get task info
+          fields = c("max_retries", "n_failures")
+          tasks = map(keys, function(key) setNames(map(r$HMGET(key, fields), safe_bin_to_object), fields))
 
-          # check whether the tasks should be retried
-          retry = self$n_tries(keys) < private$.max_tries
-          keys = keys[retry]
 
-          if (length(keys)) {
-            lg$error("Retry %i lost task(s): %s", length(keys), str_collapse(keys))
-            cmds = map(keys, function(key) {
-              c("HINCRBY", key, "n_tries", 1)
-            })
-            cmds = c(cmds, list(
-              c("RPUSH", private$.get_key("queued_tasks"), keys),
-              c("SREM", private$.get_key("running_tasks"), keys)
-            ))
-            r$pipeline(.commands = cmds)
-          }
-        } else {
-          cmds = list(
-            c("RPUSH", private$.get_key("failed_tasks"), keys),
-            c("SREM", private$.get_key("running_tasks"), keys))
-          r$pipeline(.commands = cmds)
+          ii = is_retriable(tasks)
+          self$retry_task(tasks[ii])
+          keys = keys[!ii]
+        }
+
+        # mark task as failed
+        if (length(keys)) {
+          conditions = list(list(message = "Worker has crashed or was killed"))
+          self$push_failed(keys)
         }
       }
 
@@ -539,22 +552,46 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' @param extra (`list`)\cr
+    #' @param extra (`list()`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' @param seeds (`list()`)\cr
+    #' List of L'Ecuyer-CMRG seeds for each task e.g `list(list(c(104071, 490840688, 1690070564, -495119766, 503491950, 1801530932, -1629447803)))`.
+    #' If `NULL` but an initial seed is set, L'Ecuyer-CMRG seeds are generated from the initial seed.
+    #' If `NULL` and no initial seed is set, no seeds are used for the random number generator.
+    #' @param timeouts (`integer()`)\cr
+    #' Timeouts for each task in seconds e.g. `c(10, 15)`.
+    #' A single number is used as the timeout for all tasks.
+    #' If `NULL` no timeout is set.
+    #' @param max_retries (`integer()`)\cr
+    #' Number of retries for each task.
+    #' A single number is used as the number of retries for all tasks.
+    #' If `NULL` tasks are not retried.
     #' @param terminate_workers (`logical(1)`)\cr
     #' Whether to stop the workers after evaluating the tasks.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, extra = NULL, terminate_workers = FALSE) {
+    push_tasks = function(xss, extra = NULL, seeds = NULL, timeouts = NULL, max_retries = NULL, terminate_workers = FALSE) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
+      assert_list(seeds, types = "numeric", null.ok = TRUE)
+      assert_numeric(timeouts, null.ok = TRUE)
+      assert_numeric(max_retries, null.ok = TRUE)
       assert_flag(terminate_workers)
       r = self$connector
 
       lg$debug("Pushing %i task(s) to the shared queue", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra)
+      if (!is.null(private$.seed) && is.null(seeds)) {
+
+        lg$debug("Creating %i L'Ecuyer-CMRG seeds", length(xss))
+
+        seeds = make_rng_seeds(length(xss), private$.seed)
+        # store last seed for next push
+        private$.seed = seeds[[length(seeds)]]
+      }
+
+      keys = self$write_hashes(xs = xss, xs_extra = extra, seed = seeds, timeout = timeouts, max_retries = max_retries)
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
         c("LPUSH", private$.get_key("queued_tasks"), keys))
@@ -605,6 +642,33 @@ Rush = R6::R6Class("Rush",
 
       return(invisible(keys))
     },
+
+    #' @description
+    #' Pushes failed tasks to the data base.
+    #'
+    #' @param keys (`character(1)`)\cr
+    #' Keys of the associated tasks.
+    #' @param conditions (named `list()`)\cr
+    #' List of lists of conditions.
+    push_failed = function(keys, conditions) {
+      assert_string(keys)
+      assert_list(conditions, types = "list")
+      r = self$connector
+
+      # write condition to hash
+      self$write_hashes(condition = conditions, keys = keys)
+
+      # move key from running to failed
+      r$pipeline(.commands = list(
+        c("SREM", private$.get_key("running_tasks"), keys),
+        c("RPUSH", private$.get_key("failed_tasks"), keys)
+      ))
+
+      return(invisible(self))
+    },
+
+
+
 
     #' @description
     #' Fetch latest results from the data base.
@@ -862,7 +926,6 @@ Rush = R6::R6Class("Rush",
     #' Keys of the hashes.
     write_hashes = function(..., .values = list(), keys = NULL) {
       values = discard(c(list(...), .values), function(l) !length(l))
-      assert_list(values, names = "unique", types = "list", min.len = 1)
       fields = names(values)
       keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
 
@@ -909,29 +972,21 @@ Rush = R6::R6Class("Rush",
       # list of hashes
       # first level contains hashes
       # second level contains fields
-      # the values of the fields are serialized lists
+      # the values of the fields are serialized lists and atomics
       hashes = self$connector$pipeline(.commands = cmds)
 
       # unserialize lists of the second level
       # combine elements of the third level to one list
-      map(hashes, function(hash) unlist(map_if(hash, function(x) !is.null(x), redux::bin_to_object), recursive = FALSE))
-    },
-
-    #' @description
-    #' Returns the number of attempts to evaluate a task.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the tasks.
-    #'
-    #' @return (`integer()`)\cr
-    #' Number of attempts.
-    n_tries = function(keys) {
-      assert_character(keys)
-      r = self$connector
-
-      # n_retries is not set when the task never failed before
-      n_tries = r$pipeline(.commands = map(keys, function(key) c("HGET", key, "n_tries")))
-      map_int(n_tries, function(value) if (is.null(value)) 0L else as.integer(value))
+      # using mapply instead of pmap is somehow faster
+      map(hashes, function(hash) unlist(.mapply(function(bin_value, field) {
+        value = safe_bin_to_object(bin_value)
+        if (is.atomic(value) && !is.null(value)) {
+          # list column or column with type of value
+          if (length(value) > 1) value = list(value)
+          value = setNames(list(value), field)
+        }
+        value
+      }, list(bin_value = hash, field = fields), NULL), recursive = FALSE))
     }
   ),
 
@@ -1155,10 +1210,9 @@ Rush = R6::R6Class("Rush",
 
     .snapshot_schedule = NULL,
 
-    #
     .hostname = NULL,
 
-    .max_tries = NULL,
+    .seed = NULL,
 
     # prefix key with instance id
     .get_key = function(key) {
@@ -1179,8 +1233,6 @@ Rush = R6::R6Class("Rush",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      max_tries = 0,
-      seed = NULL,
       worker_loop = worker_loop_default,
       ...
     ) {
@@ -1191,8 +1243,6 @@ Rush = R6::R6Class("Rush",
       if (!is.null(heartbeat_period)) require_namespaces("callr")
       assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
       assert_count(lgr_buffer_size)
-      assert_count(max_tries)
-      assert_int(seed, null.ok = TRUE)
       assert_function(worker_loop)
       dots = list(...)
       r = self$connector
@@ -1211,9 +1261,7 @@ Rush = R6::R6Class("Rush",
         heartbeat_period = heartbeat_period,
         heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
-        seed = seed,
-        max_tries = max_tries)
+        lgr_buffer_size = lgr_buffer_size)
 
       # arguments needed for initializing the worker
       start_args = list(

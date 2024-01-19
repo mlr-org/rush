@@ -108,6 +108,15 @@ Saving log messages adds a small overhead but is useful for debugging.
 By default, no log messages are stored.
 }
 
+\section{Seed}{
+
+Setting a seed is important for reproducibility.
+The tasks can be evaluated with a specific L'Ecuyer-CMRG seed.
+If an initial seed is passed, the seed is used to generate L'Ecuyer-CMRG seeds for each task.
+Each task is then evaluated with a separate RNG stream.
+See \link[parallel:RngStream]{parallel::nextRNGStream} for more details.
+}
+
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
@@ -232,7 +241,6 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
-\item \href{#method-Rush-n_tries}{\code{Rush$n_tries()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
 }
 }
@@ -242,7 +250,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL, seed = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -259,6 +267,12 @@ If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is us
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
+
+\item{\code{seed}}{(\code{integer()})\cr
+Initial seed for the random number generator.
+Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
+The later is converted to a L'Ecuyer-CMRG seed.
+If \code{NULL}, no seed is used for the random number generator.}
 }
 \if{html}{\out{</div>}}
 }
@@ -316,7 +330,6 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   max_tries = 0,
-  seed = NULL,
   supervise = TRUE,
   worker_loop = worker_loop_default,
   ...
@@ -355,16 +368,14 @@ This improves the performance of the logging.}
 \item{\code{max_tries}}{(\code{integer(1)})\cr
 Maximum number of tries for a task before it is considered failed.}
 
-\item{\code{seed}}{(\code{integer(1)})\cr
-Seed for the random number generator.}
-
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
 
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
 Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.}
+Pass \code{fun} in \code{...}.
+Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
@@ -435,7 +446,8 @@ This improves the performance of the logging.}
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
 Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.}
+Pass \code{fun} in \code{...}.
+Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
@@ -560,7 +572,14 @@ If \code{NULL} all worker ids are used.}
 Pushes a task to the queue.
 Task is added to queued tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL, terminate_workers = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(
+  xss,
+  extra = NULL,
+  seeds = NULL,
+  timeouts = NULL,
+  max_retries = NULL,
+  terminate_workers = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -569,8 +588,23 @@ Task is added to queued tasks.
 \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
 
-\item{\code{extra}}{(\code{list})\cr
+\item{\code{extra}}{(\code{list()})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{seeds}}{(\code{list()})\cr
+List of L'Ecuyer-CMRG seeds for each task e.g \code{list(list(c(104071, 490840688, 1690070564, -495119766, 503491950, 1801530932, -1629447803)))}.
+If \code{NULL} but an initial seed is set, L'Ecuyer-CMRG seeds are generated from the initial seed.
+If \code{NULL} and no initial seed is set, no seeds are used for the random number generator.}
+
+\item{\code{timeouts}}{(\code{integer()})\cr
+Timeouts for each task in seconds e.g. \code{c(10, 15)}.
+A single number is used as the timeout for all tasks.
+If \code{NULL} no timeout is set.}
+
+\item{\code{max_retries}}{(\code{integer()})\cr
+Number of retries for each task.
+A single number is used as the number of retries for all tasks.
+If \code{NULL} tasks are not retried.}
 
 \item{\code{terminate_workers}}{(\code{logical(1)})\cr
 Whether to stop the workers after evaluating the tasks.}
@@ -1031,28 +1065,6 @@ Fields to be read from the hashes.}
 (list of \code{list()})\cr
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-n_tries"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-n_tries}{}}}
-\subsection{Method \code{n_tries()}}{
-Returns the number of attempts to evaluate a task.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$n_tries(keys)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{integer()})\cr
-Number of attempts.
 }
 }
 \if{html}{\out{<hr>}}

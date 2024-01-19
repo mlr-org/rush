@@ -404,6 +404,7 @@ test_that("a segfault on a local worker is detected", {
   expect_null(rush$lost_worker_ids)
   rush$detect_lost_workers()
   expect_equal(rush$lost_worker_ids, worker_ids)
+  rush$fetch_failed_tasks()
 
   expect_rush_reset(rush)
 })
@@ -525,8 +526,9 @@ test_that("a lost task is detected", {
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
+  expect_equal(data$message, "The rush worker crashed.")
 
   expect_class(rush$detect_lost_workers(), "Rush")
 
@@ -802,30 +804,58 @@ test_that("network without controller works", {
 
 # seed -------------------------------------------------------------------------
 
+test_that("seeds are generated from regular rng seed", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  tab = rush$fetch_tasks(fields = c("xs", "seed"))
+  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
+
+  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
+  tab = rush$fetch_tasks(fields = c("xs", "seed"))
+  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
+  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
+})
+
+test_that("seed are generated from L'Ecuyer-CMRG seed", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config, seed = c(10407L, 1801422725L, -2057975723L, 1156894209L, 1595475487L, 210384600L, -1655729657L))
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  tab = rush$fetch_tasks(fields = c("xs", "seed"))
+  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
+
+  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
+  tab = rush$fetch_tasks(fields = c("xs", "seed"))
+  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
+  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
+})
+
 test_that("seed is set correctly on two workers", {
   skip_on_cran()
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
+  rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
   fun = function(x1, x2, ...) list(y = sample(10000, 1))
-  worker_ids = rush$start_workers(fun = fun, n_workers = 2, seed = 123456, wait_for_workers = TRUE)
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE)
 
   .keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 2, x2 = 3), list(x1 = 2, x2 = 4)))
   rush$wait_for_tasks(.keys)
 
   finished_tasks = rush$fetch_finished_tasks()
-  expect_equal(finished_tasks[.keys[1], y, on = "keys"], 4492)
-  expect_equal(finished_tasks[.keys[2], y, on = "keys"], 9223)
-  expect_equal(finished_tasks[.keys[3], y, on = "keys"], 2926)
-  expect_equal(finished_tasks[.keys[4], y, on = "keys"], 4937)
+  expect_set_equal(finished_tasks$y, c(5971L, 4090L, 1754L, 9794L))
 
   .keys = rush$push_tasks(list(list(x1 = 5, x2 = 3), list(x1 = 5, x2 = 4)))
   rush$wait_for_tasks(.keys)
 
   finished_tasks = rush$fetch_finished_tasks()
-  expect_equal(finished_tasks[.keys[1], y, on = "keys"], 7814)
-  expect_equal(finished_tasks[.keys[2], y, on = "keys"], 713)
+  expect_set_equal(finished_tasks$y, c(1754L, 9794L, 4090L, 5971L, 8213L, 3865L))
 
   expect_rush_reset(rush, type = "terminate")
 })

@@ -16,9 +16,9 @@ Imports:
     jsonlite,
     lgr,
     mlr3misc,
+    parallel,
     processx,
     redux,
-    rlecuyer,
     uuid
 Suggests:
     callr,
@@ -28,6 +28,6 @@ Suggests:
     withr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.2.3.9000
 Config/testthat/edition: 3
 Config/testthat/parallel: false
