@@ -261,6 +261,157 @@ test_that("a remote worker is killed via the heartbeat", {
   expect_rush_reset(rush)
 })
 
+# low level read and write -----------------------------------------------------
+
+test_that("reading and writing a hash works with flatten", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  # one field with list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
+  expect_equal(rush$read_hashes(key, "xs"), list(list(x1 = 1, x2 = 2)))
+
+  # one field with atomic
+  key = rush$write_hashes(timeout = 1)
+  expect_equal(rush$read_hashes(key, "timeout"), list(list(timeout = 1)))
+
+  # two fields with lists
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3)))
+
+  # two fields with list and empty list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
+  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2)))
+
+  # two fields with list and atomic
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
+  expect_equal(rush$read_hashes(key, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1)))
+})
+
+test_that("reading and writing a hash works without flatten", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  # one field with list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
+  expect_equal(rush$read_hashes(key, "xs", flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2))))
+
+  # one field with atomic
+  key = rush$write_hashes(timeout = 1)
+  expect_equal(rush$read_hashes(key, "timeout", flatten = FALSE), list(list(timeout = 1)))
+
+  # two fields with lists
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))))
+
+  # two fields with list and empty list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
+  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = NULL)))
+
+  # two fields with list and atomic
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
+  expect_equal(rush$read_hashes(key, c("xs", "timeout"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), timeout = 1)))
+})
+
+test_that("reading and writing hashes works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  # one field with list
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+
+  # one field atomic
+  keys = rush$write_hashes(timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, "timeout"), list(list(timeout = 1), list(timeout = 1)))
+
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+
+  # two fields
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3), list(y = 4)))
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 4)))
+
+  # two fields with list and atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+
+  # two fields, one empty
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list())
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+
+  # recycle
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 3)))
+})
+
+test_that("writing hashes to specific keys works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  # one element
+  keys = uuid::UUIDgenerate()
+  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), keys = keys)
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2)))
+
+  # two elements
+  keys = uuid::UUIDgenerate(n = 2)
+  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys)
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+
+  # wrong number of keys
+  keys = uuid::UUIDgenerate()
+  expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
+})
+
+
+test_that("writing list columns works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+  rush$read_hashes(keys, c("xs", "xs_extra"))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 2)
+})
+
 # task evaluation --------------------------------------------------------------
 
 test_that("evaluating a task works", {

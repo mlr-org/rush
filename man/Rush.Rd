@@ -573,7 +573,7 @@ If \code{NULL} all worker ids are used.}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$read_tasks(
   keys,
-  fields = c("status", "timeout", "max_retries", "n_failures")
+  fields = c("status", "seed", "timeout", "max_retries", "n_retries")
 )}\if{html}{\out{</div>}}
 }
 
@@ -688,14 +688,14 @@ List of lists of conditions.}
 \subsection{Method \code{retry_tasks()}}{
 Retry failed tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(tasks, next_seed = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(keys, ignore_max_retires = FALSE, next_seed = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tasks}}{(\verb{List of list()})\cr
-Task to be retried.}
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks to be retried.}
 
 \item{\code{next_seed}}{(\code{logical(1)})\cr
 Whether to change the seed of the task.}
@@ -1055,19 +1055,15 @@ Comes with an overhead.}
 \if{html}{\out{<a id="method-Rush-write_hashes"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-write_hashes}{}}}
 \subsection{Method \code{write_hashes()}}{
-Writes a list to redis hashes.
-The function serializes each element and writes it to a new hash.
+Writes R objects to Redis hashes.
+The function takes the vectors in \code{...} as input and writes each element as a field-value pair to a new hash.
 The name of the argument defines the field into which the serialized element is written.
 For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes \code{serialize(list(x1 = 1, x2 = 2))} at field \code{xs} into a hash and \code{serialize(list(x1 = 3, x2 = 4))} at field \code{xs} into another hash.
-The function can iterate over multiple lists simultaneously.
+The function can iterate over multiple vectors simultaneously.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} creates two hashes with the fields \code{xs} and \code{ys}.
-Different lengths are recycled.
-The stored elements must be lists themselves.
-The reading functions combine the hashes to a table where the names of the inner lists are the column names.
-For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
-Vectors in list columns must be wrapped in lists.
-Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
-For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
+The vectors are recycled to the length of the longest vector.
+Both lists and atomic vectors are supported.
+Arguments that are \code{NULL} are ignored.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL)}\if{html}{\out{</div>}}
 }
@@ -1098,9 +1094,15 @@ Keys of the hashes.
 \if{html}{\out{<a id="method-Rush-read_hashes"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_hashes}{}}}
 \subsection{Method \code{read_hashes()}}{
-Reads redis hashes written with \verb{$write_hashes()}.
+Reads Redis hashes and combines the values of the fields into a list.
 The function reads the values of the \code{fields} in the hashes stored at \code{keys}.
 The values of a hash are deserialized and combined into a single list.
+
+The reading functions combine the hashes to a table where the names of the inner lists are the column names.
+For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
+Vectors in list columns must be wrapped in lists.
+Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
+For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$read_hashes(keys, fields)}\if{html}{\out{</div>}}
 }

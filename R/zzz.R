@@ -6,7 +6,7 @@
 #' @importFrom uuid UUIDgenerate
 #' @importFrom utils str
 #' @importFrom jsonlite fromJSON
-#' @importFrom parallel nextRNGStream
+#' @importFrom parallel nextRNGStream nextRNGSubStream
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

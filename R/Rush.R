@@ -532,15 +532,6 @@ Rush = R6::R6Class("Rush",
       tab[]
     },
 
-    read_tasks = function(keys, fields = c("status", "seed", "timeout", "max_retries", "n_retries")) {
-      r = self$connector
-      map(keys, function(key) {
-        task = setNames(map(r$HMGET(key, fields), safe_bin_to_object), fields)
-        task$key = key
-        task
-      })
-    },
-
     #' @description
     #' Pushes a task to the queue.
     #' Task is added to queued tasks.
@@ -673,13 +664,15 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the tasks to be retried.
+    #' @param ignore_max_retires (`logical(1)`)\cr
+    #' Whether to ignore the maximum number of retries.
     #' @param next_seed (`logical(1)`)\cr
     #' Whether to change the seed of the task.
     retry_tasks = function(keys, ignore_max_retires = FALSE, next_seed = FALSE) {
       assert_character(keys)
       assert_flag(ignore_max_retires)
       assert_flag(next_seed)
-      tasks = self$read_tasks(keys, fields = c("seed", "max_retries", "n_retries"))
+      tasks = self$read_hashes(keys, fields = c("seed", "max_retries", "n_retries"), flatten = FALSE)
       keys = map_chr(tasks, "key")
       seeds = map(tasks, "seed")
       n_retries = map_int(tasks, function(task) task$n_retries  %??% 0L)
@@ -995,26 +988,24 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Reads Redis hashes and combines the values of the fields into a list.
-    #' The function reads the values of the `fields` in the hashes stored at `keys`.
-    #' The values of a hash are deserialized and combined into a single list.
-    #'
+    #' Reads R Objects from Redis hashes.
+    #' The function reads the field-value pairs of the hashes stored at `keys`.
+    #' The values of a hash are deserialized and combined to a list.
+    #' If `flatten` is `TRUE`, the values are flattened to a single list e.g. list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3)) becomes list(x1 = 1, x2 = 2, y = 3).
     #' The reading functions combine the hashes to a table where the names of the inner lists are the column names.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
-    #' Vectors in list columns must be wrapped in lists.
-    #' Otherwise, `$read_values()` will expand the table by the length of the vectors.
-    #' For example, `xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work.
-    #' Pass `xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the hashes.
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
+    #' @param flatten (`logical(1)`)\cr
+    #' Whether to flatten the list.
     #'
     #' @return (list of `list()`)\cr
     #' The outer list contains one element for each key.
     #' The inner list is the combination of the lists stored at the different fields.
-    read_hashes = function(keys, fields) {
+    read_hashes = function(keys, fields, flatten = TRUE) {
 
       lg$debug("Reading %i hash(es) with %i field(s)", length(keys), length(fields))
 
@@ -1027,18 +1018,44 @@ Rush = R6::R6Class("Rush",
       # the values of the fields are serialized lists and atomics
       hashes = self$connector$pipeline(.commands = cmds)
 
-      # unserialize lists of the second level
-      # combine elements of the third level to one list
-      # using mapply instead of pmap is somehow faster
-      map(hashes, function(hash) unlist(.mapply(function(bin_value, field) {
-        value = safe_bin_to_object(bin_value)
-        if (is.atomic(value) && !is.null(value)) {
-          # list column or column with type of value
-          if (length(value) > 1) value = list(value)
-          value = setNames(list(value), field)
-        }
-        value
-      }, list(bin_value = hash, field = fields), NULL), recursive = FALSE))
+      if (flatten) {
+        # unserialize elements of the second level
+        # flatten elements of the third level to one list
+        # using mapply instead of pmap is faster
+        map(hashes, function(hash) unlist(.mapply(function(bin_value, field) {
+          # unserialize value
+          value = safe_bin_to_object(bin_value)
+          # wrap atomic values in list and name by field
+          if (is.atomic(value) && !is.null(value)) {
+            # list column or column with type of value
+            if (length(value) > 1) value = list(value)
+            value = setNames(list(value), field)
+          }
+          value
+        }, list(bin_value = hash, field = fields), NULL), recursive = FALSE))
+      } else {
+        # unserialize elements of the second level
+        map(hashes, function(hash) setNames(map(hash, function(bin_value) {
+          safe_bin_to_object(bin_value)
+        }), fields))
+      }
+    },
+
+    #' @description
+    #' Reads a single Redis hash and returns the values as a list named by the fields.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the hashes.
+    #' @param fields (`character()`)\cr
+    #' Fields to be read from the hashes.
+    #'
+    #' @return (list of `list()`)\cr
+    #' The outer list contains one element for each key.
+    #' The inner list is the combination of the lists stored at the different fields.
+    read_hash = function(key, fields) {
+      lg$debug("Reading hash with %i field(s)", length(fields))
+
+      setNames(map(self$connector$HMGET(key, fields), safe_bin_to_object), fields)
     },
 
     #' @description
