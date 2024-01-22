@@ -73,21 +73,3 @@ is_retriable = function(task) {
 
   task$max_retries > task$n_failures %??% 0
 }
-
-#' @export
-as_field = function(x, ...) {
-  if (is.null(x)) return(x)
-  UseMethod("as_field")
-}
-
-#' @export
-as_field.numeric = function(x, ...) {
-  name = deparse(substitute(x))
-  if (length(x) == 1L) return(list(setNames(list(x), name)))
-  map(x, function(value) setNames(list(value), name))
-}
-
-#' @export
-as_field.list = function(x, ...) {
-  x
-}

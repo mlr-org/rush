@@ -102,7 +102,7 @@ test_that("worker_loop_callr works with timeout", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss, timeouts = list(1), terminate_workers = TRUE)
+  rush$push_tasks(xss, timeouts = 1, terminate_workers = TRUE)
   fun = function(x1, x2, ...) Sys.sleep(10)
 
   expect_null(worker_loop_callr(fun, rush = rush))
@@ -122,34 +122,6 @@ test_that("worker_loop_callr sets seed correctly", {
   expect_null(worker_loop_callr(fun, rush = rush))
 
   expect_equal(rush$fetch_finished_tasks()$y, c(7521, 1616, 551))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-# try --------------------------------------------------------------------------
-
-test_that("worker_loop_default works", {
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-  xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss, tries = list(2), terminate_workers = TRUE)
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-
-  expect_null(worker_loop_try(fun, rush = rush))
-  expect_equal(rush$n_finished_tasks, 1L)
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("worker_loop_default works", {
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-  xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss, tries = list(2), terminate_workers = TRUE)
-  fun = function(x1, x2, ...) stop("Simple R error")
-
-  expect_null(worker_loop_try(fun, rush = rush))
-  expect_equal(rush$n_finished_tasks, 1L)
 
   expect_rush_reset(rush, type = "terminate")
 })

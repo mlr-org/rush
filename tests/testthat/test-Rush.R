@@ -392,9 +392,7 @@ test_that("a segfault on a local worker is detected", {
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) {
-    tools::pskill(Sys.getpid())
-  }
+  fun = function(x1, x2, ...) get("attach")(structure(list(), class = "UserDefinedDatabase"))
   worker_ids = rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
@@ -416,9 +414,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) {
-    tools::pskill(Sys.getpid())
-  }
+  fun = function(x1, x2, ...) get("attach")(structure(list(), class = "UserDefinedDatabase"))
 
   withr::with_envvar(list("HOST" = "remote_host"), {
     worker_ids = rush$start_workers(fun = fun, n_workers = 1, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
@@ -496,9 +492,7 @@ test_that("a lost task is detected", {
   # no task is running
   expect_class(rush$detect_lost_workers(), "Rush")
 
-  fun = function(x1, x2, ...) {
-    tools::pskill(Sys.getpid())
-  }
+  fun = function(x1, x2, ...) get("attach")(structure(list(), class = "UserDefinedDatabase"))
   rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -528,7 +522,7 @@ test_that("a lost task is detected", {
   data = rush$fetch_failed_tasks()
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
-  expect_equal(data$message, "The rush worker crashed.")
+  expect_equal(data$message, "Worker has crashed or was killed")
 
   expect_class(rush$detect_lost_workers(), "Rush")
 
@@ -546,9 +540,7 @@ test_that("a lost task is detected when waiting", {
   # no task is running
   expect_class(rush$detect_lost_workers(), "Rush")
 
-  fun = function(x1, x2, ...) {
-    get("attach")(structure(list(), class = "UserDefinedDatabase"))
-  }
+  fun = function(x1, x2, ...) get("attach")(structure(list(), class = "UserDefinedDatabase"))
   rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -602,30 +594,6 @@ test_that("restarting a worker works", {
 
   rush$detect_lost_workers(restart_workers = TRUE)
   expect_true(rush$processes[[worker_id_1]]$is_alive())
-
-  expect_rush_reset(rush)
-})
-
-test_that("a task is restarted when a worker is lost", {
-  skip_on_cran()
-  skip_on_ci()
-  set.seed(1) # make log messages reproducible
-  skip_if(TRUE) # does not work in testthat on environment
-
-  config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) {
-    tools::pskill(Sys.getpid())
-  }
-
-  rush$start_workers(fun = fun, n_workers = 1, max_tries = 1, wait_for_workers = TRUE)
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-
-  rush$detect_lost_workers(restart_workers = TRUE, restart_tasks = TRUE)
-
-  expect_equal(rush$n_tries(keys), 1)
 
   expect_rush_reset(rush)
 })

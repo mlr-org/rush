@@ -252,6 +252,10 @@ test_that("pushing a task to the queue works", {
   expect_data_table(data, nrows = 1)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
+  # status checks
+  expect_false(rush$is_running_task(keys))
+  expect_false(rush$is_failed_task(keys))
+
   expect_rush_reset(rush, type = "terminate")
 })
 
@@ -291,6 +295,10 @@ test_that("pushing a task with extras to the queue works", {
   expect_equal(data$timestamp, timestamp)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
+  # status checks
+  expect_false(rush$is_running_task(keys))
+  expect_false(rush$is_failed_task(keys))
+
   expect_rush_reset(rush, type = "terminate")
 })
 
@@ -327,6 +335,10 @@ test_that("pushing tasks to the queue works", {
   expect_data_table(data, nrows = 2)
   expect_character(data$keys, unique = TRUE, len = 2)
   expect_data_table(rush$fetch_tasks(), nrows = 2)
+
+  # status checks
+  expect_false(any(rush$is_running_task(keys)))
+  expect_false(any(rush$is_failed_task(keys)))
 
   expect_rush_reset(rush, type = "terminate")
 })
@@ -368,6 +380,10 @@ test_that("pushing tasks with extras to the queue works", {
   expect_equal(data$timestamp, c(timestamp, timestamp))
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 
+  # status checks
+  expect_false(any(rush$is_running_task(keys)))
+  expect_false(any(rush$is_failed_task(keys)))
+
   expect_rush_reset(rush, type = "terminate")
 })
 
@@ -407,6 +423,10 @@ test_that("popping a task from the queue works", {
   expect_data_table(data, nrows = 1)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
+  # status checks
+  expect_true(rush$is_running_task(task$key))
+  expect_false(rush$is_failed_task(task$key))
+
   expect_rush_reset(rush, type = "terminate")
 })
 
@@ -417,13 +437,17 @@ test_that("popping a task with seed, max_retries and timeout works", {
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss, seed = list(123456), max_retries = 2, timeout = 1)
+  seed = 123456
+  max_retries = 2
+  timeout = 1
+  rush$push_tasks(xss, seed = list(seed), max_retries = max_retries, timeout = timeout)
 
   # check task
   task = rush$pop_task(fields = c("xs", "seed", "max_retries", "timeout"))
+  expect_equal(task$seed, seed)
+  expect_equal(task$max_retries, max_retries)
+  expect_equal(task$timeout, timeout)
   expect_rush_task(task)
-
-  rush$fetch_running_tasks(fields = c("xs", "seed", "max_retries", "timeout"))
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -447,6 +471,10 @@ test_that("popping a task with seed, max_retries and timeout works", {
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
   expect_data_table(data, nrows = 1)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
+
+  # status checks
+  expect_true(rush$is_running_task(task$key))
+  expect_false(rush$is_failed_task(task$key))
 
   expect_rush_reset(rush, type = "terminate")
 })
@@ -486,6 +514,10 @@ test_that("pushing a finished task works", {
   expect_data_table(data, nrows = 1)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
+  # status checks
+  expect_false(rush$is_running_task(task$key))
+  expect_false(rush$is_failed_task(task$key))
+
   expect_rush_reset(rush, type = "terminate")
 })
 
@@ -523,6 +555,137 @@ test_that("pushing a failed tasks works", {
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
+
+  # status checks
+  expect_false(rush$is_running_task(task$key))
+  expect_true(rush$is_failed_task(task$key))
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("retry a failed task works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  task = rush$pop_task()
+
+  expect_output(rush$retry_tasks(keys), "Not all task")
+
+  rush$push_failed(task$key, condition = list(list(message = "error")))
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+  expect_true(rush$is_failed_task(task$key))
+
+  rush$retry_tasks(keys)
+
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 0)
+  expect_false(rush$is_failed_task(task$key))
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("retry a failed task works and setting a new seed works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  xss = list(list(x1 = 1, x2 = 2))
+  seed = c(10407L, 1280795612L, -169270483L, -442010614L, -603558397L, -222347416L, 1489374793L)
+  keys = rush$push_tasks(xss, seed = list(seed))
+  task = rush$pop_task(fields = c("xs", "seed"))
+  expect_equal(task$seed, seed)
+
+  rush$push_failed(task$key, condition = list(list(message = "error")))
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+  expect_true(rush$is_failed_task(task$key))
+
+  rush$retry_tasks(keys, next_seed = TRUE)
+  task = rush$read_tasks(keys, "seed")[[1]]
+  expect_true(is_lecyer_cmrg_seed(task$seed))
+  expect_true(task$seed[2] != seed[2])
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("retry a failed task works with a maximum of retries", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss, max_retries = 1)
+  task = rush$pop_task()
+
+  task_info = rush$read_tasks(keys)[[1]]
+  expect_equal(task_info$max_retries, 1)
+  expect_null(task_info$n_retries)
+  expect_output(rush$retry_tasks(keys), "Not all task")
+
+  rush$push_failed(task$key, condition = list(list(message = "error")))
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+  expect_true(rush$is_failed_task(task$key))
+
+  rush$retry_tasks(keys)
+
+  task_info = rush$read_tasks(keys)[[1]]
+  expect_equal(task_info$max_retries, 1)
+  expect_equal(task_info$n_retries, 1)
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 0)
+  expect_false(rush$is_failed_task(task$key))
+  task = rush$pop_task()
+
+  rush$push_failed(task$key, condition = list(list(message = "error")))
+  expect_output(rush$retry_tasks(keys), "reached the maximum number of retries")
+
+  rush$retry_tasks(keys, ignore_max_retires = TRUE)
+  task_info = rush$read_tasks(keys)[[1]]
+  expect_equal(task_info$max_retries, 1)
+  expect_equal(task_info$n_retries, 2)
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 0)
+  expect_false(rush$is_failed_task(task$key))
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("retry failed tasks works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
+  rush$push_tasks(xss)
+  task_1 = rush$pop_task()
+  task_2 = rush$pop_task()
+  keys = c(task_1$key, task_2$key)
+
+  expect_output(rush$retry_tasks(keys), "Not all task")
+
+  rush$push_failed(keys, condition = list(list(message = "error")))
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 2)
+  expect_true(all(rush$is_failed_task(keys)))
+
+  rush$retry_tasks(keys)
+
+  expect_equal(rush$n_queued_tasks, 2)
+  expect_equal(rush$n_failed_tasks, 0)
+  expect_false(any(rush$is_failed_task(keys)))
 
   expect_rush_reset(rush, type = "terminate")
 })
@@ -940,34 +1103,8 @@ test_that("popping a task with seed from the queue works", {
   rush$push_tasks(xss)
 
   # check task seed
-  task = rush$pop_task()
+  task = rush$pop_task(fields = c("xs", "seed"))
   expect_true(is_lecyer_cmrg_seed(task$seed))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-
-
-test_that("seed is set correctly", {
-  skip_on_cran()
-  skip_on_ci()
-
-  on.exit({
-    .lec.exit()
-  })
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123456)
-
-  expect_null(.lec.Random.seed.table$name)
-
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
-  task = rush$pop_task()
-  rush$set_seed(task$key)
-
-  expect_equal(.lec.Random.seed.table$name, task$key)
-
-  expect_equal(sample(seq(100000), 1), 86412)
 
   expect_rush_reset(rush, type = "terminate")
 })

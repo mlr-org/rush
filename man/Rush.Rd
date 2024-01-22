@@ -226,8 +226,11 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
+\item \href{#method-Rush-read_tasks}{\code{Rush$read_tasks()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
+\item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
+\item \href{#method-Rush-retry_tasks}{\code{Rush$retry_tasks()}}
 \item \href{#method-Rush-fetch_latest_results}{\code{Rush$fetch_latest_results()}}
 \item \href{#method-Rush-wait_for_latest_results}{\code{Rush$wait_for_latest_results()}}
 \item \href{#method-Rush-fetch_results}{\code{Rush$fetch_results()}}
@@ -241,6 +244,8 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
+\item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
+\item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
 }
 }
@@ -329,7 +334,6 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
-  max_tries = 0,
   supervise = TRUE,
   worker_loop = worker_loop_default,
   ...
@@ -364,9 +368,6 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{max_tries}}{(\code{integer(1)})\cr
-Maximum number of tries for a task before it is considered failed.}
 
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
@@ -566,6 +567,18 @@ If \code{NULL} all worker ids are used.}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-read_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-read_tasks}{}}}
+\subsection{Method \code{read_tasks()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_tasks(
+  keys,
+  fields = c("status", "timeout", "max_retries", "n_failures")
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{Method \code{push_tasks()}}{
@@ -646,6 +659,48 @@ Worker ids to which the tasks should be pushed.}
 \subsection{Returns}{
 (\code{character()})\cr
 Keys of the tasks.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_failed"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_failed}{}}}
+\subsection{Method \code{push_failed()}}{
+Pushes failed tasks to the data base.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed(keys, conditions)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character(1)})\cr
+Keys of the associated tasks.}
+
+\item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-retry_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-retry_tasks}{}}}
+\subsection{Method \code{retry_tasks()}}{
+Retry failed tasks.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(tasks, next_seed = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{tasks}}{(\verb{List of list()})\cr
+Task to be retried.}
+
+\item{\code{next_seed}}{(\code{logical(1)})\cr
+Whether to change the seed of the task.}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -1065,6 +1120,42 @@ Fields to be read from the hashes.}
 (list of \code{list()})\cr
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-is_running_task"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-is_running_task}{}}}
+\subsection{Method \code{is_running_task()}}{
+Checks whether tasks have the status \code{"running"}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$is_running_task(keys)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-is_failed_task"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-is_failed_task}{}}}
+\subsection{Method \code{is_failed_task()}}{
+Checks whether tasks have the status \code{"failed"}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$is_failed_task(keys)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks.}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}

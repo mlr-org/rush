@@ -394,7 +394,7 @@ Rush = R6::R6Class("Rush",
 
       # check workers with a heartbeat
       heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
-      lost_workers = if (length(heartbeat_keys)) {
+      lost_workers_heartbeat = if (length(heartbeat_keys)) {
         lg$debug("Checking %i worker(s) with heartbeat", length(heartbeat_keys))
         running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
         if (all(running)) return(invisible(self))
@@ -416,7 +416,7 @@ Rush = R6::R6Class("Rush",
 
       # check local workers without a heartbeat
       local_workers = r$SMEMBERS(private$.get_key("local_workers"))
-      lost_workers = if (length(local_workers)) {
+      lost_workers_local = if (length(local_workers)) {
         lg$debug("Checking %i worker(s) with process id", length(local_workers))
         running = map_lgl(local_workers, function(worker_id) self$processes[[worker_id]]$is_alive())
         if (all(running)) return(invisible(self))
@@ -442,6 +442,7 @@ Rush = R6::R6Class("Rush",
       }
 
       # mark lost tasks
+      lost_workers = c(lost_workers_heartbeat, lost_workers_local)
       if (length(lost_workers)) {
         running_tasks = self$fetch_running_tasks(fields = "worker_extra")
         if (!nrow(running_tasks)) return(invisible(self))
@@ -450,23 +451,8 @@ Rush = R6::R6Class("Rush",
 
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
 
-        # try to restart tasks
-        if (restart_tasks) {
-          # get task info
-          fields = c("max_retries", "n_failures")
-          tasks = map(keys, function(key) setNames(map(r$HMGET(key, fields), safe_bin_to_object), fields))
-
-
-          ii = is_retriable(tasks)
-          self$retry_task(tasks[ii])
-          keys = keys[!ii]
-        }
-
-        # mark task as failed
-        if (length(keys)) {
-          conditions = list(list(message = "Worker has crashed or was killed"))
-          self$push_failed(keys)
-        }
+        conditions = list(list(message = "Worker has crashed or was killed"))
+        self$push_failed(keys, conditions = conditions)
       }
 
       return(invisible(self))
@@ -546,6 +532,15 @@ Rush = R6::R6Class("Rush",
       tab[]
     },
 
+    read_tasks = function(keys, fields = c("status", "seed", "timeout", "max_retries", "n_retries")) {
+      r = self$connector
+      map(keys, function(key) {
+        task = setNames(map(r$HMGET(key, fields), safe_bin_to_object), fields)
+        task$key = key
+        task
+      })
+    },
+
     #' @description
     #' Pushes a task to the queue.
     #' Task is added to queued tasks.
@@ -591,7 +586,14 @@ Rush = R6::R6Class("Rush",
         private$.seed = seeds[[length(seeds)]]
       }
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, seed = seeds, timeout = timeouts, max_retries = max_retries)
+      # write tasks to hashes
+      keys = self$write_hashes(
+        xs = xss,
+        xs_extra = extra,
+        seed = seeds,
+        timeout = timeouts,
+        max_retries = max_retries)
+
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
         c("LPUSH", private$.get_key("queued_tasks"), keys))
@@ -651,7 +653,7 @@ Rush = R6::R6Class("Rush",
     #' @param conditions (named `list()`)\cr
     #' List of lists of conditions.
     push_failed = function(keys, conditions) {
-      assert_string(keys)
+      assert_character(keys)
       assert_list(conditions, types = "list")
       r = self$connector
 
@@ -659,16 +661,58 @@ Rush = R6::R6Class("Rush",
       self$write_hashes(condition = conditions, keys = keys)
 
       # move key from running to failed
-      r$pipeline(.commands = list(
-        c("SREM", private$.get_key("running_tasks"), keys),
-        c("RPUSH", private$.get_key("failed_tasks"), keys)
-      ))
+      r$pipeline(.commands = map(keys, function(key) {
+        c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
+      }))
 
       return(invisible(self))
     },
 
+    #' @description
+    #' Retry failed tasks.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks to be retried.
+    #' @param next_seed (`logical(1)`)\cr
+    #' Whether to change the seed of the task.
+    retry_tasks = function(keys, ignore_max_retires = FALSE, next_seed = FALSE) {
+      assert_character(keys)
+      assert_flag(ignore_max_retires)
+      assert_flag(next_seed)
+      tasks = self$read_tasks(keys, fields = c("seed", "max_retries", "n_retries"))
+      keys = map_chr(tasks, "key")
+      seeds = map(tasks, "seed")
+      n_retries = map_int(tasks, function(task) task$n_retries  %??% 0L)
+      max_retries = map_dbl(tasks, function(task) task$max_retries  %??% Inf)
+      failed = self$is_failed_task(keys)
+      retrieable = n_retries < max_retries
 
+      if (!all(failed)) lg$error("Not all task(s) failed: %s", str_collapse(keys[!failed]))
 
+      if (ignore_max_retires) {
+        keys = keys[failed]
+      } else {
+        if (!all(retrieable)) lg$error("Task(s) reached the maximum number of retries: %s", str_collapse(keys[!retrieable]))
+        keys = keys[failed & retrieable]
+      }
+
+      if (length(keys)) {
+
+        lg$debug("Retry %i task(s): %s", length(keys), str_collapse(keys))
+
+        # generate new L'Ecuyer-CMRG seeds
+        seeds = if (next_seed) map(seeds, function(seed) parallel::nextRNGSubStream(seed))
+
+        self$write_hashes(n_retries = n_retries + 1L, seed = seeds, keys = keys)
+        r = self$connector
+        r$pipeline(.commands = list(
+          c("SREM", private$.get_key("failed_tasks"), keys),
+          c("RPUSH", private$.get_key("queued_tasks"), keys)
+        ))
+      }
+
+      return(invisible(self))
+    },
 
     #' @description
     #' Fetch latest results from the data base.
@@ -897,20 +941,15 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Writes a list to redis hashes.
-    #' The function serializes each element and writes it to a new hash.
+    #' Writes R objects to Redis hashes.
+    #' The function takes the vectors in `...` as input and writes each element as a field-value pair to a new hash.
     #' The name of the argument defines the field into which the serialized element is written.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))` writes `serialize(list(x1 = 1, x2 = 2))` at field `xs` into a hash and `serialize(list(x1 = 3, x2 = 4))` at field `xs` into another hash.
-    #' The function can iterate over multiple lists simultaneously.
+    #' The function can iterate over multiple vectors simultaneously.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` creates two hashes with the fields `xs` and `ys`.
-    #' Different lengths are recycled.
-    #' The stored elements must be lists themselves.
-    #' The reading functions combine the hashes to a table where the names of the inner lists are the column names.
-    #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
-    #' Vectors in list columns must be wrapped in lists.
-    #' Otherwise, `$read_values()` will expand the table by the length of the vectors.
-    #' For example, `xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work.
-    #' Pass `xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
+    #' The vectors are recycled to the length of the longest vector.
+    #' Both lists and atomic vectors are supported.
+    #' Arguments that are `NULL` are ignored.
     #'
     #' @param ... (named `list()`)\cr
     #' Lists to be written to the hashes.
@@ -925,15 +964,21 @@ Rush = R6::R6Class("Rush",
     #' @return (`character()`)\cr
     #' Keys of the hashes.
     write_hashes = function(..., .values = list(), keys = NULL) {
+      # discard empty lists
       values = discard(c(list(...), .values), function(l) !length(l))
       fields = names(values)
-      keys = assert_character(keys %??% uuid::UUIDgenerate(n = length(values[[1]])), len = length(values[[1]]), .var.name = "keys")
+      n_hashes = max(map_int(values, length))
+      if (is.null(keys)) {
+        keys = UUIDgenerate(n = n_hashes)
+      } else {
+        assert_character(keys, min.len = n_hashes)
+      }
 
       lg$debug("Writting %i hash(es) with %i field(s)", length(keys), length(fields))
 
       # construct list of redis commands to write hashes
       cmds = pmap(c(list(key = keys), values), function(key, ...) {
-          # serialize lists
+          # serialize value of field
           bin_values = map(list(...), redux::object_to_bin)
 
           lg$debug("Serialzing %i value(s) to %s", length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
@@ -950,9 +995,16 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Reads redis hashes written with `$write_hashes()`.
+    #' Reads Redis hashes and combines the values of the fields into a list.
     #' The function reads the values of the `fields` in the hashes stored at `keys`.
     #' The values of a hash are deserialized and combined into a single list.
+    #'
+    #' The reading functions combine the hashes to a table where the names of the inner lists are the column names.
+    #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))` becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+    #' Vectors in list columns must be wrapped in lists.
+    #' Otherwise, `$read_values()` will expand the table by the length of the vectors.
+    #' For example, `xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work.
+    #' Pass `xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the hashes.
@@ -987,6 +1039,28 @@ Rush = R6::R6Class("Rush",
         }
         value
       }, list(bin_value = hash, field = fields), NULL), recursive = FALSE))
+    },
+
+    #' @description
+    #' Checks whether tasks have the status `"running"`.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks.
+    is_running_task = function(keys) {
+      r = self$connector
+      if (!length(keys)) return(logical(0))
+      as.logical(r$command(c("SMISMEMBER", private$.get_key("running_tasks"), keys)))
+    },
+
+    #' @description
+    #' Checks whether tasks have the status `"failed"`.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks.
+    is_failed_task = function(keys) {
+      r = self$connector
+      if (!length(keys)) return(logical(0))
+      as.logical(r$command(c("SMISMEMBER", private$.get_key("failed_tasks"), keys)))
     }
   ),
 
@@ -1075,9 +1149,8 @@ Rush = R6::R6Class("Rush",
     #' Keys of failed tasks.
     failed_tasks = function() {
       r = self$connector
-      unlist(r$LRANGE(private$.get_key("failed_tasks"), 0, -1))
+      unlist(r$SMEMBERS(private$.get_key("failed_tasks")))
     },
-
 
     #' @field n_queued_tasks (`integer(1)`)\cr
     #' Number of queued tasks.
@@ -1112,7 +1185,7 @@ Rush = R6::R6Class("Rush",
     #' Number of failed tasks.
     n_failed_tasks = function() {
       r = self$connector
-      as.integer(r$LLEN(private$.get_key("failed_tasks"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("failed_tasks"))) %??% 0
     },
 
     #' @field n_tasks (`integer(1)`)\cr
@@ -1335,4 +1408,3 @@ Rush = R6::R6Class("Rush",
     }
   )
 )
-

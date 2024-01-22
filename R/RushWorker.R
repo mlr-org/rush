@@ -191,11 +191,15 @@ RushWorker = R6::R6Class("RushWorker",
       assert_list(extra, types = "list")
       r = self$connector
 
-      # write result to hash
-      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys)
+      # write results to hashes
+      self$write_hashes(
+        ys = yss,
+        ys_extra = extra,
+        condition = conditions,
+        keys = keys)
 
       # move key from running to finished
-      # keys of finished and failed tasks are stored in a list i.e. the are ordered by time
+      # keys of finished tasks are stored in a list i.e. the are ordered by time
       # each rush instance only needs to record how many results it has already seen
       # to cheaply get the latest results and cache the finished tasks
       # under some conditions a set would be more advantageous e.g. to check if a task is finished,
