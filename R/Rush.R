@@ -673,7 +673,6 @@ Rush = R6::R6Class("Rush",
       assert_flag(ignore_max_retires)
       assert_flag(next_seed)
       tasks = self$read_hashes(keys, fields = c("seed", "max_retries", "n_retries"), flatten = FALSE)
-      keys = map_chr(tasks, "key")
       seeds = map(tasks, "seed")
       n_retries = map_int(tasks, function(task) task$n_retries  %??% 0L)
       max_retries = map_dbl(tasks, function(task) task$max_retries  %??% Inf)

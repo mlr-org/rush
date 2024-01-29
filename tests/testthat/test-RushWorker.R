@@ -488,9 +488,9 @@ test_that("retry a failed task works and setting a new seed works", {
   expect_true(rush$is_failed_task(task$key))
 
   rush$retry_tasks(keys, next_seed = TRUE)
-  task = rush$read_tasks(keys, "seed")[[1]]
-  expect_true(is_lecyer_cmrg_seed(task$seed))
-  expect_true(task$seed[2] != seed[2])
+  task_info = rush$read_hash(keys, "seed")
+  expect_true(is_lecyer_cmrg_seed(task_info$seed))
+  expect_true(task_info$seed[2] != seed[2])
 
   expect_rush_reset(rush, type = "terminate")
 })
@@ -503,11 +503,10 @@ test_that("retry a failed task works with a maximum of retries", {
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss, max_retries = 1)
-  task = rush$pop_task()
+  task = rush$pop_task(fields = c("max_retries", "n_retries"))
 
-  task_info = rush$read_tasks(keys)[[1]]
-  expect_equal(task_info$max_retries, 1)
-  expect_null(task_info$n_retries)
+  expect_equal(task$max_retries, 1)
+  expect_null(task$n_retries)
   expect_output(rush$retry_tasks(keys), "Not all task")
 
   rush$push_failed(task$key, condition = list(list(message = "error")))
@@ -518,7 +517,7 @@ test_that("retry a failed task works with a maximum of retries", {
 
   rush$retry_tasks(keys)
 
-  task_info = rush$read_tasks(keys)[[1]]
+  task_info = rush$read_hash(keys, fields = c("max_retries", "n_retries"))
   expect_equal(task_info$max_retries, 1)
   expect_equal(task_info$n_retries, 1)
   expect_equal(rush$n_queued_tasks, 1)
@@ -530,7 +529,7 @@ test_that("retry a failed task works with a maximum of retries", {
   expect_output(rush$retry_tasks(keys), "reached the maximum number of retries")
 
   rush$retry_tasks(keys, ignore_max_retires = TRUE)
-  task_info = rush$read_tasks(keys)[[1]]
+  task_info = rush$read_hash(keys, fields = c("max_retries", "n_retries"))
   expect_equal(task_info$max_retries, 1)
   expect_equal(task_info$n_retries, 2)
   expect_equal(rush$n_queued_tasks, 1)

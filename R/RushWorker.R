@@ -165,9 +165,9 @@ RushWorker = R6::R6Class("RushWorker",
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
 
-      res = setNames(map(r$HMGET(key, fields), safe_bin_to_object), fields)
-      res$key = key
-      res
+      task = self$read_hash(key = key, fields = fields)
+      task$key = key
+      task
     },
 
     #' @description
@@ -179,23 +179,16 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of named results.
     #' @param extra (named `list()`)\cr
     #' List of lists of additional information stored along with the results.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #' @param state (`character(1)`)\cr
-    #' Status of the tasks.
-    #' If `"finished"` the tasks are moved to the finished tasks.
-    #' If `"error"` the tasks are moved to the failed tasks.
-    push_results = function(keys, yss = list(), extra = list(), conditions = list()) {
+    push_results = function(keys, yss, extra = NULL) {
       assert_string(keys)
       assert_list(yss, types = "list")
-      assert_list(extra, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
 
       # write results to hashes
       self$write_hashes(
         ys = yss,
         ys_extra = extra,
-        condition = conditions,
         keys = keys)
 
       # move key from running to finished
@@ -207,29 +200,6 @@ RushWorker = R6::R6Class("RushWorker",
       r$pipeline(.commands = list(
         c("SREM", private$.get_key("running_tasks"), keys),
         c("RPUSH", private$.get_key("finished_tasks"), keys)
-      ))
-
-      return(invisible(self))
-    },
-
-    #' @description
-    #' Retry failed task.
-    #'
-    #' @param task (`list()`)\cr
-    #' Task to be retried.
-    #' @param next_seed (`logical(1)`)\cr
-    #' Whether to change the seed of the task.
-    retry_task = function(task, next_seed = FALSE) {
-      key = assert_string(task$key)
-      r = self$connector
-
-      lg$debug("Retry %i lost task(s): %s", length(keys), str_collapse(keys))
-
-      self$write_hashes(n_failures = 1 + task$n_failures %??% 0, keys = key)
-
-      r$pipeline(.commands = list(
-        c("SREM", private$.get_key("running_tasks"), key),
-        c("RPUSH", private$.get_key("queued_tasks"), key)
       ))
 
       return(invisible(self))
