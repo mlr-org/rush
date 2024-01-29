@@ -16,7 +16,6 @@
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_seed
-#' @template param_max_tries
 #'
 #' @export
 RushWorker = R6::R6Class("RushWorker",
@@ -46,14 +45,12 @@ RushWorker = R6::R6Class("RushWorker",
       heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      seed = NULL,
-      max_tries = 0
+      seed = NULL
       ) {
-      super$initialize(network_id = network_id, config = config)
+      super$initialize(network_id = network_id, config = config, seed = seed)
 
       self$host = assert_choice(host, c("local", "remote"))
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
-      private$.max_tries = assert_count(max_tries)
       r = self$connector
 
       # setup heartbeat
@@ -102,17 +99,6 @@ RushWorker = R6::R6Class("RushWorker",
           threshold = lgr_thresholds[package]
           logger$set_threshold(threshold)
         }
-      }
-
-      # initialize seed table
-      if (!is.null(seed)) {
-        private$.seed = TRUE
-        .lec.SetPackageSeed(seed)
-        walk(self$tasks, function(key) {
-          .lec.CreateStream(key)
-        })
-      } else {
-        private$.seed = FALSE
       }
 
       # register worker ids
@@ -166,7 +152,9 @@ RushWorker = R6::R6Class("RushWorker",
     #'
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for task in seconds.
-    pop_task = function(timeout = 1) {
+    #' @param fields (`character()`)\cr
+    #' Fields to be returned.
+    pop_task = function(timeout = 1, fields = "xs") {
       r = self$connector
 
       key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
@@ -176,7 +164,10 @@ RushWorker = R6::R6Class("RushWorker",
 
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
-      list(key = key, xs = redux::bin_to_object(r$HGET(key, "xs")))
+
+      task = self$read_hash(key = key, fields = fields)
+      task$key = key
+      task
     },
 
     #' @description
@@ -188,23 +179,20 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of named results.
     #' @param extra (named `list()`)\cr
     #' List of lists of additional information stored along with the results.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #' @param state (`character(1)`)\cr
-    #' Status of the tasks.
-    #' If `"finished"` the tasks are moved to the finished tasks.
-    #' If `"error"` the tasks are moved to the failed tasks.
-    push_results = function(keys, yss = list(), extra = list(), conditions = list()) {
+    push_results = function(keys, yss, extra = NULL) {
       assert_string(keys)
       assert_list(yss, types = "list")
-      assert_list(extra, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
 
-      # write result to hash
-      self$write_hashes(ys = yss, ys_extra = extra, condition = conditions, keys = keys)
+      # write results to hashes
+      self$write_hashes(
+        ys = yss,
+        ys_extra = extra,
+        keys = keys)
 
       # move key from running to finished
-      # keys of finished and failed tasks are stored in a list i.e. the are ordered by time.
+      # keys of finished tasks are stored in a list i.e. the are ordered by time
       # each rush instance only needs to record how many results it has already seen
       # to cheaply get the latest results and cache the finished tasks
       # under some conditions a set would be more advantageous e.g. to check if a task is finished,
@@ -214,52 +202,6 @@ RushWorker = R6::R6Class("RushWorker",
         c("RPUSH", private$.get_key("finished_tasks"), keys)
       ))
 
-      return(invisible(self))
-    },
-
-    #' @description
-    #' Pushes failed tasks to the data base.
-    #'
-    #' @param keys (`character(1)`)\cr
-    #' Keys of the associated tasks.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    push_failed = function(keys, conditions) {
-      assert_string(keys)
-      assert_list(conditions, types = "list")
-      r = self$connector
-
-      # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
-
-      # move key from running to failed
-      r$pipeline(.commands = list(
-        c("SREM", private$.get_key("running_tasks"), keys),
-        c("RPUSH", private$.get_key("failed_tasks"), keys)
-      ))
-
-      return(invisible(self))
-    },
-
-    #' @description
-    #' Sets the seed for `key`.
-    #' Updates the seed table if necessary.
-    #'
-    #' @param key (`character(1)`)\cr
-    #' Key of the task.
-    set_seed = function(key) {
-      if (!private$.seed) return(invisible(self))
-      r = self$connector
-
-      # update seed table
-      n_streams = length(.lec.Random.seed.table$name)
-      if (self$n_tasks > n_streams) {
-        keys = r$LRANGE(private$.get_key("all_tasks"), n_streams, -1)
-        walk(keys, function(key) .lec.CreateStream(key))
-      }
-
-      # set seed
-      .lec.CurrentStream(key)
       return(invisible(self))
     },
 
@@ -291,9 +233,5 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
       as.logical(r$EXISTS(private$.get_key("terminate_on_idle"))) && !as.logical(self$n_queued_tasks)
     }
-  ),
-
-  private = list(
-    .seed = NULL
   )
 )

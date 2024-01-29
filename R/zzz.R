@@ -2,11 +2,11 @@
 #' @import redux
 #' @import mlr3misc
 #' @import checkmate
-#' @import rlecuyer
 #' @importFrom processx process
 #' @importFrom uuid UUIDgenerate
 #' @importFrom utils str
 #' @importFrom jsonlite fromJSON
+#' @importFrom parallel nextRNGStream nextRNGSubStream
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

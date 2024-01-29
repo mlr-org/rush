@@ -23,125 +23,53 @@ get_hostname = function() {
   host[1]
 }
 
-# internal pid_exists functions from parallelly package by Henrik Bengtsson
-# for more information see
-# https://github.com/HenrikBengtsson/parallelly/blob/78a1b44021df2973d05224bfaa0b1a7abaf791ff/R/utils%2Cpid.R
-choose_pid_exists = function() {
-    os = .Platform$OS.type
-    pid_check = NULL
-
-    suppressWarnings({
-      if (os == "unix") {
-        if (isTRUE(pid_exists_by_pskill(Sys.getpid())) && getRversion() >= "3.5.0") {
-          pid_check = pid_exists_by_pskill
-        } else if (isTRUE(pid_exists_by_ps(Sys.getpid()))) {
-          pid_check = pid_exists_by_ps
-        }
-      } else if (os == "windows") {
-        if (isTRUE(pid_exists_by_tasklist(Sys.getpid()))) {
-          pid_check = pid_exists_by_tasklist
-        } else if (isTRUE(pid_exists_by_tasklist_filter(Sys.getpid()))) {
-          pid_check = pid_exists_by_tasklist_filter
-        }
-      }
-    })
-
-    pid_check
+is_lecyer_cmrg_seed = function(seed) {
+  is.numeric(seed) && length(seed) == 7L && all(is.finite(seed)) && (seed[1] %% 10000L == 407L)
 }
 
-pid_exists_by_tasklist_filter = function(pid, debug = FALSE) {
-  for (kk in 1:5) {
-    res = tryCatch({
-      args = c("/FI", shQuote(sprintf("PID eq %.0f", pid)), "/NH")
-      out = system2("tasklist", args = args, stdout = TRUE, stderr = "")
-      if (debug) {
-        cat(sprintf("Call: tasklist %s\n", paste(args, collapse = " ")))
-        print(out)
-        str(out)
-      }
-      out = gsub("(^[ ]+|[ ]+$)", "", out)
-      out = out[nzchar(out)]
-      if (debug) {
-        cat("Trimmed:\n")
-        print(out)
-        str(out)
-      }
-      out = grepl(sprintf(" %.0f ", pid), out)
-      if (debug) {
-        cat("Contains PID: ", paste(out, collapse = ", "), "\n", sep = "")
-      }
-      any(out)
-    }, error = function(ex) NA)
-    if (isTRUE(res)) return(res)
-    Sys.sleep(0.1)
+get_random_seed = function() {
+  env = globalenv()
+  env$.Random.seed
+}
+
+set_random_seed = function(seed, kind = NULL) {
+  env = globalenv()
+  old_seed = env$.Random.seed
+  if (is.null(seed)) {
+    if (!is.null(kind)) RNGkind(kind)
+    rm(list = ".Random.seed", envir = env, inherits = FALSE)
+  } else {
+    env$.Random.seed = seed
   }
-  res
+  invisible(old_seed)
 }
 
-pid_exists_by_tasklist = function(pid, debug = FALSE) {
-  for (kk in 1:5) {
-    res = tryCatch({
-      out = system2("tasklist", stdout = TRUE, stderr = "")
-      if (debug) {
-        cat("Call: tasklist\n")
-        print(out)
-        str(out)
-      }
-      out = gsub("(^[ ]+|[ ]+$)", "", out)
-      out = out[nzchar(out)]
-      skip = grep("^====", out)[1]
-      if (!is.na(skip)) out = out[seq(from = skip + 1L, to = length(out))]
-      if (debug) {
-        cat("Trimmed:\n")
-        print(out)
-        str(out)
-      }
-      out = strsplit(out, split = "[ ]+", fixed = FALSE)
-
-      n = lengths(out)
-      n = sort(n)[round(length(n) / 2)]
-      drop = n - 2L
-      out = lapply(out, FUN = function(x) rev(x)[-seq_len(drop)][1])
-      out = unlist(out, use.names = FALSE)
-      if (debug) {
-        cat("Extracted: ", paste(sQuote(out), collapse = ", "), "\n", sep = "")
-      }
-      out = as.integer(out)
-      if (debug) {
-        cat("Parsed: ", paste(sQuote(out), collapse = ", "), "\n", sep = "")
-      }
-      out = (out == pid)
-      if (debug) {
-        cat("Equals PID: ", paste(out, collapse = ", "), "\n", sep = "")
-      }
-      any(out)
-    }, error = function(ex) NA)
-    if (isTRUE(res)) return(res)
-    Sys.sleep(0.1)
+# creates n L'Ecuyer-CMRG streams
+make_rng_seeds = function(n, seed) {
+  seeds = vector("list", length = n)
+  for (ii in seq_len(n)) {
+    seeds[[ii]] = seed = parallel::nextRNGStream(seed)
   }
-  res
+  seeds
 }
 
-pid_exists_by_pskill = function(pid, debug = FALSE) {
-  tryCatch({
-    as.logical(tools::pskill(pid, signal = 0L))
-  }, error = function(ex) NA)
+# skips serialization of NULL
+safe_bin_to_object = function(bin) {
+  if (is.null(bin)) return(NULL)
+  redux::bin_to_object(bin)
 }
 
-pid_exists_by_ps = function(pid, debug = FALSE) {
-  tryCatch({
-    out = suppressWarnings({
-      system2("ps", args = pid, stdout = TRUE, stderr = FALSE)
-    })
+# runs code with a specific rng state
+with_rng_state = function(fun, args, seed) {
+  if (!is.null(seed)) assign(".Random.seed", seed, envir = globalenv())
+  mlr3misc::invoke(fun, .args = args)
+}
 
-    status = attr(out, "status")
-    if (is.numeric(status) && status < 0) return(NA)
-    out = gsub("(^[ ]+|[ ]+$)", "", out)
-    out = out[nzchar(out)]
-    out = strsplit(out, split = "[ ]+", fixed = FALSE)
-    out = lapply(out, FUN = function(x) x[1])
-    out = unlist(out, use.names = FALSE)
-    out = suppressWarnings(as.integer(out))
-    any(out == pid)
-  }, error = function(ex) NA)
+
+is_retriable = function(task) {
+  if (is.null(task$max_retries)) return(FALSE)
+  assert_int(task$max_retries)
+  assert_int(task$n_failures, null.ok = TRUE)
+
+  task$max_retries > task$n_failures %??% 0
 }

@@ -47,8 +47,7 @@ Used in the worker loop to determine whether to continue.}
 \item \href{#method-RushWorker-push_running_task}{\code{RushWorker$push_running_task()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
-\item \href{#method-RushWorker-push_failed}{\code{RushWorker$push_failed()}}
-\item \href{#method-RushWorker-set_seed}{\code{RushWorker$set_seed()}}
+\item \href{#method-RushWorker-retry_task}{\code{RushWorker$retry_task()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
@@ -67,14 +66,18 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>rush::Rush$fetch_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>rush::Rush$format()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="n_tries"><a href='../../rush/html/Rush.html#method-Rush-n_tries'><code>rush::Rush$n_tries()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>rush::Rush$is_failed_task()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>rush::Rush$is_running_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>rush::Rush$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>rush::Rush$push_failed()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_priority_tasks'><code>rush::Rush$push_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_tasks"><a href='../../rush/html/Rush.html#method-Rush-read_tasks'><code>rush::Rush$read_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_workers'><code>rush::Rush$restart_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>rush::Rush$start_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_finished_tasks'><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
@@ -100,8 +103,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
-  seed = NULL,
-  max_tries = 0
+  seed = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -142,11 +144,11 @@ By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in 
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
 
-\item{\code{seed}}{(\code{integer(1)})\cr
-Seed for the random number generator.}
-
-\item{\code{max_tries}}{(\code{integer(1)})\cr
-Maximum number of tries for a task before it is considered failed.}
+\item{\code{seed}}{(\code{integer()})\cr
+Initial seed for the random number generator.
+Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
+The later is converted to a L'Ecuyer-CMRG seed.
+If \code{NULL}, no seed is used for the random number generator.}
 }
 \if{html}{\out{</div>}}
 }
@@ -183,7 +185,7 @@ Keys of the tasks.
 Pop a task from the queue.
 Task is moved to the running tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$pop_task(timeout = 1)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -191,6 +193,9 @@ Task is moved to the running tasks.
 \describe{
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for task in seconds.}
+
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be returned.}
 }
 \if{html}{\out{</div>}}
 }
@@ -233,41 +238,22 @@ If \code{"error"} the tasks are moved to the failed tasks.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-push_failed"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-push_failed}{}}}
-\subsection{Method \code{push_failed()}}{
-Pushes failed tasks to the data base.
+\if{html}{\out{<a id="method-RushWorker-retry_task"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-retry_task}{}}}
+\subsection{Method \code{retry_task()}}{
+Retry failed task.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_failed(keys, conditions)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$retry_task(task, next_seed = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{keys}}{(\code{character(1)})\cr
-Keys of the associated tasks.}
+\item{\code{task}}{(\code{list()})\cr
+Task to be retried.}
 
-\item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-set_seed"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-set_seed}{}}}
-\subsection{Method \code{set_seed()}}{
-Sets the seed for \code{key}.
-Updates the seed table if necessary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$set_seed(key)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{(\code{character(1)})\cr
-Key of the task.}
+\item{\code{next_seed}}{(\code{logical(1)})\cr
+Whether to change the seed of the task.}
 }
 \if{html}{\out{</div>}}
 }
