@@ -385,9 +385,7 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param restart_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
-    #' @param restart_tasks (`logical(1)`)\cr
-    #' Whether to restart lost tasks.
-    detect_lost_workers = function(restart_workers = FALSE, restart_tasks = FALSE) {
+    detect_lost_workers = function(restart_workers = FALSE) {
       assert_flag(restart_workers)
       assert_flag(restart_tasks)
       r = self$connector
@@ -1043,14 +1041,13 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Reads a single Redis hash and returns the values as a list named by the fields.
     #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the hashes.
+    #' @param key (`character()`)\cr
+    #' Keys of the hash.
     #' @param fields (`character()`)\cr
-    #' Fields to be read from the hashes.
+    #' Fields to be read from the hash.
     #'
-    #' @return (list of `list()`)\cr
-    #' The outer list contains one element for each key.
-    #' The inner list is the combination of the lists stored at the different fields.
+    #' @return (`list()`)\cr
+    #' The list contains one element for each field.
     read_hash = function(key, fields) {
       lg$debug("Reading hash with %i field(s)", length(fields))
 
