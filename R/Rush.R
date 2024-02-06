@@ -1338,11 +1338,12 @@ Rush = R6::R6Class("Rush",
 
       # find globals
       if (!is.null(globals)) {
+        global_names = if (!is.null(names(globals))) names(globals) else globals
         globals = set_names(map(globals, function(global) {
           value = get(global, envir = parent.frame(), inherits = TRUE)
           if (is.null(value)) stopf("Global `%s` not found", global)
           value
-        }), globals)
+        }), global_names)
       }
 
       # arguments needed for initializing RushWorker

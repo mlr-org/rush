@@ -23,6 +23,25 @@ get_hostname = function() {
   host[1]
 }
 
+
+#' @title Set RNG Sate before Running a Function
+#'
+#' @description
+#' This function sets the rng state before running a function.
+#'
+#' @param fun (`function`)\cr
+#' Function to run.
+#' @param args (`list`)\cr
+#' Arguments to pass to `fun`.
+#' @param seed (`integer`)\cr
+#' RNG state to set before running `fun`.
+#'
+#' @export
+with_rng_state = function(fun, args, seed) {
+  if (!is.null(seed)) assign(".Random.seed", seed, envir = globalenv())
+  mlr3misc::invoke(fun, .args = args)
+}
+
 is_lecyer_cmrg_seed = function(seed) {
   is.numeric(seed) && length(seed) == 7L && all(is.finite(seed)) && (seed[1] %% 10000L == 407L)
 }
@@ -58,13 +77,6 @@ safe_bin_to_object = function(bin) {
   if (is.null(bin)) return(NULL)
   redux::bin_to_object(bin)
 }
-
-# runs code with a specific rng state
-with_rng_state = function(fun, args, seed) {
-  if (!is.null(seed)) assign(".Random.seed", seed, envir = globalenv())
-  mlr3misc::invoke(fun, .args = args)
-}
-
 
 is_retriable = function(task) {
   if (is.null(task$max_retries)) return(FALSE)
