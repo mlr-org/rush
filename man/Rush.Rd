@@ -209,6 +209,9 @@ For example, \code{c(60, 1000)} saves the data base every 60 seconds if there ar
 Overwrites the redis configuration file.
 Set to \code{NULL} to disable snapshots.
 For more details see \href{https://redis.io/docs/management/persistence/#snapshotting}{redis.io}.}
+
+\item{\code{has_start_arguments}}{(\code{logical(1)})\cr
+Whether the start arguments for the workers are set.}
 }
 \if{html}{\out{</div>}}
 }
@@ -219,6 +222,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-format}{\code{Rush$format()}}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
 \item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
+\item \href{#method-Rush-add_workers}{\code{Rush$add_workers()}}
 \item \href{#method-Rush-restart_workers}{\code{Rush$restart_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
@@ -226,7 +230,6 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
-\item \href{#method-Rush-read_tasks}{\code{Rush$read_tasks()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
@@ -244,6 +247,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
+\item \href{#method-Rush-read_hash}{\code{Rush$read_hash()}}
 \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
 \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
@@ -385,10 +389,34 @@ Arguments passed to \code{worker_loop}.}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-add_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-add_workers}{}}}
+\subsection{Method \code{add_workers()}}{
+Add local workers to the network.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$add_workers(n_workers, wait_for_workers = TRUE, supervise = TRUE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers to be started.}
+
+\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
+
+\item{\code{supervise}}{(\code{logical(1)})\cr
+Whether to kill the workers when the main R process is shut down.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-restart_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-restart_workers}{}}}
 \subsection{Method \code{restart_workers()}}{
-Restart workers.
+Restart local workers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$restart_workers(worker_ids)}\if{html}{\out{</div>}}
 }
@@ -567,18 +595,6 @@ If \code{NULL} all worker ids are used.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-read_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-read_tasks}{}}}
-\subsection{Method \code{read_tasks()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_tasks(
-  keys,
-  fields = c("status", "seed", "timeout", "max_retries", "n_retries")
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{Method \code{push_tasks()}}{
@@ -696,6 +712,9 @@ Retry failed tasks.
 \describe{
 \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to be retried.}
+
+\item{\code{ignore_max_retires}}{(\code{logical(1)})\cr
+Whether to ignore the maximum number of retries.}
 
 \item{\code{next_seed}}{(\code{logical(1)})\cr
 Whether to change the seed of the task.}
@@ -1094,17 +1113,14 @@ Keys of the hashes.
 \if{html}{\out{<a id="method-Rush-read_hashes"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_hashes}{}}}
 \subsection{Method \code{read_hashes()}}{
-Reads Redis hashes and combines the values of the fields into a list.
-The function reads the values of the \code{fields} in the hashes stored at \code{keys}.
-The values of a hash are deserialized and combined into a single list.
-
+Reads R Objects from Redis hashes.
+The function reads the field-value pairs of the hashes stored at \code{keys}.
+The values of a hash are deserialized and combined to a list.
+If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g. list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3)) becomes list(x1 = 1, x2 = 2, y = 3).
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
-Vectors in list columns must be wrapped in lists.
-Otherwise, \verb{$read_values()} will expand the table by the length of the vectors.
-For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = c("A", "B", "C"))) does not work. Pass }xs_extra = list(list(extra = list(c("A", "B", "C"))))` instead.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_hashes(keys, fields)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_hashes(keys, fields, flatten = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -1112,6 +1128,35 @@ For example, \verb{xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra =
 \describe{
 \item{\code{keys}}{(\code{character()})\cr
 Keys of the hashes.}
+
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.}
+
+\item{\code{flatten}}{(\code{logical(1)})\cr
+Whether to flatten the list.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(list of \code{list()})\cr
+The outer list contains one element for each key.
+The inner list is the combination of the lists stored at the different fields.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-read_hash"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-read_hash}{}}}
+\subsection{Method \code{read_hash()}}{
+Reads a single Redis hash and returns the values as a list named by the fields.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_hash(key, fields)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{(\code{character(1)})\cr
+Key of the hash.}
 
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
