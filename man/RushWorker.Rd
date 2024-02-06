@@ -47,7 +47,6 @@ Used in the worker loop to determine whether to continue.}
 \item \href{#method-RushWorker-push_running_task}{\code{RushWorker$push_running_task()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
-\item \href{#method-RushWorker-retry_task}{\code{RushWorker$retry_task()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
@@ -72,9 +71,9 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>rush::Rush$push_failed()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_priority_tasks'><code>rush::Rush$push_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_tasks"><a href='../../rush/html/Rush.html#method-Rush-read_tasks'><code>rush::Rush$read_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_workers'><code>rush::Rush$restart_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>
@@ -206,12 +205,7 @@ Fields to be returned.}
 \subsection{Method \code{push_results()}}{
 Pushes results to the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_results(
-  keys,
-  yss = list(),
-  extra = list(),
-  conditions = list()
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_results(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -225,35 +219,6 @@ List of lists of named results.}
 
 \item{\code{extra}}{(named \code{list()})\cr
 List of lists of additional information stored along with the results.}
-
-\item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.}
-
-\item{\code{state}}{(\code{character(1)})\cr
-Status of the tasks.
-If \code{"finished"} the tasks are moved to the finished tasks.
-If \code{"error"} the tasks are moved to the failed tasks.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-retry_task"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-retry_task}{}}}
-\subsection{Method \code{retry_task()}}{
-Retry failed task.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$retry_task(task, next_seed = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{task}}{(\code{list()})\cr
-Task to be retried.}
-
-\item{\code{next_seed}}{(\code{logical(1)})\cr
-Whether to change the seed of the task.}
 }
 \if{html}{\out{</div>}}
 }

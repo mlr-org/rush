@@ -1043,10 +1043,10 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Reads a single Redis hash and returns the values as a list named by the fields.
     #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the hashes.
+    #' @param key (`character(1)`)\cr
+    #' Key of the hash.
     #' @param fields (`character()`)\cr
-    #' Fields to be read from the hashes.
+    #' Fields to be read from the hash.
     #'
     #' @return (list of `list()`)\cr
     #' The outer list contains one element for each key.

@@ -124,6 +124,27 @@ test_that("globals are available on the worker", {
   expect_rush_reset(rush)
 })
 
+test_that("named globals are available on the worker", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = z)
+  x <<- 33
+
+  rush$start_workers(fun = fun, n_workers = 2, globals = c(z = "x"), wait_for_workers = TRUE)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
+
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$fetch_finished_tasks()$y, 33)
+
+  expect_rush_reset(rush)
+})
+
 # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
