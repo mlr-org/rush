@@ -58,4 +58,3 @@ reference:
     contents:
       - get_hostname
       - rush-package
-      - with_rng_state
