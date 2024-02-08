@@ -139,7 +139,7 @@ RushWorker = R6::R6Class("RushWorker",
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra)
+      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)))
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
@@ -180,7 +180,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' @param extra (named `list()`)\cr
     #' List of lists of additional information stored along with the results.
     push_results = function(keys, yss, extra = NULL) {
-      assert_string(keys)
+      assert_character(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
@@ -211,7 +211,11 @@ RushWorker = R6::R6Class("RushWorker",
     set_terminated = function() {
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
-      r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
+      r$pipeline(.commands = list(
+        c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id),
+        c("SREM", private$.get_key("local_workers"), self$worker_id),
+        c("SREM", private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat")
+      )))
       return(invisible(self))
     }
   ),
