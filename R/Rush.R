@@ -235,7 +235,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
           self$network_id, worker_id, private$.hostname, self$config$url)),
-        supervise = supervise, stdout = "|", stderr = "|") # , stdout = "|", stderr = "|"
+        supervise = supervise, stderr = "|") # , stdout = "|", stderr = "|"
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers)
@@ -424,6 +424,10 @@ Rush = R6::R6Class("Rush",
         # search for associated worker ids
         lost_workers = local_workers[!running]
         lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
+        walk(lost_workers, function(worker_id) {
+          x = self$processes[[worker_id]]$read_all_error_lines()
+          walk(x, lg$error)
+        })
 
         if (restart_workers) {
           self$restart_workers(unlist(lost_workers))
