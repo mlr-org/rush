@@ -552,7 +552,8 @@ Rush = R6::R6Class("Rush",
       tab = self$read_log(worker_ids, first_event = private$.log_counter, last_event = -1)
       if (nrow(tab)) {
         pwalk(tab, function(level, worker_id, logger, timestamp, msg, ...) {
-          catf("%s [%s] [%s] %s", level, worker_id, timestamp, msg)
+          pkg_logger = lgr::get_logger(logger)
+          pkg_logger$log(level, "[%s] [%s] %s", worker_id, timestamp, msg)
         })
         private$.log_counter = private$.log_counter + nrow(tab)
       }

@@ -999,3 +999,30 @@ test_that("seed is set correctly on two workers", {
 
   expect_rush_reset(rush, type = "terminate")
 })
+
+# log --------------------------------------------------------------------------
+
+test_that("printing logs with redis appender works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
+  fun = function(x1, x2, ...) {
+    lg = lgr::get_logger("rush")
+    lg$info("test-1-info")
+    lg$warn("test-1-warn")
+    lg$error("test-1-error")
+    list(y = x1 + x2)
+  }
+  worker_ids = rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE, lgr_thresholds = c(rush = "info"))
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  Sys.sleep(1)
+
+  expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
+  expect_silent(rush$print_log())
+
+  expect_rush_reset(rush, type = "terminate")
+})

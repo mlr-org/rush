@@ -898,37 +898,6 @@ test_that("saving logs with redis appender works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-test_that("printing logs with redis appender works", {
-  skip_on_cran()
-  skip_on_ci()
-  appenders = lgr::get_logger("root")$appenders
-
-  on.exit({
-    lgr::get_logger("root")$set_appenders(appenders)
-  })
-
-  config = start_flush_redis()
-  rush = RushWorker$new(
-    network_id = "test-rush",
-    config = config,
-    host = "local",
-    lgr_thresholds = c(rush = "info"),
-    lgr_buffer_size = 0)
-  lg = lgr::get_logger("rush")
-
-  lg$info("test-1")
-
-  expect_output(rush$print_log(), ".*test-1")
-  expect_silent(rush$print_log())
-
-  lg$info("test-2")
-  lg$info("test-3")
-
-  expect_output(rush$print_log(), ".*test-2.*test-3")
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
 test_that("settings the buffer size in redis appender works", {
   skip_on_cran()
   skip_on_ci()
