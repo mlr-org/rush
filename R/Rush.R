@@ -524,16 +524,12 @@ Rush = R6::R6Class("Rush",
     #' @param worker_ids (`character(1)`)\cr
     #' Worker ids.
     #' If `NULL` all worker ids are used.
-    #' @param first_event (`integer(1)`)\cr
-    #' First event to read.
-    #' @param last_event (`integer(1)`)\cr
-    #' Last event to read.
-    read_log = function(worker_ids = NULL, first_event = 0, last_event = -1) {
+    read_log = function(worker_ids = NULL) {
       assert_int(first_event)
       assert_int(last_event)
       worker_ids = worker_ids %??% self$worker_ids
       r = self$connector
-      cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("events", worker_id), first_event, last_event))
+      cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("events", worker_id), 0, -1))
       worker_logs = set_names(r$pipeline(.commands = cmds), worker_ids)
       tab = rbindlist(set_names(map(worker_logs, function(logs) {
         rbindlist(map(logs, fromJSON))
@@ -544,19 +540,22 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Print log messages written with the `lgr` package from a worker.
-    #'
-    #' @param worker_ids (`character(1)`)\cr
-    #' Worker ids.
-    #' If `NULL` all worker ids are used.
-    print_log = function(worker_ids = NULL) {
-      tab = self$read_log(worker_ids, first_event = private$.log_counter, last_event = -1)
-      if (nrow(tab)) {
-        pwalk(tab, function(level, worker_id, logger, timestamp, msg, ...) {
-          pkg_logger = lgr::get_logger(logger)
-          pkg_logger$log(level, "[%s] [%s] %s", worker_id, timestamp, msg)
-        })
-        private$.log_counter = private$.log_counter + nrow(tab)
-      }
+    print_log = function() {
+      r = self$connector
+
+      cmds =  walk(self$worker_ids, function(worker_id) {
+        first_event = private$.log_counter[[worker_id]] %??% 0L
+        log = r$command(c("LRANGE", private$.get_worker_key("events", worker_id), first_event, -1L))
+        if (length(log)) {
+          tab = rbindlist(map(log, fromJSON))
+          set(tab, j = "worker_id", value = worker_id)
+          pwalk(tab, function(level, logger, timestamp, msg, ...) {
+            pkg_logger = lgr::get_logger(logger)
+            pkg_logger$log(level, "[%s] [%s] %s", worker_id, timestamp, msg)
+          })
+          private$.log_counter[[worker_id]] = nrow(tab) + first_event
+        }
+      })
       return(invisible(self))
     },
 
@@ -1331,7 +1330,8 @@ Rush = R6::R6Class("Rush",
 
     .seed = NULL,
 
-    .log_counter = 0,
+    # zero based
+    .log_counter = list(),
 
     # prefix key with instance id
     .get_key = function(key) {

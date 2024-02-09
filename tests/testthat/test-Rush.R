@@ -1015,14 +1015,19 @@ test_that("printing logs with redis appender works", {
     lg$error("test-1-error")
     list(y = x1 + x2)
   }
-  worker_ids = rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE, lgr_thresholds = c(rush = "info"))
-  xss = list(list(x1 = 1, x2 = 2))
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE, lgr_thresholds = c(rush = "info"))
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
 
   Sys.sleep(1)
 
   expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
   expect_silent(rush$print_log())
+
+  xss = list(list(x1 = 3, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
 
   expect_rush_reset(rush, type = "terminate")
 })

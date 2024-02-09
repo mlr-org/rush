@@ -226,6 +226,7 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
+\item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
@@ -565,6 +566,16 @@ If \code{NULL} all worker ids are used.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-print_log"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-print_log}{}}}
+\subsection{Method \code{print_log()}}{
+Print log messages written with the \code{lgr} package from a worker.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$print_log()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
