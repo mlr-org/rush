@@ -1366,6 +1366,8 @@ Rush = R6::R6Class("Rush",
       dots = list(...)
       r = self$connector
 
+      lg$debug("Pushing worker config to Redis")
+
       # find globals
       if (!is.null(globals)) {
         global_names = if (!is.null(names(globals))) names(globals) else globals
@@ -1392,7 +1394,15 @@ Rush = R6::R6Class("Rush",
         worker_args = worker_args)
 
       # serialize and push arguments to redis
-      r$command(list("SET", private$.get_key("start_args"), redux::object_to_bin(start_args)))
+      bin_start_args = redux::object_to_bin(start_args)
+
+      if (object.size(bin_start_args) > 5369e5) {
+        stop("Worker configuration is larger than 512 MiB. Redis does not support values larger than 512 MiB.")
+      }
+
+      lg$debug("Serializing worker configuration to %s", format(object.size(bin_start_args)))
+
+      r$command(list("SET", private$.get_key("start_args"), bin_start_args))
     },
 
     # fetch tasks
