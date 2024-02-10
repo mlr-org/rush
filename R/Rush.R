@@ -473,7 +473,7 @@ Rush = R6::R6Class("Rush",
       r = self$connector
 
       # stop workers
-      self$stop_workers(type = type)
+      if (!is.null(type)) self$stop_workers(type = type)
 
       # reset fields set by starting workers
       self$processes = NULL
@@ -511,8 +511,8 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("heartbeat_keys"))
 
       # reset counters and caches
-      private$.cached_results_dt = data.table()
-      private$.cached_tasks_dt = data.table()
+     # private$.cached_results_dt = data.table()
+      private$.cached_tasks = list()
       private$.n_seen_results = 0
 
       return(invisible(self))
@@ -525,8 +525,6 @@ Rush = R6::R6Class("Rush",
     #' Worker ids.
     #' If `NULL` all worker ids are used.
     read_log = function(worker_ids = NULL) {
-      assert_int(first_event)
-      assert_int(last_event)
       worker_ids = worker_ids %??% self$worker_ids
       r = self$connector
       cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("events", worker_id), 0, -1))
@@ -796,16 +794,7 @@ Rush = R6::R6Class("Rush",
     #' @return `data.table()`
     #' Results.
     fetch_results = function(fields = "ys", reset_cache = FALSE, data_format = "data.table") {
-      assert_character(fields)
-      assert_flag(reset_cache)
-      assert_choice(data_format, c("data.table", "list"))
-      r = self$connector
-
-      if (data_format == "data.table") {
-        private$.fetch_cache_dt(fields, ".cached_results_dt", reset_cache)
-      } else {
-        private$.fetch_cache_list(fields, ".cached_results_list", reset_cache)
-      }
+      private$.fetch_cached(fields, cache = ".cached_results", data_format, reset_cache)
     },
 
     #' @description
@@ -873,17 +862,9 @@ Rush = R6::R6Class("Rush",
     #' @return `data.table()`\cr
     #' Table of finished tasks.
     fetch_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), reset_cache = FALSE, data_format = "data.table") {
-      r = self$connector
-      assert_character(fields)
-      assert_flag(reset_cache)
-      assert_choice(data_format, c("data.table", "list"))
-
-      if (data_format == "data.table") {
-        private$.fetch_cache_dt(fields, cache = ".cached_tasks_dt", reset_cache)
-      } else {
-        private$.fetch_cache_list(fields, cache = ".cached_tasks_list", reset_cache)
-      }
+      private$.fetch_cached(fields, cache = ".cached_tasks", data_format, reset_cache)
     },
+
     #' @description
     #' Block process until a new finished task is available.
     #' Returns all finished tasks or `NULL` if no new task is available after `timeout` seconds.
@@ -900,14 +881,47 @@ Rush = R6::R6Class("Rush",
       start_time = Sys.time()
 
       while(start_time + timeout > Sys.time()) {
-        if (data_format == "data.table" && self$n_finished_tasks > nrow(private$.cached_tasks_dt)) {
+        if (self$n_finished_tasks > length(private$.cached_tasks)) {
           return(self$fetch_finished_tasks(fields, data_format = data_format))
-        } else if (data_format == "list" && self$n_finished_tasks > length(private$.cached_tasks_list)) {
-          return(self$fetch_finished_tasks(fields, data_format = data_format))
-         }
+        }
         Sys.sleep(0.01)
       }
       NULL
+    },
+
+    fetch_active_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), data_format = "data.table") {
+      r = self$connector
+
+
+      if (self$n_finished_tasks > length(private$.cached_tasks)) {
+
+        # get keys in atomic operation
+        r$MULTI()
+        r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
+        r$SMEMBERS(private$.get_key("running_tasks"))
+        r$LRANGE(private$.get_key("finished_tasks"), length(private$.cached_tasks), -1)
+        keys = r$EXEC()
+
+        lg$debug("Caching %i finished task(s)", length(keys[[3]]))
+
+        # bind new results to cached results
+        data_finished = set_names(self$read_hashes(keys[[3]], fields), keys[[3]])
+        private$.cached_tasks = c(private$.cached_tasks, data_finished )
+      } else {
+        r$MULTI()
+        r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
+        r$SMEMBERS(private$.get_key("running_tasks"))
+        keys = r$EXEC()
+      }
+      data_queued = private$.fetch_default(keys[[1]], fields, data_format)
+      data_running = private$.fetch_default(keys[[2]], fields, data_format)
+      data_finished = private$.cached_tasks
+
+      if (data_format == "list") return(c(data_queued, data_running, data_finished))
+      data_finished = rbindlist(private$.cached_tasks, use.names = TRUE, fill = TRUE)
+      if (nrow(data_finished)) set(data_finished, j = "keys", value = names(private$.cached_tasks))
+      data = rbindlist(list(data_queued, data_running, data_finished), use.names = TRUE, fill = TRUE)
+      data[]
     },
 
     #' @description
@@ -1238,14 +1252,6 @@ Rush = R6::R6Class("Rush",
       as.integer(r$LLEN(private$.get_key("all_tasks"))) %??% 0
     },
 
-    #' @field data ([data.table::data.table])\cr
-    #' Contains all performed function calls.
-    data = function(rhs) {
-      assert_ro_binding(rhs)
-      self$fetch_finished_tasks()
-      private$.cached_tasks_dt
-    },
-
     #' @field worker_info ([data.table::data.table()])\cr
     #' Contains information about the workers.
     worker_info = function(rhs) {
@@ -1309,20 +1315,12 @@ Rush = R6::R6Class("Rush",
     private = list(
 
     # cache of the finished tasks and results
-    # we split the data.table and list caches so that a key can be set on the data.table
-    .cached_results_dt = data.table(),
+    .cached_results = list(),
 
-    .cached_results_list = list(),
-
-    .cached_tasks_dt = data.table(),
-
-    .cached_tasks_list = list(),
+    .cached_tasks = list(),
 
     # counter of the seen results for the latest results methods
     .n_seen_results = 0,
-
-    # cached pid_exists function
-    .pid_exists = NULL,
 
     .snapshot_schedule = NULL,
 
@@ -1411,7 +1409,7 @@ Rush = R6::R6Class("Rush",
       assert_character(fields)
       assert_choice(data_format, c("data.table", "list"))
 
-      if (is.null(keys)) {
+      if (is.null(keys) || !length(keys)) {
         data = if (data_format == "list") list() else data.table()
         return(data)
       }
@@ -1423,29 +1421,8 @@ Rush = R6::R6Class("Rush",
       data[]
     },
 
-    # fetch and cache tasks as data.table
-    .fetch_cache_dt = function(fields, cache, reset_cache = FALSE) {
-      r = self$connector
-      if (reset_cache) private[[cache]] = data.table()
-
-      if (self$n_finished_tasks > nrow(private[[cache]])) {
-
-        # get keys of new results
-        keys = r$command(c("LRANGE", private$.get_key("finished_tasks"), nrow(private[[cache]]), -1))
-
-        lg$debug("Caching %i finished task(s)", length(keys))
-
-        # bind new results to cached results
-        data = rbindlist(self$read_hashes(keys, fields), use.names = TRUE, fill = TRUE)
-        data[, keys := unlist(keys)]
-        private[[cache]] = rbindlist(list(private[[cache]], data), use.names = TRUE, fill = TRUE)
-     }
-
-     private[[cache]]
-    },
-
-    # fetch and cache tasks as list
-    .fetch_cache_list = function(fields, cache, reset_cache = FALSE) {
+    # fetch and cache tasks
+    .fetch_cached = function(fields, cache, data_format = "data.table", reset_cache = FALSE) {
       r = self$connector
       if (reset_cache) private[[cache]] = list()
 
@@ -1461,7 +1438,10 @@ Rush = R6::R6Class("Rush",
         private[[cache]] = c(private[[cache]], data)
       }
 
-      private[[cache]]
+      if (data_format == "list") return(private[[cache]])
+      data = rbindlist(private[[cache]], use.names = TRUE, fill = TRUE)
+      if (nrow(data)) data[, keys := names(private[[cache]])]
+      data[]
     }
   )
 )

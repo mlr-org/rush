@@ -30,7 +30,6 @@ test_that("active bindings work after construction", {
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
 
   expect_equal(rush$n_workers, 1)
-  expect_data_table(rush$data, nrows = 0)
 
   # check task count
   expect_equal(rush$n_queued_tasks, 0)
@@ -985,4 +984,34 @@ test_that("popping a task with seed from the queue works", {
   expect_true(is_lecyer_cmrg_seed(task$seed))
 
   expect_rush_reset(rush, type = "terminate")
+})
+
+test_that("fetch active tasks works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123)
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+
+  expect_data_table(rush$fetch_active_tasks(), nrows = 1)
+  expect_equal(rush$n_queued_tasks, 1)
+
+  task = rush$pop_task(fields = c("xs", "seed"))
+  expect_data_table(rush$fetch_active_tasks(), nrows = 1)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 1)
+
+  xss = list(list(x1 = 2, x2 = 2))
+  rush$push_tasks(xss)
+  expect_data_table(rush$fetch_active_tasks(), nrows = 2)
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_running_tasks, 1)
+
+  rush$push_results(task$key, list(list(y = 3)))
+  expect_data_table(rush$fetch_active_tasks(), nrows = 2)
+  expect_equal(rush$n_queued_tasks, 1)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 1)
 })
