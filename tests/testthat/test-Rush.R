@@ -1026,3 +1026,12 @@ test_that("printing logs with redis appender works", {
 
   expect_rush_reset(rush, type = "terminate")
 })
+
+test_that("redis info works", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
+  expect_list(rush$redis_info)
+})

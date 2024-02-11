@@ -862,6 +862,7 @@ Rush = R6::R6Class("Rush",
     #' @return `data.table()`\cr
     #' Table of finished tasks.
     fetch_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), reset_cache = FALSE, data_format = "data.table") {
+      lg$debug("Fetching finished tasks")
       private$.fetch_cached(fields, cache = ".cached_tasks", data_format, reset_cache)
     },
 
@@ -892,6 +893,8 @@ Rush = R6::R6Class("Rush",
     fetch_active_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"), data_format = "data.table") {
       r = self$connector
 
+      lg$debug("Fetching active tasks")
+      lg$debug("Reading %i cached task(s)", length(private$.cached_tasks))
 
       if (self$n_finished_tasks > length(private$.cached_tasks)) {
 
@@ -902,7 +905,7 @@ Rush = R6::R6Class("Rush",
         r$LRANGE(private$.get_key("finished_tasks"), length(private$.cached_tasks), -1)
         keys = r$EXEC()
 
-        lg$debug("Caching %i finished task(s)", length(keys[[3]]))
+        lg$debug("Caching %i new task(s)", length(keys[[3]]))
 
         # bind new results to cached results
         data_finished = set_names(self$read_hashes(keys[[3]], fields), keys[[3]])
@@ -1309,6 +1312,12 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       r$command(c("CONFIG", "SET", "save", str_collapse(rhs, sep = " ")))
       private$.snapshot_schedule = rhs
+    },
+
+    #' @field redis_info (`list()`)\cr
+    #' Information about the Redis server.
+    redis_info = function() {
+      redux::redis_info(self$connector)
     }
   ),
 
@@ -1426,12 +1435,14 @@ Rush = R6::R6Class("Rush",
       r = self$connector
       if (reset_cache) private[[cache]] = list()
 
+      lg$debug("Reading %i cached task(s)", length(private[[cache]]))
+
       if (self$n_finished_tasks > length(private[[cache]])) {
 
         # get keys of new results
         keys = r$command(c("LRANGE", private$.get_key("finished_tasks"), length(private[[cache]]), -1))
 
-        lg$debug("Caching %i finished task(s)", length(keys))
+        lg$debug("Caching %i new task(s)", length(keys))
 
         # bind new results to cached results
         data = set_names(self$read_hashes(keys, fields), keys)
