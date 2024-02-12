@@ -4,7 +4,7 @@
 \alias{rush_plan}
 \title{Create Rush Plan}
 \usage{
-rush_plan(n_workers, config = NULL)
+rush_plan(n_workers, config = NULL, lgr_thresholds = NULL)
 }
 \arguments{
 \item{n_workers}{(\code{integer(1)})\cr
@@ -15,6 +15,9 @@ Configuration options used to connect to Redis.
 If \code{NULL}, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
+
+\item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 }
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.

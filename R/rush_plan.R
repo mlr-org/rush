@@ -11,17 +11,20 @@
 #' See [redux::redis_config] for details.
 #'
 #' @template param_n_workers
+#' @template param_lgr_thresholds
 #'
 #' @export
-rush_plan = function(n_workers, config = NULL) {
+rush_plan = function(n_workers, config = NULL, lgr_thresholds = NULL) {
   assert_count(n_workers)
-  config = assert_class(config, "redis_config", null.ok = TRUE)
+  assert_class(config, "redis_config", null.ok = TRUE)
+  assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     stop("Can't connect to Redis. Check the configuration.")
   }
   assign("n_workers", n_workers, rush_env)
   assign("config", config, rush_env)
+  assign("lgr_thresholds", lgr_thresholds, rush_env)
 }
 
 #' @title Get Rush Config

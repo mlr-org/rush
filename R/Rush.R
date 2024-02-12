@@ -946,7 +946,7 @@ Rush = R6::R6Class("Rush",
       data_format = "data.table"
       ) {
       r = self$connector
-      assert_character(states)
+      assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
 
       all_keys = private$.tasks_with_state(states, only_new_keys = TRUE)
 
@@ -1389,7 +1389,7 @@ Rush = R6::R6Class("Rush",
       assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
       assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
       if (!is.null(heartbeat_period)) require_namespaces("callr")
-      assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
+      lgr_thresholds = assert_vector(lgr_thresholds, names = "named", null.ok = TRUE) %??% rush_env$lgr_thresholds
       assert_count(lgr_buffer_size)
       assert_function(worker_loop)
       dots = list(...)
