@@ -74,7 +74,7 @@ The function tests the connection to Redis and throws an error if the connection
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rush_plan</span><span class="op">(</span><span class="va">n_workers</span>, config <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rush_plan</span><span class="op">(</span><span class="va">n_workers</span>, config <span class="op">=</span> <span class="cn">NULL</span>, lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -90,6 +90,11 @@ Configuration options used to connect to Redis.
 If <code>NULL</code>, the <code>REDIS_URL</code> environment variable is parsed.
 If <code>REDIS_URL</code> is not set, a default configuration is used.
 See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
+
+
+<dt>lgr_thresholds</dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
+Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 
 </dl></div>
 
