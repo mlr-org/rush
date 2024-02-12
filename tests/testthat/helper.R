@@ -18,4 +18,4 @@ expect_rush_reset = function(rush, type = "kill") {
   walk(processes, function(p) p$kill())
 }
 
-#lg$set_threshold(0)
+lg$set_threshold("debug")

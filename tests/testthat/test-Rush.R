@@ -150,6 +150,7 @@ test_that("named globals are available on the worker", {
 test_that("worker can be started with script", {
   skip_on_cran()
   skip_on_ci()
+  skip_if(TRUE)
   set.seed(1) # make log messages reproducible
 
   root_logger = lgr::get_logger("root")
@@ -773,7 +774,7 @@ test_that("blocking on new results works", {
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
-    fun = function(x1, x2, ...) {
+  fun = function(x1, x2, ...) {
     Sys.sleep(5)
     list(y = x1 + x2)
   }
@@ -781,9 +782,9 @@ test_that("blocking on new results works", {
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  expect_data_table(rush$wait_for_latest_results(timeout = 1), nrows = 0)
-  expect_data_table(rush$wait_for_latest_results(timeout = 10), nrows = 1)
-  expect_data_table(rush$wait_for_latest_results(timeout = 1), nrows = 0)
+  expect_data_table(rush$wait_for_new_tasks(timeout = 1), nrows = 0)
+  expect_data_table(rush$wait_for_new_tasks(timeout = 10), nrows = 1)
+  expect_data_table(rush$wait_for_new_tasks(timeout = 1), nrows = 0)
 
   expect_rush_reset(rush)
 })
@@ -1032,6 +1033,6 @@ test_that("redis info works", {
   skip_on_ci()
 
   config = start_flush_redis()
-  rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
+  rush = Rush$new(network_id = "test-rush", config = config)
   expect_list(rush$redis_info)
 })

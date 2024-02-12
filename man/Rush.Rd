@@ -191,9 +191,6 @@ Number of failed tasks.}
 \item{\code{n_tasks}}{(\code{integer(1)})\cr
 Number of all tasks.}
 
-\item{\code{data}}{(\link[data.table:data.table]{data.table::data.table})\cr
-Contains all performed function calls.}
-
 \item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
 Contains information about the workers.}
 
@@ -209,6 +206,9 @@ For example, \code{c(60, 1000)} saves the data base every 60 seconds if there ar
 Overwrites the redis configuration file.
 Set to \code{NULL} to disable snapshots.
 For more details see \href{https://redis.io/docs/management/persistence/#snapshotting}{redis.io}.}
+
+\item{\code{redis_info}}{(\code{list()})\cr
+Information about the Redis server.}
 }
 \if{html}{\out{</div>}}
 }
@@ -231,22 +231,23 @@ For more details see \href{https://redis.io/docs/management/persistence/#snapsho
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
 \item \href{#method-Rush-retry_tasks}{\code{Rush$retry_tasks()}}
-\item \href{#method-Rush-fetch_latest_results}{\code{Rush$fetch_latest_results()}}
-\item \href{#method-Rush-wait_for_latest_results}{\code{Rush$wait_for_latest_results()}}
-\item \href{#method-Rush-fetch_results}{\code{Rush$fetch_results()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
 \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
 \item \href{#method-Rush-wait_for_finished_tasks}{\code{Rush$wait_for_finished_tasks()}}
+\item \href{#method-Rush-fetch_new_tasks}{\code{Rush$fetch_new_tasks()}}
+\item \href{#method-Rush-wait_for_new_tasks}{\code{Rush$wait_for_new_tasks()}}
 \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
 \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
+\item \href{#method-Rush-fetch_tasks_with_state}{\code{Rush$fetch_tasks_with_state()}}
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
 \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
 \item \href{#method-Rush-read_hash}{\code{Rush$read_hash()}}
 \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
 \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
+\item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
 }
 }
@@ -706,104 +707,6 @@ Whether to change the seed of the task.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fetch_latest_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fetch_latest_results}{}}}
-\subsection{Method \code{fetch_latest_results()}}{
-Fetch latest results from the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_latest_results(fields = "ys", data_format = "data.table")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
-Latest results.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-wait_for_latest_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-wait_for_latest_results}{}}}
-\subsection{Method \code{wait_for_latest_results()}}{
-Block process until a new result is available.
-Returns latest results or \code{NULL} if no result is available after \code{timeout} seconds.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_latest_results(
-  fields = "ys",
-  timeout = Inf,
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Time to wait for a result in seconds.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
-Latest results.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fetch_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fetch_results}{}}}
-\subsection{Method \code{fetch_results()}}{
-Fetch results from the data base.
-Results are cached.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_results(
-  fields = "ys",
-  reset_cache = FALSE,
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.
-Defaults to \code{"ys"}.}
-
-\item{\code{reset_cache}}{(\code{logical(1)})\cr
-Whether to reset the cache.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}
-Results.
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_queued_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_queued_tasks}{}}}
 \subsection{Method \code{fetch_queued_tasks()}}{
@@ -904,7 +807,7 @@ Fetch finished tasks from the data base.
 Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
   reset_cache = FALSE,
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
@@ -969,6 +872,72 @@ Table of finished tasks.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fetch_new_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fetch_new_tasks}{}}}
+\subsection{Method \code{fetch_new_tasks()}}{
+Fetch finished tasks from the data base that finished after the last fetch.
+Updates the cache of the finished tasks.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{data.table()}\cr
+Latest results.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-wait_for_new_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-wait_for_new_tasks}{}}}
+\subsection{Method \code{wait_for_new_tasks()}}{
+Block process until a new finished task is available.
+Returns new tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_new_tasks(
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
+  timeout = Inf,
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.
+Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Time to wait for new result in seconds.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{data.table() | list()}.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_failed_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_failed_tasks}{}}}
 \subsection{Method \code{fetch_failed_tasks()}}{
@@ -1006,7 +975,7 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition", "state"),
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
   data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
@@ -1028,6 +997,44 @@ The default is \code{"data.table"} but \code{"list"} is easier when list columns
 \subsection{Returns}{
 \code{data.table()}\cr
 Table of all tasks.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fetch_tasks_with_state"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fetch_tasks_with_state}{}}}
+\subsection{Method \code{fetch_tasks_with_state()}}{
+Fetch tasks with different states from the data base.
+If tasks with different states are to be queried at the same time, this function prevents tasks from appearing twice.
+This could be the case if a worker changes the state of a task while the tasks are being fetched.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks_with_state(
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
+  states = c("queued", "running", "finished", "failed"),
+  reset_cache = FALSE,
+  data_format = "data.table"
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.
+Defaults to \code{c("xs", "ys", "xs_extra", "worker_extra", "ys_extra")}.}
+
+\item{\code{states}}{(\code{character()})\cr
+States of the tasks to be fetched.
+Defaults to \code{c("queued", "running", "finished", "failed")}.}
+
+\item{\code{reset_cache}}{(\code{logical(1)})\cr
+Whether to reset the cache of the finished tasks.}
+
+\item{\code{data_format}}{(\code{character()})\cr
+Returned data format.
+Choose \code{"data.table"} or "list".
+The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -1186,6 +1193,27 @@ Checks whether tasks have the status \code{"failed"}.
 Keys of the tasks.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-tasks_with_state"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-tasks_with_state}{}}}
+\subsection{Method \code{tasks_with_state()}}{
+Returns keys of requested states.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$tasks_with_state(states)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{states}}{(\code{character()})\cr
+States of the tasks.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(Named list of \code{character()}).
 }
 }
 \if{html}{\out{<hr>}}
