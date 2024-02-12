@@ -1034,7 +1034,6 @@ test_that("popping a task with seed from the queue works", {
 
 # atomic operations -----------------------------------------------------------
 
-
 test_that("task in states works", {
   skip_on_cran()
   skip_on_ci()
@@ -1051,6 +1050,10 @@ test_that("task in states works", {
   expect_null(keys_list$running)
   expect_null(keys_list$finished)
   expect_null(keys_list$failed)
+  # switch order
+  keys_list = rush$tasks_with_state(c("running", "queued", "finished", "failed"))
+  expect_equal(keys_list$queued, keys)
+
 
   task = rush$pop_task()
   keys_list = rush$tasks_with_state(c("queued", "running", "finished", "failed"))

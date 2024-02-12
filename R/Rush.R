@@ -1446,7 +1446,8 @@ Rush = R6::R6Class("Rush",
       if ("failed" %in% states) r$SMEMBERS(private$.get_key("failed_tasks"))
       keys = r$EXEC()
       keys = map(keys, unlist)
-      set_names(keys, states)
+      states_order = c("queued", "running", "finished", "failed")
+      set_names(keys, states_order[states_order %in% states])
     },
 
     # fetch tasks
