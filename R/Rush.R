@@ -229,6 +229,8 @@ Rush = R6::R6Class("Rush",
         ...
       )
 
+      lg$info("Starting %i worker(s)", n_workers)
+
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
