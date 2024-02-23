@@ -1036,3 +1036,31 @@ test_that("redis info works", {
   rush = Rush$new(network_id = "test-rush", config = config)
   expect_list(rush$redis_info)
 })
+
+# large objects ----------------------------------------------------------------
+
+test_that("evaluating a task works", {
+  skip_on_cran()
+  skip_on_ci()
+  skip_if(TRUE) # takes too long
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, large_vector, ...) list(y = length(large_vector))
+
+  expect_error(
+    rush$start_workers(fun = fun, n_workers = 4, constants = list(large_vector = runif(1e8)), wait_for_workers = TRUE),
+    "Worker configuration is larger than 512 MiB.")
+
+  rush_plan(n_workers = 4, large_objects_path = tempdir())
+
+  rush$start_workers(fun = fun, constants = list(large_vector = runif(1e8)), wait_for_workers = TRUE)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+
+  expect_equal(rush$fetch_finished_tasks()$y, 1e8)
+
+  expect_rush_reset(rush)
+})

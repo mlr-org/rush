@@ -40,6 +40,11 @@ start_worker = function(
   }
   start_args = redux::bin_to_object(bin_start_args)
 
+  # load large object from disk
+  if (inherits(start_args, "rush_large_object")) {
+    start_args = readRDS(start_args$path)
+  }
+
   # load packages and globals to worker environment
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, .GlobalEnv))

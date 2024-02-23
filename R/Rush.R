@@ -1428,7 +1428,12 @@ Rush = R6::R6Class("Rush",
       bin_start_args = redux::object_to_bin(start_args)
 
       if (object.size(bin_start_args) > 5369e5) {
-        stop("Worker configuration is larger than 512 MiB. Redis does not support values larger than 512 MiB.")
+        if (is.null(rush_env$large_objects_path)) {
+          stop("Worker configuration is larger than 512 MiB. Redis does not support values larger than 512 MiB. Set a path for large objects to store on disk.")
+        } else {
+          lg$debug("Worker configuration is larger than 512 MiB. Writing to disk.")
+          bin_start_args = redux::object_to_bin(store_large_object(start_args, path = rush_env$large_objects_path))
+        }
       }
 
       lg$debug("Serializing worker configuration to %s", format(object.size(bin_start_args)))
