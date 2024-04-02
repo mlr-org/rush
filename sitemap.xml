@@ -46,6 +46,9 @@
     <loc>https://mlr3.mlr-org.com/reference/start_worker.html</loc>
   </url>
   <url>
+    <loc>https://mlr3.mlr-org.com/reference/store_large_object.html</loc>
+  </url>
+  <url>
     <loc>https://mlr3.mlr-org.com/reference/with_rng_state.html</loc>
   </url>
   <url>
