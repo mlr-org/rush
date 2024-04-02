@@ -527,7 +527,7 @@ test_that("retry a failed task works with a maximum of retries", {
   rush$push_failed(task$key, condition = list(list(message = "error")))
   expect_output(rush$retry_tasks(keys), "reached the maximum number of retries")
 
-  rush$retry_tasks(keys, ignore_max_retires = TRUE)
+  rush$retry_tasks(keys, ignore_max_retries = TRUE)
   task_info = rush$read_hash(keys, fields = c("max_retries", "n_retries"))
   expect_equal(task_info$max_retries, 1)
   expect_equal(task_info$n_retries, 2)

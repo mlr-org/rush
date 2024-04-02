@@ -4,7 +4,12 @@
 \alias{rush_plan}
 \title{Create Rush Plan}
 \usage{
-rush_plan(n_workers, config = NULL, lgr_thresholds = NULL)
+rush_plan(
+  n_workers,
+  config = NULL,
+  lgr_thresholds = NULL,
+  large_objects_path = NULL
+)
 }
 \arguments{
 \item{n_workers}{(\code{integer(1)})\cr
@@ -18,6 +23,9 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{large_objects_path}{\link{character(1)}\cr
+The path to the directory where large objects are stored.}
 }
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.

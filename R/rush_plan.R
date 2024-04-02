@@ -12,6 +12,7 @@
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
+#' @template param_large_objects_path
 #'
 #' @export
 rush_plan = function(n_workers, config = NULL, lgr_thresholds = NULL, large_objects_path = NULL) {

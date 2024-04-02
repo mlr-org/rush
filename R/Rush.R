@@ -253,6 +253,8 @@ Rush = R6::R6Class("Rush",
       assert_subset(unlist(worker_ids), self$worker_ids)
       r = self$connector
 
+      # FIXME: Kill workers?
+
       lg$error("Restarting %i worker(s): %s", length(worker_ids), str_collapse(worker_ids))
       processes = set_names(map(worker_ids, function(worker_id) {
         # restart worker
@@ -386,11 +388,8 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param restart_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
-    #' @param restart_tasks (`logical(1)`)\cr
-    #' Whether to restart lost tasks.
-    detect_lost_workers = function(restart_workers = FALSE, restart_tasks = FALSE) {
+    detect_lost_workers = function(restart_workers = FALSE) {
       assert_flag(restart_workers)
-      assert_flag(restart_tasks)
       r = self$connector
 
       # check workers with a heartbeat
@@ -690,13 +689,13 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the tasks to be retried.
-    #' @param ignore_max_retires (`logical(1)`)\cr
+    #' @param ignore_max_retries (`logical(1)`)\cr
     #' Whether to ignore the maximum number of retries.
     #' @param next_seed (`logical(1)`)\cr
     #' Whether to change the seed of the task.
-    retry_tasks = function(keys, ignore_max_retires = FALSE, next_seed = FALSE) {
+    retry_tasks = function(keys, ignore_max_retries = FALSE, next_seed = FALSE) {
       assert_character(keys)
-      assert_flag(ignore_max_retires)
+      assert_flag(ignore_max_retries)
       assert_flag(next_seed)
       tasks = self$read_hashes(keys, fields = c("seed", "max_retries", "n_retries"), flatten = FALSE)
       seeds = map(tasks, "seed")
@@ -707,7 +706,7 @@ Rush = R6::R6Class("Rush",
 
       if (!all(failed)) lg$error("Not all task(s) failed: %s", str_collapse(keys[!failed]))
 
-      if (ignore_max_retires) {
+      if (ignore_max_retries) {
         keys = keys[failed]
       } else {
         if (!all(retrieable)) lg$error("Task(s) reached the maximum number of retries: %s", str_collapse(keys[!retrieable]))
@@ -932,6 +931,7 @@ Rush = R6::R6Class("Rush",
     #' Fetch tasks with different states from the data base.
     #' If tasks with different states are to be queried at the same time, this function prevents tasks from appearing twice.
     #' This could be the case if a worker changes the state of a task while the tasks are being fetched.
+    #' Finished tasks are cached.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
@@ -1445,7 +1445,11 @@ Rush = R6::R6Class("Rush",
     # finished tasks keys can be restricted to uncached tasks
     .tasks_with_state = function(states, only_new_keys = FALSE) {
       r = self$connector
+
+      # optionally limit finished tasks to uncached tasks
       start_finished_tasks = if (only_new_keys) length(private$.cached_tasks) else 0
+
+      # get keys of tasks with different states in one transaction
       r$MULTI()
       if ("queued" %in% states) r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
       if ("running" %in% states) r$SMEMBERS(private$.get_key("running_tasks"))

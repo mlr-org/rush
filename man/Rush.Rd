@@ -513,7 +513,7 @@ But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as \code{"lost"}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_workers = FALSE, restart_tasks = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_workers = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -521,9 +521,6 @@ Lost tasks are marked as \code{"lost"}.
 \describe{
 \item{\code{restart_workers}}{(\code{logical(1)})\cr
 Whether to restart lost workers.}
-
-\item{\code{restart_tasks}}{(\code{logical(1)})\cr
-Whether to restart lost tasks.}
 }
 \if{html}{\out{</div>}}
 }
@@ -688,7 +685,7 @@ List of lists of conditions.}
 \subsection{Method \code{retry_tasks()}}{
 Retry failed tasks.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(keys, ignore_max_retires = FALSE, next_seed = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(keys, ignore_max_retries = FALSE, next_seed = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -697,7 +694,7 @@ Retry failed tasks.
 \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to be retried.}
 
-\item{\code{ignore_max_retires}}{(\code{logical(1)})\cr
+\item{\code{ignore_max_retries}}{(\code{logical(1)})\cr
 Whether to ignore the maximum number of retries.}
 
 \item{\code{next_seed}}{(\code{logical(1)})\cr
@@ -1006,6 +1003,7 @@ Table of all tasks.
 Fetch tasks with different states from the data base.
 If tasks with different states are to be queried at the same time, this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
+Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks_with_state(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
