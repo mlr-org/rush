@@ -17,7 +17,7 @@ get_hostname = function() {
     host = Sys.info()["nodename"]
     host = host[host != ""]
     if (length(host) == 0) {
-      host <- readLines(pipe("/usr/bin/env uname -n"))
+      host = readLines(pipe("/usr/bin/env uname -n"))
     }
   }
   host[1]
@@ -42,15 +42,18 @@ with_rng_state = function(fun, args, seed) {
   mlr3misc::invoke(fun, .args = args)
 }
 
+# checks if a seed is a valid L'Ecuyer-CMRG seed
 is_lecyer_cmrg_seed = function(seed) {
   is.numeric(seed) && length(seed) == 7L && all(is.finite(seed)) && (seed[1] %% 10000L == 407L)
 }
 
+# get the current RNG state
 get_random_seed = function() {
   env = globalenv()
   env$.Random.seed
 }
 
+# set the RNG state
 set_random_seed = function(seed, kind = NULL) {
   env = globalenv()
   old_seed = env$.Random.seed
@@ -76,12 +79,4 @@ make_rng_seeds = function(n, seed) {
 safe_bin_to_object = function(bin) {
   if (is.null(bin)) return(NULL)
   redux::bin_to_object(bin)
-}
-
-is_retriable = function(task) {
-  if (is.null(task$max_retries)) return(FALSE)
-  assert_int(task$max_retries)
-  assert_int(task$n_failures, null.ok = TRUE)
-
-  task$max_retries > task$n_failures %??% 0
 }

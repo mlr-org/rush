@@ -33,14 +33,17 @@ rush_plan = function(n_workers, config = NULL, lgr_thresholds = NULL, large_obje
 #' @title Get Rush Config
 #'
 #' @description
-#' Returns the redis config file ([redux::redis_config]) that was set by [rush_plan()].
+#' Returns the rush config that was set by [rush_plan()].
 #'
-#' @return [redux::redis_config()]\cr
-#' A redis config file.
+#' @return `list(4)`
 #'
 #' @export
 rush_config = function() {
-  list(config = rush_env$config, n_workers = rush_env$n_workers)
+  list(
+    config = rush_env$config,
+    n_workers = rush_env$n_workers,
+    lgr_thresholds = rush_env$lgr_thresholds,
+    large_objects_path = rush_env$large_objects_path)
 }
 
 #' @title Rush Available
