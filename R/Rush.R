@@ -236,7 +236,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
           self$network_id, worker_id, private$.hostname, self$config$url)),
-        supervise = supervise, stderr = "|") # , stdout = "|", stderr = "|"
+        supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers)
@@ -245,7 +245,8 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Restart workers.
+    #' Restart local workers.
+    #' If the worker is is still running, it is killed and restarted.
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be restarted.
@@ -253,9 +254,18 @@ Rush = R6::R6Class("Rush",
       assert_subset(unlist(worker_ids), self$worker_ids)
       r = self$connector
 
-      # FIXME: Kill workers?
+      # check for remote workers
+      worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
+      if ("remote" %in% worker_info$host) {
+        stopf("Can't restart remote workers %s", as_short_string(worker_ids))
+      }
 
-      lg$error("Restarting %i worker(s): %s", length(worker_ids), str_collapse(worker_ids))
+      # stop running workers
+      if (worker_ids %in% self$running_worker_ids) {
+        self$stop_workers(type = "kill", worker_ids[worker_ids %in% self$running_worker_ids])
+      }
+
+      lg$info("Restarting %i worker(s): %s", length(worker_ids), str_collapse(worker_ids))
       processes = set_names(map(worker_ids, function(worker_id) {
         # restart worker
         processx::process$new("Rscript",

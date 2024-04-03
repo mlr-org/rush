@@ -741,7 +741,7 @@ test_that("a lost task is detected when waiting", {
   expect_rush_reset(rush)
 })
 
-# restart tasks and workers ----------------------------------------------------
+# restart workers --------------------------------------------------------------
 
 test_that("restarting a worker works", {
   skip_on_cran()
@@ -761,6 +761,27 @@ test_that("restarting a worker works", {
 
   rush$detect_lost_workers(restart_workers = TRUE)
   expect_true(rush$processes[[worker_id_1]]$is_alive())
+
+  expect_rush_reset(rush)
+})
+
+test_that("restarting a worker kills the worker", {
+  skip_on_cran()
+  skip_on_ci()
+  skip_on_windows()
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  rush$start_workers(fun = fun, n_workers = 1, wait_for_workers = TRUE)
+  pid = rush$worker_info$pid
+  worker_id = rush$running_worker_ids
+  expect_true(tools::pskill(pid, signal = 0))
+
+  rush$restart_workers(worker_ids = worker_id)
+  expect_false(pid == rush$worker_info$pid)
+  expect_false(tools::pskill(pid, signal = 0))
 
   expect_rush_reset(rush)
 })
