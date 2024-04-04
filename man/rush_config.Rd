@@ -7,9 +7,8 @@
 rush_config()
 }
 \value{
-\code{\link[redux:redis_config]{redux::redis_config()}}\cr
-A redis config file.
+\code{list(4)}
 }
 \description{
-Returns the redis config file (\link[redux:redis_config]{redux::redis_config}) that was set by \code{\link[=rush_plan]{rush_plan()}}.
+Returns the rush config that was set by \code{\link[=rush_plan]{rush_plan()}}.
 }

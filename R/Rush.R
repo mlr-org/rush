@@ -6,7 +6,7 @@
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
-#' Local workers are are spawned with the `$start_workers() method via the `processx` package.
+#' Local workers are spawned with the `$start_workers() method via the `processx` package.
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
@@ -19,7 +19,7 @@
 #' Local and remote workers can be terminated with the `$stop_workers(type = "terminate")` method.
 #' The workers evaluate the currently running task and then terminate.
 #' The option `type = "kill"` stops the workers immediately.
-#' Killing a local worker is done with the `tools::pskill()` function.
+#' Killing a local worker is done with the `processx` package.
 #' Remote workers are killed by pushing a kill signal to the heartbeat process.
 #' Without a heartbeat process a remote worker cannot be killed (see section heartbeat).
 #'
@@ -29,26 +29,26 @@
 #' Furthermore, the heartbeat process can kill the worker.
 #'
 #' @section Data Structure:
-#' Rush writes a task and its result and additional meta information into a Redis [hash](https://redis.io/docs/data-types/hashes/).
+#' Tasks are stored in Redis [hashes](https://redis.io/docs/data-types/hashes/).
+#' Hashes are collections of field-value pairs.
+#' The key of the hash identifies the task in Redis and `rush`.
 #'
 #' ```
-#' key : xs | ys | extra | state
+#' key : xs | ys | xs_extra
 #' ```
 #'
-#' The key of the hash identifies the task in Rush.
-#' The fields are written by different methods, e.g. `$push_result()` writes `ys` when the result is available.
-#' The value of a field is a serialized list e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`.
-#' This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
-#' For example, three hashes from the above example are converted to the following table.
+#' The field-value pairs are written by different methods, e.g. `$push_tasks()` writes `xs` and `$push_results()` writes `ys`.
+#' The values of the fields are serialized lists or atomic values e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`
+#' This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.
 #'
 #' ```
-#' | key | x1 | x2 | y | timestamp | state   |
-#' | 1.. |  3 |  4 | 7 |  12:04:11 | finished |
-#' | 2.. |  1 |  4 | 5 |  12:04:12 | finished |
-#' | 3.. |  1 |  1 | 2 |  12:04:13 | finished |
+#' | key | x1 | x2 | y | timestamp |
+#' | 1.. |  3 |  4 | 7 |  12:04:11 |
+#' | 2.. |  1 |  4 | 5 |  12:04:12 |
+#' | 3.. |  1 |  1 | 2 |  12:04:13 |
 #' ```
-#' Notice that a value of a field can store multiple columns of the table.
-#'
+#' When the value of a field is a named list, the field can store the cells of multiple columns of the table.
+#' When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
 #' The methods `$push_tasks()` and `$push_results()` write into multiple hashes.
 #' For example, `$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))` writes `xs` in two hashes.
 #'
@@ -69,17 +69,16 @@
 #' @section Fetch Tasks and Results:
 #' The `$fetch_*()` methods retrieve data from the Redis database.
 #' A matching method is defined for each task state e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
-#' If only the result of the function evaluation is needed, `$fetch_results()` and `$fetch_latest_results()` are faster.
-#' The methods `$fetch_results()` and `$fetch_finished_tasks()` cache the already queried data.
-#' The `$block_*()` variants wait until a new result is available.
+#' The methods `$fetch_new_tasks()` and `$fetch_finished_tasks()` cache the already queried data.
+#' The `$wait_for_finished_tasks()` variant wait until a new result is available.
 #'
 #' @section Error Handling:
 #' When evaluating tasks in a distributed system, many things can go wrong.
 #' Simple R errors in the worker loop are caught and written to the archive.
 #' The task is marked as `"failed"`.
 #' If the connection to a worker is lost, it looks like a task is `"running"` forever.
-#' The methods `$detect_lost_workers()` and `$detect_lost_tasks()` detect lost workers.
-#' Running these methods periodically adds a small overhead.
+#' The method `$detect_lost_workers()` identifies lost workers.
+#' Running this method periodically adds a small overhead.
 #'
 #' @section Logging:
 #' The worker logs all messages written with the `lgr` package to the data base.
