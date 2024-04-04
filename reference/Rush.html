@@ -78,7 +78,7 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
     
 
 <p>A local worker runs on the same machine as the controller.
-Local workers are are spawned with the <code>$start_workers() method via the </code>processx` package.</p>
+Local workers are spawned with the <code>$start_workers() method via the </code>processx` package.</p>
     </div>
     <div class="section level2">
     <h2 id="remote-workers">Remote Workers<a class="anchor" aria-label="anchor" href="#remote-workers"></a></h2>
@@ -97,7 +97,7 @@ The heartbeat process also monitors the remote workers for crashes.</p>
 <p>Local and remote workers can be terminated with the <code>$stop_workers(type = "terminate")</code> method.
 The workers evaluate the currently running task and then terminate.
 The option <code>type = "kill"</code> stops the workers immediately.
-Killing a local worker is done with the <code><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">tools::pskill()</a></code> function.
+Killing a local worker is done with the <code>processx</code> package.
 Remote workers are killed by pushing a kill signal to the heartbeat process.
 Without a heartbeat process a remote worker cannot be killed (see section heartbeat).</p>
     </div>
@@ -113,19 +113,20 @@ Furthermore, the heartbeat process can kill the worker.</p>
     <h2 id="data-structure">Data Structure<a class="anchor" aria-label="anchor" href="#data-structure"></a></h2>
     
 
-<p>Rush writes a task and its result and additional meta information into a Redis <a href="https://redis.io/docs/data-types/hashes/" class="external-link">hash</a>.</p>
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>key <span class="sc">:</span> xs <span class="sc">|</span> ys <span class="sc">|</span> extra <span class="sc">|</span> state</span></code></pre><p></p></div>
-<p>The key of the hash identifies the task in Rush.
-The fields are written by different methods, e.g. <code>$push_result()</code> writes <code>ys</code> when the result is available.
-The value of a field is a serialized list e.g. unserializing <code>xs</code> gives <code>list(x1 = 1, x2 = 2)</code>.
-This data structure allows to quickly convert a hash into a row and to join multiple hashes into a table.
-For example, three hashes from the above example are converted to the following table.</p>
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> key <span class="sc">|</span> x1 <span class="sc">|</span> x2 <span class="sc">|</span> y <span class="sc">|</span> timestamp <span class="sc">|</span> state   <span class="sc">|</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span> <span class="dv">1</span>.. <span class="sc">|</span>  <span class="dv">3</span> <span class="sc">|</span>  <span class="dv">4</span> <span class="sc">|</span> <span class="dv">7</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">11</span> <span class="sc">|</span> finished <span class="sc">|</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> <span class="dv">2</span>.. <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span>  <span class="dv">4</span> <span class="sc">|</span> <span class="dv">5</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">12</span> <span class="sc">|</span> finished <span class="sc">|</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> <span class="dv">3</span>.. <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span> <span class="dv">2</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">13</span> <span class="sc">|</span> finished <span class="sc">|</span></span></code></pre><p></p></div>
-<p>Notice that a value of a field can store multiple columns of the table.</p>
-<p>The methods <code>$push_tasks()</code> and <code>$push_results()</code> write into multiple hashes.
+<p>Tasks are stored in Redis <a href="https://redis.io/docs/data-types/hashes/" class="external-link">hashes</a>.
+Hashes are collections of field-value pairs.
+The key of the hash identifies the task in Redis and <code>rush</code>.</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>key <span class="sc">:</span> xs <span class="sc">|</span> ys <span class="sc">|</span> xs_extra</span></code></pre><p></p></div>
+<p>The field-value pairs are written by different methods, e.g. <code>$push_tasks()</code> writes <code>xs</code> and <code>$push_results()</code> writes <code>ys</code>.
+The values of the fields are serialized lists or atomic values e.g. unserializing <code>xs</code> gives <code>list(x1 = 1, x2 = 2)</code>
+This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="sc">|</span> key <span class="sc">|</span> x1 <span class="sc">|</span> x2 <span class="sc">|</span> y <span class="sc">|</span> timestamp <span class="sc">|</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="er">|</span> <span class="dv">1</span>.. <span class="sc">|</span>  <span class="dv">3</span> <span class="sc">|</span>  <span class="dv">4</span> <span class="sc">|</span> <span class="dv">7</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">11</span> <span class="sc">|</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="er">|</span> <span class="dv">2</span>.. <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span>  <span class="dv">4</span> <span class="sc">|</span> <span class="dv">5</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">12</span> <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="er">|</span> <span class="dv">3</span>.. <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span>  <span class="dv">1</span> <span class="sc">|</span> <span class="dv">2</span> <span class="sc">|</span>  <span class="dv">12</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">13</span> <span class="sc">|</span></span></code></pre><p></p></div>
+<p>When the value of a field is a named list, the field can store the cells of multiple columns of the table.
+When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
+The methods <code>$push_tasks()</code> and <code>$push_results()</code> write into multiple hashes.
 For example, <code>$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))</code> writes <code>xs</code> in two hashes.</p>
     </div>
     <div class="section level2">
@@ -153,9 +154,8 @@ The worker queues are used to push tasks to specific workers.</p>
 
 <p>The <code>$fetch_*()</code> methods retrieve data from the Redis database.
 A matching method is defined for each task state e.g. <code>$fetch_running_tasks()</code> and <code>$fetch_finished_tasks()</code>.
-If only the result of the function evaluation is needed, <code>$fetch_results()</code> and <code>$fetch_latest_results()</code> are faster.
-The methods <code>$fetch_results()</code> and <code>$fetch_finished_tasks()</code> cache the already queried data.
-The <code>$block_*()</code> variants wait until a new result is available.</p>
+The methods <code>$fetch_new_tasks()</code> and <code>$fetch_finished_tasks()</code> cache the already queried data.
+The <code>$wait_for_finished_tasks()</code> variant wait until a new result is available.</p>
     </div>
     <div class="section level2">
     <h2 id="error-handling">Error Handling<a class="anchor" aria-label="anchor" href="#error-handling"></a></h2>
@@ -165,8 +165,8 @@ The <code>$block_*()</code> variants wait until a new result is available.</p>
 Simple R errors in the worker loop are caught and written to the archive.
 The task is marked as <code>"failed"</code>.
 If the connection to a worker is lost, it looks like a task is <code>"running"</code> forever.
-The methods <code>$detect_lost_workers()</code> and <code>$detect_lost_tasks()</code> detect lost workers.
-Running these methods periodically adds a small overhead.</p>
+The method <code>$detect_lost_workers()</code> identifies lost workers.
+Running this method periodically adds a small overhead.</p>
     </div>
     <div class="section level2">
     <h2 id="logging">Logging<a class="anchor" aria-label="anchor" href="#logging"></a></h2>
@@ -532,7 +532,8 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 
 </div><p></p><hr><a id="method-Rush-restart_workers"></a><div class="section">
 <h3 id="method-restart-workers-">Method <code>restart_workers()</code><a class="anchor" aria-label="anchor" href="#method-restart-workers-"></a></h3>
-<p>Restart workers.</p><div class="section">
+<p>Restart local workers.
+If the worker is is still running, it is killed and restarted.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">restart_workers</span><span class="op">(</span><span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
