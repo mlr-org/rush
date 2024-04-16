@@ -938,7 +938,7 @@ test_that("network without controller works", {
         x1 = sample(seq(1000), 1),
         x2 = sample(seq(1000), 1)
       )
-      keys = rush$push_running_task(list(xs))
+      keys = rush$push_running_tasks(list(xs))
 
       # evaluate
       ys = list(y = xs$x1 + xs$x2)

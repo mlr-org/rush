@@ -44,7 +44,7 @@ Used in the worker loop to determine whether to continue.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
-\item \href{#method-RushWorker-push_running_task}{\code{RushWorker$push_running_task()}}
+\item \href{#method-RushWorker-push_running_tasks}{\code{RushWorker$push_running_tasks()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
 \item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
@@ -155,12 +155,12 @@ If \code{NULL}, no seed is used for the random number generator.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-push_running_task"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-push_running_task}{}}}
-\subsection{Method \code{push_running_task()}}{
+\if{html}{\out{<a id="method-RushWorker-push_running_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-push_running_tasks}{}}}
+\subsection{Method \code{push_running_tasks()}}{
 Push a task to running tasks without queue.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_running_task(xss, extra = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_running_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

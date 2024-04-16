@@ -132,7 +132,7 @@ RushWorker = R6::R6Class("RushWorker",
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_running_task = function(xss, extra = NULL) {
+    push_running_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
