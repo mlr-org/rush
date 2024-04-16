@@ -1293,7 +1293,7 @@ Rush = R6::R6Class("Rush",
     #' Contains information about the workers.
     worker_info = function(rhs) {
       assert_ro_binding(rhs)
-      if (!self$n_running_workers) return(data.table())
+      if (!self$n_workers) return(data.table())
       r = self$connector
 
       fields = c("worker_id", "pid", "host", "hostname", "heartbeat")
