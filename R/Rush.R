@@ -1468,7 +1468,9 @@ Rush = R6::R6Class("Rush",
         worker_args = worker_args)
 
       # serialize and push arguments to redis
-      bin_start_args = redux::object_to_bin(start_args)
+      # the serialize functions warns that a required package may not be available when loading the start args
+      # we ensure that the package is available
+      bin_start_args = suppressWarnings(redux::object_to_bin(start_args))
 
       if (object.size(bin_start_args) > 5369e5) {
         if (is.null(rush_env$large_objects_path)) {
