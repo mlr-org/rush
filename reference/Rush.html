@@ -223,6 +223,22 @@ Number of workers.</p></dd>
 Number of running workers.</p></dd>
 
 
+<dt><code>n_terminated_workers</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Number of terminated workers.</p></dd>
+
+
+<dt><code>n_killed_workers</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Number of killed workers.</p></dd>
+
+
+<dt><code>n_lost_workers</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Number of lost workers.
+Run <code>$detect_lost_workers()</code> to update the number of lost workers.</p></dd>
+
+
 <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Ids of workers.</p></dd>
@@ -311,6 +327,12 @@ Contains information about the workers.</p></dd>
 <dt><code>worker_states</code></dt>
 <dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table::data.table()</a></code>)<br>
 Contains the states of the workers.</p></dd>
+
+
+<dt><code>all_workers_lost</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether all workers are lost.
+Runs <code>$detect_lost_workers()</code> to detect lost workers.</p></dd>
 
 
 <dt><code>priority_info</code></dt>
