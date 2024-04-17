@@ -142,6 +142,16 @@ Number of workers.}
 \item{\code{n_running_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
+\item{\code{n_terminated_workers}}{(\code{integer(1)})\cr
+Number of terminated workers.}
+
+\item{\code{n_killed_workers}}{(\code{integer(1)})\cr
+Number of killed workers.}
+
+\item{\code{n_lost_workers}}{(\code{integer(1)})\cr
+Number of lost workers.
+Run \verb{$detect_lost_workers()} to update the number of lost workers.}
+
 \item{\code{worker_ids}}{(\code{character()})\cr
 Ids of workers.}
 
@@ -195,6 +205,10 @@ Contains information about the workers.}
 
 \item{\code{worker_states}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
 Contains the states of the workers.}
+
+\item{\code{all_workers_lost}}{(\code{logical(1)})\cr
+Whether all workers are lost.
+Runs \verb{$detect_lost_workers()} to detect lost workers.}
 
 \item{\code{priority_info}}{(\link[data.table:data.table]{data.table::data.table})\cr
 Contains the number of tasks in the priority queues.}

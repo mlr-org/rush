@@ -1176,6 +1176,31 @@ Rush = R6::R6Class("Rush",
       as.integer(r$SCARD(private$.get_key("running_worker_ids"))) %??% 0
     },
 
+    #' @field n_terminated_workers (`integer(1)`)\cr
+    #' Number of terminated workers.
+    n_terminated_workers = function(rhs) {
+      assert_ro_binding(rhs)
+      r = self$connector
+      as.integer(r$SCARD(private$.get_key("terminated_worker_ids"))) %??% 0
+    },
+
+    #' @field n_killed_workers (`integer(1)`)\cr
+    #' Number of killed workers.
+    n_killed_workers = function(rhs) {
+      assert_ro_binding(rhs)
+      r = self$connector
+      as.integer(r$SCARD(private$.get_key("killed_worker_ids"))) %??% 0
+    },
+
+    #' @field n_lost_workers (`integer(1)`)\cr
+    #' Number of lost workers.
+    #' Run `$detect_lost_workers()` to update the number of lost workers.
+    n_lost_workers = function(rhs) {
+      assert_ro_binding(rhs)
+      r = self$connector
+      as.integer(r$SCARD(private$.get_key("lost_worker_ids"))) %??% 0
+    },
+
     #' @field worker_ids (`character()`)\cr
     #' Ids of workers.
     worker_ids = function() {
@@ -1321,6 +1346,15 @@ Rush = R6::R6Class("Rush",
       )
 
       rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
+    },
+
+    #' @field all_workers_lost (`logical(1)`)\cr
+    #' Whether all workers are lost.
+    #' Runs `$detect_lost_workers()` to detect lost workers.
+    all_workers_lost = function(rhs) {
+      assert_ro_binding(rhs)
+      self$detect_lost_workers()
+      self$n_workers == self$n_lost_workers
     },
 
     #' @field priority_info ([data.table::data.table])\cr
