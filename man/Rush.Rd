@@ -206,6 +206,9 @@ Contains information about the workers.}
 \item{\code{worker_states}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
 Contains the states of the workers.}
 
+\item{\code{all_workers_terminated}}{(\code{logical(1)})\cr
+Whether all workers are terminated.}
+
 \item{\code{all_workers_lost}}{(\code{logical(1)})\cr
 Whether all workers are lost.
 Runs \verb{$detect_lost_workers()} to detect lost workers.}

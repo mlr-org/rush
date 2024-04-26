@@ -1348,6 +1348,13 @@ Rush = R6::R6Class("Rush",
       rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
     },
 
+    #' @field all_workers_terminated (`logical(1)`)\cr
+    #' Whether all workers are terminated.
+    all_workers_terminated = function(rhs) {
+      assert_ro_binding(rhs)
+      self$n_workers == self$n_terminated_workers
+    },
+
     #' @field all_workers_lost (`logical(1)`)\cr
     #' Whether all workers are lost.
     #' Runs `$detect_lost_workers()` to detect lost workers.
