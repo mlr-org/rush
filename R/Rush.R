@@ -196,11 +196,14 @@ Rush = R6::R6Class("Rush",
     #' Whether to kill the workers when the main R process is shut down.
     #' @param wait_for_workers (`logical(1)`)\cr
     #' Whether to wait until all workers are available.
+    #' @param timeout (`numeric(1)`)\cr
+    #' Timeout to wait for workers in seconds.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     start_workers = function(
       n_workers = NULL,
       wait_for_workers = TRUE,
+      timeout = Inf,
       globals = NULL,
       packages = NULL,
       heartbeat_period = NULL,
@@ -238,7 +241,7 @@ Rush = R6::R6Class("Rush",
         supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids))
 
-      if (wait_for_workers) self$wait_for_workers(n_workers)
+      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
 
       return(invisible(worker_ids))
     },
@@ -318,9 +321,17 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param n (`integer(1)`)\cr
     #' Number of workers to wait for.
-    wait_for_workers = function(n) {
+    #' @param timeout (`numeric(1)`)\cr
+    #' Timeout in seconds.
+    wait_for_workers = function(n, timeout = Inf) {
       assert_count(n)
-      while(self$n_workers < n) Sys.sleep(0.01)
+      start_time = Sys.time()
+      while(self$n_workers < n) {
+        Sys.sleep(0.01)
+        if (difftime(Sys.time(), start_time, units = "secs") > timeout) {
+          stopf("Timeout waiting for %i worker(s)", n)
+        }
+      }
 
       return(invisible(self))
     },
