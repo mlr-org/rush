@@ -47,6 +47,7 @@ reference:
       - rush_plan
       - rush_available
       - rush_config
+      - remove_rush_plan
   - title: Worker Loop
     contents:
       - start_worker
