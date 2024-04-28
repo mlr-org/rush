@@ -9,6 +9,8 @@
 #' If `NULL`, the `REDIS_URL` environment variable is parsed.
 #' If `REDIS_URL` is not set, a default configuration is used.
 #' See [redux::redis_config] for details.
+#' @param start_worker_timeout (`numeric(1)`)\cr
+#' The time in seconds to wait for a worker to start.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
@@ -53,6 +55,17 @@ rush_config = function() {
     lgr_thresholds = rush_env$lgr_thresholds,
     large_objects_path = rush_env$large_objects_path,
     start_worker_timeout = rush_env$start_worker_timeout)
+}
+
+#' @title Remove Rush Plan
+#'
+#' @description
+#' Removes the rush plan that was set by [rush_plan()].
+#'
+#' @export
+remove_rush_plan = function() {
+  rm(list = ls(envir = rush_env), envir = rush_env)
+  invisible(NULL)
 }
 
 #' @title Rush Available

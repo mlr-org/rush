@@ -327,7 +327,7 @@ Rush = R6::R6Class("Rush",
     wait_for_workers = function(n, timeout = Inf) {
       assert_count(n)
       assert_number(timeout)
-      timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout
+      timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout %??% Inf
 
       start_time = Sys.time()
       while(self$n_workers < n) {
