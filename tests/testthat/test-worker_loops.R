@@ -1,6 +1,8 @@
 # default ----------------------------------------------------------------------
 
 test_that("worker_loop_default works", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -14,6 +16,8 @@ test_that("worker_loop_default works", {
 })
 
 test_that("worker_loop_default works with failed task", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -28,6 +32,8 @@ test_that("worker_loop_default works with failed task", {
 })
 
 test_that("worker_loop_default retries failed task", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -42,6 +48,8 @@ test_that("worker_loop_default retries failed task", {
 })
 
 test_that("worker_loop_default sets seed is set correctly", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123456)
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))
@@ -58,6 +66,8 @@ test_that("worker_loop_default sets seed is set correctly", {
 # callr ------------------------------------------------------------------------
 
 test_that("worker_loop_callr works", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -71,6 +81,8 @@ test_that("worker_loop_callr works", {
 })
 
 test_that("worker_loop_callr works with failed task", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -85,6 +97,8 @@ test_that("worker_loop_callr works with failed task", {
 })
 
 test_that("worker_loop_callr works with lost task", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -99,6 +113,8 @@ test_that("worker_loop_callr works with lost task", {
 })
 
 test_that("worker_loop_callr works with timeout", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
   xss = list(list(x1 = 1, x2 = 2))
@@ -113,6 +129,8 @@ test_that("worker_loop_callr works with timeout", {
 })
 
 test_that("worker_loop_callr sets seed correctly", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123456)
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))

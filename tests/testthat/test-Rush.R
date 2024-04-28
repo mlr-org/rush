@@ -142,12 +142,11 @@ test_that("named globals are available on the worker", {
 
 test_that("worker can be started with script", {
   skip_on_cran()
-  #devskip_if(TRUE)
   set.seed(1) # make log messages reproducible
 
   root_logger = lgr::get_logger("root")
-  old_fmt = root_logger$appenders$cons$layout$fmt
-  root_logger$appenders$cons$layout$set_fmt("%L (%n): %m")
+  old_fmt = root_logger$appenders$console$layout$fmt
+  root_logger$appenders$console$layout$set_fmt("%L (%n): %m")
 
   on.exit({
     root_logger$appenders$console$layout$set_fmt(old_fmt)
@@ -163,7 +162,7 @@ test_that("worker can be started with script", {
 })
 
 test_that("a remote worker is started", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -179,7 +178,7 @@ test_that("a remote worker is started", {
 # stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -209,7 +208,7 @@ test_that("a worker is terminated", {
 })
 
 test_that("a local worker is killed", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -239,6 +238,7 @@ test_that("a local worker is killed", {
 })
 
 test_that("a remote worker is killed via the heartbeat", {
+  skip_on_cran()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -273,7 +273,7 @@ test_that("a remote worker is killed via the heartbeat", {
 # low level read and write -----------------------------------------------------
 
 test_that("reading and writing a hash works with flatten", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -300,7 +300,7 @@ test_that("reading and writing a hash works with flatten", {
 })
 
 test_that("reading and writing a hash works without flatten", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -327,7 +327,7 @@ test_that("reading and writing a hash works without flatten", {
 })
 
 test_that("reading and writing hashes works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -366,7 +366,7 @@ test_that("reading and writing hashes works", {
 })
 
 test_that("writing hashes to specific keys works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -388,7 +388,7 @@ test_that("writing hashes to specific keys works", {
 
 
 test_that("writing list columns works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -419,7 +419,7 @@ test_that("writing list columns works", {
 # task evaluation --------------------------------------------------------------
 
 test_that("evaluating a task works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -457,7 +457,7 @@ test_that("evaluating a task works", {
 })
 
 test_that("evaluating tasks works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -495,7 +495,7 @@ test_that("evaluating tasks works", {
 })
 
 test_that("caching results works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -578,7 +578,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 # fault detection --------------------------------------------------------------
 
 test_that("a simple error is catched", {
-
+  skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -625,7 +625,7 @@ test_that("a simple error is catched", {
 })
 
 test_that("a lost task is detected", {
-
+  skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -672,7 +672,7 @@ test_that("a lost task is detected", {
 })
 
 test_that("a lost task is detected when waiting", {
-
+  skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -718,7 +718,7 @@ test_that("a lost task is detected when waiting", {
 # restart workers --------------------------------------------------------------
 
 test_that("restarting a worker works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -739,6 +739,7 @@ test_that("restarting a worker works", {
 })
 
 test_that("restarting a worker kills the worker", {
+  skip_on_cran()
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -763,7 +764,7 @@ test_that("restarting a worker kills the worker", {
 # receiving results ------------------------------------------------------------
 
 test_that("blocking on new results works", {
-
+  skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -784,7 +785,7 @@ test_that("blocking on new results works", {
 })
 
 test_that("wait for tasks works when a task gets lost", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -806,7 +807,7 @@ test_that("wait for tasks works when a task gets lost", {
 # misc--------------------------------------------------------------------------
 
 test_that("saving lgr logs works", {
-
+  skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -837,7 +838,7 @@ test_that("saving lgr logs works", {
 })
 
 test_that("snapshot option works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -856,6 +857,8 @@ test_that("snapshot option works", {
 })
 
 test_that("terminating workers on idle works", {
+  skip_on_cran()
+
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -872,7 +875,7 @@ test_that("terminating workers on idle works", {
 })
 
 test_that("constants works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -891,7 +894,7 @@ test_that("constants works", {
 # rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -926,7 +929,7 @@ test_that("network without controller works", {
 # seed -------------------------------------------------------------------------
 
 test_that("seeds are generated from regular rng seed", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
@@ -941,7 +944,7 @@ test_that("seeds are generated from regular rng seed", {
 })
 
 test_that("seed are generated from L'Ecuyer-CMRG seed", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config, seed = c(10407L, 1801422725L, -2057975723L, 1156894209L, 1595475487L, 210384600L, -1655729657L))
@@ -956,7 +959,7 @@ test_that("seed are generated from L'Ecuyer-CMRG seed", {
 })
 
 test_that("seed is set correctly on two workers", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
@@ -981,12 +984,13 @@ test_that("seed is set correctly on two workers", {
 # log --------------------------------------------------------------------------
 
 test_that("printing logs with redis appender works", {
+  skip_on_cran()
+  skip_if(TRUE) # does not work in testthat on environment
+
   lg_rush = lgr::get_logger("rush")
   old_threshold_rush = lg_rush$threshold
   on.exit(lg_rush$set_threshold(old_threshold_rush))
   lg_rush$set_threshold("info")
-
-  skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config, seed = 123)
@@ -1025,7 +1029,7 @@ test_that("redis info works", {
 # large objects ----------------------------------------------------------------
 
 test_that("evaluating a task works", {
-
+  skip_on_cran()
   skip_if(TRUE) # takes too long
 
   config = start_flush_redis()
