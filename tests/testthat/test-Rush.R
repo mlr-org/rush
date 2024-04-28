@@ -1,7 +1,7 @@
 # start workers with processx --------------------------------------------------
 
 test_that("constructing a rush controller works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -12,7 +12,7 @@ test_that("constructing a rush controller works", {
 })
 
 test_that("workers are started", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -20,7 +20,7 @@ test_that("workers are started", {
 
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_ids = rush$start_workers(fun = fun, n_workers = 2, lgr_threshold = c(rush = "debug"), wait_for_workers = TRUE)
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"), wait_for_workers = TRUE)
   expect_equal(rush$n_workers, 2)
 
   # check fields
@@ -39,7 +39,7 @@ test_that("workers are started", {
 })
 
 test_that("workers are started with a heartbeat", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -55,7 +55,7 @@ test_that("workers are started with a heartbeat", {
 })
 
 test_that("additional workers are started", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -81,7 +81,7 @@ test_that("additional workers are started", {
 })
 
 test_that("packages are available on the worker", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -99,7 +99,7 @@ test_that("packages are available on the worker", {
 })
 
 test_that("globals are available on the worker", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -119,7 +119,7 @@ test_that("globals are available on the worker", {
 })
 
 test_that("named globals are available on the worker", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -141,8 +141,8 @@ test_that("named globals are available on the worker", {
 # start workers with script ----------------------------------------------------
 
 test_that("worker can be started with script", {
-
-  skip_if(TRUE)
+  skip_on_cran()
+  #devskip_if(TRUE)
   set.seed(1) # make log messages reproducible
 
   root_logger = lgr::get_logger("root")
@@ -150,7 +150,7 @@ test_that("worker can be started with script", {
   root_logger$appenders$cons$layout$set_fmt("%L (%n): %m")
 
   on.exit({
-    root_logger$appenders$cons$layout$set_fmt(old_fmt)
+    root_logger$appenders$console$layout$set_fmt(old_fmt)
   })
 
   config = start_flush_redis()
@@ -239,7 +239,6 @@ test_that("a local worker is killed", {
 })
 
 test_that("a remote worker is killed via the heartbeat", {
-
   skip_on_os("windows")
 
   config = start_flush_redis()
@@ -740,8 +739,7 @@ test_that("restarting a worker works", {
 })
 
 test_that("restarting a worker kills the worker", {
-
-  skip_on_windows()
+  skip_on_os("windows")
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -753,6 +751,9 @@ test_that("restarting a worker kills the worker", {
   expect_true(tools::pskill(pid, signal = 0))
 
   rush$restart_workers(worker_ids = worker_id)
+
+  Sys.sleep(1)
+
   expect_false(pid == rush$worker_info$pid)
   expect_false(tools::pskill(pid, signal = 0))
 
@@ -855,8 +856,6 @@ test_that("snapshot option works", {
 })
 
 test_that("terminating workers on idle works", {
-
-
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) list(y = x1 + x2)
@@ -982,6 +981,10 @@ test_that("seed is set correctly on two workers", {
 # log --------------------------------------------------------------------------
 
 test_that("printing logs with redis appender works", {
+  lg_rush = lgr::get_logger("rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush))
+  lg_rush$set_threshold("info")
 
   skip_if(TRUE) # does not work in testthat on environment
 

@@ -307,7 +307,7 @@ test_that("popping a task with seed, max_retries and timeout works", {
   seed = 123456
   max_retries = 2
   timeout = 1
-  rush$push_tasks(xss, seed = list(seed), max_retries = max_retries, timeout = timeout)
+  rush$push_tasks(xss, seeds = list(seed), max_retries = max_retries, timeouts = timeout)
 
   # check task
   task = rush$pop_task(fields = c("xs", "seed", "max_retries", "timeout"))
@@ -396,7 +396,7 @@ test_that("pushing a failed tasks works", {
   rush$push_tasks(xss)
   task = rush$pop_task()
 
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -429,7 +429,10 @@ test_that("pushing a failed tasks works", {
 })
 
 test_that("retry a failed task works", {
-
+  lg_rush = lgr::get_logger("rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush))
+  lg_rush$set_threshold("info")
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -439,7 +442,7 @@ test_that("retry a failed task works", {
 
   expect_output(rush$retry_tasks(keys), "Not all task")
 
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
 
   expect_equal(rush$n_queued_tasks, 0)
   expect_equal(rush$n_failed_tasks, 1)
@@ -465,7 +468,7 @@ test_that("retry a failed task works and setting a new seed works", {
   task = rush$pop_task(fields = c("xs", "seed"))
   expect_equal(task$seed, seed)
 
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
 
   expect_equal(rush$n_queued_tasks, 0)
   expect_equal(rush$n_failed_tasks, 1)
@@ -480,7 +483,10 @@ test_that("retry a failed task works and setting a new seed works", {
 })
 
 test_that("retry a failed task works with a maximum of retries", {
-
+  lg_rush = lgr::get_logger("rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush))
+  lg_rush$set_threshold("info")
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -492,7 +498,7 @@ test_that("retry a failed task works with a maximum of retries", {
   expect_null(task$n_retries)
   expect_output(rush$retry_tasks(keys), "Not all task")
 
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
 
   expect_equal(rush$n_queued_tasks, 0)
   expect_equal(rush$n_failed_tasks, 1)
@@ -508,7 +514,7 @@ test_that("retry a failed task works with a maximum of retries", {
   expect_false(rush$is_failed_task(task$key))
   task = rush$pop_task()
 
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
   expect_output(rush$retry_tasks(keys), "reached the maximum number of retries")
 
   rush$retry_tasks(keys, ignore_max_retries = TRUE)
@@ -523,7 +529,10 @@ test_that("retry a failed task works with a maximum of retries", {
 })
 
 test_that("retry failed tasks works", {
-
+  lg_rush = lgr::get_logger("rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush))
+  lg_rush$set_threshold("info")
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
@@ -535,7 +544,7 @@ test_that("retry failed tasks works", {
 
   expect_output(rush$retry_tasks(keys), "Not all task")
 
-  rush$push_failed(keys, condition = list(list(message = "error")))
+  rush$push_failed(keys, conditions = list(list(message = "error")))
 
   expect_equal(rush$n_queued_tasks, 0)
   expect_equal(rush$n_failed_tasks, 2)
@@ -600,7 +609,7 @@ test_that("moving and fetching tasks works", {
 
   # push failed task
   task = rush$pop_task()
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
   queued_tasks = rush$fetch_queued_tasks()
   expect_data_table(queued_tasks, nrows = 1)
   expect_character(queued_tasks$keys, unique = TRUE)
@@ -673,7 +682,7 @@ test_that("fetching as list works", {
 
   # push failed task
   task = rush$pop_task()
-  rush$push_failed(task$key, condition = list(list(message = "error")))
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
   failed_tasks = rush$fetch_failed_tasks(data_format = "list")
   expect_list(failed_tasks, len = 1)
   expect_names(names(failed_tasks), identical.to = task$key)
@@ -727,7 +736,7 @@ test_that("fetch task with states works", {
   xss = list(list(x1 = 2, x2 = 2))
   rush$push_tasks(xss)
   task_2 = rush$pop_task()
-  rush$push_failed(task_2$key, condition = list(list(message = "error")))
+  rush$push_failed(task_2$key, conditions = list(list(message = "error")))
   tab = rush$fetch_tasks_with_state()
   expect_data_table(tab, nrows = 2)
   expect_equal(tab$state, c("finished", "failed"))
@@ -1046,7 +1055,7 @@ test_that("task in states works", {
   xss = list(list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
   task_2 = rush$pop_task()
-  rush$push_failed(task_2$key, condition = list(list(message = "error")))
+  rush$push_failed(task_2$key, conditions = list(list(message = "error")))
   keys_list = rush$tasks_with_state(c("queued", "running", "finished", "failed"))
   expect_list(keys_list, len = 4)
   expect_names(names(keys_list), identical.to = c("queued", "running", "finished", "failed"))
