@@ -78,7 +78,8 @@ The function tests the connection to Redis and throws an error if the connection
 <span>  <span class="va">n_workers</span>,</span>
 <span>  config <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  large_objects_path <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  large_objects_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  start_worker_timeout <span class="op">=</span> <span class="cn">Inf</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -105,6 +106,11 @@ Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 <dt>large_objects_path</dt>
 <dd><p>(<code>character(1)</code>)<br>
 The path to the directory where large objects are stored.</p></dd>
+
+
+<dt>start_worker_timeout</dt>
+<dd><p>(<code>numeric(1)</code>)<br>
+The time in seconds to wait for a worker to start.</p></dd>
 
 </dl></div>
 
