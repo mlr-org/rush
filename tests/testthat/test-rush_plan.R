@@ -54,3 +54,17 @@ test_that("set threshold", {
 
   expect_rush_reset(rush)
 })
+
+test_that("set start worker timeout", {
+  skip_on_cran()
+  skip_on_ci()
+
+  config = start_flush_redis()
+  rush_plan(n_workers = 2, config, start_worker_timeout = -Inf)
+
+  expect_equal(rush_env$start_worker_timeout, -Inf)
+
+  rush = rsh("test-rush")
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+  expect_error(rush$start_workers(fun = fun), "Timeout waiting")
+})

@@ -323,8 +323,12 @@ Rush = R6::R6Class("Rush",
     #' Number of workers to wait for.
     #' @param timeout (`numeric(1)`)\cr
     #' Timeout in seconds.
+    #' Default is `Inf`.
     wait_for_workers = function(n, timeout = Inf) {
       assert_count(n)
+      assert_number(timeout)
+      timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout
+
       start_time = Sys.time()
       while(self$n_workers < n) {
         Sys.sleep(0.01)

@@ -15,11 +15,18 @@
 #' @template param_large_objects_path
 #'
 #' @export
-rush_plan = function(n_workers, config = NULL, lgr_thresholds = NULL, large_objects_path = NULL) {
+rush_plan = function(
+  n_workers,
+  config = NULL,
+  lgr_thresholds = NULL,
+  large_objects_path = NULL,
+  start_worker_timeout = Inf
+  ) {
   assert_count(n_workers)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
+  assert_number(start_worker_timeout)
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     stop("Can't connect to Redis. Check the configuration.")
@@ -28,6 +35,7 @@ rush_plan = function(n_workers, config = NULL, lgr_thresholds = NULL, large_obje
   assign("config", config, rush_env)
   assign("lgr_thresholds", lgr_thresholds, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
+  assign("start_worker_timeout", start_worker_timeout, rush_env)
 }
 
 #' @title Get Rush Config
@@ -43,7 +51,8 @@ rush_config = function() {
     config = rush_env$config,
     n_workers = rush_env$n_workers,
     lgr_thresholds = rush_env$lgr_thresholds,
-    large_objects_path = rush_env$large_objects_path)
+    large_objects_path = rush_env$large_objects_path,
+    start_worker_timeout = rush_env$start_worker_timeout)
 }
 
 #' @title Rush Available
