@@ -1,6 +1,5 @@
 test_that("rush_plan family works", {
-  skip_on_cran()
-  skip_on_ci()
+
 
   expect_false(rush_available())
   config = redis_config()
@@ -13,16 +12,14 @@ test_that("rush_plan family works", {
 })
 
 test_that("rush_plan throws and error if redis is not available", {
-  skip_on_cran()
-  skip_on_ci()
+
 
   config = redis_config(url = "redis://localhost:1234")
   expect_error(rush_plan(n_workers = 2, config), "Can't connect to Redis")
 })
 
 test_that("start workers", {
-  skip_on_cran()
-  skip_on_ci()
+
 
   config = start_flush_redis()
   rush_plan(n_workers = 2, config)
@@ -39,8 +36,7 @@ test_that("start workers", {
 })
 
 test_that("set threshold", {
-  skip_on_cran()
-  skip_on_ci()
+
 
   config = start_flush_redis()
   rush_plan(n_workers = 2, config, lgr_thresholds = c(rush = "debug"))
@@ -56,8 +52,7 @@ test_that("set threshold", {
 })
 
 test_that("set start worker timeout", {
-  skip_on_cran()
-  skip_on_ci()
+
 
   config = start_flush_redis()
   rush_plan(n_workers = 2, config, start_worker_timeout = -Inf)
