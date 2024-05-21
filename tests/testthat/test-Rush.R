@@ -40,6 +40,37 @@ test_that("workers are started", {
   expect_rush_reset(rush)
 })
 
+test_that("workers are started with Redis on unix socket", {
+  skip_if(TRUE)
+
+  system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()))
+  Sys.sleep(5)
+
+  config = redux::redis_config(path = "/tmp/redis.sock")
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  rush = Rush$new(network_id = "test-rush", config = config)
+  fun = function(x1, x2, ...) list(y = x1 + x2)
+
+  worker_ids = rush$start_workers(fun = fun, n_workers = 2, wait_for_workers = TRUE)
+  expect_equal(rush$n_workers, 2)
+
+  # check fields
+  walk(rush$processes, function(process) expect_class(process, "process"))
+
+  # check meta data from redis
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_info$host, "local")
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_states$state, "running")
+
+  expect_rush_reset(rush)
+})
+
 test_that("workers are started with a heartbeat", {
   skip_on_cran()
   skip_on_ci()

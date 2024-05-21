@@ -233,11 +233,15 @@ Rush = R6::R6Class("Rush",
 
       lg$info("Starting %i worker(s)", n_workers)
 
+      # redis config to string
+      config = discard(self$config, is.null)
+      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
-          self$network_id, worker_id, private$.hostname, self$config$url)),
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', %s)",
+          self$network_id, worker_id, private$.hostname, config)),
         supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids))
 

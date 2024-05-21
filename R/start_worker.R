@@ -30,7 +30,10 @@ start_worker = function(
   checkmate::assert_string(hostname)
 
   # connect to redis
-  config = redux::redis_config(config = list(...))
+  config = list(...)
+  if (!is.null(config$port)) config$port = as.integer(config$port)
+  if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
+  config = redux::redis_config(config = config)
   r = redux::hiredis(config)
 
   # get start arguments
