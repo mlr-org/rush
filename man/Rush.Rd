@@ -346,6 +346,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
   n_workers = NULL,
   wait_for_workers = TRUE,
+  timeout = Inf,
   globals = NULL,
   packages = NULL,
   heartbeat_period = NULL,
@@ -366,6 +367,9 @@ Number of workers to be started.}
 
 \item{\code{wait_for_workers}}{(\code{logical(1)})\cr
 Whether to wait until all workers are available.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Timeout to wait for workers in seconds.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -481,7 +485,7 @@ Arguments passed to \code{worker_loop}.}
 \subsection{Method \code{wait_for_workers()}}{
 Wait until \code{n} workers are available.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n, timeout = Inf)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -489,6 +493,10 @@ Wait until \code{n} workers are available.
 \describe{
 \item{\code{n}}{(\code{integer(1)})\cr
 Number of workers to wait for.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Timeout in seconds.
+Default is \code{Inf}.}
 }
 \if{html}{\out{</div>}}
 }

@@ -8,7 +8,8 @@ rush_plan(
   n_workers,
   config = NULL,
   lgr_thresholds = NULL,
-  large_objects_path = NULL
+  large_objects_path = NULL,
+  start_worker_timeout = Inf
 )
 }
 \arguments{
@@ -26,6 +27,9 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
 \item{large_objects_path}{(\code{character(1)})\cr
 The path to the directory where large objects are stored.}
+
+\item{start_worker_timeout}{(\code{numeric(1)})\cr
+The time in seconds to wait for a worker to start.}
 }
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.

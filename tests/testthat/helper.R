@@ -12,10 +12,9 @@ expect_rush_task = function(task) {
 }
 
 expect_rush_reset = function(rush, type = "kill") {
+  remove_rush_plan()
   processes = rush$processes
   rush$reset(type = type)
   expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
   walk(processes, function(p) p$kill())
 }
-
-lg$set_threshold("debug")
