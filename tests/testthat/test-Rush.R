@@ -46,6 +46,11 @@ test_that("workers are started with Redis on unix socket", {
 
   config = redux::redis_config(path = "/tmp/redis.sock")
   r = redux::hiredis(config)
+
+  on.exit({
+    try({r$SHUTDOWN()}, silent = TRUE)
+  })
+
   r$FLUSHDB()
 
   rush = Rush$new(network_id = "test-rush", config = config)
@@ -65,8 +70,6 @@ test_that("workers are started with Redis on unix socket", {
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_states$state, "running")
-
-  expect_rush_reset(rush)
 })
 
 test_that("workers are started with a heartbeat", {
