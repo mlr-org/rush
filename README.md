@@ -84,7 +84,12 @@ We start two workers.
 rush$start_local_workers(fun = fun, n_workers = 2)
 ```
 
-    ## INFO  [16:06:19.324] [rush] Starting 2 worker(s)
+    ## INFO  [17:30:43.422] [rush] Starting 2 worker(s)
+    ## $`d82afa87-9f2c-41a4-891c-7490ea5eba46`
+    ## PROCESS 'Rscript', running, pid 24531.
+    ## 
+    ## $`fad19573-bfe6-4809-8be2-bdde44191210`
+    ## PROCESS 'Rscript', running, pid 24542.
 
 Now we can push tasks to the workers.
 
@@ -100,10 +105,10 @@ And retrieve the results.
 rush$fetch_finished_tasks()
 ```
 
-    ##       x1    x2     y    pid     worker_id          keys
-    ##    <num> <num> <num>  <int>        <char>        <char>
-    ## 1:     4     6    10 448184 ebb0d9b4-3... 37ba4683-5...
-    ## 2:     3     5     8 448173 f49aad09-a... 27b4b03b-d...
+    ##       x1    x2     y   pid     worker_id          keys
+    ##    <num> <num> <num> <int>        <char>        <char>
+    ## 1:     3     5     8 24542 fad19573-b... 7ac77ca4-6...
+    ## 2:     4     6    10 24531 d82afa87-9... 0fb60722-6...
 
 ## Decentralized Rush Network
 
