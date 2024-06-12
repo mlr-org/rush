@@ -31,6 +31,9 @@ The path to the directory where large objects are stored.}
 \item{start_worker_timeout}{(\code{numeric(1)})\cr
 The time in seconds to wait for a worker to start.}
 }
+\value{
+\code{list()} with the stored configuration.
+}
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.
 The function tests the connection to Redis and throws an error if the connection fails.

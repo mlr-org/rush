@@ -10,7 +10,7 @@
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
-#' Remote workers are started manually with the `$create_worker_script()` method.
+#' Remote workers are started manually with the `$create_worker_script()` and `$start_remote_workers()` methods.
 #' Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 #' Only a heartbeat process can kill remote workers.
 #' The heartbeat process also monitors the remote workers for crashes.
@@ -98,7 +98,7 @@
 #' @template param_worker_loop
 #' @template param_globals
 #' @template param_packages
-#' @template param_host
+#' @template param_remote
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
@@ -142,7 +142,6 @@ Rush = R6::R6Class("Rush",
         stop("Can't connect to Redis. Check the configuration.")
       }
       self$connector = redux::hiredis(self$config)
-      private$.hostname = get_hostname()
 
       if (!is.null(seed)) {
         if (is_lecyer_cmrg_seed(seed)) {
@@ -246,8 +245,8 @@ Rush = R6::R6Class("Rush",
       worker_ids = uuid::UUIDgenerate(n = n_workers)
       self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', %s)",
-          self$network_id, worker_id, private$.hostname, config)),
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', remote = FALSE, %s)",
+          self$network_id, worker_id, config)),
         supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids))
 
@@ -262,13 +261,15 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be restarted.
-    restart_local_workers = function(worker_ids) {
+    #' @param supervise (`logical(1)`)\cr
+    #' Whether to kill the workers when the main R process is shut down.
+    restart_local_workers = function(worker_ids, supervise = TRUE) {
       assert_subset(unlist(worker_ids), self$worker_ids)
       r = self$connector
 
       # check for remote workers
       worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
-      if ("remote" %in% worker_info$host) {
+      if (any(worker_info$remote)) {
         stopf("Can't restart remote workers %s", as_short_string(worker_ids))
       }
 
@@ -278,11 +279,17 @@ Rush = R6::R6Class("Rush",
       }
 
       lg$info("Restarting %i worker(s): %s", length(worker_ids), str_collapse(worker_ids))
+
+      # redis config to string
+      config = discard(self$config, is.null)
+      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+
       processes = set_names(map(worker_ids, function(worker_id) {
         # restart worker
         processx::process$new("Rscript",
-          args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', hostname = '%s', url = '%s')",
-            self$network_id, worker_id, private$.hostname, self$config$url)))
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', remote = FALSE, %s)",
+          self$network_id, worker_id, config)),
+          supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids)
       self$processes = insert_named(self$processes, processes)
 
@@ -299,12 +306,13 @@ Rush = R6::R6Class("Rush",
       config = discard(self$config, is.null)
       config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
 
+      script = sprintf('Rscript -e "rush::start_worker(network_id = "%s", remote = TRUE, %s)"', self$network_id, config)
+
       lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(network_id = '%s', hostname = '%s', %s)'",
-        self$network_id, private$.hostname, config)
+      lg$info(script)
       lg$info("See ?rush::start_worker for more details.")
 
-      return(invisible(self))
+      return(invisible(script))
     },
 
     #' @description
@@ -393,7 +401,7 @@ Rush = R6::R6Class("Rush",
       } else if (type == "kill") {
         worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
         # kill local
-        local_workers = worker_info[list("local"), worker_id, on = c("host"), nomatch = NULL]
+        local_workers = worker_info[list(FALSE), worker_id, on = "remote", nomatch = NULL]
         lg$debug("Killing %i local worker(s) %s", length(local_workers), as_short_string(local_workers))
 
         # kill with processx
@@ -408,7 +416,7 @@ Rush = R6::R6Class("Rush",
         })
 
         # kill remote
-        remote_workers = worker_info [list("remote"), worker_id, on = c("host"), nomatch = NULL]
+        remote_workers = worker_info [list(TRUE), worker_id, on = "remote", nomatch = NULL]
         lg$debug("Killing %i remote worker(s) %s", length(remote_workers), as_short_string(remote_workers))
 
         # push kill signal to heartbeat process and set worker state
@@ -1359,12 +1367,13 @@ Rush = R6::R6Class("Rush",
       if (!self$n_workers) return(data.table())
       r = self$connector
 
-      fields = c("worker_id", "pid", "host", "hostname", "heartbeat")
+      fields = c("worker_id", "pid", "remote", "hostname", "heartbeat")
       worker_info = set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)
 
       # fix type
+      worker_info[, remote := as.logical(remote)][]
       worker_info[, pid := as.integer(pid)][]
 
       worker_info
@@ -1443,8 +1452,6 @@ Rush = R6::R6Class("Rush",
     .n_seen_results = 0,
 
     .snapshot_schedule = NULL,
-
-    .hostname = NULL,
 
     .seed = NULL,
 

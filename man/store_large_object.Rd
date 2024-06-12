@@ -13,6 +13,9 @@ Object to store.}
 \item{path}{(\code{character(1)})\cr
 Path to store the object.}
 }
+\value{
+\code{list()} of class \code{"rush_large_object"} with the name and path of the stored object.
+}
 \description{
 Store large objects to disk and return a reference to the object.
 }

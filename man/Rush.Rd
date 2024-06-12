@@ -16,7 +16,7 @@ Local workers are spawned with the \verb{$start_local_workers() method via the }
 \section{Remote Workers}{
 
 A remote worker runs on a different machine than the controller.
-Remote workers are started manually with the \verb{$create_worker_script()} method.
+Remote workers are started manually with the \verb{$create_worker_script()} and \verb{$start_remote_workers()} methods.
 Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 Only a heartbeat process can kill remote workers.
 The heartbeat process also monitors the remote workers for crashes.
@@ -244,6 +244,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
 \item \href{#method-Rush-restart_local_workers}{\code{Rush$restart_local_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
+\item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
@@ -420,7 +421,7 @@ Arguments passed to \code{worker_loop}.}
 Restart local workers.
 If the worker is is still running, it is killed and restarted.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_local_workers(worker_ids)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_local_workers(worker_ids, supervise = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -428,6 +429,9 @@ If the worker is is still running, it is killed and restarted.
 \describe{
 \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be restarted.}
+
+\item{\code{supervise}}{(\code{logical(1)})\cr
+Whether to kill the workers when the main R process is shut down.}
 }
 \if{html}{\out{</div>}}
 }
@@ -436,10 +440,22 @@ Worker ids to be restarted.}
 \if{html}{\out{<a id="method-Rush-create_worker_script"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-create_worker_script}{}}}
 \subsection{Method \code{create_worker_script()}}{
-Create script to start workers.
-The worker is started with \code{\link[=start_worker]{start_worker()}}.
+Create script to remote start workers.
+Run these command to pre-start a worker.
+The worker will wait until the start arguments are pushed with \verb{$start_remote_workers()}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$create_worker_script(
+\if{html}{\out{<div class="r">}}\preformatted{Rush$create_worker_script()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-start_remote_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
+\subsection{Method \code{start_remote_workers()}}{
+Push start arguments to remote workers.
+Remote workers must be pre-started with \verb{$create_worker_script()}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
   globals = NULL,
   packages = NULL,
   heartbeat_period = NULL,

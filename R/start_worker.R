@@ -10,9 +10,8 @@
 #' It loads the packages and copies the globals to the global environment of the worker.
 #' The function initialize the [RushWorker] instance and starts the worker loop.
 #'
-#' @param hostname (`character(1)`)\cr
-#' Hostname of the rush controller instance.
-#' Used to determine if the worker is started on a local or remote host.
+#' @param remote (`logical(1)`)\cr
+#' Whether the worker is on a remote machine.
 #' @param ... (`any`)\cr
 #' Arguments passed to [redux::redis_config].
 #'
@@ -23,12 +22,12 @@
 start_worker = function(
   network_id,
   worker_id = NULL,
-  hostname,
+  remote = TRUE,
   ...
   ) {
   checkmate::assert_string(network_id)
   checkmate::assert_string(worker_id, null.ok = TRUE)
-  checkmate::assert_string(hostname)
+  checkmate::assert_flag(remote)
 
   # connect to redis
   config = list(...)
@@ -57,12 +56,11 @@ start_worker = function(
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, .GlobalEnv))
 
   # initialize rush worker
-  host = if (rush::get_hostname() == hostname) "local" else "remote"
   rush = invoke(rush::RushWorker$new,
     network_id = network_id,
     worker_id = worker_id,
     config = config,
-    host = host,
+    remote = remote,
     .args = start_args$worker_args)
 
   lg$debug("Worker %s started.", rush$worker_id)

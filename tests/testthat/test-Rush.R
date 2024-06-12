@@ -20,7 +20,11 @@ test_that("local workers are started", {
 
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_ids = rush$start_local_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"), wait_for_workers = TRUE)
+  worker_ids = rush$start_local_workers(
+    fun = fun,
+    n_workers = 2,
+    lgr_thresholds = c(rush = "debug"),
+    wait_for_workers = TRUE)
   expect_equal(rush$n_workers, 2)
 
   # check fields
@@ -30,7 +34,7 @@ test_that("local workers are started", {
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 2)
   expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_info$host, "local")
+  expect_false(any(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_states$state, "running")
@@ -66,7 +70,7 @@ test_that("local workers are started with Redis on unix socket", {
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 2)
   expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_info$host, "local")
+  expect_false(any(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_states$state, "running")
@@ -108,7 +112,7 @@ test_that("additional workers are started", {
   expect_data_table(worker_info, nrows = 4)
   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
   expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_info$host, "local")
+  expect_false(any(worker_info$remote))
   expect_set_equal(rush$worker_states$state, "running")
 
   expect_rush_reset(rush)
@@ -187,9 +191,7 @@ test_that("worker can be started with script", {
   }, add = TRUE)
 
   config = start_flush_redis()
-  withr::with_envvar(list("HOST" = "host"), {
-    rush = Rush$new(network_id = "test-rush", config = config)
-  })
+  rush = Rush$new(network_id = "test-rush", config = config)
 
   expect_snapshot(rush$create_worker_script())
 
@@ -209,23 +211,10 @@ test_that("worker can be started with script", {
 
   expect_true(px$is_alive())
   expect_equal(rush$n_running_workers, 1)
+  expect_true(all(rush$worker_info$remote))
 
   expect_rush_reset(rush, type = "terminate")
   px$kill()
-})
-
-test_that("a remote worker is started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush = Rush$new(network_id = "test-rush", config = config)
-
-  withr::with_envvar(list("HOST" = "remote_host"), {
-    rush$start_local_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
-  })
-
-  expect_set_equal(rush$worker_info$host, "remote")
 })
 
 # stop workers -----------------------------------------------------------------
@@ -257,7 +246,7 @@ test_that("a worker is terminated", {
   expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
   expect_null(rush$running_worker_ids)
 
-  expect_rush_reset(rush)
+  expect_rush_reset(rush, type = "terminate")
 })
 
 test_that("a local worker is killed", {
@@ -298,9 +287,7 @@ test_that("a remote worker is killed via the heartbeat", {
   fun = function(x1, x2, ...) list(y = x1 + x2)
   rush = Rush$new(network_id = "test-rush", config = config)
 
-  withr::with_envvar(list("HOST" = "remote_host"), {
-    rush$start_local_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
-  })
+  rush$start_local_workers(fun = fun, n_workers = 2, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
 
   worker_id_1 = rush$running_worker_ids[1]
   worker_id_2 = rush$running_worker_ids[2]
@@ -329,7 +316,7 @@ test_that("reading and writing a hash works with flatten", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # one field with list
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
@@ -383,7 +370,7 @@ test_that("reading and writing hashes works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # one field with list
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
@@ -422,7 +409,7 @@ test_that("writing hashes to specific keys works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # one element
   keys = uuid::UUIDgenerate()
@@ -444,7 +431,7 @@ test_that("writing list columns works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
@@ -452,7 +439,7 @@ test_that("writing list columns works", {
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
@@ -460,7 +447,7 @@ test_that("writing list columns works", {
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
   rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
@@ -613,9 +600,7 @@ test_that("a segfault on a worker is detected via the heartbeat", {
   rush = Rush$new(network_id = "test-rush", config = config)
   fun = function(x1, x2, ...) get("attach")(structure(list(), class = "UserDefinedDatabase"))
 
-  withr::with_envvar(list("HOST" = "remote_host"), {
-    worker_ids = rush$start_local_workers(fun = fun, n_workers = 1, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
-  })
+  worker_ids = rush$start_local_workers(fun = fun, n_workers = 1, heartbeat_period = 1, heartbeat_expire = 2, wait_for_workers = TRUE)
 
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)

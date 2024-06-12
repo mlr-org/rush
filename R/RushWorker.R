@@ -9,7 +9,7 @@
 #'
 #' @template param_network_id
 #' @template param_config
-#' @template param_host
+#' @template param_remote
 #' @template param_worker_id
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
@@ -26,9 +26,9 @@ RushWorker = R6::R6Class("RushWorker",
     #' Identifier of the worker.
     worker_id = NULL,
 
-    #' @field host (`character(1)`)\cr
-    #' Worker is started on a local or remote host.
-    host = NULL,
+    #' @field remote (`logical(1)`)\cr
+    #' Whether the worker is on a remote machine.
+    remote = NULL,
 
     #' @field heartbeat (`r_process``)\cr
     #' Background process for the heartbeat.
@@ -39,7 +39,7 @@ RushWorker = R6::R6Class("RushWorker",
     initialize = function(
       network_id,
       config = NULL,
-      host,
+      remote,
       worker_id = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
@@ -49,7 +49,7 @@ RushWorker = R6::R6Class("RushWorker",
       ) {
       super$initialize(network_id = network_id, config = config, seed = seed)
 
-      self$host = assert_choice(host, c("local", "remote"))
+      self$remote = assert_flag(remote)
       self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
       r = self$connector
 
@@ -108,7 +108,7 @@ RushWorker = R6::R6Class("RushWorker",
       # if worker is started with a heartbeat, monitor with heartbeat, otherwise monitor with pid
       if (!is.null(self$heartbeat)) {
         r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
-      } else if (host == "local") {
+      } else if (!self$remote) {
         r$SADD(private$.get_key("local_workers"), self$worker_id)
       }
 
@@ -117,7 +117,7 @@ RushWorker = R6::R6Class("RushWorker",
         "HSET", private$.get_key(self$worker_id),
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
-        "host", self$host,
+        "remote", self$remote,
         "hostname", rush::get_hostname(),
         "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
     },

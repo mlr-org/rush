@@ -2,11 +2,11 @@ test_that("constructing a rush worker works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   expect_class(rush, "Rush")
   expect_equal(rush$network_id, "test-rush")
   expect_string(rush$worker_id)
-  expect_equal(rush$host, "local")
+  expect_false(rush$remote)
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$running_worker_ids, rush$worker_id)
 
@@ -15,7 +15,7 @@ test_that("constructing a rush worker works", {
   # pass worker id
   config = start_flush_redis()
   worker_id = uuid::UUIDgenerate()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", worker_id = worker_id)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, worker_id = worker_id)
   expect_equal(rush$worker_id, worker_id)
 
   expect_rush_reset(rush, type = "terminate")
@@ -25,7 +25,7 @@ test_that("active bindings work after construction", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   expect_equal(rush$n_workers, 1)
 
@@ -49,15 +49,15 @@ test_that("a worker is registered", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # check meta data from redis
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
-  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "host", "hostname", "heartbeat"))
+  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "remote", "hostname", "heartbeat"))
   expect_string(worker_info$heartbeat, na.ok = TRUE)
   expect_equal(worker_info$worker_id, rush$worker_id)
-  expect_equal(worker_info$host, "local")
+  expect_false(worker_info$remote)
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_states$state, "running")
@@ -69,7 +69,7 @@ test_that("a worker is terminated", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   expect_equal(rush$running_worker_ids, rush$worker_id)
 
   rush$set_terminated()
@@ -83,7 +83,7 @@ test_that("a heartbeat is started", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", heartbeat_period = 3)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, heartbeat_period = 3)
 
   expect_class(rush$heartbeat, "r_process")
   expect_true(rush$heartbeat$is_alive())
@@ -96,7 +96,7 @@ test_that("pushing a task to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -135,7 +135,7 @@ test_that("pushing a task with extras to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   xss = list(list(x1 = 1, x2 = 2))
   timestamp = Sys.time()
@@ -177,7 +177,7 @@ test_that("pushing tasks to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
   keys = rush$push_tasks(xss)
@@ -217,7 +217,7 @@ test_that("pushing tasks with extras to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
   timestamp = Sys.time()
@@ -260,7 +260,7 @@ test_that("popping a task from the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
 
@@ -302,7 +302,7 @@ test_that("popping a task with seed, max_retries and timeout works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   seed = 123456
   max_retries = 2
@@ -350,7 +350,7 @@ test_that("pushing a finished task works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
   task = rush$pop_task()
@@ -391,7 +391,7 @@ test_that("pushing a failed tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
   task = rush$pop_task()
@@ -437,7 +437,7 @@ test_that("retry a failed task works", {
   lg_rush$set_threshold("info")
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
   task = rush$pop_task()
@@ -463,7 +463,7 @@ test_that("retry a failed task works and setting a new seed works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   seed = c(10407L, 1280795612L, -169270483L, -442010614L, -603558397L, -222347416L, 1489374793L)
   keys = rush$push_tasks(xss, seeds = list(seed))
@@ -491,7 +491,7 @@ test_that("retry a failed task works with a maximum of retries", {
   lg_rush$set_threshold("info")
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss, max_retries = 1)
   task = rush$pop_task(fields = c("max_retries", "n_retries"))
@@ -539,7 +539,7 @@ test_that("retry failed tasks works", {
   lg_rush$set_threshold("info")
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
   rush$push_tasks(xss)
   task_1 = rush$pop_task()
@@ -567,7 +567,7 @@ test_that("moving and fetching tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # queue tasks
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
@@ -642,7 +642,7 @@ test_that("fetching as list works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # queue tasks
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
@@ -698,7 +698,7 @@ test_that("fetch task with states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
@@ -755,7 +755,7 @@ test_that("latest results are fetched", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   # add 1 task
   rush$push_tasks(list(list(x1 = 1, x2 = 2)))
@@ -803,8 +803,8 @@ test_that("priority queues work", {
   expect_data_table(rush$fetch_priority_tasks(), nrows = 0)
   expect_data_table(rush$priority_info, nrows = 0)
 
-  rush_1 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-  rush_2 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush_1 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush_2 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   expect_equal(rush$n_queued_priority_tasks, 0)
   expect_data_table(rush$fetch_priority_tasks(), nrows = 0)
@@ -852,8 +852,8 @@ test_that("redirecting to shared queue works", {
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
 
-  rush_1 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-  rush_2 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush_1 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush_2 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2)), priority = rush_1$worker_id)
 
@@ -882,8 +882,8 @@ test_that("mixing priority queue and shared queue works", {
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)
 
-  rush_1 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
-  rush_2 = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush_1 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush_2 = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   keys = rush$push_priority_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 2)), priority = c(rush_1$worker_id, NA_character_))
 
@@ -910,7 +910,7 @@ test_that("saving logs with redis appender works", {
   rush = RushWorker$new(
     network_id = "test-rush",
     config = config,
-    host = "local",
+    remote = FALSE,
     lgr_thresholds = c(rush = "info"),
     lgr_buffer_size = 0)
   lg = lgr::get_logger("rush")
@@ -945,7 +945,7 @@ test_that("settings the buffer size in redis appender works", {
   rush = RushWorker$new(
     network_id = "test-rush",
     config = config,
-    host = "local",
+    remote = FALSE,
     lgr_thresholds = c(rush = "info"),
     lgr_buffer_size = 2)
   lg = lgr::get_logger("rush")
@@ -968,7 +968,7 @@ test_that("pushing tasks and terminating worker works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   expect_false(rush$terminated)
   expect_false(rush$terminated_on_idle)
 
@@ -988,7 +988,7 @@ test_that("terminate on idle works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local")
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss, terminate_workers = TRUE)
@@ -1007,7 +1007,7 @@ test_that("popping a task with seed from the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
 
@@ -1024,7 +1024,7 @@ test_that("task in states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, host = "local", seed = 123)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 

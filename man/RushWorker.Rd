@@ -19,8 +19,8 @@ The worker registers itself in the data base of the rush network.
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
-\item{\code{host}}{(\code{character(1)})\cr
-Worker is started on a local or remote host.}
+\item{\code{remote}}{(\code{logical(1)})\cr
+Whether the worker is on a remote machine.}
 
 \item{\code{heartbeat}}{(`r_process``)\cr
 Background process for the heartbeat.}
@@ -79,6 +79,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_local_workers'><code>rush::Rush$restart_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-tasks_with_state'><code>rush::Rush$tasks_with_state()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_finished_tasks'><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
@@ -98,7 +99,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
   network_id,
   config = NULL,
-  host,
+  remote,
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
@@ -123,8 +124,8 @@ If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment vari
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
 
-\item{\code{host}}{(\code{character(1)})\cr
-Worker is started on a local or remote host.
+\item{\code{remote}}{(\code{logical(1)})\cr
+Whether the worker is started on a remote machine.
 See \link{Rush} for details.}
 
 \item{\code{worker_id}}{(\code{character(1)})\cr
