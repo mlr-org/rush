@@ -4,9 +4,9 @@
 \name{rush-package}
 \alias{rush}
 \alias{rush-package}
-\title{rush: Parallel and Distributed Programming}
+\title{rush: Rapid Parallel and Distributed Computing}
 \description{
-Parallel programming package.
+Parallel computing with a network of local and remote workers. Fast exchange of results between the workers through a Redis database. Key features include task queues, local caching, and sophisticated error handling.
 }
 \author{
 \strong{Maintainer}: Marc Becker \email{marcbecker@posteo.de} (\href{https://orcid.org/0000-0002-8115-0400}{ORCID})

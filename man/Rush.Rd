@@ -10,7 +10,7 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
 \section{Local Workers}{
 
 A local worker runs on the same machine as the controller.
-Local workers are spawned with the \verb{$start_workers() method via the }processx` package.
+Local workers are spawned with the \verb{$start_local_workers() method via the }processx` package.
 }
 
 \section{Remote Workers}{
@@ -116,6 +116,13 @@ Each task is then evaluated with a separate RNG stream.
 See \link[parallel:RngStream]{parallel::nextRNGStream} for more details.
 }
 
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+   rush = rsh(network_id = "test_network", config = config_local)
+   rush
+}
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
@@ -129,7 +136,7 @@ Redis configuration options.}
 Returns a connection to Redis.}
 
 \item{\code{processes}}{(\link[processx:process]{processx::process})\cr
-List of processes started with \verb{$start_workers()}.}
+List of processes started with \verb{$start_local_workers()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -234,8 +241,8 @@ Information about the Redis server.}
 \item \href{#method-Rush-new}{\code{Rush$new()}}
 \item \href{#method-Rush-format}{\code{Rush$format()}}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
-\item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
-\item \href{#method-Rush-restart_workers}{\code{Rush$restart_workers()}}
+\item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
+\item \href{#method-Rush-restart_local_workers}{\code{Rush$restart_local_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
@@ -334,16 +341,16 @@ Print method.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-start_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-start_workers}{}}}
-\subsection{Method \code{start_workers()}}{
+\if{html}{\out{<a id="method-Rush-start_local_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-start_local_workers}{}}}
+\subsection{Method \code{start_local_workers()}}{
 Start workers locally with \code{processx}.
 The \link[processx:process]{processx::process} are stored in \verb{$processes}.
 Alternatively, use \verb{$create_worker_script()} to create a script for starting workers on remote machines.
 By default, \code{\link[=worker_loop_default]{worker_loop_default()}} is used as worker loop.
 This function takes the arguments \code{fun} and optionally \code{constants} which are passed in \code{...}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
+\if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   n_workers = NULL,
   wait_for_workers = TRUE,
   timeout = Inf,
@@ -407,13 +414,13 @@ Arguments passed to \code{worker_loop}.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-restart_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-restart_workers}{}}}
-\subsection{Method \code{restart_workers()}}{
+\if{html}{\out{<a id="method-Rush-restart_local_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-restart_local_workers}{}}}
+\subsection{Method \code{restart_local_workers()}}{
 Restart local workers.
 If the worker is is still running, it is killed and restarted.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_workers(worker_ids)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_local_workers(worker_ids)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -538,13 +545,13 @@ But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as \code{"lost"}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_workers = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_local_workers = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{restart_workers}}{(\code{logical(1)})\cr
+\item{\code{restart_local_workers}}{(\code{logical(1)})\cr
 Whether to restart lost workers.}
 }
 \if{html}{\out{</div>}}

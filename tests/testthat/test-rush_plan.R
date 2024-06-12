@@ -24,7 +24,7 @@ test_that("start workers", {
 
   rush = rsh("test-rush")
   fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush$start_workers(fun = fun)
+  rush$start_local_workers(fun = fun)
 
   expect_equal(rush$n_running_workers, 2)
 
@@ -47,7 +47,7 @@ test_that("set threshold", {
 
   rush = rsh("test-rush")
   fun = function(x1, x2, ...) list(y = x1 + x2)
-  expect_output(rush$start_workers(fun = fun), "Pushing.*")
+  expect_output(rush$start_local_workers(fun = fun), "Pushing.*")
 
   expect_rush_reset(rush)
 })
@@ -62,7 +62,7 @@ test_that("set start worker timeout", {
 
   rush = rsh("test-rush")
   fun = function(x1, x2, ...) list(y = x1 + x2)
-  expect_error(rush$start_workers(fun = fun), "Timeout waiting")
+  expect_error(rush$start_local_workers(fun = fun), "Timeout waiting")
 
   expect_rush_reset(rush)
 })

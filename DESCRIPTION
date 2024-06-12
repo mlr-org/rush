@@ -1,15 +1,16 @@
 Package: rush
-Title: Parallel and Distributed Programming
+Title: Rapid Parallel and Distributed Computing
 Version: 0.0.0.9000
 Authors@R:
-  c(
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut"),
            comment = c(ORCID = "0000-0002-8115-0400"))
-  )
-Description: Parallel programming package.
+Description: Parallel computing with a network of local and remote
+    workers. Fast exchange of results between the workers through a Redis
+    database. Key features include task queues, local caching, and
+    sophisticated error handling.
 License: LGPL-3
 Depends:
-    R (>= 3.1.0),
+    R (>= 3.1.0)
 Imports:
     checkmate,
     data.table,
@@ -26,8 +27,8 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     withr
+Config/testthat/edition: 3
+Config/testthat/parallel: false
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Config/testthat/edition: 3
-Config/testthat/parallel: false

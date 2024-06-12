@@ -3,7 +3,7 @@
 #' @description
 #' Starts a worker.
 #' The function loads the globals and packages, initializes the [RushWorker] instance and invokes the worker loop.
-#' This function is called by `$start_workers()` or by the user after creating the worker script with `$create_worker_script()`.
+#' This function is called by `$start_local_workers()` or by the user after creating the worker script with `$create_worker_script()`.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
@@ -24,7 +24,8 @@ start_worker = function(
   network_id,
   worker_id = NULL,
   hostname,
-  ...) {
+  ...
+  ) {
   checkmate::assert_string(network_id)
   checkmate::assert_string(worker_id, null.ok = TRUE)
   checkmate::assert_string(hostname)
@@ -36,11 +37,14 @@ start_worker = function(
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
 
+  # wait for start arguments
+  while (!r$EXISTS(sprintf("%s:start_args", network_id))) {
+    lg$debug("Wait for start arguments for network '%s'.", network_id)
+    Sys.sleep(1)
+  }
+
   # get start arguments
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
-  if (is.null(bin_start_args)) {
-    stopf("No start arguments found for network '%s'.", network_id)
-  }
   start_args = redux::bin_to_object(bin_start_args)
 
   # load large object from disk
@@ -68,5 +72,5 @@ start_worker = function(
 
   rush$set_terminated()
 
-  return(NULL)
+  invisible(NULL)
 }

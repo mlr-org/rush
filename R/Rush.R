@@ -6,7 +6,7 @@
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
-#' Local workers are spawned with the `$start_workers() method via the `processx` package.
+#' Local workers are spawned with the `$start_local_workers() method via the `processx` package.
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
@@ -107,6 +107,12 @@
 #' @template param_data_format
 #'
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'    rush = rsh(network_id = "test_network", config = config_local)
+#'    rush
+#' }
 Rush = R6::R6Class("Rush",
   public = list(
 
@@ -123,7 +129,7 @@ Rush = R6::R6Class("Rush",
     connector = NULL,
 
     #' @field processes ([processx::process])\cr
-    #' List of processes started with `$start_workers()`.
+    #' List of processes started with `$start_local_workers()`.
     processes = NULL,
 
     #' @description
@@ -200,7 +206,7 @@ Rush = R6::R6Class("Rush",
     #' Timeout to wait for workers in seconds.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    start_workers = function(
+    start_local_workers = function(
       n_workers = NULL,
       wait_for_workers = TRUE,
       timeout = Inf,
@@ -256,7 +262,7 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be restarted.
-    restart_workers = function(worker_ids) {
+    restart_local_workers = function(worker_ids) {
       assert_subset(unlist(worker_ids), self$worker_ids)
       r = self$connector
 
@@ -284,12 +290,30 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Create script to start workers.
-    #' The worker is started with [start_worker()].
+    #' Create script to remote start workers.
+    #' Run these command to pre-start a worker.
+    #' The worker will wait until the start arguments are pushed with `$start_remote_workers()`.
+    create_worker_script = function() {
+
+      # redis config to string
+      config = discard(self$config, is.null)
+      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+
+      lg$info("Start worker with:")
+      lg$info("Rscript -e 'rush::start_worker(network_id = '%s', hostname = '%s', %s)'",
+        self$network_id, private$.hostname, config)
+      lg$info("See ?rush::start_worker for more details.")
+
+      return(invisible(self))
+    },
+
+    #' @description
+    #' Push start arguments to remote workers.
+    #' Remote workers must be pre-started with `$create_worker_script()`.
     #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    create_worker_script = function(
+    start_remote_workers = function(
       globals = NULL,
       packages = NULL,
       heartbeat_period = NULL,
@@ -311,11 +335,6 @@ Rush = R6::R6Class("Rush",
         worker_loop = worker_loop,
         ...
       )
-
-      lg$info("Start worker with:")
-      lg$info("Rscript -e 'rush::start_worker(network_id = '%s', hostname = '%s', url = '%s')'",
-        self$network_id, private$.hostname, self$config$url)
-      lg$info("See ?rush::start_worker for more details.")
 
       return(invisible(self))
     },
@@ -414,10 +433,10 @@ Rush = R6::R6Class("Rush",
     #' Workers with a heartbeat process are checked with the heartbeat.
     #' Lost tasks are marked as `"lost"`.
     #'
-    #' @param restart_workers (`logical(1)`)\cr
+    #' @param restart_local_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
-    detect_lost_workers = function(restart_workers = FALSE) {
-      assert_flag(restart_workers)
+    detect_lost_workers = function(restart_local_workers = FALSE) {
+      assert_flag(restart_local_workers)
       r = self$connector
 
       # check workers with a heartbeat
@@ -457,8 +476,8 @@ Rush = R6::R6Class("Rush",
           walk(x, lg$error)
         })
 
-        if (restart_workers) {
-          self$restart_workers(unlist(lost_workers))
+        if (restart_local_workers) {
+          self$restart_local_workers(unlist(lost_workers))
           lost_workers
         } else {
           # set worker state

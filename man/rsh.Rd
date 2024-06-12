@@ -25,5 +25,9 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 Function to construct a \link{Rush} controller.
 }
 \examples{
-rsh(network_id = "benchmark")
+\donttest{
+   config_local = redux::redis_config()
+   rush = rsh(network_id = "test_network", config = config_local)
+   rush
+}
 }

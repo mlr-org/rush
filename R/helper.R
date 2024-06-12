@@ -23,7 +23,6 @@ get_hostname = function() {
   host[1]
 }
 
-
 #' @title Set RNG Sate before Running a Function
 #'
 #' @description

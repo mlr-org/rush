@@ -35,3 +35,12 @@ The time in seconds to wait for a worker to start.}
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.
 The function tests the connection to Redis and throws an error if the connection fails.
 }
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+   rush_plan(config = config_local, n_workers = 2)
+
+   rush = rsh(network_id = "test_network")
+   rush
+}
+}

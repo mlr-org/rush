@@ -76,7 +76,7 @@ fun = function(x1, x2, ...) {
 We start two workers.
 
 ```{r}
-rush$start_workers(fun = fun, n_workers = 2)
+rush$start_local_workers(fun = fun, n_workers = 2)
 ```
 
 Now we can push tasks to the workers.

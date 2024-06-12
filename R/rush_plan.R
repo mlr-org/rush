@@ -16,7 +16,16 @@
 #' @template param_lgr_thresholds
 #' @template param_large_objects_path
 #'
+#' @return `list()` with the stored configuration.
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'    rush_plan(config = config_local, n_workers = 2)
+#'
+#'    rush = rsh(network_id = "test_network")
+#'    rush
+#' }
 rush_plan = function(
   n_workers,
   config = NULL,
@@ -38,6 +47,7 @@ rush_plan = function(
   assign("lgr_thresholds", lgr_thresholds, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
   assign("start_worker_timeout", start_worker_timeout, rush_env)
+  invisible(as.list(rush_env))
 }
 
 #' @title Get Rush Config
@@ -45,7 +55,7 @@ rush_plan = function(
 #' @description
 #' Returns the rush config that was set by [rush_plan()].
 #'
-#' @return `list(4)`
+#' @return `list()` with the stored configuration.
 #'
 #' @export
 rush_config = function() {
@@ -65,7 +75,7 @@ rush_config = function() {
 #' @export
 remove_rush_plan = function() {
   rm(list = ls(envir = rush_env), envir = rush_env)
-  invisible(NULL)
+  invisible(TRUE)
 }
 
 #' @title Rush Available

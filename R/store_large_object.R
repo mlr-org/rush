@@ -8,6 +8,7 @@
 #' @param path (`character(1)`)\cr
 #' Path to store the object.
 #'
+#' @return `list()` of class `"rush_large_object"` with the name and path of the stored object.
 #' @export
 store_large_object = function(obj, path) {
   assert_string(path)

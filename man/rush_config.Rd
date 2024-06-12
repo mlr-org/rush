@@ -7,7 +7,7 @@
 rush_config()
 }
 \value{
-\code{list(4)}
+\code{list()}
 }
 \description{
 Returns the rush config that was set by \code{\link[=rush_plan]{rush_plan()}}.
