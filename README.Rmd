@@ -22,12 +22,12 @@ The workers sample tasks and communicate the results asynchronously with other w
 * Small overhead of a few milliseconds per task.
 * Easy start of local workers with `processx`
 * Start workers on any platform with a batch script.
-* Designed to work with [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
+* Designed to work with [`data.table`](https://CRAN.R-project.org/package=data.table).
 * Results are cached in the R session to minimize read and write operations.
 * Detect and recover from worker failures.
 * Start heartbeats to monitor workers on remote machines.
 * Snapshot the in-memory data base to disk.
-* Store [`lgr`](https://cran.r-project.org/web/packages/lgr/index.html) messages of the workers in the Redis data base.
+* Store [`lgr`](https://CRAN.R-project.org/package=lgr) messages of the workers in the Redis data base.
 * Light on dependencies.
 
 ## Install
@@ -38,7 +38,7 @@ Install the development version from GitHub.
 remotes::install_github("mlr-org/rush")
 ```
 
-And install [Redis](https://redis.io/docs/getting-started/installation/).
+And install [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
 
 ## Centralized Rush Network
 

@@ -25,11 +25,11 @@
 #'
 #' @section Heartbeat:
 #' The heartbeat process periodically signals that a worker is still alive.
-#' This is implemented by setting a [timeout](https://redis.io/commands/expire/) on the heartbeat key.
+#' This is implemented by setting a [timeout](https://redis.io/docs/latest/commands/expire/) on the heartbeat key.
 #' Furthermore, the heartbeat process can kill the worker.
 #'
 #' @section Data Structure:
-#' Tasks are stored in Redis [hashes](https://redis.io/docs/data-types/hashes/).
+#' Tasks are stored in Redis [hashes](https://redis.io/docs/latest/develop/data-types/hashes/).
 #' Hashes are collections of field-value pairs.
 #' The key of the hash identifies the task in Redis and `rush`.
 #'
@@ -54,7 +54,7 @@
 #'
 #' @section Task States:
 #' A task can go through four states `"queued"`, `"running"`, `"finished"` or `"failed"`.
-#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/data-types/lists/) and [sets](https://redis.io/docs/data-types/sets/) to keep track of their state.
+#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/latest/develop/data-types/lists/) and [sets](https://redis.io/docs/latest/develop/data-types/sets/) to keep track of their state.
 #' Queued tasks are waiting to be evaluated.
 #' A worker pops a task from the queue and changes the state to `"running"` while evaluating the task.
 #' When the task is finished, the state is changed to `"finished" and the result is written to the data base.
@@ -1441,7 +1441,7 @@ Rush = R6::R6Class("Rush",
     #' For example, `c(60, 1000)` saves the data base every 60 seconds if there are at least 1000 changes.
     #' Overwrites the redis configuration file.
     #' Set to `NULL` to disable snapshots.
-    #' For more details see [redis.io](https://redis.io/docs/management/persistence/#snapshotting).
+    #' For more details see [redis.io](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/).
     snapshot_schedule = function(rhs) {
       if (missing(rhs)) return(private$.snapshot_schedule)
       assert_integerish(rhs, min.len = 2, null.ok = TRUE)

@@ -35,13 +35,13 @@ Without a heartbeat process a remote worker cannot be killed (see section heartb
 \section{Heartbeat}{
 
 The heartbeat process periodically signals that a worker is still alive.
-This is implemented by setting a \href{https://redis.io/commands/expire/}{timeout} on the heartbeat key.
+This is implemented by setting a \href{https://redis.io/docs/latest/commands/expire/}{timeout} on the heartbeat key.
 Furthermore, the heartbeat process can kill the worker.
 }
 
 \section{Data Structure}{
 
-Tasks are stored in Redis \href{https://redis.io/docs/data-types/hashes/}{hashes}.
+Tasks are stored in Redis \href{https://redis.io/docs/latest/develop/data-types/hashes/}{hashes}.
 Hashes are collections of field-value pairs.
 The key of the hash identifies the task in Redis and \code{rush}.
 
@@ -67,7 +67,7 @@ For example, \verb{$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 
 \section{Task States}{
 
 A task can go through four states \code{"queued"}, \code{"running"}, \code{"finished"} or \code{"failed"}.
-Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/data-types/lists/}{lists} and \href{https://redis.io/docs/data-types/sets/}{sets} to keep track of their state.
+Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/latest/develop/data-types/lists/}{lists} and \href{https://redis.io/docs/latest/develop/data-types/sets/}{sets} to keep track of their state.
 Queued tasks are waiting to be evaluated.
 A worker pops a task from the queue and changes the state to \code{"running"} while evaluating the task.
 When the task is finished, the state is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
@@ -234,7 +234,7 @@ Set a snapshot schedule to periodically save the data base on disk.
 For example, \code{c(60, 1000)} saves the data base every 60 seconds if there are at least 1000 changes.
 Overwrites the redis configuration file.
 Set to \code{NULL} to disable snapshots.
-For more details see \href{https://redis.io/docs/management/persistence/#snapshotting}{redis.io}.}
+For more details see \href{https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/}{redis.io}.}
 
 \item{\code{redis_info}}{(\code{list()})\cr
 Information about the Redis server.}

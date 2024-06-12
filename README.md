@@ -21,15 +21,14 @@ communicate the results asynchronously with other workers.
 -   Easy start of local workers with `processx`
 -   Start workers on any platform with a batch script.
 -   Designed to work with
-    [`data.table`](https://cran.r-project.org/web/packages/data.table/index.html).
+    [`data.table`](https://CRAN.R-project.org/package=data.table).
 -   Results are cached in the R session to minimize read and write
     operations.
 -   Detect and recover from worker failures.
 -   Start heartbeats to monitor workers on remote machines.
 -   Snapshot the in-memory data base to disk.
--   Store
-    [`lgr`](https://cran.r-project.org/web/packages/lgr/index.html)
-    messages of the workers in the Redis data base.
+-   Store [`lgr`](https://CRAN.R-project.org/package=lgr) messages of
+    the workers in the Redis data base.
 -   Light on dependencies.
 
 ## Install
@@ -41,7 +40,7 @@ remotes::install_github("mlr-org/rush")
 ```
 
 And install
-[Redis](https://redis.io/docs/getting-started/installation/).
+[Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
 
 ## Centralized Rush Network
 
@@ -85,6 +84,8 @@ We start two workers.
 rush$start_local_workers(fun = fun, n_workers = 2)
 ```
 
+    ## INFO  [16:06:19.324] [rush] Starting 2 worker(s)
+
 Now we can push tasks to the workers.
 
 ``` r
@@ -99,14 +100,10 @@ And retrieve the results.
 rush$fetch_finished_tasks()
 ```
 
-    ##       x1    x2   pid                            worker_id     y    state
-    ##    <num> <num> <int>                               <char> <num>   <char>
-    ## 1:     4     6 40827 d4c55759-70d0-49ce-8d67-bd912fb184b9    10 finished
-    ## 2:     3     5 40829 c80ec3fe-7656-47e4-97a7-33043c3db331     8 finished
-    ##                                    keys
-    ##                                  <char>
-    ## 1: 2242649d-a29a-4624-ac2e-91b8d04be4fa
-    ## 2: 0c2fa5d9-d012-488f-b8d6-e92266dc2837
+    ##       x1    x2     y    pid     worker_id          keys
+    ##    <num> <num> <num>  <int>        <char>        <char>
+    ## 1:     4     6    10 448184 ebb0d9b4-3... 37ba4683-5...
+    ## 2:     3     5     8 448173 f49aad09-a... 27b4b03b-d...
 
 ## Decentralized Rush Network
 

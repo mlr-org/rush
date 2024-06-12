@@ -9,6 +9,6 @@
 Parallel computing with a network of local and remote workers. Fast exchange of results between the workers through a 'Redis' database. Key features include task queues, local caching, and sophisticated error handling.
 }
 \author{
-\strong{Maintainer}: Marc Becker \email{marcbecker@posteo.de} (\href{https://orcid.org/0000-0002-8115-0400}{ORCID})
+\strong{Maintainer}: Marc Becker \email{marcbecker@posteo.de} (\href{https://orcid.org/0000-0002-8115-0400}{ORCID}) [copyright holder]
 
 }
