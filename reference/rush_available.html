@@ -86,6 +86,17 @@
 
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span>  <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="rush_plan.html">rush_plan</a></span><span class="op">(</span>config <span class="op">=</span> <span class="va">config_local</span>, n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in rush_plan(config = config_local, n_workers = 2):</span> Can't connect to Redis. Check the configuration.</span>
+<span class="r-in"><span>  <span class="fu">rush_available</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

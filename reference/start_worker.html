@@ -109,12 +109,33 @@ Arguments passed to <a href="https://rdrr.io/pkg/redux/man/redis_config.html" cl
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p><code>NULL</code></p>
+
+
+    </div>
+    <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
     <p>The function initializes the connection to the Redis data base.
 It loads the packages and copies the globals to the global environment of the worker.
 The function initialize the <a href="RushWorker.html">RushWorker</a> instance and starts the worker loop.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu">rush</span><span class="fu">::</span><span class="fu">start_worker</span><span class="op">(</span></span></span>
+<span class="r-in"><span>   network_id <span class="op">=</span> <span class="st">'test-rush'</span>,</span></span>
+<span class="r-in"><span>   remote <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>   url <span class="op">=</span> <span class="st">'redis://127.0.0.1:6379'</span>,</span></span>
+<span class="r-in"><span>   scheme <span class="op">=</span> <span class="st">'redis'</span>,</span></span>
+<span class="r-in"><span>   host <span class="op">=</span> <span class="st">'127.0.0.1'</span>,</span></span>
+<span class="r-in"><span>   port <span class="op">=</span> <span class="st">'6379'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
