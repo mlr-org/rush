@@ -109,14 +109,14 @@ Without a heartbeat process a remote worker cannot be killed (see section heartb
     
 
 <p>The heartbeat process periodically signals that a worker is still alive.
-This is implemented by setting a <a href="https://redis.io/commands/expire/" class="external-link">timeout</a> on the heartbeat key.
+This is implemented by setting a <a href="https://redis.io/docs/latest/commands/expire/" class="external-link">timeout</a> on the heartbeat key.
 Furthermore, the heartbeat process can kill the worker.</p>
     </div>
     <div class="section level2">
     <h2 id="data-structure">Data Structure<a class="anchor" aria-label="anchor" href="#data-structure"></a></h2>
     
 
-<p>Tasks are stored in Redis <a href="https://redis.io/docs/data-types/hashes/" class="external-link">hashes</a>.
+<p>Tasks are stored in Redis <a href="https://redis.io/docs/latest/develop/data-types/hashes/" class="external-link">hashes</a>.
 Hashes are collections of field-value pairs.
 The key of the hash identifies the task in Redis and <code>rush</code>.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>key <span class="sc">:</span> xs <span class="sc">|</span> ys <span class="sc">|</span> xs_extra</span></code></pre><p></p></div>
@@ -137,7 +137,7 @@ For example, <code>$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 
     
 
 <p>A task can go through four states <code>"queued"</code>, <code>"running"</code>, <code>"finished"</code> or <code>"failed"</code>.
-Internally, the keys of the tasks are pushed through Redis <a href="https://redis.io/docs/data-types/lists/" class="external-link">lists</a> and <a href="https://redis.io/docs/data-types/sets/" class="external-link">sets</a> to keep track of their state.
+Internally, the keys of the tasks are pushed through Redis <a href="https://redis.io/docs/latest/develop/data-types/lists/" class="external-link">lists</a> and <a href="https://redis.io/docs/latest/develop/data-types/sets/" class="external-link">sets</a> to keep track of their state.
 Queued tasks are waiting to be evaluated.
 A worker pops a task from the queue and changes the state to <code>"running"</code> while evaluating the task.
 When the task is finished, the state is changed to <code>"finished" and the result is written to the data base. If the task fails, the state is changed to </code>"failed"<code>instead of</code>"finished"`.</p>
@@ -364,7 +364,7 @@ Set a snapshot schedule to periodically save the data base on disk.
 For example, <code>c(60, 1000)</code> saves the data base every 60 seconds if there are at least 1000 changes.
 Overwrites the redis configuration file.
 Set to <code>NULL</code> to disable snapshots.
-For more details see <a href="https://redis.io/docs/management/persistence/#snapshotting" class="external-link">redis.io</a>.</p></dd>
+For more details see <a href="https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/" class="external-link">redis.io</a>.</p></dd>
 
 
 <dt><code>redis_info</code></dt>
