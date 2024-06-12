@@ -485,6 +485,8 @@ test_that("retry a failed task works and setting a new seed works", {
 })
 
 test_that("retry a failed task works with a maximum of retries", {
+  skip_on_cran()
+
   lg_rush = lgr::get_logger("rush")
   old_threshold_rush = lg_rush$threshold
   on.exit(lg_rush$set_threshold(old_threshold_rush))
