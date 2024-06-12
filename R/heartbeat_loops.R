@@ -3,6 +3,7 @@
 #' @description
 #' The heartbeat loop updates the heartbeat key if the worker is still alive.
 #' If the kill key is set, the worker is killed.
+#' This function is called in a callr session.
 #'
 #' @param pid (`integer(1)`)\cr
 #' Process ID of the worker.
@@ -14,7 +15,28 @@
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #'
+#' @return `NULL`
+#' @keywords internal
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'
+#'    rush_plan(
+#'      config = config_local,
+#'      n_workers = 2,
+#'      lgr_thresholds = c(rush = "info"))
+#'
+#'    rush = rsh(network_id = "test_network")
+#'
+#'    fun = function(x1, x2, ...) list(y = x1 + x2)
+#'    rush$start_local_workers(
+#'      fun = fun,
+#'      heartbeat_period = 3,
+#'      heartbeat_expire = 9)
+#'
+#'    rush$stop_workers()
+#' }
 heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
   worker_id_key = sprintf("%s:%s", network_id, worker_id)
@@ -31,4 +53,6 @@ heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_
       break
     }
   }
+
+  return(NULL)
 }

@@ -16,6 +16,22 @@ List of constants passed to \code{fun}.}
 \item{rush}{(\link{RushWorker})\cr
 Rush worker instance.}
 }
+\value{
+\code{NULL}
+}
 \description{
 Worker loop that pops a single task from the queue, executes the function and pushes the results.
+}
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+   rush = rsh(network_id = "test_network", config = config_local)
+
+   fun = function(x1, x2, ...) list(y = x1 + x2)
+   rush$start_local_workers(
+     fun = fun,
+     worker_loop = worker_loop_default)
+
+   rush$stop_workers()
+}
 }

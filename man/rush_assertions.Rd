@@ -28,9 +28,20 @@ If \code{TRUE}, \code{NULL} is allowed.}
 
 \item{workers}{(list of \link{RushWorker}).}
 }
+\value{
+Exception if the assertion fails, otherwise the input object invisibly.
+}
 \description{
 Most assertion functions ensure the right class attribute, and optionally additional properties.
 If an assertion fails, an exception is raised.
 Otherwise, the input object is returned invisibly.
+}
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+   rush = rsh(network_id = "test_network", config = config_local)
+
+   assert_rush(rush)
+}
 }
 \keyword{internal}

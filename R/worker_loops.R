@@ -12,7 +12,20 @@
 #' @param rush ([RushWorker])\cr
 #' Rush worker instance.
 #'
+#' @return `NULL`
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'    rush = rsh(network_id = "test_network", config = config_local)
+#'
+#'    fun = function(x1, x2, ...) list(y = x1 + x2)
+#'    rush$start_local_workers(
+#'      fun = fun,
+#'      worker_loop = worker_loop_default)
+#'
+#'    rush$stop_workers()
+#' }
 worker_loop_default = function(fun, constants = NULL, rush) {
   assert_function(fun)
   assert_list(constants, null.ok = TRUE, names = "named")
@@ -47,7 +60,20 @@ worker_loop_default = function(fun, constants = NULL, rush) {
 #' @param rush ([RushWorker])\cr
 #' Rush worker instance.
 #'
+#' @return `NULL`
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'    rush = rsh(network_id = "test_network", config = config_local)
+#'
+#'    fun = function(x1, x2, ...) list(y = x1 + x2)
+#'    rush$start_local_workers(
+#'      fun = fun,
+#'      worker_loop = worker_loop_callr)
+#'
+#'    rush$stop_workers()
+#' }
 worker_loop_callr = function(fun, constants = NULL, rush) {
   assert_function(fun)
   assert_list(constants, null.ok = TRUE, names = "named")

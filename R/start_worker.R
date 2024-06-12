@@ -18,7 +18,18 @@
 #' @template param_network_id
 #' @template param_worker_id
 #'
+#' @return `NULL`
 #' @export
+#' @examples
+#' \dontrun{
+#'   rush::start_worker(
+#'    network_id = 'test-rush',
+#'    remote = TRUE,
+#'    url = 'redis://127.0.0.1:6379',
+#'    scheme = 'redis',
+#'    host = '127.0.0.1',
+#'    port = '6379')
+#' }
 start_worker = function(
   network_id,
   worker_id = NULL,

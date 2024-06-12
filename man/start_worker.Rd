@@ -22,6 +22,9 @@ Whether the worker is on a remote machine.}
 \item{...}{(\code{any})\cr
 Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 }
+\value{
+\code{NULL}
+}
 \description{
 Starts a worker.
 The function loads the globals and packages, initializes the \link{RushWorker} instance and invokes the worker loop.
@@ -31,4 +34,15 @@ This function is called by \verb{$start_local_workers()} or by the user after cr
 The function initializes the connection to the Redis data base.
 It loads the packages and copies the globals to the global environment of the worker.
 The function initialize the \link{RushWorker} instance and starts the worker loop.
+}
+\examples{
+\dontrun{
+  rush::start_worker(
+   network_id = 'test-rush',
+   remote = TRUE,
+   url = 'redis://127.0.0.1:6379',
+   scheme = 'redis',
+   host = '127.0.0.1',
+   port = '6379')
+}
 }

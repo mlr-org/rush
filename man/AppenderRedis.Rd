@@ -2,9 +2,23 @@
 % Please edit documentation in R/AppenderRedis.R
 \name{AppenderRedis}
 \alias{AppenderRedis}
-\title{Log to Redis Data Store}
+\title{Log to Redis Database}
 \description{
-\link{AppenderRedis} writes log messages to a Redis data store.
+\link{AppenderRedis} writes log messages to a Redis data base.
+This \link[lgr:Appender]{lgr::Appender} is created internally by \link{RushWorker} when logger thresholds are passed via \code{\link[=rush_plan]{rush_plan()}}.
+}
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+
+   rush_plan(
+     config = config_local,
+     n_workers = 2,
+     lgr_thresholds = c(rush = "info"))
+
+   rush = rsh(network_id = "test_network")
+   rush
+}
 }
 \section{Super classes}{
 \code{\link[lgr:Filterable]{lgr::Filterable}} -> \code{\link[lgr:Appender]{lgr::Appender}} -> \code{\link[lgr:AppenderMemory]{lgr::AppenderMemory}} -> \code{AppenderRedis}

@@ -19,3 +19,7 @@ Path to store the object.}
 \description{
 Store large objects to disk and return a reference to the object.
 }
+\examples{
+obj = list(a = 1, b = 2)
+rush_large_object = store_large_object(obj, tempdir())
+}

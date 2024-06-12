@@ -5,8 +5,16 @@
 #' If an assertion fails, an exception is raised.
 #' Otherwise, the input object is returned invisibly.
 #'
+#' @return Exception if the assertion fails, otherwise the input object invisibly.
 #' @name rush_assertions
 #' @keywords internal
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'    rush = rsh(network_id = "test_network", config = config_local)
+#'
+#'    assert_rush(rush)
+#' }
 NULL
 
 #' @export

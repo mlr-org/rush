@@ -12,3 +12,10 @@ rush_config()
 \description{
 Returns the rush config that was set by \code{\link[=rush_plan]{rush_plan()}}.
 }
+\examples{
+\donttest{
+  config_local = redux::redis_config()
+  rush_plan(config = config_local, n_workers = 2)
+  rush_config()
+}
+}

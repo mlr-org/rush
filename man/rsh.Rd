@@ -21,6 +21,9 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{...}{(ignored).}
 }
+\value{
+\link{Rush} controller.
+}
 \description{
 Function to construct a \link{Rush} controller.
 }

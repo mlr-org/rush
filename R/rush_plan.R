@@ -58,6 +58,12 @@ rush_plan = function(
 #' @return `list()` with the stored configuration.
 #'
 #' @export
+#' @examples
+#' \donttest{
+#'   config_local = redux::redis_config()
+#'   rush_plan(config = config_local, n_workers = 2)
+#'   rush_config()
+#' }
 rush_config = function() {
   list(
     config = rush_env$config,
@@ -73,6 +79,12 @@ rush_config = function() {
 #' Removes the rush plan that was set by [rush_plan()].
 #'
 #' @export
+#' @examples
+#' \donttest{
+#'   config_local = redux::redis_config()
+#'   rush_plan(config = config_local, n_workers = 2)
+#'   remove_rush_plan()
+#' }
 remove_rush_plan = function() {
   rm(list = ls(envir = rush_env), envir = rush_env)
   invisible(TRUE)
@@ -86,6 +98,12 @@ remove_rush_plan = function() {
 #' @return `logical(1)`
 #'
 #' @export
+#' @examples
+#' \donttest{
+#'   config_local = redux::redis_config()
+#'   rush_plan(config = config_local, n_workers = 2)
+#'   rush_available()
+#' }
 rush_available = function() {
   exists("config", rush_env)
 }

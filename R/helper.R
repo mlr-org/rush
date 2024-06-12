@@ -7,7 +7,11 @@
 #' Finally, if this fails it queries the computer name from the command `uname -n`.
 #' Copied from the `R.utils` package.
 #'
+#' @return `character(1)` of hostname.
+#' @keywords internal
 #' @export
+#' @examples
+#' get_hostname()
 get_hostname = function() {
   host = Sys.getenv(c("HOST", "HOSTNAME", "COMPUTERNAME"))
   host = host[host != ""]
@@ -35,7 +39,11 @@ get_hostname = function() {
 #' @param seed (`integer`)\cr
 #' RNG state to set before running `fun`.
 #'
+#' @return `any`
+#' @keywords internal
 #' @export
+#' @examples
+#' with_rng_state(runif, list(n = 1), .Random.seed)
 with_rng_state = function(fun, args, seed) {
   if (!is.null(seed)) assign(".Random.seed", seed, envir = globalenv())
   mlr3misc::invoke(fun, .args = args)

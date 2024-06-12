@@ -10,6 +10,17 @@ The worker inherits from \link{Rush}.
 \note{
 The worker registers itself in the data base of the rush network.
 }
+\examples{
+\donttest{
+   config_local = redux::redis_config()
+   rush = rsh(network_id = "test_network", config = config_local)
+
+   fun = function(x1, x2, ...) list(y = x1 + x2)
+   rush$start_local_workers(fun = fun)
+
+   rush$stop_workers()
+}
+}
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }

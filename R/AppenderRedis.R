@@ -1,7 +1,8 @@
-#' @title Log to Redis Data Store
+#' @title Log to Redis Database
 #'
 #' @description
-#' [AppenderRedis] writes log messages to a Redis data store.
+#' [AppenderRedis] writes log messages to a Redis data base.
+#' This [lgr::Appender] is created internally by [RushWorker] when logger thresholds are passed via [rush_plan()].
 #'
 #' @param config ([redux::redis_config])\cr
 #' Redis configuration options.
@@ -25,6 +26,18 @@
 #' List of filters.
 #'
 #' @export
+#' @examples
+#' \donttest{
+#'    config_local = redux::redis_config()
+#'
+#'    rush_plan(
+#'      config = config_local,
+#'      n_workers = 2,
+#'      lgr_thresholds = c(rush = "info"))
+#'
+#'    rush = rsh(network_id = "test_network")
+#'    rush
+#' }
 AppenderRedis = R6::R6Class("AppenderRedis",
   inherit = lgr::AppenderMemory,
   cloneable = FALSE,

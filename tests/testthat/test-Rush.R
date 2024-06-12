@@ -196,7 +196,7 @@ test_that("worker can be started with script", {
   expect_snapshot(rush$create_worker_script())
 
   px = processx::process$new("Rscript",
-    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', hostname = 'ThinkPad-T14-Gen-3', url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379')")),
+    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', remote = TRUE, url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379')")),
     supervise = TRUE,
     stderr = "|", stdout = "|")
 

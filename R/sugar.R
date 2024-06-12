@@ -7,6 +7,7 @@
 #' @template param_config
 #' @param ... (ignored).
 #'
+#' @return [Rush] controller.
 #' @export
 #' @examples
 #' \donttest{

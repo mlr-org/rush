@@ -5,7 +5,7 @@ Authors@R:
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut"),
            comment = c(ORCID = "0000-0002-8115-0400"))
 Description: Parallel computing with a network of local and remote
-    workers. Fast exchange of results between the workers through a Redis
+    workers. Fast exchange of results between the workers through a 'Redis'
     database. Key features include task queues, local caching, and
     sophisticated error handling.
 License: LGPL-3

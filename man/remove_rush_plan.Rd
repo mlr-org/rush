@@ -9,3 +9,10 @@ remove_rush_plan()
 \description{
 Removes the rush plan that was set by \code{\link[=rush_plan]{rush_plan()}}.
 }
+\examples{
+\donttest{
+  config_local = redux::redis_config()
+  rush_plan(config = config_local, n_workers = 2)
+  remove_rush_plan()
+}
+}

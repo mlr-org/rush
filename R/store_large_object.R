@@ -10,6 +10,9 @@
 #'
 #' @return `list()` of class `"rush_large_object"` with the name and path of the stored object.
 #' @export
+#' @examples
+#' obj = list(a = 1, b = 2)
+#' rush_large_object = store_large_object(obj, tempdir())
 store_large_object = function(obj, path) {
   assert_string(path)
 

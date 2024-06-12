@@ -16,6 +16,13 @@ Arguments to pass to \code{fun}.}
 \item{seed}{(\code{integer})\cr
 RNG state to set before running \code{fun}.}
 }
+\value{
+\code{any}
+}
 \description{
 This function sets the rng state before running a function.
 }
+\examples{
+with_rng_state(runif, list(n = 1), .Random.seed)
+}
+\keyword{internal}
