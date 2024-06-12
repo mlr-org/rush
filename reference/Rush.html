@@ -88,7 +88,7 @@ Local workers are spawned with the <code>$start_local_workers() method via the <
     
 
 <p>A remote worker runs on a different machine than the controller.
-Remote workers are started manually with the <code>$create_worker_script()</code> method.
+Remote workers are started manually with the <code>$create_worker_script()</code> and <code>$start_remote_workers()</code> methods.
 Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
 Only a heartbeat process can kill remote workers.
 The heartbeat process also monitors the remote workers for crashes.</p>
@@ -376,6 +376,7 @@ Information about the Redis server.</p></dd>
 <li><p><a href="#method-Rush-start_local_workers"><code>Rush$start_local_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-restart_local_workers"><code>Rush$restart_local_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-create_worker_script"><code>Rush$create_worker_script()</code></a></p></li>
+<li><p><a href="#method-Rush-start_remote_workers"><code>Rush$start_remote_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-wait_for_workers"><code>Rush$wait_for_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-stop_workers"><code>Rush$stop_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-detect_lost_workers"><code>Rush$detect_lost_workers()</code></a></p></li>
@@ -571,7 +572,7 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 <p>Restart local workers.
 If the worker is is still running, it is killed and restarted.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">restart_local_workers</span><span class="op">(</span><span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">restart_local_workers</span><span class="op">(</span><span class="va">worker_ids</span>, supervise <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -581,15 +582,30 @@ If the worker is is still running, it is killed and restarted.</p><div class="se
 Worker ids to be restarted.</p></dd>
 
 
+<dt><code>supervise</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether to kill the workers when the main R process is shut down.</p></dd>
+
+
 </dl><p></p></div>
 </div>
 
 </div><p></p><hr><a id="method-Rush-create_worker_script"></a><div class="section">
 <h3 id="method-create-worker-script-">Method <code>create_worker_script()</code><a class="anchor" aria-label="anchor" href="#method-create-worker-script-"></a></h3>
-<p>Create script to start workers.
-The worker is started with <code><a href="start_worker.html">start_worker()</a></code>.</p><div class="section">
+<p>Create script to remote start workers.
+Run these command to pre-start a worker.
+The worker will wait until the start arguments are pushed with <code>$start_remote_workers()</code>.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">create_worker_script</span><span class="op">(</span></span>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">create_worker_script</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
+</div><p></p><hr><a id="method-Rush-start_remote_workers"></a><div class="section">
+<h3 id="method-start-remote-workers-">Method <code>start_remote_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-remote-workers-"></a></h3>
+<p>Push start arguments to remote workers.
+Remote workers must be pre-started with <code>$create_worker_script()</code>.</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_remote_workers</span><span class="op">(</span></span>
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -654,7 +670,7 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 </div><p></p><hr><a id="method-Rush-wait_for_workers"></a><div class="section">
 <h3 id="method-wait-for-workers-">Method <code>wait_for_workers()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-workers-"></a></h3>
 <p>Wait until <code>n</code> workers are available.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span><span class="va">n</span>, timeout <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -677,7 +693,7 @@ Default is <code>Inf</code>.</p></dd>
 </div><p></p><hr><a id="method-Rush-stop_workers"></a><div class="section">
 <h3 id="method-stop-workers-">Method <code>stop_workers()</code><a class="anchor" aria-label="anchor" href="#method-stop-workers-"></a></h3>
 <p>Stop workers.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">stop_workers</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"terminate"</span>, worker_ids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -709,7 +725,7 @@ Checking local workers on unix systems only takes a few microseconds per worker.
 But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as <code>"lost"</code>.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span>restart_local_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -726,7 +742,7 @@ Whether to restart lost workers.</p></dd>
 </div><p></p><hr><a id="method-Rush-reset"></a><div class="section">
 <h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
 <p>Stop workers and delete data stored in redis.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"kill"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -746,7 +762,7 @@ If <code>"kill"</code> the workers are stopped immediately.</p></dd>
 </div><p></p><hr><a id="method-Rush-read_log"></a><div class="section">
 <h3 id="method-read-log-">Method <code>read_log()</code><a class="anchor" aria-label="anchor" href="#method-read-log-"></a></h3>
 <p>Read log messages written with the <code>lgr</code> package from a worker.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_log</span><span class="op">(</span>worker_ids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -764,7 +780,7 @@ If <code>NULL</code> all worker ids are used.</p></dd>
 </div><p></p><hr><a id="method-Rush-print_log"></a><div class="section">
 <h3 id="method-print-log-">Method <code>print_log()</code><a class="anchor" aria-label="anchor" href="#method-print-log-"></a></h3>
 <p>Print log messages written with the <code>lgr</code> package from a worker.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">print_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -773,7 +789,7 @@ If <code>NULL</code> all worker ids are used.</p></dd>
 <h3 id="method-push-tasks-">Method <code>push_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-tasks-"></a></h3>
 <p>Pushes a task to the queue.
 Task is added to queued tasks.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span></span>
 <span>  <span class="va">xss</span>,</span>
 <span>  extra <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -837,7 +853,7 @@ Task is added to queued priority tasks.
 A worker evaluates the tasks in the priority queue before the shared queue.
 If <code>priority</code> is <code>NA</code> the task is added to the shared queue.
 If the worker is lost or worker id is not known, the task is added to the shared queue.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_priority_tasks</span><span class="op">(</span><span class="va">xss</span>, extra <span class="op">=</span> <span class="cn">NULL</span>, priority <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -869,7 +885,7 @@ Keys of the tasks.</p>
 </div><p></p><hr><a id="method-Rush-push_failed"></a><div class="section">
 <h3 id="method-push-failed-">Method <code>push_failed()</code><a class="anchor" aria-label="anchor" href="#method-push-failed-"></a></h3>
 <p>Pushes failed tasks to the data base.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed</span><span class="op">(</span><span class="va">keys</span>, <span class="va">conditions</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -891,7 +907,7 @@ List of lists of conditions.</p></dd>
 </div><p></p><hr><a id="method-Rush-retry_tasks"></a><div class="section">
 <h3 id="method-retry-tasks-">Method <code>retry_tasks()</code><a class="anchor" aria-label="anchor" href="#method-retry-tasks-"></a></h3>
 <p>Retry failed tasks.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">retry_tasks</span><span class="op">(</span><span class="va">keys</span>, ignore_max_retries <span class="op">=</span> <span class="cn">FALSE</span>, next_seed <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -918,7 +934,7 @@ Whether to change the seed of the task.</p></dd>
 </div><p></p><hr><a id="method-Rush-fetch_queued_tasks"></a><div class="section">
 <h3 id="method-fetch-queued-tasks-">Method <code>fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-queued-tasks-"></a></h3>
 <p>Fetch queued tasks from the data base.</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -951,7 +967,7 @@ Table of queued tasks.</p>
 </div><p></p><hr><a id="method-Rush-fetch_priority_tasks"></a><div class="section">
 <h3 id="method-fetch-priority-tasks-">Method <code>fetch_priority_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-priority-tasks-"></a></h3>
 <p>Fetch queued priority tasks from the data base.</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_priority_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -984,7 +1000,7 @@ Table of queued priority tasks.</p>
 </div><p></p><hr><a id="method-Rush-fetch_running_tasks"></a><div class="section">
 <h3 id="method-fetch-running-tasks-">Method <code>fetch_running_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-running-tasks-"></a></h3>
 <p>Fetch running tasks from the data base.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -1018,7 +1034,7 @@ Table of running tasks.</p>
 <h3 id="method-fetch-finished-tasks-">Method <code>fetch_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-finished-tasks-"></a></h3>
 <p>Fetch finished tasks from the data base.
 Finished tasks are cached.</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  reset_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -1058,7 +1074,7 @@ Table of finished tasks.</p>
 <h3 id="method-wait-for-finished-tasks-">Method <code>wait_for_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-finished-tasks-"></a></h3>
 <p>Block process until a new finished task is available.
 Returns all finished tasks or <code>NULL</code> if no new task is available after <code>timeout</code> seconds.</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_finished_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span><span class="op">)</span>,</span>
 <span>  timeout <span class="op">=</span> <span class="cn">Inf</span>,</span>
@@ -1098,7 +1114,7 @@ Table of finished tasks.</p>
 <h3 id="method-fetch-new-tasks-">Method <code>fetch_new_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-new-tasks-"></a></h3>
 <p>Fetch finished tasks from the data base that finished after the last fetch.
 Updates the cache of the finished tasks.</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_new_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -1131,7 +1147,7 @@ Latest results.</p>
 <h3 id="method-wait-for-new-tasks-">Method <code>wait_for_new_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-new-tasks-"></a></h3>
 <p>Block process until a new finished task is available.
 Returns new tasks or <code>NULL</code> if no new task is available after <code>timeout</code> seconds.</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_new_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  timeout <span class="op">=</span> <span class="cn">Inf</span>,</span>
@@ -1169,7 +1185,7 @@ The default is <code>"data.table"</code> but <code>"list"</code> is easier when 
 </div><p></p><hr><a id="method-Rush-fetch_failed_tasks"></a><div class="section">
 <h3 id="method-fetch-failed-tasks-">Method <code>fetch_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-failed-tasks-"></a></h3>
 <p>Fetch failed tasks from the data base.</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"worker_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -1202,7 +1218,7 @@ Table of failed tasks.</p>
 </div><p></p><hr><a id="method-Rush-fetch_tasks"></a><div class="section">
 <h3 id="method-fetch-tasks-">Method <code>fetch_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-tasks-"></a></h3>
 <p>Fetch all tasks from the data base.</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
@@ -1238,7 +1254,7 @@ Table of all tasks.</p>
 If tasks with different states are to be queried at the same time, this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
 Finished tasks are cached.</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"queued"</span>, <span class="st">"running"</span>, <span class="st">"finished"</span>, <span class="st">"failed"</span><span class="op">)</span>,</span>
@@ -1280,7 +1296,7 @@ The default is <code>"data.table"</code> but <code>"list"</code> is easier when 
 <h3 id="method-wait-for-tasks-">Method <code>wait_for_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-tasks-"></a></h3>
 <p>Wait until tasks are finished.
 The function also unblocks when no worker is running or all tasks failed.</p><div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1311,7 +1327,7 @@ For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = l
 The vectors are recycled to the length of the longest vector.
 Both lists and atomic vectors are supported.
 Arguments that are <code>NULL</code> are ignored.</p><div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1351,7 +1367,7 @@ The values of a hash are deserialized and combined to a list.
 If <code>flatten</code> is <code>TRUE</code>, the values are flattened to a single list e.g. list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3)) becomes list(x1 = 1, x2 = 2, y = 3).
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))</code> becomes <code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.</p><div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hashes</span><span class="op">(</span><span class="va">keys</span>, <span class="va">fields</span>, flatten <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1384,7 +1400,7 @@ The inner list is the combination of the lists stored at the different fields.</
 </div><p></p><hr><a id="method-Rush-read_hash"></a><div class="section">
 <h3 id="method-read-hash-">Method <code>read_hash()</code><a class="anchor" aria-label="anchor" href="#method-read-hash-"></a></h3>
 <p>Reads a single Redis hash and returns the values as a list named by the fields.</p><div class="section">
-<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
+<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hash</span><span class="op">(</span><span class="va">key</span>, <span class="va">fields</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1412,7 +1428,7 @@ The inner list is the combination of the lists stored at the different fields.</
 </div><p></p><hr><a id="method-Rush-is_running_task"></a><div class="section">
 <h3 id="method-is-running-task-">Method <code>is_running_task()</code><a class="anchor" aria-label="anchor" href="#method-is-running-task-"></a></h3>
 <p>Checks whether tasks have the status <code>"running"</code>.</p><div class="section">
-<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
+<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">is_running_task</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1429,7 +1445,7 @@ Keys of the tasks.</p></dd>
 </div><p></p><hr><a id="method-Rush-is_failed_task"></a><div class="section">
 <h3 id="method-is-failed-task-">Method <code>is_failed_task()</code><a class="anchor" aria-label="anchor" href="#method-is-failed-task-"></a></h3>
 <p>Checks whether tasks have the status <code>"failed"</code>.</p><div class="section">
-<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
+<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">is_failed_task</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1446,7 +1462,7 @@ Keys of the tasks.</p></dd>
 </div><p></p><hr><a id="method-Rush-tasks_with_state"></a><div class="section">
 <h3 id="method-tasks-with-state-">Method <code>tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#method-tasks-with-state-"></a></h3>
 <p>Returns keys of requested states.</p><div class="section">
-<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">tasks_with_state</span><span class="op">(</span><span class="va">states</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1467,7 +1483,7 @@ States of the tasks.</p></dd>
 </div><p></p><hr><a id="method-Rush-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
+<h4 id="usage-34">Usage<a class="anchor" aria-label="anchor" href="#usage-34"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

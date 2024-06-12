@@ -80,7 +80,7 @@ This function is called by <code>$start_local_workers()</code> or by the user af
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">start_worker</span><span class="op">(</span><span class="va">network_id</span>, worker_id <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">hostname</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">start_worker</span><span class="op">(</span><span class="va">network_id</span>, worker_id <span class="op">=</span> <span class="cn">NULL</span>, remote <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -98,10 +98,9 @@ Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.</p></dd>
 
 
-<dt>hostname</dt>
-<dd><p>(<code>character(1)</code>)<br>
-Hostname of the rush controller instance.
-Used to determine if the worker is started on a local or remote host.</p></dd>
+<dt>remote</dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether the worker is on a remote machine.</p></dd>
 
 
 <dt>...</dt>

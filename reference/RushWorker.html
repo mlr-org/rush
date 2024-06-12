@@ -91,9 +91,9 @@ The worker inherits from <a href="Rush.html">Rush</a>.</p>
 Identifier of the worker.</p></dd>
 
 
-<dt><code>host</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-Worker is started on a local or remote host.</p></dd>
+<dt><code>remote</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether the worker is on a remote machine.</p></dd>
 
 
 <dt><code>heartbeat</code></dt>
@@ -156,6 +156,7 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href="../../rush/html/Rush.html#method-Rush-restart_local_workers"><code>rush::Rush$restart_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href="../../rush/html/Rush.html#method-Rush-retry_tasks"><code>rush::Rush$retry_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href="../../rush/html/Rush.html#method-Rush-start_local_workers"><code>rush::Rush$start_local_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href="../../rush/html/Rush.html#method-Rush-start_remote_workers"><code>rush::Rush$start_remote_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href="../../rush/html/Rush.html#method-Rush-stop_workers"><code>rush::Rush$stop_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href="../../rush/html/Rush.html#method-Rush-tasks_with_state"><code>rush::Rush$tasks_with_state()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href="../../rush/html/Rush.html#method-Rush-wait_for_finished_tasks"><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
@@ -170,7 +171,7 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/RushWorker.html">RushWorker</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="va">network_id</span>,</span>
 <span>  config <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">host</span>,</span>
+<span>  <span class="va">remote</span>,</span>
 <span>  worker_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -198,9 +199,9 @@ If <code>REDIS_URL</code> is not set, a default configuration is used.
 See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
 
 
-<dt><code>host</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-Worker is started on a local or remote host.
+<dt><code>remote</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether the worker is started on a remote machine.
 See <a href="Rush.html">Rush</a> for details.</p></dd>
 
 
