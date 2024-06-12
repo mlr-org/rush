@@ -8,7 +8,7 @@ Description: Parallel computing with a network of local and remote
     workers. Fast exchange of results between the workers through a
     'Redis' database. Key features include task queues, local caching, and
     sophisticated error handling.
-License: LGPL-3
+License: MIT + file LICENSE
 URL: https://github.com/mlr-org/rush
 BugReports: https://github.com/mlr-org/rush/issues
 Depends:
