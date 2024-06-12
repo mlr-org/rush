@@ -27,13 +27,13 @@
 #'    rush
 #' }
 rush_plan = function(
-  n_workers,
+  n_workers = NULL,
   config = NULL,
   lgr_thresholds = NULL,
   large_objects_path = NULL,
   start_worker_timeout = Inf
   ) {
-  assert_count(n_workers)
+  assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)

@@ -26,7 +26,7 @@ start_worker = function(
   ...
   ) {
   checkmate::assert_string(network_id)
-  checkmate::assert_string(worker_id, null.ok = TRUE)
+  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
 
   # connect to redis
@@ -35,6 +35,9 @@ start_worker = function(
   if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
+
+  # register to pre-started workers
+  r$SADD(sprintf("%s:pre_worker_ids", network_id), worker_id)
 
   # wait for start arguments
   while (!r$EXISTS(sprintf("%s:start_args", network_id))) {

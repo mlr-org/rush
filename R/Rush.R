@@ -1247,6 +1247,14 @@ Rush = R6::R6Class("Rush",
       as.integer(r$SCARD(private$.get_key("lost_worker_ids"))) %??% 0
     },
 
+    #' @field n_pre_workers (`integer(1)`)\cr
+    #' Number of workers that are not yet completely started.
+    n_pre_workers = function(rhs) {
+      assert_ro_binding(rhs)
+      r = self$connector
+      as.integer(r$SCARD(private$.get_key("pre_worker_ids"))) %??% 0
+    },
+
     #' @field worker_ids (`character()`)\cr
     #' Ids of workers.
     worker_ids = function() {
@@ -1280,6 +1288,13 @@ Rush = R6::R6Class("Rush",
     lost_worker_ids = function() {
       r = self$connector
       unlist(r$SMEMBERS(private$.get_key("lost_worker_ids")))
+    },
+
+    #' @field pre_worker_ids (`character()`)\cr
+    #' Ids of workers that are not yet completely started.
+    pre_worker_ids = function() {
+      r = self$connector
+      unlist(r$SMEMBERS(private$.get_key("pre_worker_ids")))
     },
 
     #' @field tasks (`character()`)\cr

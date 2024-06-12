@@ -200,6 +200,10 @@ test_that("worker can be started with script", {
     supervise = TRUE,
     stderr = "|", stdout = "|")
 
+  Sys.sleep(5)
+
+  expect_string(rush$pre_worker_ids)
+
   on.exit({
     px$kill()
   }, add = TRUE)
@@ -212,6 +216,7 @@ test_that("worker can be started with script", {
   expect_true(px$is_alive())
   expect_equal(rush$n_running_workers, 1)
   expect_true(all(rush$worker_info$remote))
+  expect_null(rush$pre_worker_ids)
 
   expect_rush_reset(rush, type = "terminate")
   px$kill()

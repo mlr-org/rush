@@ -159,6 +159,9 @@ Number of killed workers.}
 Number of lost workers.
 Run \verb{$detect_lost_workers()} to update the number of lost workers.}
 
+\item{\code{n_pre_workers}}{(\code{integer(1)})\cr
+Number of workers that are not yet completely started.}
+
 \item{\code{worker_ids}}{(\code{character()})\cr
 Ids of workers.}
 
@@ -173,6 +176,9 @@ Ids of killed workers.}
 
 \item{\code{lost_worker_ids}}{(\code{character()})\cr
 Ids of lost workers.}
+
+\item{\code{pre_worker_ids}}{(\code{character()})\cr
+Ids of workers that are not yet completely started.}
 
 \item{\code{tasks}}{(\code{character()})\cr
 Keys of all tasks.}

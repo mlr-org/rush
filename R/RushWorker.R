@@ -120,6 +120,9 @@ RushWorker = R6::R6Class("RushWorker",
         "remote", self$remote,
         "hostname", rush::get_hostname(),
         "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
+
+      # remove from pre-started workers
+      r$SREM(sprintf("%s:pre_worker_ids", self$network_id), self$worker_id)
     },
 
     #' @description

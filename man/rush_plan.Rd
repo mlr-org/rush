@@ -5,7 +5,7 @@
 \title{Create Rush Plan}
 \usage{
 rush_plan(
-  n_workers,
+  n_workers = NULL,
   config = NULL,
   lgr_thresholds = NULL,
   large_objects_path = NULL,
