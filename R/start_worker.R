@@ -66,8 +66,9 @@ start_worker = function(
   }
 
   # load packages and globals to worker environment
+  envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
-  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, .GlobalEnv))
+  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
   # initialize rush worker
   rush = invoke(rush::RushWorker$new,

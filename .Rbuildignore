@@ -1,6 +1,5 @@
 ^README\.Rmd$
 benchmark/
-^LICENSE$
 .ignore
 .editorconfig
 .gitignore
@@ -23,3 +22,4 @@ benchmark/
 ^CRAN-SUBMISSION$
 ^man/figures$
 .vscode
+^LICENSE\.md$
