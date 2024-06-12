@@ -26,6 +26,9 @@
   </a>
 </li>
 <li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
+</li>
+<li class="nav-item">
   <a class="external-link nav-link" href="https://mlr3book.mlr-org.com">
     <span class="fa fa fa fa-link"></span>
      
@@ -99,8 +102,13 @@ See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-li
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">rsh</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"benchmark"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   <span class="va">rush</span> <span class="op">=</span> <span class="fu">rsh</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test_network"</span>, config <span class="op">=</span> <span class="va">config_local</span><span class="op">)</span></span></span>
 <span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in initialize(...):</span> Can't connect to Redis. Check the configuration.</span>
+<span class="r-in"><span>   <span class="va">rush</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'rush' not found</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

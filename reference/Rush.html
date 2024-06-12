@@ -28,6 +28,9 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
   </a>
 </li>
 <li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
+</li>
+<li class="nav-item">
   <a class="external-link nav-link" href="https://mlr3book.mlr-org.com">
     <span class="fa fa fa fa-link"></span>
      
@@ -78,7 +81,7 @@ The controller starts and stops the workers, pushes tasks to the workers and fet
     
 
 <p>A local worker runs on the same machine as the controller.
-Local workers are spawned with the <code>$start_workers() method via the </code>processx` package.</p>
+Local workers are spawned with the <code>$start_local_workers() method via the </code>processx` package.</p>
     </div>
     <div class="section level2">
     <h2 id="remote-workers">Remote Workers<a class="anchor" aria-label="anchor" href="#remote-workers"></a></h2>
@@ -206,7 +209,7 @@ Returns a connection to Redis.</p></dd>
 
 <dt><code>processes</code></dt>
 <dd><p>(<a href="http://processx.r-lib.org/reference/process.html" class="external-link">processx::process</a>)<br>
-List of processes started with <code>$start_workers()</code>.</p></dd>
+List of processes started with <code>$start_local_workers()</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -370,8 +373,8 @@ Information about the Redis server.</p></dd>
 <ul><li><p><a href="#method-Rush-new"><code>Rush$new()</code></a></p></li>
 <li><p><a href="#method-Rush-format"><code>Rush$format()</code></a></p></li>
 <li><p><a href="#method-Rush-print"><code>Rush$print()</code></a></p></li>
-<li><p><a href="#method-Rush-start_workers"><code>Rush$start_workers()</code></a></p></li>
-<li><p><a href="#method-Rush-restart_workers"><code>Rush$restart_workers()</code></a></p></li>
+<li><p><a href="#method-Rush-start_local_workers"><code>Rush$start_local_workers()</code></a></p></li>
+<li><p><a href="#method-Rush-restart_local_workers"><code>Rush$restart_local_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-create_worker_script"><code>Rush$create_worker_script()</code></a></p></li>
 <li><p><a href="#method-Rush-wait_for_workers"><code>Rush$wait_for_workers()</code></a></p></li>
 <li><p><a href="#method-Rush-stop_workers"><code>Rush$stop_workers()</code></a></p></li>
@@ -469,15 +472,15 @@ If <code>NULL</code>, no seed is used for the random number generator.</p></dd>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>).</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-start_workers"></a><div class="section">
-<h3 id="method-start-workers-">Method <code>start_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-workers-"></a></h3>
+</div><p></p><hr><a id="method-Rush-start_local_workers"></a><div class="section">
+<h3 id="method-start-local-workers-">Method <code>start_local_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-local-workers-"></a></h3>
 <p>Start workers locally with <code>processx</code>.
 The <a href="http://processx.r-lib.org/reference/process.html" class="external-link">processx::process</a> are stored in <code>$processes</code>.
 Alternatively, use <code>$create_worker_script()</code> to create a script for starting workers on remote machines.
 By default, <code><a href="worker_loop_default.html">worker_loop_default()</a></code> is used as worker loop.
 This function takes the arguments <code>fun</code> and optionally <code>constants</code> which are passed in <code>...</code>.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  n_workers <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  wait_for_workers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  timeout <span class="op">=</span> <span class="cn">Inf</span>,</span>
@@ -563,12 +566,12 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-restart_workers"></a><div class="section">
-<h3 id="method-restart-workers-">Method <code>restart_workers()</code><a class="anchor" aria-label="anchor" href="#method-restart-workers-"></a></h3>
+</div><p></p><hr><a id="method-Rush-restart_local_workers"></a><div class="section">
+<h3 id="method-restart-local-workers-">Method <code>restart_local_workers()</code><a class="anchor" aria-label="anchor" href="#method-restart-local-workers-"></a></h3>
 <p>Restart local workers.
 If the worker is is still running, it is killed and restarted.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">restart_workers</span><span class="op">(</span><span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">restart_local_workers</span><span class="op">(</span><span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -707,12 +710,12 @@ But checking local workers on windows might be very slow.
 Workers with a heartbeat process are checked with the heartbeat.
 Lost tasks are marked as <code>"lost"</code>.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span>restart_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span>restart_local_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>restart_workers</code></dt>
+<p></p><div class="arguments"><dl><dt><code>restart_local_workers</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to restart lost workers.</p></dd>
 
@@ -1481,6 +1484,17 @@ States of the tasks.</p></dd>
 
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   <span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="rsh.html">rsh</a></span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test_network"</span>, config <span class="op">=</span> <span class="va">config_local</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in initialize(...):</span> Can't connect to Redis. Check the configuration.</span>
+<span class="r-in"><span>   <span class="va">rush</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'rush' not found</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
