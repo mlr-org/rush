@@ -304,7 +304,7 @@ Rush = R6::R6Class("Rush",
 
       # redis config to string
       config = discard(self$config, is.null)
-      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste(imap(config, function(value, name) sprintf('%s = "%s"', name, value)), collapse = ", ")
 
       script = sprintf('Rscript -e "rush::start_worker(network_id = "%s", remote = TRUE, %s)"', self$network_id, config)
 
