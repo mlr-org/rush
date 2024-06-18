@@ -6,10 +6,14 @@
 \usage{
 remove_rush_plan()
 }
+\value{
+Invisible \code{TRUE}. Function called for side effects.
+}
 \description{
 Removes the rush plan that was set by \code{\link[=rush_plan]{rush_plan()}}.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
   config_local = redux::redis_config()
   rush_plan(config = config_local, n_workers = 2)

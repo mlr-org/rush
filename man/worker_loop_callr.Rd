@@ -24,6 +24,7 @@ Worker loop that pops a single task from the queue, executes the function in an 
 Supports timeouts on the tasks.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)

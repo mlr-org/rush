@@ -21,6 +21,7 @@
 #' @return `NULL`
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \dontrun{
 #'   rush::start_worker(
 #'    network_id = 'test-rush',

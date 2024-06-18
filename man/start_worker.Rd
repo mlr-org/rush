@@ -36,6 +36,7 @@ It loads the packages and copies the globals to the global environment of the wo
 The function initialize the \link{RushWorker} instance and starts the worker loop.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \dontrun{
   rush::start_worker(
    network_id = 'test-rush',

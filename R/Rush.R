@@ -106,8 +106,9 @@
 #' @template param_seed
 #' @template param_data_format
 #'
-#' @export
+#' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'    config_local = redux::redis_config()
 #'    rush = rsh(network_id = "test_network", config = config_local)

@@ -3,11 +3,15 @@
 \name{AppenderRedis}
 \alias{AppenderRedis}
 \title{Log to Redis Database}
+\value{
+Object of class \link[R6:R6Class]{R6::R6Class} and \code{AppenderRedis} with methods for writing log events to Redis data bases.
+}
 \description{
 \link{AppenderRedis} writes log messages to a Redis data base.
 This \link[lgr:Appender]{lgr::Appender} is created internally by \link{RushWorker} when logger thresholds are passed via \code{\link[=rush_plan]{rush_plan()}}.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
 

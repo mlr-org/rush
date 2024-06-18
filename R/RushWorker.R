@@ -17,8 +17,10 @@
 #' @template param_lgr_buffer_size
 #' @template param_seed
 #'
+#' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'    config_local = redux::redis_config()
 #'    rush = rsh(network_id = "test_network", config = config_local)

@@ -44,6 +44,7 @@ If the kill key is set, the worker is killed.
 This function is called in a callr session.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
 
