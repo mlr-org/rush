@@ -4,6 +4,8 @@
 #' Starts a worker.
 #' The function loads the globals and packages, initializes the [RushWorker] instance and invokes the worker loop.
 #' This function is called by `$start_local_workers()` or by the user after creating the worker script with `$create_worker_script()`.
+#' Use with caution.
+#' The global environment is changed.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.

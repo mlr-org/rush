@@ -29,6 +29,8 @@ Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 Starts a worker.
 The function loads the globals and packages, initializes the \link{RushWorker} instance and invokes the worker loop.
 This function is called by \verb{$start_local_workers()} or by the user after creating the worker script with \verb{$create_worker_script()}.
+Use with caution.
+The global environment is changed.
 }
 \note{
 The function initializes the connection to the Redis data base.
