@@ -31,6 +31,8 @@ get_hostname = function() {
 #'
 #' @description
 #' This function sets the rng state before running a function.
+#' Use with caution.
+#' The global environment is changed.
 #'
 #' @param fun (`function`)\cr
 #' Function to run.

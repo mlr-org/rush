@@ -13,6 +13,7 @@ rush_available()
 Returns \code{TRUE} if a redis config file (\link[redux:redis_config]{redux::redis_config}) has been set by \code{\link[=rush_plan]{rush_plan()}}.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
   config_local = redux::redis_config()
   rush_plan(config = config_local, n_workers = 2)

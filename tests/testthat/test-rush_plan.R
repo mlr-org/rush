@@ -1,4 +1,6 @@
 test_that("rush_plan family works", {
+  skip_on_cran()
+
   expect_false(rush_available())
   config = redis_config()
   rush_plan(n_workers = 2, config)

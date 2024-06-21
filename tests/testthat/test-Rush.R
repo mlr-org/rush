@@ -1062,7 +1062,7 @@ test_that("printing logs with redis appender works", {
 })
 
 test_that("redis info works", {
-
+  skip_on_cran()
 
   config = start_flush_redis()
   rush = Rush$new(network_id = "test-rush", config = config)

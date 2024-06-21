@@ -4,6 +4,8 @@
 #' Starts a worker.
 #' The function loads the globals and packages, initializes the [RushWorker] instance and invokes the worker loop.
 #' This function is called by `$start_local_workers()` or by the user after creating the worker script with `$create_worker_script()`.
+#' Use with caution.
+#' The global environment is changed.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
@@ -21,6 +23,7 @@
 #' @return `NULL`
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \dontrun{
 #'   rush::start_worker(
 #'    network_id = 'test-rush',
@@ -66,8 +69,9 @@ start_worker = function(
   }
 
   # load packages and globals to worker environment
+  envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
-  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, .GlobalEnv))
+  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
   # initialize rush worker
   rush = invoke(rush::RushWorker$new,

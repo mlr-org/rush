@@ -21,6 +21,8 @@ RNG state to set before running \code{fun}.}
 }
 \description{
 This function sets the rng state before running a function.
+Use with caution.
+The global environment is changed.
 }
 \examples{
 with_rng_state(runif, list(n = 1), .Random.seed)

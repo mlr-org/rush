@@ -19,6 +19,7 @@
 #' @return `list()` with the stored configuration.
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'    config_local = redux::redis_config()
 #'    rush_plan(config = config_local, n_workers = 2)
@@ -59,6 +60,7 @@ rush_plan = function(
 #'
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)
@@ -78,8 +80,10 @@ rush_config = function() {
 #' @description
 #' Removes the rush plan that was set by [rush_plan()].
 #'
+#' @return Invisible `TRUE`. Function called for side effects.
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)
@@ -99,6 +103,7 @@ remove_rush_plan = function() {
 #'
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)

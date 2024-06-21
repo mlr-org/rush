@@ -3,6 +3,9 @@
 \name{RushWorker}
 \alias{RushWorker}
 \title{Rush Worker}
+\value{
+Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker} with worker methods.
+}
 \description{
 \link{RushWorker} evaluates tasks and writes results to the data base.
 The worker inherits from \link{Rush}.
@@ -11,6 +14,7 @@ The worker inherits from \link{Rush}.
 The worker registers itself in the data base of the rush network.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)

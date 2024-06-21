@@ -19,6 +19,7 @@
 #' @keywords internal
 #' @export
 #' @examples
+#' # This example is not executed since Redis must be installed
 #' \donttest{
 #'    config_local = redux::redis_config()
 #'

@@ -39,6 +39,7 @@ Stores the number of workers and Redis configuration options (\link[redux:redis_
 The function tests the connection to Redis and throws an error if the connection fails.
 }
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
    rush_plan(config = config_local, n_workers = 2)

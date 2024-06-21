@@ -3,6 +3,9 @@
 \name{Rush}
 \alias{Rush}
 \title{Rush Controller}
+\value{
+Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller methods.
+}
 \description{
 \link{Rush} is the controller in a centralized rush network.
 The controller starts and stops the workers, pushes tasks to the workers and fetches results.
@@ -117,6 +120,7 @@ See \link[parallel:RngStream]{parallel::nextRNGStream} for more details.
 }
 
 \examples{
+# This example is not executed since Redis must be installed
 \donttest{
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)
