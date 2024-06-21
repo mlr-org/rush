@@ -12,7 +12,7 @@ This lgr::Appender is created internally by RushWorker when logger thresholds ar
     
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,6 +82,12 @@ This <a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="exte
     </div>
 
 
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>Object of class <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6::R6Class</a> and <code>AppenderRedis</code> with methods for writing log events to Redis data bases.</p>
+    </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
     <p><code><a href="https://s-fleck.github.io/lgr/reference/Filterable.html" class="external-link">lgr::Filterable</a></code> -&gt; <code><a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="external-link">lgr::Appender</a></code> -&gt; <code><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html" class="external-link">lgr::AppenderMemory</a></code> -&gt; <code>AppenderRedis</code></p>
@@ -196,7 +202,8 @@ List of filters.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This example is not executed since Redis must be installed</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>   <span class="fu"><a href="rush_plan.html">rush_plan</a></span><span class="op">(</span></span></span>

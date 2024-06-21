@@ -35,7 +35,7 @@
     
     <a class="navbar-brand me-2" href="index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -157,7 +157,12 @@
 <p>We start two workers.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">fun</span>, n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## INFO  [16:06:19.324] [rush] Starting 2 worker(s)</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## INFO  [17:30:43.422] [rush] Starting 2 worker(s)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="do">## $`d82afa87-9f2c-41a4-891c-7490ea5eba46`</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="do">## PROCESS 'Rscript', running, pid 24531.</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="do">## $`fad19573-bfe6-4809-8be2-bdde44191210`</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="do">## PROCESS 'Rscript', running, pid 24542.</span></span></code></pre></div>
 <p>Now we can push tasks to the workers.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fl">3</span>, x2 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fl">4</span>, x2 <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
@@ -166,10 +171,10 @@
 <p>And retrieve the results.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">##       x1    x2     y    pid     worker_id          keys</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">##    &lt;num&gt; &lt;num&gt; &lt;num&gt;  &lt;int&gt;        &lt;char&gt;        &lt;char&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## 1:     4     6    10 448184 ebb0d9b4-3... 37ba4683-5...</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## 2:     3     5     8 448173 f49aad09-a... 27b4b03b-d...</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">##       x1    x2     y   pid     worker_id          keys</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">##    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## 1:     3     5     8 24542 fad19573-b... 7ac77ca4-6...</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## 2:     4     6    10 24531 d82afa87-9... 0fb60722-6...</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="decentralized-rush-network">Decentralized Rush Network<a class="anchor" aria-label="anchor" href="#decentralized-rush-network"></a>
@@ -182,6 +187,7 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=rush" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/mlr-org/rush/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/mlr-org/rush/issues" class="external-link">Report a bug</a></li>
 </ul>
@@ -190,7 +196,8 @@
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/LGPL-3" class="external-link">LGPL-3</a></li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
 
