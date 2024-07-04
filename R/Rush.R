@@ -107,6 +107,7 @@
 #' @template param_data_format
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
+#' @export
 #' @examples
 #' # This example is not executed since Redis must be installed
 #' \donttest{
