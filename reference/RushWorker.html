@@ -12,7 +12,7 @@ The worker inherits from Rush."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -143,39 +143,39 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <li><p><a href="#method-RushWorker-push_results"><code>RushWorker$push_results()</code></a></p></li>
 <li><p><a href="#method-RushWorker-set_terminated"><code>RushWorker$set_terminated()</code></a></p></li>
 <li><p><a href="#method-RushWorker-clone"><code>RushWorker$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href="../../rush/html/Rush.html#method-Rush-create_worker_script"><code>rush::Rush$create_worker_script()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href="../../rush/html/Rush.html#method-Rush-detect_lost_workers"><code>rush::Rush$detect_lost_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_failed_tasks"><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_finished_tasks"><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_new_tasks"><code>rush::Rush$fetch_new_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_priority_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_priority_tasks"><code>rush::Rush$fetch_priority_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_queued_tasks"><code>rush::Rush$fetch_queued_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_running_tasks"><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href="../../rush/html/Rush.html#method-Rush-fetch_tasks"><code>rush::Rush$fetch_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href="../../rush/html/Rush.html#method-Rush-fetch_tasks_with_state"><code>rush::Rush$fetch_tasks_with_state()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href="../../rush/html/Rush.html#method-Rush-format"><code>rush::Rush$format()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href="../../rush/html/Rush.html#method-Rush-is_failed_task"><code>rush::Rush$is_failed_task()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href="../../rush/html/Rush.html#method-Rush-is_running_task"><code>rush::Rush$is_running_task()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href="../../rush/html/Rush.html#method-Rush-print"><code>rush::Rush$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href="../../rush/html/Rush.html#method-Rush-print_log"><code>rush::Rush$print_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href="../../rush/html/Rush.html#method-Rush-push_failed"><code>rush::Rush$push_failed()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href="../../rush/html/Rush.html#method-Rush-push_priority_tasks"><code>rush::Rush$push_priority_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href="../../rush/html/Rush.html#method-Rush-push_tasks"><code>rush::Rush$push_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href="../../rush/html/Rush.html#method-Rush-read_hash"><code>rush::Rush$read_hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href="../../rush/html/Rush.html#method-Rush-read_hashes"><code>rush::Rush$read_hashes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href="../../rush/html/Rush.html#method-Rush-read_log"><code>rush::Rush$read_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href="../../rush/html/Rush.html#method-Rush-reset"><code>rush::Rush$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href="../../rush/html/Rush.html#method-Rush-restart_local_workers"><code>rush::Rush$restart_local_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href="../../rush/html/Rush.html#method-Rush-retry_tasks"><code>rush::Rush$retry_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href="../../rush/html/Rush.html#method-Rush-start_local_workers"><code>rush::Rush$start_local_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href="../../rush/html/Rush.html#method-Rush-start_remote_workers"><code>rush::Rush$start_remote_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href="../../rush/html/Rush.html#method-Rush-stop_workers"><code>rush::Rush$stop_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href="../../rush/html/Rush.html#method-Rush-tasks_with_state"><code>rush::Rush$tasks_with_state()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href="../../rush/html/Rush.html#method-Rush-wait_for_finished_tasks"><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_new_tasks"><a href="../../rush/html/Rush.html#method-Rush-wait_for_new_tasks"><code>rush::Rush$wait_for_new_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href="../../rush/html/Rush.html#method-Rush-wait_for_tasks"><code>rush::Rush$wait_for_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href="../../rush/html/Rush.html#method-Rush-wait_for_workers"><code>rush::Rush$wait_for_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href="../../rush/html/Rush.html#method-Rush-write_hashes"><code>rush::Rush$write_hashes()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href="Rush.html#method-create_worker_script"><code>rush::Rush$create_worker_script()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href="Rush.html#method-detect_lost_workers"><code>rush::Rush$detect_lost_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href="Rush.html#method-fetch_failed_tasks"><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href="Rush.html#method-fetch_finished_tasks"><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href="Rush.html#method-fetch_new_tasks"><code>rush::Rush$fetch_new_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_priority_tasks"><a href="Rush.html#method-fetch_priority_tasks"><code>rush::Rush$fetch_priority_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href="Rush.html#method-fetch_queued_tasks"><code>rush::Rush$fetch_queued_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href="Rush.html#method-fetch_running_tasks"><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href="Rush.html#method-fetch_tasks"><code>rush::Rush$fetch_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href="Rush.html#method-fetch_tasks_with_state"><code>rush::Rush$fetch_tasks_with_state()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href="Rush.html#method-format"><code>rush::Rush$format()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href="Rush.html#method-is_failed_task"><code>rush::Rush$is_failed_task()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href="Rush.html#method-is_running_task"><code>rush::Rush$is_running_task()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href="Rush.html#method-print"><code>rush::Rush$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href="Rush.html#method-print_log"><code>rush::Rush$print_log()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href="Rush.html#method-push_failed"><code>rush::Rush$push_failed()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href="Rush.html#method-push_priority_tasks"><code>rush::Rush$push_priority_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href="Rush.html#method-push_tasks"><code>rush::Rush$push_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href="Rush.html#method-read_hash"><code>rush::Rush$read_hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href="Rush.html#method-read_hashes"><code>rush::Rush$read_hashes()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href="Rush.html#method-read_log"><code>rush::Rush$read_log()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href="Rush.html#method-reset"><code>rush::Rush$reset()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href="Rush.html#method-restart_local_workers"><code>rush::Rush$restart_local_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href="Rush.html#method-retry_tasks"><code>rush::Rush$retry_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href="Rush.html#method-start_local_workers"><code>rush::Rush$start_local_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href="Rush.html#method-start_remote_workers"><code>rush::Rush$start_remote_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href="Rush.html#method-stop_workers"><code>rush::Rush$stop_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href="Rush.html#method-tasks_with_state"><code>rush::Rush$tasks_with_state()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_finished_tasks"><a href="Rush.html#method-wait_for_finished_tasks"><code>rush::Rush$wait_for_finished_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_new_tasks"><a href="Rush.html#method-wait_for_new_tasks"><code>rush::Rush$wait_for_new_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href="Rush.html#method-wait_for_tasks"><code>rush::Rush$wait_for_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href="Rush.html#method-wait_for_workers"><code>rush::Rush$wait_for_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href="Rush.html#method-write_hashes"><code>rush::Rush$write_hashes()</code></a></span></li>
 </ul></details></p><hr><a id="method-RushWorker-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Creates a new instance of this <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6</a> class.</p><div class="section">
