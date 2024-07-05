@@ -21,6 +21,7 @@ Imports:
     parallel,
     processx,
     redux,
+    R6,
     uuid
 Suggests:
     callr,

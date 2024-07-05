@@ -2,6 +2,7 @@
 #' @import redux
 #' @import mlr3misc
 #' @import checkmate
+#' @importFrom R6 R6Class
 #' @importFrom processx process
 #' @importFrom uuid UUIDgenerate
 #' @importFrom utils str
