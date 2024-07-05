@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.1.1
 
 * fix: `Rush` class was not exported.
