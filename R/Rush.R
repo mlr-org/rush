@@ -473,7 +473,7 @@ Rush = R6::R6Class("Rush",
 
       # check local workers without a heartbeat
       local_workers = r$SMEMBERS(private$.get_key("local_workers"))
-      lost_workers_local = if (length(local_workers)) {
+      lost_workers_local = if (length(local_workers) && !is.null(self$processes)) {
         # lg$debug("Checking %i worker(s) with process id", length(local_workers))
         running = map_lgl(local_workers, function(worker_id) self$processes[[worker_id]]$is_alive())
         if (all(running)) return(invisible(self))
