@@ -98,6 +98,7 @@ test_that("worker_loop_callr works with failed task", {
 
 test_that("worker_loop_callr works with lost task", {
   skip_on_cran()
+  skip_if(TRUE) #  Does not produce a segfault with R devel
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
