@@ -129,6 +129,7 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href="Rush.html#method-read_hash"><code>rush::Rush$read_hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href="Rush.html#method-read_hashes"><code>rush::Rush$read_hashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href="Rush.html#method-read_log"><code>rush::Rush$read_log()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href="Rush.html#method-reconnect"><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href="Rush.html#method-reset"><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href="Rush.html#method-restart_local_workers"><code>rush::Rush$restart_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href="Rush.html#method-retry_tasks"><code>rush::Rush$retry_tasks()</code></a></span></li>
@@ -337,10 +338,10 @@ Last step in the worker loop before the worker terminates.</p><div class="sectio
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>   <span class="va">fun</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">...</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">fun</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'rush' not found</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rush' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span><span class="op">$</span><span class="fu">stop_workers</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'rush' not found</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rush' not found</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -353,7 +354,7 @@ Last step in the worker loop before the worker terminates.</p><div class="sectio
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>
