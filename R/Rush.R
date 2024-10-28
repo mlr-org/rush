@@ -191,6 +191,14 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
+    #' Reconnect to Redis.
+    #' The connection breaks when the Rush object is saved to disk.
+    #' Call this method to reconnect after loading the object.
+    reconnect = function() {
+      self$connector = redux::hiredis(self$config)
+    },
+
+    #' @description
     #' Start workers locally with `processx`.
     #' The [processx::process] are stored in `$processes`.
     #' Alternatively, use `$create_worker_script()` to create a script for starting workers on remote machines.

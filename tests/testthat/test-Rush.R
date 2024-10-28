@@ -934,6 +934,27 @@ test_that("constants works", {
   expect_rush_reset(rush)
 })
 
+test_that("reconnecting rush instance works", {
+  skip_on_cran()
+
+  on.exit({
+    file.remove("rush.rds")
+  })
+
+  config = start_flush_redis()
+  rush = Rush$new(network_id = "test-rush", config = config)
+
+  saveRDS(rush, file = "rush.rds")
+  rush = readRDS("rush.rds")
+
+  expect_error(rush$print(), "Context is not connected")
+
+  rush$reconnect()
+  expect_r6(rush, "Rush")
+
+  expect_rush_reset(rush)
+})
+
 # rush network without controller ----------------------------------------------
 
 test_that("network without controller works", {
