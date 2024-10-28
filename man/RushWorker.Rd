@@ -90,6 +90,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_local_workers'><code>rush::Rush$restart_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>

@@ -251,6 +251,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-new}{\code{Rush$new()}}
 \item \href{#method-Rush-format}{\code{Rush$format()}}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
+\item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
 \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
 \item \href{#method-Rush-restart_local_workers}{\code{Rush$restart_local_workers()}}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
@@ -350,6 +351,18 @@ Print method.
 \subsection{Returns}{
 (\code{character()}).
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-reconnect"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-reconnect}{}}}
+\subsection{Method \code{reconnect()}}{
+Reconnect to Redis.
+The connection breaks when the Rush object is saved to disk.
+Call this method to reconnect after loading the object.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$reconnect()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-start_local_workers"></a>}}
