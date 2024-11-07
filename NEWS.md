@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.1.2
 
 * feat: Add `$reconnect()` method.
