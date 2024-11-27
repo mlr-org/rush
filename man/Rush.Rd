@@ -141,6 +141,9 @@ Returns a connection to Redis.}
 
 \item{\code{processes}}{(\link[processx:process]{processx::process})\cr
 List of processes started with \verb{$start_local_workers()}.}
+
+\item{\code{mirai_processes}}{(\link[mirai:mirai]{mirai::mirai})\cr
+List of mirai processes started with \verb{$start_mirai_workers()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -257,6 +260,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
+\item \href{#method-Rush-start_mirai_workers}{\code{Rush$start_mirai_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
@@ -543,6 +547,76 @@ Number of workers to wait for.}
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Timeout in seconds.
 Default is \code{Inf}.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-start_mirai_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-start_mirai_workers}{}}}
+\subsection{Method \code{start_mirai_workers()}}{
+Start workers with the mirai package.
+Experimental feature.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$start_mirai_workers(
+  n_workers = NULL,
+  wait_for_workers = TRUE,
+  timeout = Inf,
+  globals = NULL,
+  packages = NULL,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0,
+  supervise = TRUE,
+  worker_loop = worker_loop_default,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers to be started.}
+
+\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Timeout to wait for workers in seconds.}
+
+\item{\code{globals}}{(\code{character()})\cr
+Global variables to be loaded to the workers global environment.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.}
+
+\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{supervise}}{(\code{logical(1)})\cr
+Whether to kill the workers when the main R process is shut down.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.
+Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
 }

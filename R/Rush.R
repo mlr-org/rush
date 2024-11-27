@@ -134,6 +134,10 @@ Rush = R6::R6Class("Rush",
     #' List of processes started with `$start_local_workers()`.
     processes = NULL,
 
+    #' @field mirai_processes ([mirai::mirai])\cr
+    #' List of mirai processes started with `$start_mirai_workers()`.
+    mirai_processes = NULL,
+
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(network_id = NULL, config = NULL, seed = NULL) {
@@ -377,6 +381,69 @@ Rush = R6::R6Class("Rush",
           stopf("Timeout waiting for %i worker(s)", n)
         }
       }
+
+      return(invisible(self))
+    },
+
+    #' @description
+    #' Start workers with the mirai package.
+    #' Experimental feature.
+    #'
+    #' @param n_workers (`integer(1)`)\cr
+    #' Number of workers to be started.
+    #' @param supervise (`logical(1)`)\cr
+    #' Whether to kill the workers when the main R process is shut down.
+    #' @param wait_for_workers (`logical(1)`)\cr
+    #' Whether to wait until all workers are available.
+    #' @param timeout (`numeric(1)`)\cr
+    #' Timeout to wait for workers in seconds.
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
+    start_mirai_workers = function(
+      n_workers = NULL,
+      wait_for_workers = TRUE,
+      timeout = Inf,
+      globals = NULL,
+      packages = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = 0,
+      supervise = TRUE,
+      worker_loop = worker_loop_default,
+      ...
+      ) {
+      n_workers = assert_count(n_workers %??% rush_env$n_workers)
+      assert_flag(wait_for_workers)
+      assert_flag(supervise)
+      r = self$connector
+
+      # push worker config to redis
+      private$.push_worker_config(
+        globals = globals,
+        packages = packages,
+        heartbeat_period = heartbeat_period,
+        heartbeat_expire = heartbeat_expire,
+        lgr_thresholds = lgr_thresholds,
+        lgr_buffer_size = lgr_buffer_size,
+        worker_loop = worker_loop,
+        ...
+      )
+
+      lg$info("Starting %i worker(s)", n_workers)
+
+      # redis config to string
+      config = discard(self$config, is.null)
+      config = map(config, as.character)
+
+      network_id = self$network_id
+
+      worker_ids = uuid::UUIDgenerate(n = n_workers)
+      self$mirai_processes = c(self$mirai_processes, set_names(map(worker_ids, function(worker_id) {
+       mirai({
+        mlr3misc::invoke(rush::start_worker, network_id = network_id, worker_id = worker_id, .args = config)
+       },  network_id = network_id, worker_id = worker_id, config = config)
+      }), worker_ids))
 
       return(invisible(self))
     },
