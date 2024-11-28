@@ -445,6 +445,8 @@ Rush = R6::R6Class("Rush",
        },  network_id = network_id, worker_id = worker_id, config = config)
       }), worker_ids))
 
+      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
+
       return(invisible(self))
     },
 
