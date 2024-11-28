@@ -376,11 +376,15 @@ Rush = R6::R6Class("Rush",
 
       start_time = Sys.time()
       while(self$n_workers < n) {
-        Sys.sleep(0.01)
+        lg$debug("%i worker(s) available, waiting for %i worker(s)", self$n_workers, n)
+
+        Sys.sleep(0.1)
         if (difftime(Sys.time(), start_time, units = "secs") > timeout) {
           stopf("Timeout waiting for %i worker(s)", n)
         }
       }
+
+      lg$debug("%i worker(s) started", self$n_workers)
 
       return(invisible(self))
     },
@@ -413,7 +417,7 @@ Rush = R6::R6Class("Rush",
       worker_loop = worker_loop_default,
       ...
       ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers)
+      n_workers = assert_count(n_workers %??% rush_env$n_workers) # sum(mirai::status()$daemons[,2])
       assert_flag(wait_for_workers)
       assert_flag(supervise)
       r = self$connector
