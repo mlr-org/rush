@@ -139,11 +139,11 @@ Redis configuration options.}
 \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
 Returns a connection to Redis.}
 
-\item{\code{processes}}{(\link[processx:process]{processx::process})\cr
+\item{\code{processes_processx}}{(\link[processx:process]{processx::process})\cr
 List of processes started with \verb{$start_local_workers()}.}
 
-\item{\code{mirai_processes}}{(\link[mirai:mirai]{mirai::mirai})\cr
-List of mirai processes started with \verb{$start_mirai_workers()}.}
+\item{\code{processes_mirai}}{(\link[mirai:mirai]{mirai::mirai})\cr
+List of mirai processes started with \verb{$start_remote_workers()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -256,11 +256,9 @@ Information about the Redis server.}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
 \item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
 \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
-\item \href{#method-Rush-restart_local_workers}{\code{Rush$restart_local_workers()}}
-\item \href{#method-Rush-create_worker_script}{\code{Rush$create_worker_script()}}
 \item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
+\item \href{#method-Rush-restart_workers}{\code{Rush$restart_workers()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
-\item \href{#method-Rush-start_mirai_workers}{\code{Rush$start_mirai_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
@@ -373,38 +371,35 @@ Call this method to reconnect after loading the object.
 \if{latex}{\out{\hypertarget{method-Rush-start_local_workers}{}}}
 \subsection{Method \code{start_local_workers()}}{
 Start workers locally with \code{processx}.
-The \link[processx:process]{processx::process} are stored in \verb{$processes}.
-Alternatively, use \verb{$create_worker_script()} to create a script for starting workers on remote machines.
+The \link[processx:process]{processx::process} are stored in \verb{$processes_processx}.
+Alternatively, use \verb{$start_remote_workers()} to start workers on remote machines with \code{mirai}.
 By default, \code{\link[=worker_loop_default]{worker_loop_default()}} is used as worker loop.
 This function takes the arguments \code{fun} and optionally \code{constants} which are passed in \code{...}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
+  worker_loop = NULL,
   n_workers = NULL,
-  wait_for_workers = TRUE,
-  timeout = Inf,
   globals = NULL,
   packages = NULL,
-  heartbeat_period = NULL,
-  heartbeat_expire = NULL,
+  wait_for_workers = TRUE,
+  timeout = Inf,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
-  supervise = TRUE,
-  worker_loop = worker_loop_default,
-  ...
+  supervise = TRUE
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.
+Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
-
-\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Timeout to wait for workers in seconds.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -412,11 +407,11 @@ Global variables to be loaded to the workers global environment.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.}
+\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
 
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.}
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Timeout to wait for workers in seconds.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
@@ -429,12 +424,6 @@ This improves the performance of the logging.}
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.
-Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 }
@@ -442,13 +431,67 @@ Arguments passed to \code{worker_loop}.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-restart_local_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-restart_local_workers}{}}}
-\subsection{Method \code{restart_local_workers()}}{
-Restart local workers.
+\if{html}{\out{<a id="method-Rush-start_remote_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
+\subsection{Method \code{start_remote_workers()}}{
+Start workers on remote machines with \code{mirai}.
+The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
+  n_workers = NULL,
+  worker_loop,
+  globals = NULL,
+  packages = NULL,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0,
+  wait_for_workers = TRUE,
+  timeout = Inf
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers to be started.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.
+Defaults to \link{worker_loop_default} which is called with \code{fun}.
+Pass \code{fun} in \code{...}.
+Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+
+\item{\code{globals}}{(\code{character()})\cr
+Global variables to be loaded to the workers global environment.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
+Whether to wait until all workers are available.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Timeout to wait for workers in seconds.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-restart_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-restart_workers}{}}}
+\subsection{Method \code{restart_workers()}}{
+Restart workers.
 If the worker is is still running, it is killed and restarted.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_local_workers(worker_ids, supervise = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$restart_workers(worker_ids, supervise = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -459,72 +502,6 @@ Worker ids to be restarted.}
 
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-create_worker_script"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-create_worker_script}{}}}
-\subsection{Method \code{create_worker_script()}}{
-Create script to remote start workers.
-Run these command to pre-start a worker.
-The worker will wait until the start arguments are pushed with \verb{$start_remote_workers()}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$create_worker_script()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-start_remote_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
-\subsection{Method \code{start_remote_workers()}}{
-Push start arguments to remote workers.
-Remote workers must be pre-started with \verb{$create_worker_script()}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
-  globals = NULL,
-  packages = NULL,
-  heartbeat_period = NULL,
-  heartbeat_expire = NULL,
-  lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
-  worker_loop = worker_loop_default,
-  ...
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded to the workers global environment.}
-
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
-
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.
-Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
-
-\item{\code{...}}{(\code{any})\cr
-Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -552,82 +529,12 @@ Default is \code{Inf}.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-start_mirai_workers"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-start_mirai_workers}{}}}
-\subsection{Method \code{start_mirai_workers()}}{
-Start workers with the mirai package.
-Experimental feature.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_mirai_workers(
-  n_workers = NULL,
-  wait_for_workers = TRUE,
-  timeout = Inf,
-  globals = NULL,
-  packages = NULL,
-  heartbeat_period = NULL,
-  heartbeat_expire = NULL,
-  lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
-  supervise = TRUE,
-  worker_loop = worker_loop_default,
-  ...
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.}
-
-\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Timeout to wait for workers in seconds.}
-
-\item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded to the workers global environment.}
-
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
-
-\item{\code{supervise}}{(\code{logical(1)})\cr
-Whether to kill the workers when the main R process is shut down.}
-
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.
-Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
-
-\item{\code{...}}{(\code{any})\cr
-Arguments passed to \code{worker_loop}.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-stop_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-stop_workers}{}}}
 \subsection{Method \code{stop_workers()}}{
 Stop workers.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$stop_workers(type = "terminate", worker_ids = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$stop_workers(type = "kill", worker_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -636,11 +543,13 @@ Stop workers.
 \item{\code{type}}{(\code{character(1)})\cr
 Type of stopping.
 Either \code{"terminate"} or \code{"kill"}.
+If \code{"kill"} the workers are stopped immediately.
 If \code{"terminate"} the workers evaluate the currently running task and then terminate.
-If \code{"kill"} the workers are stopped immediately.}
+The \code{"terminate"} option must be implemented in the worker loop.}
 
 \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
+Remote workers must all be killed together.
 If \code{NULL} all workers are stopped.}
 }
 \if{html}{\out{</div>}}
@@ -665,7 +574,8 @@ Lost tasks are marked as \code{"lost"}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{restart_local_workers}}{(\code{logical(1)})\cr
-Whether to restart lost workers.}
+Whether to restart lost workers.
+Ignored for remote workers.}
 }
 \if{html}{\out{</div>}}
 }

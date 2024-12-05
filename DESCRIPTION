@@ -4,10 +4,7 @@ Version: 0.1.2.9000
 Authors@R:
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut", "cph"),
            comment = c(ORCID = "0000-0002-8115-0400"))
-Description: Parallel computing with a network of local and remote
-    workers. Fast exchange of results between the workers through a
-    'Redis' database. Key features include task queues, local caching, and
-    sophisticated error handling.
+Description: Decentralized and distributed computing.
 URL: https://github.com/mlr-org/rush
 BugReports: https://github.com/mlr-org/rush/issues
 Depends:
@@ -15,8 +12,10 @@ Depends:
 Imports:
     checkmate,
     data.table,
+    ids,
     jsonlite,
     lgr,
+    mirai,
     mlr3misc,
     parallel,
     processx,
@@ -26,7 +25,6 @@ Imports:
 Suggests:
     callr,
     knitr,
-    mirai,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

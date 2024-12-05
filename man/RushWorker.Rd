@@ -13,18 +13,6 @@ The worker inherits from \link{Rush}.
 \note{
 The worker registers itself in the data base of the rush network.
 }
-\examples{
-# This example is not executed since Redis must be installed
-\donttest{
-   config_local = redux::redis_config()
-   rush = rsh(network_id = "test_network", config = config_local)
-
-   fun = function(x1, x2, ...) list(y = x1 + x2)
-   rush$start_local_workers(fun = fun)
-
-   rush$stop_workers()
-}
-}
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }
@@ -69,7 +57,6 @@ Used in the worker loop to determine whether to continue.}
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href='../../rush/html/Rush.html#method-Rush-create_worker_script'><code>rush::Rush$create_worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
@@ -92,10 +79,9 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_local_workers'><code>rush::Rush$restart_local_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_workers'><code>rush::Rush$restart_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_mirai_workers"><a href='../../rush/html/Rush.html#method-Rush-start_mirai_workers'><code>rush::Rush$start_mirai_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-tasks_with_state'><code>rush::Rush$tasks_with_state()</code></a></span></li>

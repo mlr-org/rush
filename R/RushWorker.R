@@ -19,17 +19,6 @@
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
 #' @export
-#' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
-#'    config_local = redux::redis_config()
-#'    rush = rsh(network_id = "test_network", config = config_local)
-#'
-#'    fun = function(x1, x2, ...) list(y = x1 + x2)
-#'    rush$start_local_workers(fun = fun)
-#'
-#'    rush$stop_workers()
-#' }
 RushWorker = R6::R6Class("RushWorker",
   inherit = Rush,
   public = list(

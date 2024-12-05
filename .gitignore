@@ -101,3 +101,5 @@ cran-comments.md
 README.html
 CRAN-SUBMISSION
 revdep/
+
+/.quarto/

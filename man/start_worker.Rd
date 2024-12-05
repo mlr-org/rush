@@ -4,7 +4,7 @@
 \alias{start_worker}
 \title{Start a worker}
 \usage{
-start_worker(network_id, worker_id = NULL, remote = TRUE, ...)
+start_worker(network_id, worker_id = NULL, config = NULL, remote = TRUE)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
@@ -16,11 +16,11 @@ Keys in Redis are prefixed with the instance id.}
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
 
+\item{config}{(\code{list()})\cr
+Configuration for the Redis connection.}
+
 \item{remote}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
-
-\item{...}{(\code{any})\cr
-Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
 }
 \value{
 \code{NULL}

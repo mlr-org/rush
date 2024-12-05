@@ -130,13 +130,13 @@ Rush = R6::R6Class("Rush",
     #' Returns a connection to Redis.
     connector = NULL,
 
-    #' @field processes ([processx::process])\cr
+    #' @field processes_processx ([processx::process])\cr
     #' List of processes started with `$start_local_workers()`.
-    processes = NULL,
+    processes_processx = NULL,
 
-    #' @field mirai_processes ([mirai::mirai])\cr
-    #' List of mirai processes started with `$start_mirai_workers()`.
-    mirai_processes = NULL,
+    #' @field processes_mirai ([mirai::mirai])\cr
+    #' List of mirai processes started with `$start_remote_workers()`.
+    processes_mirai = NULL,
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
@@ -204,8 +204,8 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Start workers locally with `processx`.
-    #' The [processx::process] are stored in `$processes`.
-    #' Alternatively, use `$create_worker_script()` to create a script for starting workers on remote machines.
+    #' The [processx::process] are stored in `$processes_processx`.
+    #' Alternatively, use `$start_remote_workers()` to start workers on remote machines with `mirai`.
     #' By default, [worker_loop_default()] is used as worker loop.
     #' This function takes the arguments `fun` and optionally `constants` which are passed in `...`.
     #'
@@ -220,18 +220,15 @@ Rush = R6::R6Class("Rush",
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     start_local_workers = function(
+      worker_loop = NULL,
       n_workers = NULL,
-      wait_for_workers = TRUE,
-      timeout = Inf,
       globals = NULL,
       packages = NULL,
-      heartbeat_period = NULL,
-      heartbeat_expire = NULL,
+      wait_for_workers = TRUE,
+      timeout = Inf,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      supervise = TRUE,
-      worker_loop = worker_loop_default,
-      ...
+      supervise = TRUE
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
       assert_flag(wait_for_workers)
@@ -242,26 +239,83 @@ Rush = R6::R6Class("Rush",
       private$.push_worker_config(
         globals = globals,
         packages = packages,
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
-        worker_loop = worker_loop,
-        ...
+        worker_loop = worker_loop
       )
 
       lg$info("Starting %i worker(s)", n_workers)
 
-      # redis config to string
-      config = discard(self$config, is.null)
+      # reduce redis config
+      config = mlr3misc::discard(unclass(self$config), is.null)
       config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste0("list(", config, ")")
 
-      worker_ids = uuid::UUIDgenerate(n = n_workers)
-      self$processes = c(self$processes, set_names(map(worker_ids, function(worker_id) {
+      # generate worker ids
+      worker_ids = adjective_animal(n = n_workers)
+
+      self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', remote = FALSE, %s)",
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE)",
           self$network_id, worker_id, config)),
         supervise = supervise, stderr = "|") # , stdout = "|"
+      }), worker_ids))
+
+
+      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
+
+      return(invisible(worker_ids))
+    },
+
+    #' @description
+    #' Start workers on remote machines with `mirai`.
+    #' The [mirai::mirai] are stored in `$processes_processx`.
+    #'
+    #' @param n_workers (`integer(1)`)\cr
+    #' Number of workers to be started.
+    #' @param wait_for_workers (`logical(1)`)\cr
+    #' Whether to wait until all workers are available.
+    #' @param timeout (`numeric(1)`)\cr
+    #' Timeout to wait for workers in seconds.
+    start_remote_workers = function(
+      n_workers = NULL,
+      worker_loop,
+      globals = NULL,
+      packages = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = 0,
+      wait_for_workers = TRUE,
+      timeout = Inf
+      ) {
+      n_workers = assert_count(n_workers %??% rush_env$n_workers)
+
+      # check number of daemons
+      if (!daemons()$connections) {
+        stop("No daemons available. Start daemons with `mirai::daemons()`")
+      }
+      if (n_workers > sum(daemons()$daemons[,2])) {
+        warningf("Number of workers %i exceeds number of available daemons %i", n_workers, sum(daemons()$daemons[,2]))
+      }
+
+      # push worker config to redis
+      private$.push_worker_config(
+        worker_loop = worker_loop,
+        globals = globals,
+        packages = packages,
+        lgr_thresholds = lgr_thresholds,
+        lgr_buffer_size = lgr_buffer_size
+      )
+
+      # reduce redis config
+      config = mlr3misc::discard(unclass(self$config), is.null)
+
+      # generate worker ids
+      worker_ids = adjective_animal(n = n_workers)
+
+      # start rush worker with mirai
+      self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
+        mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
+          .args = list(network_id = self$network_id, worker_id = worker_id, config = config))
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
@@ -270,95 +324,72 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Restart local workers.
+    #' Restart workers.
     #' If the worker is is still running, it is killed and restarted.
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be restarted.
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
-    restart_local_workers = function(worker_ids, supervise = TRUE) {
+    restart_workers = function(worker_ids, supervise = TRUE) {
       assert_subset(unlist(worker_ids), self$worker_ids)
       r = self$connector
+      restarted_worker_ids = character(0)
 
-      # check for remote workers
-      worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
-      if (any(worker_info$remote)) {
-        stopf("Can't restart remote workers %s", as_short_string(worker_ids))
+      # restart mirai workers
+      if (worker_ids %in% names(self$processes_mirai)) {
+
+        stop("Remote workers cannot be restarted")
+
+
+        # worker_id_mirai = intersect(worker_ids, names(self$processes_mirai))
+
+        # # stop running workers
+        # self$stop_workers(type = "kill", worker_id_mirai)
+
+        # lg$info("Restarting %i worker(s): %s", length(worker_id_mirai), str_collapse(worker_id_mirai))
+
+        # # reduce redis config
+        # config = mlr3misc::discard(unclass(self$config), is.null)
+
+        # # generate worker ids
+        # network_id = self$network_id
+
+        # # start rush worker with mirai
+        # new_processes = set_names(map(worker_id_mirai, function(worker_id) {
+        #   mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
+        #     .args = list(network_id = self$network_id, worker_id = worker_id, config = config))
+        # }), worker_ids)
+
+        # self$processes_mirai = insert_named(self$processes_mirai, new_processes)
+        # restarted_worker_ids = worker_id_mirai
       }
 
-      # stop running workers
-      if (worker_ids %in% self$running_worker_ids) {
-        self$stop_workers(type = "kill", worker_ids[worker_ids %in% self$running_worker_ids])
+      # restart processx workers
+      if (worker_ids %in% names(self$processes_processx)) {
+        worker_id_processx = intersect(worker_ids, names(self$processes_processx))
+
+        # stop running workers
+        self$stop_workers(type = "kill", worker_id_processx)
+
+        lg$info("Restarting %i worker(s): %s", length(worker_id_processx), str_collapse(worker_id_processx))
+
+        # redis config to string
+        config = mlr3misc::discard(unclass(self$config), is.null)
+        config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+        config = paste0("list(", config, ")")
+
+        new_processes = set_names(map(worker_id_processx, function(worker_id) {
+          processx::process$new("Rscript",
+            args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE)",
+              self$network_id, worker_id, config)),
+            supervise = supervise, stderr = "|") # , stdout = "|"
+        }), worker_ids)
+        self$processes_processx = insert_named(self$processes_processx, new_processes)
+        restarted_worker_ids = c(restarted_worker_ids, worker_id_processx)
       }
 
-      lg$info("Restarting %i worker(s): %s", length(worker_ids), str_collapse(worker_ids))
-
-      # redis config to string
-      config = discard(self$config, is.null)
-      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
-
-      processes = set_names(map(worker_ids, function(worker_id) {
-        # restart worker
-        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', remote = FALSE, %s)",
-          self$network_id, worker_id, config)),
-          supervise = supervise, stderr = "|") # , stdout = "|"
-      }), worker_ids)
-      self$processes = insert_named(self$processes, processes)
-
-      return(invisible(worker_ids))
-    },
-
-    #' @description
-    #' Create script to remote start workers.
-    #' Run these command to pre-start a worker.
-    #' The worker will wait until the start arguments are pushed with `$start_remote_workers()`.
-    create_worker_script = function() {
-
-      # redis config to string
-      config = discard(self$config, is.null)
-      config = paste(imap(config, function(value, name) sprintf('%s = "%s"', name, value)), collapse = ", ")
-
-      script = sprintf('Rscript -e "rush::start_worker(network_id = "%s", remote = TRUE, %s)"', self$network_id, config)
-
-      lg$info("Start worker with:")
-      lg$info(script)
-      lg$info("See ?rush::start_worker for more details.")
-
-      return(invisible(script))
-    },
-
-    #' @description
-    #' Push start arguments to remote workers.
-    #' Remote workers must be pre-started with `$create_worker_script()`.
-    #'
-    #' @param ... (`any`)\cr
-    #' Arguments passed to `worker_loop`.
-    start_remote_workers = function(
-      globals = NULL,
-      packages = NULL,
-      heartbeat_period = NULL,
-      heartbeat_expire = NULL,
-      lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
-      worker_loop = worker_loop_default,
-      ...
-      ) {
-
-      # push worker config to redis
-      private$.push_worker_config(
-        globals = globals,
-        packages = packages,
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
-        worker_loop = worker_loop,
-        ...
-      )
-
-      return(invisible(self))
+      return(invisible(restarted_worker_ids))
     },
 
     #' @description
@@ -375,8 +406,14 @@ Rush = R6::R6Class("Rush",
       timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout %??% Inf
 
       start_time = Sys.time()
+
+      i = self$n_workers
       while(self$n_workers < n) {
-        lg$debug("%i worker(s) available, waiting for %i worker(s)", self$n_workers, n)
+
+        if (i > self$n_workers) {
+          i = self$n_workers
+          lg$info("%i of %i worker(s) started", self$n_workers, n)
+        }
 
         Sys.sleep(0.1)
         if (difftime(Sys.time(), start_time, units = "secs") > timeout) {
@@ -384,72 +421,7 @@ Rush = R6::R6Class("Rush",
         }
       }
 
-      lg$debug("%i worker(s) started", self$n_workers)
-
-      return(invisible(self))
-    },
-
-    #' @description
-    #' Start workers with the mirai package.
-    #' Experimental feature.
-    #'
-    #' @param n_workers (`integer(1)`)\cr
-    #' Number of workers to be started.
-    #' @param supervise (`logical(1)`)\cr
-    #' Whether to kill the workers when the main R process is shut down.
-    #' @param wait_for_workers (`logical(1)`)\cr
-    #' Whether to wait until all workers are available.
-    #' @param timeout (`numeric(1)`)\cr
-    #' Timeout to wait for workers in seconds.
-    #' @param ... (`any`)\cr
-    #' Arguments passed to `worker_loop`.
-    start_mirai_workers = function(
-      n_workers = NULL,
-      wait_for_workers = TRUE,
-      timeout = Inf,
-      globals = NULL,
-      packages = NULL,
-      heartbeat_period = NULL,
-      heartbeat_expire = NULL,
-      lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
-      supervise = TRUE,
-      worker_loop = worker_loop_default,
-      ...
-      ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers) # sum(mirai::status()$daemons[,2])
-      assert_flag(wait_for_workers)
-      assert_flag(supervise)
-      r = self$connector
-
-      # push worker config to redis
-      private$.push_worker_config(
-        globals = globals,
-        packages = packages,
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
-        worker_loop = worker_loop,
-        ...
-      )
-
-      lg$info("Starting %i worker(s)", n_workers)
-
-      # redis config to string
-      config = discard(self$config, is.null)
-      config = map(config, as.character)
-
-      network_id = self$network_id
-
-      worker_ids = uuid::UUIDgenerate(n = n_workers)
-      self$mirai_processes = c(self$mirai_processes, set_names(map(worker_ids, function(worker_id) {
-       mirai({
-        mlr3misc::invoke(rush::start_worker, network_id = network_id, worker_id = worker_id, .args = config)
-       },  network_id = network_id, worker_id = worker_id, config = config)
-      }), worker_ids))
-
-      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
+      lg$info("%i worker(s) started", self$n_workers)
 
       return(invisible(self))
     },
@@ -459,20 +431,59 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be stopped.
+    #' Remote workers must all be killed together.
     #' If `NULL` all workers are stopped.
     #' @param type (`character(1)`)\cr
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
-    #' If `"terminate"` the workers evaluate the currently running task and then terminate.
     #' If `"kill"` the workers are stopped immediately.
-    stop_workers = function(type = "terminate", worker_ids = NULL) {
+    #' If `"terminate"` the workers evaluate the currently running task and then terminate.
+    #' The `"terminate"` option must be implemented in the worker loop.
+    stop_workers = function(type = "kill", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
       worker_ids = assert_subset(worker_ids, self$running_worker_ids) %??% self$running_worker_ids
       if (is.null(worker_ids)) return(invisible(self))
       r = self$connector
 
-      if (type == "terminate") {
+      if (type == "kill") {
 
+        worker_ids_processx = intersect(worker_ids, names(self$processes_processx))
+        if (length(worker_ids_processx)) {
+          lg$debug("Killing %i local worker(s)", length(worker_ids_processx))
+
+          walk(worker_ids_processx, function(id) {
+            lg$info("Kill worker %s", id)
+
+            # kill with processx
+            killed = self$processes_processx[[id]]$kill()
+            if (!killed) lg$error("Failed to kill worker %s", id)
+
+            # move worker to killed
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id))
+          })
+        }
+
+        worker_ids_mirai = intersect(worker_ids, names(self$processes_mirai))
+        if (length(worker_ids_mirai)) {
+
+          # FIXME: mirai can only kill all daemons together at the moment
+          worker_id_mirai = names(self$processes_mirai)
+
+          lg$debug("Killing %i remote worker(s)", length(worker_id_mirai))
+
+          # kill all daemons
+          i = daemons()$daemons[,1]
+          map(i, function(i) saisei(i, force = TRUE))
+
+          # move worker to killed
+          cmds = map(worker_ids, function(id) {
+            c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id)
+          })
+          r$pipeline(.commands = cmds)
+        }
+      }
+
+      if (type == "terminate") {
         lg$debug("Terminating %i worker(s) %s", length(worker_ids), as_short_string(worker_ids))
 
         # Push terminate signal to worker
@@ -480,36 +491,6 @@ Rush = R6::R6Class("Rush",
           c("SET", private$.get_worker_key("terminate", worker_id), "1")
         })
         r$pipeline(.commands = cmds)
-
-      } else if (type == "kill") {
-        worker_info = self$worker_info[list(worker_ids), ,  on = "worker_id"]
-        # kill local
-        local_workers = worker_info[list(FALSE), worker_id, on = "remote", nomatch = NULL]
-        lg$debug("Killing %i local worker(s) %s", length(local_workers), as_short_string(local_workers))
-
-        # kill with processx
-        walk(local_workers, function(worker_id) {
-          killed = self$processes[[worker_id]]$kill()
-          if (!killed) lg$error("Failed to kill worker %s", worker_id)
-        })
-
-        # set worker state
-        cmds_local = map(local_workers, function(worker_id) {
-           c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), worker_id)
-        })
-
-        # kill remote
-        remote_workers = worker_info [list(TRUE), worker_id, on = "remote", nomatch = NULL]
-        lg$debug("Killing %i remote worker(s) %s", length(remote_workers), as_short_string(remote_workers))
-
-        # push kill signal to heartbeat process and set worker state
-        cmds_remote = unlist(map(remote_workers, function(worker_id) {
-          list(
-            c("LPUSH", private$.get_worker_key("kill", worker_id), "TRUE"),
-            c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), worker_id))
-        }), recursive = FALSE)
-
-        r$pipeline(.commands = c(cmds_local, cmds_remote))
       }
 
       return(invisible(self))
@@ -526,75 +507,68 @@ Rush = R6::R6Class("Rush",
     #'
     #' @param restart_local_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
+    #' Ignored for remote workers.
     detect_lost_workers = function(restart_local_workers = FALSE) {
       assert_flag(restart_local_workers)
       r = self$connector
 
-      # check workers with a heartbeat
-      heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
-      lost_workers_heartbeat = if (length(heartbeat_keys)) {
-        lg$debug("Checking %i worker(s) with heartbeat", length(heartbeat_keys))
-        running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
-        if (all(running)) return(invisible(self))
+      running_tasks = self$fetch_running_tasks(fields = "worker_extra")
 
-        # search for associated worker ids
-        heartbeat_keys = heartbeat_keys[!running]
-        lost_workers = self$worker_info[heartbeat == heartbeat_keys, worker_id]
+      # check mirai workers
+      if (length(self$processes_mirai)) {
+        iwalk(self$processes_mirai[self$running_worker_ids], function(m, id) {
+          if (is_mirai_error(m$data) || is_error_value(m$data)) {
+            lg$error("Lost worker %s", id)
 
-        # set worker state
-        cmds = map(lost_workers, function(worker_id) {
-          c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id)
+            # print error messages
+            walk(self$processes_mirai[[id]]$data, lg$error)
+
+            # move worker to lost
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), id))
+
+            # identify lost tasks
+            if (nrow(running_tasks)) {
+              keys = running_tasks[list(id), keys, on = "worker_id"]
+              lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+
+              # Replace interrupt error message
+              message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+
+              # push failed tasks
+              conditions = list(list(message = message))
+              self$push_failed(keys, conditions = conditions)
+            }
+          }
         })
-
-        # remove heartbeat keys
-        cmds = c(cmds, list(c("SREM", "heartbeat_keys", heartbeat_keys)))
-        r$pipeline(.commands =  cmds)
-        lost_workers
       }
 
-      # check local workers without a heartbeat
-      local_workers = r$SMEMBERS(private$.get_key("local_workers"))
-      lost_workers_local = if (length(local_workers) && !is.null(self$processes)) {
-        # lg$debug("Checking %i worker(s) with process id", length(local_workers))
-        running = map_lgl(local_workers, function(worker_id) self$processes[[worker_id]]$is_alive())
-        if (all(running)) return(invisible(self))
+      # check processx workers
+      if (length(self$processes_processx)) {
+        iwalk(self$processes_processx[self$running_worker_ids], function(m, id) {
+          if (!self$processes_processx[[id]]$is_alive()) {
+            lg$error("Lost worker %s", id)
+            # print error messages
+            walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error)
 
-        # search for associated worker ids
-        lost_workers = local_workers[!running]
-        lg$error("Lost %i worker(s): %s", length(lost_workers), str_collapse(lost_workers))
-        walk(lost_workers, function(worker_id) {
-          x = self$processes[[worker_id]]$read_all_error_lines()
-          walk(x, lg$error)
+            # identify lost tasks
+            if (nrow(running_tasks)) {
+              keys = running_tasks[list(id), keys, on = "worker_id"]
+              lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+
+              # push failed tasks
+              conditions = list(list(message = "Worker has crashed or was killed"))
+              self$push_failed(keys, conditions = conditions)
+            }
+
+            if (restart_local_workers) {
+              lg$debug("Restarting lost worker %s", id)
+              self$restart_workers(id)
+            } else {
+              # move worker to lost
+              r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), id))
+            }
+          }
         })
-
-        if (restart_local_workers) {
-          self$restart_local_workers(unlist(lost_workers))
-          lost_workers
-        } else {
-          # set worker state
-          cmds = map(lost_workers, function(worker_id) {
-           c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id)
-          })
-
-          # remove local pids
-          cmds = c(cmds, list(c("SREM", private$.get_key("local_workers"), lost_workers)))
-          r$pipeline(.commands =  cmds)
-          lost_workers
-        }
-      }
-
-      # mark lost tasks
-      lost_workers = c(lost_workers_heartbeat, lost_workers_local)
-      if (length(lost_workers)) {
-        running_tasks = self$fetch_running_tasks(fields = "worker_extra")
-        if (!nrow(running_tasks)) return(invisible(self))
-        lost_workers = unlist(lost_workers)
-        keys = running_tasks[list(lost_workers), keys, on = "worker_id"]
-
-        lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-
-        conditions = list(list(message = "Worker has crashed or was killed"))
-        self$push_failed(keys, conditions = conditions)
       }
 
       return(invisible(self))
@@ -614,7 +588,7 @@ Rush = R6::R6Class("Rush",
       if (!is.null(type)) self$stop_workers(type = type)
 
       # reset fields set by starting workers
-      self$processes = NULL
+      self$processes_processx = NULL
 
       # remove worker info, heartbeat, terminate and kill
       walk(self$worker_ids, function(worker_id) {

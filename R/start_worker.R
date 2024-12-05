@@ -14,8 +14,8 @@
 #'
 #' @param remote (`logical(1)`)\cr
 #' Whether the worker is on a remote machine.
-#' @param ... (`any`)\cr
-#' Arguments passed to [redux::redis_config].
+#' @param config (`list()`)\cr
+#' Configuration for the Redis connection.
 #'
 #' @template param_network_id
 #' @template param_worker_id
@@ -36,28 +36,18 @@
 start_worker = function(
   network_id,
   worker_id = NULL,
-  remote = TRUE,
-  ...
+  config = NULL,
+  remote = TRUE
   ) {
   checkmate::assert_string(network_id)
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
 
   # connect to redis
-  config = list(...)
   if (!is.null(config$port)) config$port = as.integer(config$port)
   if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
-
-  # register to pre-started workers
-  r$SADD(sprintf("%s:pre_worker_ids", network_id), worker_id)
-
-  # wait for start arguments
-  while (!r$EXISTS(sprintf("%s:start_args", network_id))) {
-    lg$debug("Wait for start arguments for network '%s'.", network_id)
-    Sys.sleep(1)
-  }
 
   # get start arguments
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
@@ -88,5 +78,5 @@ start_worker = function(
 
   rush$set_terminated()
 
-  invisible(NULL)
+  invisible(TRUE)
 }
