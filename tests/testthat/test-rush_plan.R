@@ -58,6 +58,8 @@ test_that("set threshold", {
     wait_for_workers = TRUE),
     "Pushing.*")
 
+  Sys.sleep(2)
+
   expect_rush_reset(rush)
 })
 

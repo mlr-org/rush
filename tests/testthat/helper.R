@@ -15,6 +15,10 @@ expect_rush_reset = function(rush, type = "kill") {
   remove_rush_plan()
   processes = rush$processes_processx
   rush$reset(type = type)
+  remaining_keys = rush$connector$command(c("KEYS", "*"))
+  if (length(remaining_keys)) {
+    print(remaining_keys)
+  }
   expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
   walk(processes, function(p) p$kill())
 }

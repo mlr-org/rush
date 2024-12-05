@@ -623,6 +623,13 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("local_workers"))
       r$DEL(private$.get_key("heartbeat_keys"))
 
+      # be safe
+      remaining_keys = self$connector$command(c("KEYS", "*"))
+      map(remaining_keys, function(key) {
+        lg$info("Found remaining key: %s", key)
+        if (grepl(self$network_id, key)) r$DEL(key)
+      })
+
       # reset counters and caches
       private$.cached_tasks = list()
       private$.n_seen_results = 0

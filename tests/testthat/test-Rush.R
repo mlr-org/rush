@@ -991,8 +991,11 @@ test_that("snapshot option works", {
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush$start_local_workers(fun = fun, n_workers = 2, lgr_thresholds = c(rush = "debug"))
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c(rush = "debug"),
+    wait_for_workers = TRUE)
 
   rush$snapshot_schedule = c(1, 1)
   expect_equal(rush$connector$CONFIG_GET("save")[[2]], "1 1")
