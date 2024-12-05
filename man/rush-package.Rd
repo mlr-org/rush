@@ -6,7 +6,7 @@
 \alias{rush-package}
 \title{rush: Rapid Parallel and Distributed Computing}
 \description{
-Parallel computing with a network of local and remote workers. Fast exchange of results between the workers through a 'Redis' database. Key features include task queues, local caching, and sophisticated error handling.
+Decentralized and distributed computing.
 }
 \seealso{
 Useful links:

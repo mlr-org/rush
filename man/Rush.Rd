@@ -378,6 +378,7 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   worker_loop = NULL,
+  ...,
   n_workers = NULL,
   globals = NULL,
   packages = NULL,
@@ -397,6 +398,9 @@ Loop run on the workers.
 Defaults to \link{worker_loop_default} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.
 Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
@@ -423,9 +427,6 @@ This improves the performance of the logging.}
 
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
-
-\item{\code{...}}{(\code{any})\cr
-Arguments passed to \code{worker_loop}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -438,8 +439,9 @@ Start workers on remote machines with \code{mirai}.
 The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
-  n_workers = NULL,
   worker_loop,
+  ...,
+  n_workers = NULL,
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
@@ -452,14 +454,17 @@ The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.}
-
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.
 Defaults to \link{worker_loop_default} which is called with \code{fun}.
 Pass \code{fun} in \code{...}.
 Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
+
+\item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers to be started.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}

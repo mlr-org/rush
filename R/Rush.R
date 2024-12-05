@@ -243,7 +243,7 @@ Rush = R6::R6Class("Rush",
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size,
         worker_loop = worker_loop,
-        ....
+        ...
       )
 
       lg$info("Starting %i worker(s)", n_workers)
@@ -282,16 +282,15 @@ Rush = R6::R6Class("Rush",
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     start_remote_workers = function(
-      n_workers = NULL,
       worker_loop,
-      args = NULL,
+      ...,
+      n_workers = NULL,
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
       wait_for_workers = TRUE,
-      timeout = Inf,
-      ....
+      timeout = Inf
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
 
