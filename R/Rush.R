@@ -289,14 +289,16 @@ Rush = R6::R6Class("Rush",
       worker_ids = adjective_animal(n = n_workers)
 
       # start rush worker with mirai
-      self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
-        mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
-          .args = list(network_id = self$network_id, worker_id = worker_id, config = config),
+      for (i in seq(n_workers)) {
+        lg$info("Starting remote worker %i", i)
+
+        self$processes_mirai[[worker_ids[i]]] = mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
+          .args = list(network_id = self$network_id, worker_id = worker_ids[i], config = config),
           dispatcher = "process",
           retry = TRUE)
-      }), worker_ids))
 
-      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
+        if (wait_for_workers) self$wait_for_workers(i, timeout)
+      }
 
       return(invisible(worker_ids))
     },
