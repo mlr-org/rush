@@ -607,6 +607,8 @@ Rush = R6::R6Class("Rush",
     print_log = function() {
       r = self$connector
 
+      if (!self$n_workers) return(invisible(NULL))
+
       cmds =  walk(self$worker_ids, function(worker_id) {
         first_event = private$.log_counter[[worker_id]] %??% 0L
         log = r$command(c("LRANGE", private$.get_worker_key("events", worker_id), first_event, -1L))
@@ -620,7 +622,7 @@ Rush = R6::R6Class("Rush",
           private$.log_counter[[worker_id]] = nrow(tab) + first_event
         }
       })
-      return(invisible(self))
+      return(invisible(NULL))
     },
 
     #' @description
