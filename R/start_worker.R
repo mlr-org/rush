@@ -43,25 +43,35 @@ start_worker = function(
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
 
+  timestamp_start = Sys.time()
+
   # connect to redis
   if (!is.null(config$port)) config$port = as.integer(config$port)
   if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
 
+  timestamp_connected = Sys.time()
+
   # get start arguments
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
   start_args = redux::bin_to_object(bin_start_args)
+
+  timestamp_loaded = Sys.time()
 
   # load large object from disk
   if (inherits(start_args, "rush_large_object")) {
     start_args = readRDS(start_args$path)
   }
 
+  timestamp_loaded_large_object = Sys.time()
+
   # load packages and globals to worker environment
   envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
+
+  timestamp_globals = Sys.time()
 
   # initialize rush worker
   rush = invoke(rush::RushWorker$new,
@@ -71,7 +81,11 @@ start_worker = function(
     remote = remote,
     .args = start_args$worker_args)
 
-  lg$debug("Worker %s started.", rush$worker_id)
+  lg$debug("Worker %s started", rush$worker_id)
+  lg$debug("Time to connect %i seconds", as.integer(difftime(timestamp_connected, timestamp_start, units = "secs")))
+  lg$debug("Time to load objects %i seconds", as.integer(difftime(timestamp_loaded, timestamp_connected, units = "secs")))
+  lg$debug("Time to load large object %i seconds", as.integer(difftime(timestamp_loaded_large_object, timestamp_loaded, units = "secs")))
+  lg$debug("Time to load packages and globals %i seconds", as.integer(difftime(timestamp_globals, timestamp_loaded_large_object, units = "secs")))
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
