@@ -68,14 +68,6 @@ If the task fails, the state is changed to \code{"failed"} instead of \code{"fin
 \code{"queued"} tasks are waiting to be evaluated (see Queues)
 }
 
-\section{Queues}{
-
-Rush uses a shared queue and a queue for each worker.
-The shared queue is used to push tasks to the workers.
-The first worker that pops a task from the shared queue evaluates the task.
-The worker queues are used to push tasks to specific workers.
-}
-
 \section{Fetch Tasks and Results}{
 
 The \verb{$fetch_*()} methods retrieve data from the Redis database.
@@ -84,31 +76,12 @@ The methods \verb{$fetch_new_tasks()} and \verb{$fetch_finished_tasks()} cache t
 The \verb{$wait_for_finished_tasks()} variant wait until a new result is available.
 }
 
-\section{Error Handling}{
-
-When evaluating tasks in a distributed system, many things can go wrong.
-Simple R errors in the worker loop are caught and written to the archive.
-The task is marked as \code{"failed"}.
-If the connection to a worker is lost, it looks like a task is \code{"running"} forever.
-The method \verb{$detect_lost_workers()} identifies lost workers.
-Running this method periodically adds a small overhead.
-}
-
 \section{Logging}{
 
 The worker logs all messages written with the \code{lgr} package to the data base.
 The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
 Saving log messages adds a small overhead but is useful for debugging.
 By default, no log messages are stored.
-}
-
-\section{Seed}{
-
-Setting a seed is important for reproducibility.
-The tasks can be evaluated with a specific L'Ecuyer-CMRG seed.
-If an initial seed is passed, the seed is used to generate L'Ecuyer-CMRG seeds for each task.
-Each task is then evaluated with a separate RNG stream.
-See \link[parallel:RngStream]{parallel::nextRNGStream} for more details.
 }
 
 \examples{
@@ -259,7 +232,6 @@ Information about the Redis server.}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
-\item \href{#method-Rush-retry_tasks}{\code{Rush$retry_tasks()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
@@ -722,30 +694,6 @@ Keys of the associated tasks.}
 
 \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-retry_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-retry_tasks}{}}}
-\subsection{Method \code{retry_tasks()}}{
-Retry failed tasks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$retry_tasks(keys, ignore_max_retries = FALSE, next_seed = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks to be retried.}
-
-\item{\code{ignore_max_retries}}{(\code{logical(1)})\cr
-Whether to ignore the maximum number of retries.}
-
-\item{\code{next_seed}}{(\code{logical(1)})\cr
-Whether to change the seed of the task.}
 }
 \if{html}{\out{</div>}}
 }

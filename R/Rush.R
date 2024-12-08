@@ -53,38 +53,17 @@
 #' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
 #' `"queued"` tasks are waiting to be evaluated (see Queues)
 #'
-#' @section Queues:
-#' Rush uses a shared queue and a queue for each worker.
-#' The shared queue is used to push tasks to the workers.
-#' The first worker that pops a task from the shared queue evaluates the task.
-#' The worker queues are used to push tasks to specific workers.
-#'
 #' @section Fetch Tasks and Results:
 #' The `$fetch_*()` methods retrieve data from the Redis database.
 #' A matching method is defined for each task state e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
 #' The methods `$fetch_new_tasks()` and `$fetch_finished_tasks()` cache the already queried data.
 #' The `$wait_for_finished_tasks()` variant wait until a new result is available.
 #'
-#' @section Error Handling:
-#' When evaluating tasks in a distributed system, many things can go wrong.
-#' Simple R errors in the worker loop are caught and written to the archive.
-#' The task is marked as `"failed"`.
-#' If the connection to a worker is lost, it looks like a task is `"running"` forever.
-#' The method `$detect_lost_workers()` identifies lost workers.
-#' Running this method periodically adds a small overhead.
-#'
 #' @section Logging:
 #' The worker logs all messages written with the `lgr` package to the data base.
 #' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
 #' Saving log messages adds a small overhead but is useful for debugging.
 #' By default, no log messages are stored.
-#'
-#' @section Seed:
-#' Setting a seed is important for reproducibility.
-#' The tasks can be evaluated with a specific L'Ecuyer-CMRG seed.
-#' If an initial seed is passed, the seed is used to generate L'Ecuyer-CMRG seeds for each task.
-#' Each task is then evaluated with a separate RNG stream.
-#' See [parallel::nextRNGStream] for more details.
 #'
 #' @template param_network_id
 #' @template param_config
@@ -337,31 +316,7 @@ Rush = R6::R6Class("Rush",
 
       # restart mirai workers
       if (worker_ids %in% names(self$processes_mirai)) {
-
         stop("Remote workers cannot be restarted")
-
-
-        # worker_id_mirai = intersect(worker_ids, names(self$processes_mirai))
-
-        # # stop running workers
-        # self$stop_workers(type = "kill", worker_id_mirai)
-
-        # lg$info("Restarting %i worker(s): %s", length(worker_id_mirai), str_collapse(worker_id_mirai))
-
-        # # reduce redis config
-        # config = mlr3misc::discard(unclass(self$config), is.null)
-
-        # # generate worker ids
-        # network_id = self$network_id
-
-        # # start rush worker with mirai
-        # new_processes = set_names(map(worker_id_mirai, function(worker_id) {
-        #   mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
-        #     .args = list(network_id = self$network_id, worker_id = worker_id, config = config))
-        # }), worker_ids)
-
-        # self$processes_mirai = insert_named(self$processes_mirai, new_processes)
-        # restarted_worker_ids = worker_id_mirai
       }
 
       # restart processx workers
@@ -791,53 +746,6 @@ Rush = R6::R6Class("Rush",
       r$pipeline(.commands = map(keys, function(key) {
         c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
       }))
-
-      return(invisible(self))
-    },
-
-    #' @description
-    #' Retry failed tasks.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the tasks to be retried.
-    #' @param ignore_max_retries (`logical(1)`)\cr
-    #' Whether to ignore the maximum number of retries.
-    #' @param next_seed (`logical(1)`)\cr
-    #' Whether to change the seed of the task.
-    retry_tasks = function(keys, ignore_max_retries = FALSE, next_seed = FALSE) {
-      assert_character(keys)
-      assert_flag(ignore_max_retries)
-      assert_flag(next_seed)
-      tasks = self$read_hashes(keys, fields = c("seed", "max_retries", "n_retries"), flatten = FALSE)
-      seeds = map(tasks, "seed")
-      n_retries = map_int(tasks, function(task) task$n_retries  %??% 0L)
-      max_retries = map_dbl(tasks, function(task) task$max_retries  %??% Inf)
-      failed = self$is_failed_task(keys)
-      retrieable = n_retries < max_retries
-
-      if (!all(failed)) lg$error("Not all task(s) failed: %s", str_collapse(keys[!failed]))
-
-      if (ignore_max_retries) {
-        keys = keys[failed]
-      } else {
-        if (!all(retrieable)) lg$error("Task(s) reached the maximum number of retries: %s", str_collapse(keys[!retrieable]))
-        keys = keys[failed & retrieable]
-      }
-
-      if (length(keys)) {
-
-        lg$debug("Retry %i task(s): %s", length(keys), str_collapse(keys))
-
-        # generate new L'Ecuyer-CMRG seeds
-        seeds = if (next_seed) map(seeds, function(seed) parallel::nextRNGSubStream(seed))
-
-        self$write_hashes(n_retries = n_retries + 1L, seed = seeds, keys = keys)
-        r = self$connector
-        r$pipeline(.commands = list(
-          c("SREM", private$.get_key("failed_tasks"), keys),
-          c("RPUSH", private$.get_key("queued_tasks"), keys)
-        ))
-      }
 
       return(invisible(self))
     },
