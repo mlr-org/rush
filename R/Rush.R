@@ -1,7 +1,9 @@
 #' @title Rush Controller
 #'
 #' @description
-#' [Rush] is the controller in a centralized rush network.
+#' [Rush] is the controller in a rush network.
+#' The controller starts and stops the workers, observes the workers and can push tasks to the workers.
+#'
 #' The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 #'
 #' @section Local Workers:
@@ -10,23 +12,14 @@
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
-#' Remote workers are started manually with the `$create_worker_script()` and `$start_remote_workers()` methods.
-#' Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
-#' Only a heartbeat process can kill remote workers.
-#' The heartbeat process also monitors the remote workers for crashes.
+#' Remote workers are started with the `$start_remote_workers()` method via the `mirai` package.
 #'
 #' @section Stopping Workers:
-#' Local and remote workers can be terminated with the `$stop_workers(type = "terminate")` method.
-#' The workers evaluate the currently running task and then terminate.
-#' The option `type = "kill"` stops the workers immediately.
-#' Killing a local worker is done with the `processx` package.
-#' Remote workers are killed by pushing a kill signal to the heartbeat process.
-#' Without a heartbeat process a remote worker cannot be killed (see section heartbeat).
-#'
-#' @section Heartbeat:
-#' The heartbeat process periodically signals that a worker is still alive.
-#' This is implemented by setting a [timeout](https://redis.io/docs/latest/commands/expire/) on the heartbeat key.
-#' Furthermore, the heartbeat process can kill the worker.
+#' Local and remote workers can be stopped with the `$stop_workers(type)` method.
+#' The options `type = "kill"` stops the workers immediately.
+#' Currently only all remote workers can be stopped at once.
+#' The option `type = "terminate"` sends a stop signal to the workers via the Redis database.
+#' This option must be implemented in the worker loop via `rush$terminated`.
 #'
 #' @section Data Structure:
 #' Tasks are stored in Redis [hashes](https://redis.io/docs/latest/develop/data-types/hashes/).
@@ -53,12 +46,12 @@
 #' For example, `$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))` writes `xs` in two hashes.
 #'
 #' @section Task States:
-#' A task can go through four states `"queued"`, `"running"`, `"finished"` or `"failed"`.
+#' A task can go through four states `"running"`, `"finished"`, `"failed"` and `"queued"`.
 #' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/latest/develop/data-types/lists/) and [sets](https://redis.io/docs/latest/develop/data-types/sets/) to keep track of their state.
-#' Queued tasks are waiting to be evaluated.
-#' A worker pops a task from the queue and changes the state to `"running"` while evaluating the task.
-#' When the task is finished, the state is changed to `"finished" and the result is written to the data base.
+#' A worker creates a task and marks it as `"running` when evaluating the task.
+#' When the task is finished, the state is changed to `"finished"` and the result is written to the data base.
 #' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
+#' `"queued"` tasks are waiting to be evaluated (see Queues)
 #'
 #' @section Queues:
 #' Rush uses a shared queue and a queue for each worker.
@@ -99,8 +92,6 @@
 #' @template param_globals
 #' @template param_packages
 #' @template param_remote
-#' @template param_heartbeat_period
-#' @template param_heartbeat_expire
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_seed
@@ -321,7 +312,9 @@ Rush = R6::R6Class("Rush",
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
         mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
-          .args = list(network_id = self$network_id, worker_id = worker_id, config = config))
+          .args = list(network_id = self$network_id, worker_id = worker_id, config = config),
+          dispatcher = "process",
+          retry = TRUE)
       }), worker_ids))
 
       if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
@@ -458,11 +451,11 @@ Rush = R6::R6Class("Rush",
           lg$debug("Killing %i local worker(s)", length(worker_ids_processx))
 
           walk(worker_ids_processx, function(id) {
-            lg$info("Kill worker %s", id)
+            lg$info("Kill worker '%s'", id)
 
             # kill with processx
             killed = self$processes_processx[[id]]$kill()
-            if (!killed) lg$error("Failed to kill worker %s", id)
+            if (!killed) lg$error("Failed to kill worker '%s'", id)
 
             # move worker to killed
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id))
@@ -490,7 +483,7 @@ Rush = R6::R6Class("Rush",
       }
 
       if (type == "terminate") {
-        lg$debug("Terminating %i worker(s) %s", length(worker_ids), as_short_string(worker_ids))
+        lg$debug("Terminating %i worker(s) '%s'", length(worker_ids), as_short_string(worker_ids))
 
         # Push terminate signal to worker
         cmds = map(worker_ids, function(worker_id) {
@@ -505,11 +498,6 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Detect lost workers.
     #' The state of the worker is changed to `"lost"`.
-    #' Local workers without a heartbeat are checked by their process id.
-    #' Checking local workers on unix systems only takes a few microseconds per worker.
-    #' But checking local workers on windows might be very slow.
-    #' Workers with a heartbeat process are checked with the heartbeat.
-    #' Lost tasks are marked as `"lost"`.
     #'
     #' @param restart_local_workers (`logical(1)`)\cr
     #' Whether to restart lost workers.
@@ -524,7 +512,7 @@ Rush = R6::R6Class("Rush",
       if (length(self$processes_mirai)) {
         iwalk(self$processes_mirai[self$running_worker_ids], function(m, id) {
           if (is_mirai_error(m$data) || is_error_value(m$data)) {
-            lg$error("Lost worker %s", id)
+            lg$error("Lost worker '%s'", id)
 
             # print error messages
             walk(self$processes_mirai[[id]]$data, lg$error)
@@ -552,7 +540,7 @@ Rush = R6::R6Class("Rush",
       if (length(self$processes_processx)) {
         iwalk(self$processes_processx[self$running_worker_ids], function(m, id) {
           if (!self$processes_processx[[id]]$is_alive()) {
-            lg$error("Lost worker %s", id)
+            lg$error("Lost worker '%s'", id)
             # print error messages
             walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error)
 
@@ -567,7 +555,7 @@ Rush = R6::R6Class("Rush",
             }
 
             if (restart_local_workers) {
-              lg$debug("Restarting lost worker %s", id)
+              lg$debug("Restarting lost worker '%s'", id)
               self$restart_workers(id)
             } else {
               # move worker to lost
@@ -596,12 +584,11 @@ Rush = R6::R6Class("Rush",
       # reset fields set by starting workers
       self$processes_processx = NULL
 
-      # remove worker info, heartbeat, terminate and kill
+      # remove worker info, terminate and kill
       walk(self$worker_ids, function(worker_id) {
         r$DEL(private$.get_key(worker_id))
         r$DEL(private$.get_worker_key("terminate", worker_id))
         r$DEL(private$.get_worker_key("kill", worker_id))
-        r$DEL(private$.get_worker_key("heartbeat", worker_id))
         r$DEL(private$.get_worker_key("queued_tasks", worker_id))
         r$DEL(private$.get_worker_key("events", worker_id))
       })
@@ -627,7 +614,6 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("start_args"))
       r$DEL(private$.get_key("terminate_on_idle"))
       r$DEL(private$.get_key("local_workers"))
-      r$DEL(private$.get_key("heartbeat_keys"))
 
       # be safe
       remaining_keys = self$connector$command(c("KEYS", "*"))
@@ -1452,7 +1438,7 @@ Rush = R6::R6Class("Rush",
       if (!self$n_workers) return(data.table())
       r = self$connector
 
-      fields = c("worker_id", "pid", "remote", "hostname", "heartbeat")
+      fields = c("worker_id", "pid", "remote", "hostname")
       worker_info = set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)
@@ -1559,8 +1545,6 @@ Rush = R6::R6Class("Rush",
     .push_worker_config = function(
       globals = NULL,
       packages = NULL,
-      heartbeat_period = NULL,
-      heartbeat_expire = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
       worker_loop = worker_loop_default,
@@ -1568,9 +1552,6 @@ Rush = R6::R6Class("Rush",
     ) {
       assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
-      assert_count(heartbeat_period, positive = TRUE, null.ok = TRUE)
-      assert_count(heartbeat_expire, positive = TRUE, null.ok = TRUE)
-      if (!is.null(heartbeat_period)) require_namespaces("callr")
       lgr_thresholds = assert_vector(lgr_thresholds, names = "named", null.ok = TRUE) %??% rush_env$lgr_thresholds
       assert_count(lgr_buffer_size)
       assert_function(worker_loop)
@@ -1591,8 +1572,6 @@ Rush = R6::R6Class("Rush",
 
       # arguments needed for initializing RushWorker
       worker_args = list(
-        heartbeat_period = heartbeat_period,
-        heartbeat_expire = heartbeat_expire,
         lgr_thresholds = lgr_thresholds,
         lgr_buffer_size = lgr_buffer_size)
 

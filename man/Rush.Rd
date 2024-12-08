@@ -7,7 +7,9 @@
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller methods.
 }
 \description{
-\link{Rush} is the controller in a centralized rush network.
+\link{Rush} is the controller in a rush network.
+The controller starts and stops the workers, observes the workers and can push tasks to the workers.
+
 The controller starts and stops the workers, pushes tasks to the workers and fetches results.
 }
 \section{Local Workers}{
@@ -19,27 +21,16 @@ Local workers are spawned with the \verb{$start_local_workers() method via the }
 \section{Remote Workers}{
 
 A remote worker runs on a different machine than the controller.
-Remote workers are started manually with the \verb{$create_worker_script()} and \verb{$start_remote_workers()} methods.
-Remote workers can be started on any system as long as the system has access to Redis and all required packages are installed.
-Only a heartbeat process can kill remote workers.
-The heartbeat process also monitors the remote workers for crashes.
+Remote workers are started with the \verb{$start_remote_workers()} method via the \code{mirai} package.
 }
 
 \section{Stopping Workers}{
 
-Local and remote workers can be terminated with the \verb{$stop_workers(type = "terminate")} method.
-The workers evaluate the currently running task and then terminate.
-The option \code{type = "kill"} stops the workers immediately.
-Killing a local worker is done with the \code{processx} package.
-Remote workers are killed by pushing a kill signal to the heartbeat process.
-Without a heartbeat process a remote worker cannot be killed (see section heartbeat).
-}
-
-\section{Heartbeat}{
-
-The heartbeat process periodically signals that a worker is still alive.
-This is implemented by setting a \href{https://redis.io/docs/latest/commands/expire/}{timeout} on the heartbeat key.
-Furthermore, the heartbeat process can kill the worker.
+Local and remote workers can be stopped with the \verb{$stop_workers(type)} method.
+The options \code{type = "kill"} stops the workers immediately.
+Currently only all remote workers can be stopped at once.
+The option \code{type = "terminate"} sends a stop signal to the workers via the Redis database.
+This option must be implemented in the worker loop via \code{rush$terminated}.
 }
 
 \section{Data Structure}{
@@ -69,11 +60,12 @@ For example, \verb{$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 
 
 \section{Task States}{
 
-A task can go through four states \code{"queued"}, \code{"running"}, \code{"finished"} or \code{"failed"}.
+A task can go through four states \code{"running"}, \code{"finished"}, \code{"failed"} and \code{"queued"}.
 Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/latest/develop/data-types/lists/}{lists} and \href{https://redis.io/docs/latest/develop/data-types/sets/}{sets} to keep track of their state.
-Queued tasks are waiting to be evaluated.
-A worker pops a task from the queue and changes the state to \code{"running"} while evaluating the task.
-When the task is finished, the state is changed to \verb{"finished" and the result is written to the data base. If the task fails, the state is changed to }"failed"\verb{instead of}"finished"`.
+A worker creates a task and marks it as \verb{"running} when evaluating the task.
+When the task is finished, the state is changed to \code{"finished"} and the result is written to the data base.
+If the task fails, the state is changed to \code{"failed"} instead of \code{"finished"}.
+\code{"queued"} tasks are waiting to be evaluated (see Queues)
 }
 
 \section{Queues}{
@@ -566,11 +558,6 @@ If \code{NULL} all workers are stopped.}
 \subsection{Method \code{detect_lost_workers()}}{
 Detect lost workers.
 The state of the worker is changed to \code{"lost"}.
-Local workers without a heartbeat are checked by their process id.
-Checking local workers on unix systems only takes a few microseconds per worker.
-But checking local workers on windows might be very slow.
-Workers with a heartbeat process are checked with the heartbeat.
-Lost tasks are marked as \code{"lost"}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers(restart_local_workers = FALSE)}\if{html}{\out{</div>}}
 }

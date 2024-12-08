@@ -24,9 +24,6 @@ Identifier of the worker.}
 
 \item{\code{remote}}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
-
-\item{\code{heartbeat}}{(`r_process``)\cr
-Background process for the heartbeat.}
 }
 \if{html}{\out{</div>}}
 }
@@ -104,8 +101,6 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   config = NULL,
   remote,
   worker_id = NULL,
-  heartbeat_period = NULL,
-  heartbeat_expire = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   seed = NULL
@@ -134,12 +129,6 @@ See \link{Rush} for details.}
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
-
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}

@@ -54,8 +54,7 @@ test_that("a worker is registered", {
   # check meta data from redis
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
-  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "remote", "hostname", "heartbeat"))
-  expect_string(worker_info$heartbeat, na.ok = TRUE)
+  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "remote", "hostname"))
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_false(worker_info$remote)
   expect_equal(worker_info$pid, Sys.getpid())
@@ -75,19 +74,6 @@ test_that("a worker is terminated", {
   rush$set_terminated()
   expect_null(rush$running_worker_ids)
   expect_equal(rush$terminated_worker_ids, rush$worker_id)
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("a heartbeat is started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, heartbeat_period = 3)
-
-  expect_class(rush$heartbeat, "r_process")
-  expect_true(rush$heartbeat$is_alive())
-  expect_string(rush$worker_info$heartbeat)
 
   expect_rush_reset(rush, type = "terminate")
 })

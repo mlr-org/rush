@@ -6,20 +6,23 @@ output: github_document
 
 # rush
 
-*rush* is a package for decentralized and distributed computing in R.
-It enables efficient problem-solving across a distributed network.
-The package facilitates fast and seamless data exchange between workers through a Redis database.
+*rush* is a package designed for decentralized and distributed computing in R.
+It enables workers to communicate over a shared [`Redis`](https://redis.io/) database to solve large-scale problems in parallel.
+The package powers the asynchronous optimization algorithms in the [`bbotk`](https://CRAN.R-project.org/package=bbotk) and [`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
 
 # Features
 
-* Decentralized network architecture
-* Small overhead of a few milliseconds per task
-* Easy start of local workers with `processx` and remote workers with `mirai`.
-* Designed to work with [`data.table`](https://CRAN.R-project.org/package=data.table).
-* Results are cached in the R session to minimize read and write operations.
-* Detect and recover from worker failures.
-* Store [`lgr`](https://CRAN.R-project.org/package=lgr) messages of the workers in the Redis data base.
-* Light on dependencies.
+* Decentralized network architecture for robust scalability.
+* Efficient communication between workers using a shared [`Redis`](https://redis.io/) database.
+* Maintains low overhead, limiting delays to just a millisecond per task.
+* Reduces read/write operations with a lightweight and efficient caching system.
+* Offers centralized system features, such as task queues.
+* Provides fast data transformation from Redis to [`data.table`](https://CRAN.R-project.org/package=data.table).
+* Simplifies local worker setup with [`processx`](https://CRAN.R-project.org/package=processx).
+* Enables scaling to large remote worker networks via the [`mirai`](https://CRAN.R-project.org/package=mirai) package.
+* Automatically detects and recovers from worker failures for high reliability.
+* Logs worker messages directly into the Redis database using [`lgr`](https://CRAN.R-project.org/package=lgr).
+* Designed with minimal dependencies for lightweight integration.
 
 ## Install
 
@@ -36,3 +39,4 @@ And install [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/i
 ![](man/figures/README-flow-2.png)
 
 *Decentralized network with four workers.*
+

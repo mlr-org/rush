@@ -55,7 +55,6 @@ reference:
       - start_worker
       - worker_loop_default
       - worker_loop_callr
-      - heartbeat
       - AppenderRedis
   - title: Misc
     contents:
