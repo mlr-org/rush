@@ -91,7 +91,7 @@ start_worker = function(
   timestamp_wait = Sys.time()
   if (!is.null(wait_for_workers)) {
     while (rush$n_running_workers != wait_for_workers) {
-      Sys.sleep(1)
+      Sys.sleep(5)
     }
   }
 
