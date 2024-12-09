@@ -39,7 +39,7 @@ start_worker = function(
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
+  lgr_buffer_size = NULL,
   wait_for_workers = NULL
   ) {
   timestamp_start = Sys.time()
@@ -57,13 +57,13 @@ start_worker = function(
   # setup logger
   if (!is.null(lgr_thresholds)) {
     assert_vector(lgr_thresholds, names = "named")
-    assert_count(lgr_buffer_size)
+    assert_count(lgr_buffer_size, null.ok = TRUE)
 
     # add redis appender
     appender = rush::AppenderRedis$new(
       config = config,
       key = sprintf("%s:%s:%s", network_id, worker_id, "events"),
-      buffer_size = lgr_buffer_size
+      buffer_size = lgr_buffer_size %??% 0
     )
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)

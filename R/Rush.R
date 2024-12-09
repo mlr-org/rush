@@ -258,12 +258,12 @@ Rush = R6::R6Class("Rush",
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
+      lgr_buffer_size = NULL,
       wait_for_workers = FALSE
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
-      assert_vector(lgr_thresholds, names = "named")
-      assert_count(lgr_buffer_size)
+      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE)
+      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size, null.ok = TRUE)
 
       # check number of daemons
       if (!daemons()$connections) {
@@ -288,7 +288,7 @@ Rush = R6::R6Class("Rush",
       worker_ids = adjective_animal(n = n_workers)
 
       wait_for_workers = if (wait_for_workers) n_workers
-
+      browser()
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
         mirai({
