@@ -294,8 +294,7 @@ Rush = R6::R6Class("Rush",
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
         mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE, wait_for_workers)},
           .args = list(network_id = self$network_id, worker_id = worker_id, config = config, wait_for_workers = wait_for_workers),
-          dispatcher = "process",
-          retry = TRUE)
+          dispatcher = "process")
       }), worker_ids))
 
       return(invisible(worker_ids))
