@@ -1379,6 +1379,8 @@ Rush = R6::R6Class("Rush",
     #' Whether all workers are terminated.
     all_workers_terminated = function(rhs) {
       assert_ro_binding(rhs)
+      # return FALSE if no workers were started yet
+      if (!self$n_workers) return(FALSE)
       self$n_workers == self$n_terminated_workers
     },
 
@@ -1387,6 +1389,8 @@ Rush = R6::R6Class("Rush",
     #' Runs `$detect_lost_workers()` to detect lost workers.
     all_workers_lost = function(rhs) {
       assert_ro_binding(rhs)
+      # return FALSE if no workers were started yet
+      if (!self$n_workers) return(FALSE)
       self$detect_lost_workers()
       self$n_workers == self$n_lost_workers
     },
