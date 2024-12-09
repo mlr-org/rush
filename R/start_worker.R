@@ -56,9 +56,12 @@ start_worker = function(
 
   # get start arguments
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
-  start_args = redux::bin_to_object(bin_start_args)
 
   timestamp_loaded = Sys.time()
+
+  start_args = redux::bin_to_object(bin_start_args)
+
+  timestamp_unserialized = Sys.time()
 
   # load large object from disk
   if (inherits(start_args, "rush_large_object")) {
@@ -85,6 +88,8 @@ start_worker = function(
   lg$debug("Worker %s started", rush$worker_id)
   lg$debug("Time to connect %i seconds", as.integer(difftime(timestamp_connected, timestamp_start, units = "secs")))
   lg$debug("Time to load objects %i seconds", as.integer(difftime(timestamp_loaded, timestamp_connected, units = "secs")))
+  lg$debug("Start argument size %i bytes", object.size(bin_start_args))
+  lg$debug("Time to unserialize objects %i seconds", as.integer(difftime(timestamp_unserialized, timestamp_loaded, units = "secs")))
   lg$debug("Time to load large object %i seconds", as.integer(difftime(timestamp_loaded_large_object, timestamp_loaded, units = "secs")))
   lg$debug("Time to load packages and globals %i seconds", as.integer(difftime(timestamp_globals, timestamp_loaded_large_object, units = "secs")))
 
