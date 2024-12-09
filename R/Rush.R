@@ -274,7 +274,8 @@ Rush = R6::R6Class("Rush",
 
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
-        mirai({
+        # suppress missing packages warning from mirai when rush is used in another package
+        suppressWarnings({mirai({
           rush::start_worker_mirai(
             network_id,
             worker_id,
@@ -297,7 +298,7 @@ Rush = R6::R6Class("Rush",
             worker_loop_args = list(...)),
           dispatcher = "process",
           retry = TRUE)
-      }), worker_ids))
+      })}), worker_ids))
 
       return(invisible(worker_ids))
     },
