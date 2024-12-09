@@ -243,14 +243,10 @@ Rush = R6::R6Class("Rush",
     #' Start workers on remote machines with `mirai`.
     #' The [mirai::mirai] are stored in `$processes_processx`.
     #'
-    #' @param n_workers (`integer(1)`)\cr
-    #' Number of workers to be started.
-    #' @param wait_for_workers (`logical(1)`)\cr
-    #' Whether to wait until all workers are available.
-    #' @param timeout (`numeric(1)`)\cr
-    #' Timeout to wait for workers in seconds.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
+    #' @param n_workers (`integer(1)`)\cr
+    #' Number of workers to be started.
     start_remote_workers = function(
       worker_loop,
       ...,
@@ -258,9 +254,7 @@ Rush = R6::R6Class("Rush",
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
-      wait_for_workers = TRUE,
-      timeout = Inf
+      lgr_buffer_size = 0
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
 
@@ -272,16 +266,6 @@ Rush = R6::R6Class("Rush",
         warningf("Number of workers %i exceeds number of available daemons %i", n_workers, sum(daemons()$daemons[,2]))
       }
 
-      # push worker config to redis
-      private$.push_worker_config(
-        worker_loop = worker_loop,
-        globals = globals,
-        packages = packages,
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
-        ...
-      )
-
       # reduce redis config
       config = mlr3misc::discard(unclass(self$config), is.null)
 
@@ -289,16 +273,31 @@ Rush = R6::R6Class("Rush",
       worker_ids = adjective_animal(n = n_workers)
 
       # start rush worker with mirai
-      for (i in seq(n_workers)) {
-        lg$info("Starting remote worker %i", i)
-
-        self$processes_mirai[[worker_ids[i]]] = mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE)},
-          .args = list(network_id = self$network_id, worker_id = worker_ids[i], config = config),
+      self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
+        mirai({
+          rush::start_worker_mirai(
+            network_id,
+            worker_id,
+            config,
+            remote = TRUE,
+            packages,
+            globals,
+            worker_args,
+            worker_loop,
+            worker_loop_args)
+          },
+          .args = list(
+            network_id = self$network_id,
+            worker_id = worker_id,
+            config = config,
+            packages = packages,
+            globals = globals,
+            worker_args = list(lgr_thresholds = NULL, lgr_buffer_size = lgr_buffer_size),
+            worker_loop = worker_loop,
+            worker_loop_args = list(...)),
           dispatcher = "process",
           retry = TRUE)
-
-        if (wait_for_workers) self$wait_for_workers(i, timeout)
-      }
+      }), worker_ids))
 
       return(invisible(worker_ids))
     },

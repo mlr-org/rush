@@ -409,9 +409,7 @@ The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
-  wait_for_workers = TRUE,
-  timeout = Inf
+  lgr_buffer_size = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -443,12 +441,6 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Timeout to wait for workers in seconds.}
 }
 \if{html}{\out{</div>}}
 }

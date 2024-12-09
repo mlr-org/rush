@@ -230,8 +230,7 @@ test_that("mirai workers are started", {
   worker_ids = rush$start_remote_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"),
-    wait_for_workers = TRUE)
+    lgr_thresholds = c(rush = "debug"))
   expect_equal(rush$n_workers, 2)
 
   # check fields
