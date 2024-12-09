@@ -202,18 +202,18 @@ Rush = R6::R6Class("Rush",
       supervise = TRUE
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
+      assert_vector(lgr_thresholds, names = "named")
+      assert_count(lgr_buffer_size)
       assert_flag(wait_for_workers)
       assert_flag(supervise)
       r = self$connector
 
       # push worker config to redis
       private$.push_worker_config(
-        globals = globals,
-        packages = packages,
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
         worker_loop = worker_loop,
-        ...
+        ...,
+        globals = globals,
+        packages = packages
       )
 
       lg$info("Starting %i worker(s)", n_workers)
@@ -259,10 +259,11 @@ Rush = R6::R6Class("Rush",
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = 0,
-      wait_for_workers = FALSE,
-      timeout = Inf
+      wait_for_workers = FALSE
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers)
+      assert_vector(lgr_thresholds, names = "named")
+      assert_count(lgr_buffer_size)
 
       # check number of daemons
       if (!daemons()$connections) {
@@ -275,11 +276,9 @@ Rush = R6::R6Class("Rush",
       # push worker config to redis
       private$.push_worker_config(
         worker_loop = worker_loop,
+        ...,
         globals = globals,
-        packages = packages,
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size,
-        ...
+        packages = packages
       )
 
       # reduce redis config
@@ -292,8 +291,22 @@ Rush = R6::R6Class("Rush",
 
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
-        mirai({rush::start_worker(network_id, worker_id, config, remote = TRUE, wait_for_workers)},
-          .args = list(network_id = self$network_id, worker_id = worker_id, config = config, wait_for_workers = wait_for_workers),
+        mirai({
+          rush::start_worker(
+            network_id,
+            worker_id,
+            config,
+            remote = TRUE,
+            lgr_thresholds,
+            lgr_buffer_size,
+            wait_for_workers)},
+          .args = list(
+            network_id = self$network_id,
+            worker_id = worker_id,
+            config = config,
+            lgr_thresholds = lgr_thresholds,
+            lgr_buffer_size = lgr_buffer_size,
+            wait_for_workers = wait_for_workers),
           dispatcher = "process")
       }), worker_ids))
 
@@ -1456,19 +1469,16 @@ Rush = R6::R6Class("Rush",
 
     # push worker config to redis
     .push_worker_config = function(
+      worker_loop = NULL,
+      ...,
       globals = NULL,
-      packages = NULL,
-      lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
-      worker_loop = worker_loop_default,
-      ...
-    ) {
-      assert_character(globals, null.ok = TRUE)
-      assert_character(packages, null.ok = TRUE)
-      lgr_thresholds = assert_vector(lgr_thresholds, names = "named", null.ok = TRUE) %??% rush_env$lgr_thresholds
-      assert_count(lgr_buffer_size)
+      packages = NULL
+      ) {
       assert_function(worker_loop)
       dots = list(...)
+      assert_character(globals, null.ok = TRUE)
+      assert_character(packages, null.ok = TRUE)
+
       r = self$connector
 
       lg$debug("Pushing worker config to Redis")
@@ -1483,18 +1493,12 @@ Rush = R6::R6Class("Rush",
         }), global_names)
       }
 
-      # arguments needed for initializing RushWorker
-      worker_args = list(
-        lgr_thresholds = lgr_thresholds,
-        lgr_buffer_size = lgr_buffer_size)
-
       # arguments needed for initializing the worker
       start_args = list(
         worker_loop = worker_loop,
         worker_loop_args = dots,
         globals = globals,
-        packages = c("rush", packages),
-        worker_args = worker_args)
+        packages = c("rush", packages))
 
       # serialize and push arguments to redis
       # the serialize functions warns that a required package may not be available when loading the start args

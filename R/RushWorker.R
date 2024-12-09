@@ -11,8 +11,6 @@
 #' @template param_config
 #' @template param_remote
 #' @template param_worker_id
-#' @template param_lgr_thresholds
-#' @template param_lgr_buffer_size
 #' @template param_seed
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
@@ -36,8 +34,6 @@ RushWorker = R6::R6Class("RushWorker",
       config = NULL,
       remote,
       worker_id = NULL,
-      lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
       seed = NULL
       ) {
       super$initialize(network_id = network_id, config = config, seed = seed)
@@ -45,29 +41,6 @@ RushWorker = R6::R6Class("RushWorker",
       self$remote = assert_flag(remote)
       self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
       r = self$connector
-
-      # setup logger
-      if (!is.null(lgr_thresholds)) {
-        assert_vector(lgr_thresholds, names = "named")
-        assert_count(lgr_buffer_size)
-
-        # add redis appender
-        appender = AppenderRedis$new(
-          config = self$config,
-          key = private$.get_worker_key("events"),
-          buffer_size = lgr_buffer_size
-        )
-        root_logger = lgr::get_logger("root")
-        root_logger$add_appender(appender)
-        root_logger$remove_appender("console")
-
-        # restore log levels
-        for (package in names(lgr_thresholds)) {
-          logger = lgr::get_logger(package)
-          threshold = lgr_thresholds[package]
-          logger$set_threshold(threshold)
-        }
-      }
 
       # register worker ids
       r$SADD(private$.get_key("worker_ids"), self$worker_id)

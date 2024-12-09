@@ -38,6 +38,8 @@ start_worker = function(
   worker_id = NULL,
   config = NULL,
   remote = TRUE,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0,
   wait_for_workers = NULL
   ) {
   timestamp_start = Sys.time()
@@ -52,15 +54,41 @@ start_worker = function(
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
 
-  timestamp_connected = Sys.time()
+  # setup logger
+  if (!is.null(lgr_thresholds)) {
+    assert_vector(lgr_thresholds, names = "named")
+    assert_count(lgr_buffer_size)
+
+    # add redis appender
+    appender = rush::AppenderRedis$new(
+      config = config,
+      key = sprintf("%s:%s:%s", network_id, worker_id, "events"),
+      buffer_size = lgr_buffer_size
+    )
+    root_logger = lgr::get_logger("root")
+    root_logger$add_appender(appender)
+    root_logger$remove_appender("console")
+
+    # restore log levels
+    for (package in names(lgr_thresholds)) {
+      logger = lgr::get_logger(package)
+      threshold = lgr_thresholds[package]
+      logger$set_threshold(threshold)
+    }
+  }
+
+  lg$debug("Start worker setup on %s", worker_id)
 
   # get start arguments
+  timestamp_connected = Sys.time()
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
 
+  lg$debug("Downloaded start arguments %s bytes in %i seconds", format(object.size(bin_start_args), units = "MB"), as.integer(difftime(Sys.time(), timestamp_connected, units = "secs")))
   timestamp_loaded = Sys.time()
 
   start_args = redux::bin_to_object(bin_start_args)
 
+  lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
   timestamp_unserialized = Sys.time()
 
   # load large object from disk
@@ -68,30 +96,23 @@ start_worker = function(
     start_args = readRDS(start_args$path)
   }
 
-  timestamp_loaded_large_object = Sys.time()
+  lg$debug("Loaded large object in %i seconds", as.integer(difftime(Sys.time(), timestamp_unserialized, units = "secs")))
 
   # load packages and globals to worker environment
   envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
-  timestamp_globals = Sys.time()
+  lg$debug("Loaded packages and globals")
 
   # initialize rush worker
-  rush = invoke(rush::RushWorker$new,
+  rush = rush::RushWorker$new(
     network_id = network_id,
     worker_id = worker_id,
     config = config,
-    remote = remote,
-    .args = start_args$worker_args)
+    remote = remote)
 
   lg$debug("Worker %s started", rush$worker_id)
-  lg$debug("Time to connect %i seconds", as.integer(difftime(timestamp_connected, timestamp_start, units = "secs")))
-  lg$debug("Time to load objects %i seconds", as.integer(difftime(timestamp_loaded, timestamp_connected, units = "secs")))
-  lg$debug("Start argument size %i bytes", object.size(bin_start_args))
-  lg$debug("Time to unserialize objects %i seconds", as.integer(difftime(timestamp_unserialized, timestamp_loaded, units = "secs")))
-  lg$debug("Time to load large object %i seconds", as.integer(difftime(timestamp_loaded_large_object, timestamp_loaded, units = "secs")))
-  lg$debug("Time to load packages and globals %i seconds", as.integer(difftime(timestamp_globals, timestamp_loaded_large_object, units = "secs")))
 
   timestamp_wait = Sys.time()
   if (!is.null(wait_for_workers)) {
@@ -99,8 +120,6 @@ start_worker = function(
       Sys.sleep(5)
     }
   }
-
-  lg$debug("Time to wait for other workers %i seconds", as.integer(difftime(Sys.time(), timestamp_wait, units = "secs")))
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
