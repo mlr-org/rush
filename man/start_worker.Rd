@@ -4,7 +4,13 @@
 \alias{start_worker}
 \title{Start a worker}
 \usage{
-start_worker(network_id, worker_id = NULL, config = NULL, remote = TRUE)
+start_worker(
+  network_id,
+  worker_id = NULL,
+  config = NULL,
+  remote = TRUE,
+  wait_for_workers = NULL
+)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr

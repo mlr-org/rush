@@ -85,3 +85,60 @@ start_worker_mirai = function(
 
   invisible(TRUE)
 }
+
+
+# start_remote_workers = function(
+#   worker_loop,
+#   ...,
+#   n_workers = NULL,
+#   globals = NULL,
+#   packages = NULL,
+#   lgr_thresholds = NULL,
+#   lgr_buffer_size = 0
+#   ) {
+#   n_workers = assert_count(n_workers %??% rush_env$n_workers)
+
+#   # check number of daemons
+#   if (!daemons()$connections) {
+#     stop("No daemons available. Start daemons with `mirai::daemons()`")
+#   }
+#   if (n_workers > sum(daemons()$daemons[,2])) {
+#     warningf("Number of workers %i exceeds number of available daemons %i", n_workers, sum(daemons()$daemons[,2]))
+#   }
+
+#   # reduce redis config
+#   config = mlr3misc::discard(unclass(self$config), is.null)
+
+#   # generate worker ids
+#   worker_ids = adjective_animal(n = n_workers)
+
+#   # start rush worker with mirai
+#   self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
+#     # suppress missing packages warning from mirai when rush is used in another package
+#     suppressWarnings({mirai({
+#       rush::start_worker_mirai(
+#         network_id,
+#         worker_id,
+#         config,
+#         remote = TRUE,
+#         packages,
+#         globals,
+#         worker_args,
+#         worker_loop,
+#         worker_loop_args)
+#       },
+#       .args = list(
+#         network_id = self$network_id,
+#         worker_id = worker_id,
+#         config = config,
+#         packages = packages,
+#         globals = globals,
+#         worker_args = list(lgr_thresholds = NULL, lgr_buffer_size = lgr_buffer_size),
+#         worker_loop = worker_loop,
+#         worker_loop_args = list(...)),
+#       dispatcher = "process",
+#       retry = TRUE)
+#   })}), worker_ids))
+
+#   return(invisible(worker_ids))
+# }

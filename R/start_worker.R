@@ -37,13 +37,14 @@ start_worker = function(
   network_id,
   worker_id = NULL,
   config = NULL,
-  remote = TRUE
+  remote = TRUE,
+  wait_for_workers = NULL
   ) {
+  timestamp_start = Sys.time()
+
   checkmate::assert_string(network_id)
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
-
-  timestamp_start = Sys.time()
 
   # connect to redis
   if (!is.null(config$port)) config$port = as.integer(config$port)
@@ -86,6 +87,15 @@ start_worker = function(
   lg$debug("Time to load objects %i seconds", as.integer(difftime(timestamp_loaded, timestamp_connected, units = "secs")))
   lg$debug("Time to load large object %i seconds", as.integer(difftime(timestamp_loaded_large_object, timestamp_loaded, units = "secs")))
   lg$debug("Time to load packages and globals %i seconds", as.integer(difftime(timestamp_globals, timestamp_loaded_large_object, units = "secs")))
+
+  timestamp_wait = Sys.time()
+  if (!is.null(wait_for_workers)) {
+    while (rush$n_running_workers != wait_for_workers) {
+      Sys.sleep(1)
+    }
+  }
+
+  lg$debug("Time to wait for other workers %i seconds", as.integer(difftime(Sys.time(), timestamp_wait, units = "secs")))
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
