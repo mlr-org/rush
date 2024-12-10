@@ -352,10 +352,7 @@ Alternatively, use \verb{$start_remote_workers()} to start workers on remote mac
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.
-Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+Loop run on the workers.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
@@ -406,10 +403,7 @@ The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_mirai}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.
-Defaults to \link{worker_loop_default} which is called with \code{fun}.
-Pass \code{fun} in \code{...}.
-Use \link{worker_loop_callr} to run \code{fun} in an external callr session.}
+Loop run on the workers.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
