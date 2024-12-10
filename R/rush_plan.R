@@ -14,6 +14,7 @@
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
+#' @template param_lgr_buffer_size
 #' @template param_large_objects_path
 #'
 #' @return `list()` with the stored configuration.

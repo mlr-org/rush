@@ -2,9 +2,7 @@
 #'
 #' @description
 #' [Rush] is the controller in a rush network.
-#' The controller starts and stops the workers, observes the workers and can push tasks to the workers.
-#'
-#' The controller starts and stops the workers, pushes tasks to the workers and fetches results.
+#' The controller starts, observes and stops the worker of the network.
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
@@ -176,36 +174,28 @@ Rush = R6::R6Class("Rush",
     #' Start workers locally with `processx`.
     #' The [processx::process] are stored in `$processes_processx`.
     #' Alternatively, use `$start_remote_workers()` to start workers on remote machines with `mirai`.
-    #' By default, [worker_loop_default()] is used as worker loop.
-    #' This function takes the arguments `fun` and optionally `constants` which are passed in `...`.
     #'
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
-    #' @param wait_for_workers (`logical(1)`)\cr
-    #' Whether to wait until all workers are available.
-    #' @param timeout (`numeric(1)`)\cr
-    #' Timeout to wait for workers in seconds.
-    #' @param ... (`any`)\cr
-    #' Arguments passed to `worker_loop`.
     start_local_workers = function(
       worker_loop = NULL,
       ...,
       n_workers = NULL,
       globals = NULL,
       packages = NULL,
-      wait_for_workers = TRUE,
-      timeout = Inf,
       lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
+      lgr_buffer_size = NULL,
       supervise = TRUE
       ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers)
-      assert_vector(lgr_thresholds, names = "named")
-      assert_count(lgr_buffer_size)
-      assert_flag(wait_for_workers)
+      n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
+      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
       assert_flag(supervise)
+
       r = self$connector
 
       # push worker config to redis
@@ -218,39 +208,36 @@ Rush = R6::R6Class("Rush",
 
       lg$info("Starting %i worker(s)", n_workers)
 
-      # reduce redis config
+      # convert arguments to character
       config = mlr3misc::discard(unclass(self$config), is.null)
       config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
       config = paste0("list(", config, ")")
+      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      lgr_thresholds = paste0("c(", lgr_thresholds, ")")
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
 
       self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE)",
-          self$network_id, worker_id, config)),
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i)",
+          self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size)),
         supervise = supervise, stderr = "|") # , stdout = "|"
       }), worker_ids))
-
-
-      if (wait_for_workers) self$wait_for_workers(n_workers, timeout)
 
       return(invisible(worker_ids))
     },
 
     #' @description
     #' Start workers on remote machines with `mirai`.
-    #' The [mirai::mirai] are stored in `$processes_processx`.
+    #' The [mirai::mirai] are stored in `$processes_mirai`.
     #'
-    #' @param n_workers (`integer(1)`)\cr
-    #' Number of workers to be started.
-    #' @param wait_for_workers (`logical(1)`)\cr
-    #' Whether to wait until all workers are available.
-    #' @param timeout (`numeric(1)`)\cr
-    #' Timeout to wait for workers in seconds.
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
+    #' @param n_workers (`integer(1)`)\cr
+    #' Number of workers to be started.
+    #' @param supervise (`logical(1)`)\cr
+    #' Whether to kill the workers when the main R process is shut down.
     start_remote_workers = function(
       worker_loop,
       ...,
@@ -259,11 +246,12 @@ Rush = R6::R6Class("Rush",
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
-      wait_for_workers = FALSE
+      supervise = TRUE
       ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers)
-      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE)
-      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size, null.ok = TRUE)
+      n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
+      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
+      assert_flag(supervise)
 
       # check number of daemons
       if (!daemons()$connections) {
@@ -281,14 +269,14 @@ Rush = R6::R6Class("Rush",
         packages = packages
       )
 
+      lg$info("Starting %i worker(s)", n_workers)
+
       # reduce redis config
       config = mlr3misc::discard(unclass(self$config), is.null)
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
 
-      wait_for_workers = if (wait_for_workers) n_workers
-      browser()
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
         mirai({
@@ -298,16 +286,15 @@ Rush = R6::R6Class("Rush",
             config,
             remote = TRUE,
             lgr_thresholds,
-            lgr_buffer_size,
-            wait_for_workers)},
+            lgr_buffer_size)},
           .args = list(
             network_id = self$network_id,
             worker_id = worker_id,
             config = config,
             lgr_thresholds = lgr_thresholds,
-            lgr_buffer_size = lgr_buffer_size,
-            wait_for_workers = wait_for_workers),
-          dispatcher = "process")
+            lgr_buffer_size = lgr_buffer_size),
+          dispatcher = "process",
+          autoexit = supervise)
       }), worker_ids))
 
       return(invisible(worker_ids))

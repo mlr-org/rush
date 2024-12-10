@@ -9,7 +9,8 @@ start_worker(
   worker_id = NULL,
   config = NULL,
   remote = TRUE,
-  wait_for_workers = NULL
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0
 )
 }
 \arguments{
@@ -27,6 +28,14 @@ Configuration for the Redis connection.}
 
 \item{remote}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
+
+\item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{lgr_buffer_size}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 }
 \value{
 \code{NULL}

@@ -8,9 +8,7 @@ Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller m
 }
 \description{
 \link{Rush} is the controller in a rush network.
-The controller starts and stops the workers, observes the workers and can push tasks to the workers.
-
-The controller starts and stops the workers, pushes tasks to the workers and fetches results.
+The controller starts, observes and stops the worker of the network.
 }
 \section{Local Workers}{
 
@@ -337,8 +335,6 @@ Call this method to reconnect after loading the object.
 Start workers locally with \code{processx}.
 The \link[processx:process]{processx::process} are stored in \verb{$processes_processx}.
 Alternatively, use \verb{$start_remote_workers()} to start workers on remote machines with \code{mirai}.
-By default, \code{\link[=worker_loop_default]{worker_loop_default()}} is used as worker loop.
-This function takes the arguments \code{fun} and optionally \code{constants} which are passed in \code{...}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   worker_loop = NULL,
@@ -346,10 +342,8 @@ This function takes the arguments \code{fun} and optionally \code{constants} whi
   n_workers = NULL,
   globals = NULL,
   packages = NULL,
-  wait_for_workers = TRUE,
-  timeout = Inf,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
+  lgr_buffer_size = NULL,
   supervise = TRUE
 )}\if{html}{\out{</div>}}
 }
@@ -375,12 +369,6 @@ Global variables to be loaded to the workers global environment.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Timeout to wait for workers in seconds.}
-
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 
@@ -400,7 +388,7 @@ Whether to kill the workers when the main R process is shut down.}
 \if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
 \subsection{Method \code{start_remote_workers()}}{
 Start workers on remote machines with \code{mirai}.
-The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
+The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_mirai}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
   worker_loop,
@@ -409,9 +397,8 @@ The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_processx}.
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
-  wait_for_workers = FALSE,
-  timeout = Inf
+  lgr_buffer_size = NULL,
+  supervise = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -444,11 +431,8 @@ By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in 
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
 
-\item{\code{wait_for_workers}}{(\code{logical(1)})\cr
-Whether to wait until all workers are available.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Timeout to wait for workers in seconds.}
+\item{\code{supervise}}{(\code{logical(1)})\cr
+Whether to kill the workers when the main R process is shut down.}
 }
 \if{html}{\out{</div>}}
 }

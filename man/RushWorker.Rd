@@ -100,8 +100,6 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   config = NULL,
   remote,
   worker_id = NULL,
-  lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
   seed = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -128,14 +126,6 @@ See \link{Rush} for details.}
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
 
 \item{\code{seed}}{(\code{integer()})\cr
 Initial seed for the random number generator.

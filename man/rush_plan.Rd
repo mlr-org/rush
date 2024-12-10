@@ -8,6 +8,7 @@ rush_plan(
   n_workers = NULL,
   config = NULL,
   lgr_thresholds = NULL,
+  lgr_buffer_size = NULL,
   large_objects_path = NULL,
   start_worker_timeout = Inf
 )
@@ -24,6 +25,11 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{lgr_buffer_size}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{large_objects_path}{(\code{character(1)})\cr
 The path to the directory where large objects are stored.}

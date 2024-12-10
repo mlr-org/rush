@@ -19,6 +19,8 @@
 #'
 #' @template param_network_id
 #' @template param_worker_id
+#' @template param_lgr_thresholds
+#' @template param_lgr_buffer_size
 #'
 #' @return `NULL`
 #' @export
@@ -39,11 +41,9 @@ start_worker = function(
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
-  lgr_buffer_size = NULL,
-  wait_for_workers = NULL
+  lgr_buffer_size = 0
   ) {
   timestamp_start = Sys.time()
-
   checkmate::assert_string(network_id)
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
@@ -57,13 +57,13 @@ start_worker = function(
   # setup logger
   if (!is.null(lgr_thresholds)) {
     assert_vector(lgr_thresholds, names = "named")
-    assert_count(lgr_buffer_size, null.ok = TRUE)
+    assert_count(lgr_buffer_size)
 
     # add redis appender
     appender = rush::AppenderRedis$new(
       config = config,
       key = sprintf("%s:%s:%s", network_id, worker_id, "events"),
-      buffer_size = lgr_buffer_size %??% 0
+      buffer_size = lgr_buffer_size
     )
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)
@@ -112,19 +112,14 @@ start_worker = function(
     config = config,
     remote = remote)
 
-  lg$debug("Worker %s started", rush$worker_id)
-
-  timestamp_wait = Sys.time()
-  if (!is.null(wait_for_workers)) {
-    while (rush$n_running_workers != wait_for_workers) {
-      Sys.sleep(5)
-    }
-  }
+  lg$debug("Worker %s started in %i seconds", rush$worker_id, as.integer(difftime(Sys.time(), timestamp_start, units = "secs")))
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
 
   rush$set_terminated()
+
+  lg$debug("Worker %s terminated after %i seconds", rush$worker_id, as.integer(difftime(Sys.time(), timestamp_start, units = "secs")))
 
   invisible(TRUE)
 }
