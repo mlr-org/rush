@@ -77,7 +77,7 @@ start_worker = function(
     }
   }
 
-  lg$debug("Start worker setup on %s", worker_id)
+  lg$debug("Setup worker %s at %s", worker_id, timestamp_start)
 
   # get start arguments
   timestamp_connected = Sys.time()
