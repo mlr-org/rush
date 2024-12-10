@@ -279,9 +279,6 @@ Rush = R6::R6Class("Rush",
 
       # start rush worker with mirai
       self$processes_mirai = c(self$processes_mirai, set_names(map(worker_ids, function(worker_id) {
-
-        lg$debug("Sending mirai to start worker '%s'", worker_id)
-
         mirai({
           rush::start_worker(
             network_id,
