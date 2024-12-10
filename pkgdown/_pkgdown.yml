@@ -53,8 +53,6 @@ reference:
   - title: Worker Loop
     contents:
       - start_worker
-      - worker_loop_default
-      - worker_loop_callr
       - AppenderRedis
   - title: Misc
     contents:
