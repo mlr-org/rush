@@ -44,6 +44,7 @@ start_worker = function(
   lgr_buffer_size = 0
   ) {
   timestamp_start = Sys.time()
+  mlr3misc::messagef("Starting worker at %s", timestamp_start)
   checkmate::assert_string(network_id)
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
