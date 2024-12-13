@@ -36,8 +36,8 @@
 #'    port = '6379')
 #' }
 start_worker = function(
-  network_id,
   worker_id = NULL,
+  network_id,
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
