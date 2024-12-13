@@ -246,6 +246,26 @@ test_that("mirai workers are started", {
   daemons(0)
 })
 
+# test_that("delay start works", {
+#   skip_on_cran()
+
+#   config = start_flush_redis()
+#   rush = rsh(network_id = "test-rush", config = config)
+#   expect_data_table(rush$worker_info, nrows = 0)
+
+#   mirai::daemons(2)
+
+#   worker_ids = rush$start_remote_workers(
+#     worker_loop = test_worker_loop,
+#     n_workers = 2,
+#     lgr_thresholds = c(rush = "debug"),
+#     delay_start = 10)
+#   rush$wait_for_workers(2, timeout = 11)
+
+#   log = rush$read_log()
+# })
+
+
 # stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {

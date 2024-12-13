@@ -34,7 +34,8 @@ rush_plan = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  start_worker_timeout = Inf
+  start_worker_timeout = Inf,
+  delay_start = NULL
   ) {
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
@@ -42,6 +43,7 @@ rush_plan = function(
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
   assert_number(start_worker_timeout)
+  assert_count(delay_start, null.ok = TRUE)
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     stop("Can't connect to Redis. Check the configuration.")
@@ -52,6 +54,7 @@ rush_plan = function(
   assign("lgr_buffer_size", lgr_buffer_size, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
   assign("start_worker_timeout", start_worker_timeout, rush_env)
+  assign("delay_start", delay_start, rush_env)
   invisible(as.list(rush_env))
 }
 
