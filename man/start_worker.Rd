@@ -5,8 +5,8 @@
 \title{Start a worker}
 \usage{
 start_worker(
-  network_id,
   worker_id = NULL,
+  network_id,
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
@@ -14,14 +14,14 @@ start_worker(
 )
 }
 \arguments{
+\item{worker_id}{(\code{character(1)})\cr
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
+
 \item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
-
-\item{worker_id}{(\code{character(1)})\cr
-Identifier of the worker.
-Keys in redis specific to the worker are prefixed with the worker id.}
 
 \item{config}{(\code{list()})\cr
 Configuration for the Redis connection.}
