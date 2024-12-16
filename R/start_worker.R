@@ -87,7 +87,7 @@ start_worker = function(
   lg$debug("Downloaded start arguments %s bytes in %i seconds", format(object.size(bin_start_args), units = "MB"), as.integer(difftime(Sys.time(), timestamp_connected, units = "secs")))
   timestamp_loaded = Sys.time()
 
-  start_args = redux::bin_to_object(bin_start_args)
+  start_args = unserialize(bin_start_args)
 
   lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
   timestamp_unserialized = Sys.time()
