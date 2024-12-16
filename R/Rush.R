@@ -246,13 +246,11 @@ Rush = R6::R6Class("Rush",
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
-      supervise = TRUE,
-      delay_start = NULL
+      supervise = TRUE
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
       lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
       lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
-      delay_start = assert_number(delay_start %??% rush_env$delay_start, .var.name = "delay_start")
       assert_flag(supervise)
 
       # check number of daemons
@@ -287,8 +285,7 @@ Rush = R6::R6Class("Rush",
             config = config,
             remote = TRUE,
             lgr_thresholds,
-            lgr_buffer_size,
-            delay_start = delay_start)),
+            lgr_buffer_size)),
         worker_ids))
 
       return(invisible(worker_ids))

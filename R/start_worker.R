@@ -41,14 +41,9 @@ start_worker = function(
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
-  delay_start = NULL
+  lgr_buffer_size = 0
   ) {
   timestamp_start = Sys.time()
-
-  if (!is.null(delay_start)) {
-    Sys.sleep(sample(delay_start, 1))
-  }
 
   checkmate::assert_string(network_id)
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
