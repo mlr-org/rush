@@ -100,9 +100,9 @@ start_worker = function(
   lg$debug("Loaded large object in %i seconds", as.integer(difftime(Sys.time(), timestamp_unserialized, units = "secs")))
 
   # load packages and globals to worker environment
-  envir = .GlobalEnv
-  mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
-  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
+  # envir = .GlobalEnv
+  # mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
+  # mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
   lg$debug("Loaded packages and globals")
 
