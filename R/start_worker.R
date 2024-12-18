@@ -87,9 +87,13 @@ start_worker = function(
   lg$debug("Downloaded start arguments %s bytes in %i seconds", format(object.size(bin_start_args), units = "MB"), as.integer(difftime(Sys.time(), timestamp_connected, units = "secs")))
   timestamp_loaded = Sys.time()
 
+  lg$debug("Loaded %i base packages, %i other packages and %i loaded only packages", length(sessionInfo()$basePkgs), length(sessionInfo()$otherPkgs), length(sessionInfo()$loadedOnly))
+
   start_args = unserialize(bin_start_args)
 
   lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
+  lg$debug("Loaded %i base packages, %i other packages and %i loaded only packages", length(sessionInfo()$basePkgs), length(sessionInfo()$otherPkgs), length(sessionInfo()$loadedOnly))
+
   timestamp_unserialized = Sys.time()
 
   # load large object from disk
