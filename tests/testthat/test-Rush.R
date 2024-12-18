@@ -246,6 +246,38 @@ test_that("mirai workers are started", {
   daemons(0)
 })
 
+# start workers with script -----------------------------------------------------
+
+test_that("workers are started with script", {
+  skip_if(TRUE)
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  worker_ids = rush$worker_script(
+    worker_loop = test_worker_loop,
+    lgr_thresholds = c(rush = "debug"))
+
+
+  # check fields
+  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+
+  # check meta data from redis
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_true(all(worker_info$remote))
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_states$state, "running")
+
+  expect_rush_reset(rush)
+  daemons(0)
+})
+
+
 # stop workers -----------------------------------------------------------------
 
 test_that("a worker is terminated", {

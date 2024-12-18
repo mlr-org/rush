@@ -291,6 +291,38 @@ Rush = R6::R6Class("Rush",
       return(invisible(worker_ids))
     },
 
+    worker_script = function(
+      worker_loop,
+      ...,
+      globals = NULL,
+      packages = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = NULL
+      ) {
+      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
+
+      # push worker config to redis
+      private$.push_worker_config(
+        worker_loop = worker_loop,
+        ...,
+        globals = globals,
+        packages = packages
+      )
+
+      # convert arguments to character
+      config = mlr3misc::discard(unclass(self$config), is.null)
+      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste0("list(", config, ")")
+      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      lgr_thresholds = paste0("c(", lgr_thresholds, ")")
+
+      script = sprintf("Rscript -e 'rush::start_worker(network_id = '%s', config = %s, remote = TRUE, lgr_thresholds = %s, lgr_buffer_size = %i)'",
+          self$network_id, config, lgr_thresholds, lgr_buffer_size)
+
+      lg$info("Worker script: %s", script)
+    },
+
     #' @description
     #' Restart workers.
     #' If the worker is is still running, it is killed and restarted.
