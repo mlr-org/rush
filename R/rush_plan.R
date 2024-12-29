@@ -34,7 +34,8 @@ rush_plan = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  start_worker_timeout = Inf
+  start_worker_timeout = Inf,
+  worker_type = "local"
   ) {
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
@@ -42,6 +43,7 @@ rush_plan = function(
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
   assert_number(start_worker_timeout)
+  assert_choice(worker_type, c("local", "remote", "script"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     stop("Can't connect to Redis. Check the configuration.")
@@ -52,6 +54,7 @@ rush_plan = function(
   assign("lgr_buffer_size", lgr_buffer_size, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
   assign("start_worker_timeout", start_worker_timeout, rush_env)
+  assign("worker_type", worker_type, rush_env)
   invisible(as.list(rush_env))
 }
 
@@ -77,7 +80,8 @@ rush_config = function() {
     lgr_thresholds = rush_env$lgr_thresholds,
     lgr_buffer_size = rush_env$lgr_buffer_size,
     large_objects_path = rush_env$large_objects_path,
-    start_worker_timeout = rush_env$start_worker_timeout)
+    start_worker_timeout = rush_env$start_worker_timeout,
+    worker_type = rush_env$worker_type)
 }
 
 #' @title Remove Rush Plan
