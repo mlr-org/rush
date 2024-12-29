@@ -107,8 +107,8 @@ start_worker = function(
 
   # load packages and globals to worker environment
   # envir = .GlobalEnv
-  # mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
-  # mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
+  mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
+  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
   lg$debug("Loaded packages and globals")
 
