@@ -86,15 +86,14 @@ start_worker = function(
 
   lg$debug("Downloaded start arguments %s bytes in %i seconds", format(object.size(bin_start_args), units = "MB"), as.integer(difftime(Sys.time(), timestamp_connected, units = "secs")))
   timestamp_loaded = Sys.time()
-
-  loaded_packages = names(sessionInfo()$loadedOnly)
-  lg$debug("Loaded %i base packages, %i other packages and %i loaded only packages", length(sessionInfo()$basePkgs), length(sessionInfo()$otherPkgs), length(sessionInfo()$loadedOnly))
+  loaded_packages = sessionInfo()
 
   start_args = unserialize(bin_start_args)
 
   lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
-  lg$debug("Loaded %i base packages, %i other packages and %i loaded only packages", length(sessionInfo()$basePkgs), length(sessionInfo()$otherPkgs), length(sessionInfo()$loadedOnly))
-  lg$debug("Extra packages: %s", setdiff(names(sessionInfo()$loadedOnly), loaded_packages))
+  lg$debug("Unserialize loaded base packages: %s", as_short_string(setdiff(names(sessionInfo()$basePkgs), names(loaded_packages$basePkgs))))
+  lg$debug("Unserialize loaded other packages: %s", as_short_string(setdiff(names(sessionInfo()$otherPkgs), names(loaded_packages$otherPkgs))))
+  lg$debug("Unserialize attached packages: %s", as_short_string(setdiff(names(sessionInfo()$loadedOnly), names(loaded_packages$loadedOnly))))
 
   timestamp_unserialized = Sys.time()
 
