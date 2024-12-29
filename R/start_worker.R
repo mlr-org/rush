@@ -91,9 +91,9 @@ start_worker = function(
   start_args = unserialize(bin_start_args)
 
   lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
-  lg$debug("Unserialize loaded base packages: %s", as_short_string(setdiff(names(sessionInfo()$basePkgs), names(loaded_packages$basePkgs))))
-  lg$debug("Unserialize loaded other packages: %s", as_short_string(setdiff(names(sessionInfo()$otherPkgs), names(loaded_packages$otherPkgs))))
-  lg$debug("Unserialize attached packages: %s", as_short_string(setdiff(names(sessionInfo()$loadedOnly), names(loaded_packages$loadedOnly))))
+  lg$debug("Unserialize loaded base packages: %s", str_collapse(setdiff(names(sessionInfo()$basePkgs), names(loaded_packages$basePkgs))))
+  lg$debug("Unserialize loaded other packages: %s", str_collapse(setdiff(names(sessionInfo()$otherPkgs), names(loaded_packages$otherPkgs))))
+  lg$debug("Unserialize attached packages: %s", str_collapse(setdiff(names(sessionInfo()$loadedOnly), names(loaded_packages$loadedOnly))))
 
   timestamp_unserialized = Sys.time()
 
