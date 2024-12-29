@@ -91,10 +91,6 @@ start_worker = function(
   start_args = unserialize(bin_start_args)
 
   lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
-  lg$debug("Unserialize loaded base packages: %s", str_collapse(setdiff(names(sessionInfo()$basePkgs), names(loaded_packages$basePkgs))))
-  lg$debug("Unserialize loaded other packages: %s", str_collapse(setdiff(names(sessionInfo()$otherPkgs), names(loaded_packages$otherPkgs))))
-  lg$debug("Unserialize attached packages: %s", str_collapse(setdiff(names(sessionInfo()$loadedOnly), names(loaded_packages$loadedOnly))))
-
   timestamp_unserialized = Sys.time()
 
   # load large object from disk
@@ -103,13 +99,14 @@ start_worker = function(
   }
 
   lg$debug("Loaded large object in %i seconds", as.integer(difftime(Sys.time(), timestamp_unserialized, units = "secs")))
+  timestamp_large_objects = Sys.time()
 
   # load packages and globals to worker environment
   # envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 
-  lg$debug("Loaded packages and globals")
+  lg$debug("Loaded packages and globals in %i seconds", as.integer(difftime(Sys.time(), timestamp_large_objects, units = "secs")))
 
   # initialize rush worker
   rush = rush::RushWorker$new(
