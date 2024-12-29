@@ -256,27 +256,28 @@ test_that("workers are started with script", {
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_ids = rush$worker_script(
+  rush$worker_script(
     worker_loop = test_worker_loop,
     lgr_thresholds = c(rush = "debug"))
 
+  px = processx::process$new("Rscript",
+    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0)")),
+    supervise = TRUE,
+    stderr = "|", stdout = "|")
 
-  # check fields
-  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+  on.exit({
+    px$kill()
+  }, add = TRUE)
 
-  # check meta data from redis
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_true(all(worker_info$remote))
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
+  Sys.sleep(5)
 
-  expect_rush_reset(rush)
-  daemons(0)
+  expect_true(px$is_alive())
+  expect_equal(rush$n_running_workers, 1)
+  expect_true(all(rush$worker_info$remote))
+
+  px$kill()
+  expect_rush_reset(rush, type = "terminate")
 })
-
 
 # stop workers -----------------------------------------------------------------
 
