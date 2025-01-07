@@ -41,7 +41,9 @@ start_worker = function(
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0
+  lgr_buffer_size = 0,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL
   ) {
   timestamp_start = Sys.time()
 
@@ -113,7 +115,9 @@ start_worker = function(
     network_id = network_id,
     worker_id = worker_id,
     config = config,
-    remote = remote)
+    remote = remote,
+    heartbeat_period,
+    heartbeat_expire)
 
   lg$debug("Worker %s started in %i seconds", rush$worker_id, as.integer(difftime(Sys.time(), timestamp_start, units = "secs")))
 

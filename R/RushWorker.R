@@ -27,6 +27,10 @@ RushWorker = R6::R6Class("RushWorker",
     #' Whether the worker is on a remote machine.
     remote = NULL,
 
+    #' @field heartbeat (`callr::r_bg`)\cr
+    #' Background process for the heartbeat.
+    heartbeat = NULL,
+
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(
@@ -34,6 +38,8 @@ RushWorker = R6::R6Class("RushWorker",
       config = NULL,
       remote,
       worker_id = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
       seed = NULL
       ) {
       super$initialize(network_id = network_id, config = config, seed = seed)
@@ -41,6 +47,33 @@ RushWorker = R6::R6Class("RushWorker",
       self$remote = assert_flag(remote)
       self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
       r = self$connector
+
+      # setup heartbeat
+      if (!is.null(heartbeat_period)) {
+        require_namespaces("callr")
+        assert_number(heartbeat_period)
+        assert_number(heartbeat_expire, null.ok = TRUE)
+        heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
+
+        # set heartbeat key
+        r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
+
+        # start heartbeat process
+        heartbeat_args = list(
+          network_id = self$network_id,
+          config = self$config,
+          worker_id = self$worker_id,
+          heartbeat_period = heartbeat_period,
+          heartbeat_expire = heartbeat_expire,
+          pid = Sys.getpid()
+        )
+        self$heartbeat = callr::r_bg(heartbeat, args = heartbeat_args, supervise = TRUE)
+
+        # wait until heartbeat process is able to work
+        Sys.sleep(1)
+
+        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
+      }
 
       # register worker ids
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
@@ -52,7 +85,8 @@ RushWorker = R6::R6Class("RushWorker",
         "worker_id", self$worker_id,
         "pid", Sys.getpid(),
         "remote", self$remote,
-        "hostname", rush::get_hostname()))
+        "hostname", rush::get_hostname(),
+        "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
     },
 
     #' @description

@@ -8,6 +8,9 @@
 #' A local worker runs on the same machine as the controller.
 #' Local workers are spawned with the `$start_local_workers() method via the `processx` package.
 #'
+#' @section Mirai Workers:
+#' A mirai worker is started with the `mirai` package on local and remote machines
+#'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
 #' Remote workers are started with the `$start_remote_workers()` method via the `mirai` package.
@@ -297,7 +300,9 @@ Rush = R6::R6Class("Rush",
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = NULL
+      lgr_buffer_size = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL
       ) {
       lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
       lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
@@ -317,8 +322,8 @@ Rush = R6::R6Class("Rush",
       lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
       lgr_thresholds = paste0("c(", lgr_thresholds, ")")
 
-      script = sprintf("Rscript -e 'rush::start_worker(network_id = '%s', config = %s, remote = TRUE, lgr_thresholds = %s, lgr_buffer_size = %i)'",
-          self$network_id, config, lgr_thresholds, lgr_buffer_size)
+      script = sprintf("Rscript -e \"rush::start_worker(network_id = '%s', config = %s, remote = TRUE, lgr_thresholds = %s, lgr_buffer_size = %i, heartbeat_period = %i, heartbeat_expire = %i)\"",
+          self$network_id, config, lgr_thresholds, lgr_buffer_size, heartbeat_period, heartbeat_expire)
 
       lg$info("Worker script: %s", script)
     },
@@ -445,7 +450,7 @@ Rush = R6::R6Class("Rush",
           # FIXME: mirai can only kill all daemons together at the moment
           worker_id_mirai = names(self$processes_mirai)
 
-          lg$debug("Killing %i remote worker(s)", length(worker_id_mirai))
+          lg$debug("Killing %i mirai worker(s)", length(worker_id_mirai))
 
           # kill all daemons
           i = daemons()$daemons[,1]
@@ -455,6 +460,19 @@ Rush = R6::R6Class("Rush",
           cmds = map(worker_ids, function(id) {
             c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id)
           })
+          r$pipeline(.commands = cmds)
+        }
+
+        worker_ids_heartbeat = rush$worker_info[!is.na(heartbeat), worker_id]
+        if (length(worker_ids_heartbeat)) {
+          lg$debug("Killing %i worker(s) with heartbeat", length(worker_ids_heartbeat))
+
+          cmds= unlist(map(worker_ids_heartbeat, function(worker_id) {
+            list(
+              c("LPUSH", private$.get_worker_key("kill", worker_id), "TRUE"),
+              c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), worker_id))
+          }), recursive = FALSE)
+
           r$pipeline(.commands = cmds)
         }
       }
@@ -542,6 +560,28 @@ Rush = R6::R6Class("Rush",
         })
       }
 
+      # check heartbeat of workers
+      heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
+      if (length(heartbeat_keys)) {
+        running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
+        if (all(running)) return(invisible(self))
+
+        # search for associated worker ids
+        heartbeat_keys = heartbeat_keys[!running]
+        lost_workers = self$worker_info[heartbeat_keys, worker_id, on = "heartbeat"]
+
+        # set worker state
+        cmds = map(lost_workers, function(worker_id) {
+          lg$error("Lost worker '%s'", worker_id)
+          c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("lost_worker_ids"), worker_id)
+        })
+
+        # remove heartbeat keys
+        cmds = c(cmds, list(c("SREM", "heartbeat_keys", heartbeat_keys)))
+
+        r$pipeline(.commands =  cmds)
+      }
+
       return(invisible(self))
     },
 
@@ -591,6 +631,7 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("start_args"))
       r$DEL(private$.get_key("terminate_on_idle"))
       r$DEL(private$.get_key("local_workers"))
+      r$DEL(private$.get_key("heartbeat_keys"))
 
       # be safe
       remaining_keys = self$connector$command(c("KEYS", "*"))
@@ -1370,7 +1411,7 @@ Rush = R6::R6Class("Rush",
       if (!self$n_workers) return(data.table())
       r = self$connector
 
-      fields = c("worker_id", "pid", "remote", "hostname")
+      fields = c("worker_id", "pid", "remote", "hostname", "heartbeat")
       worker_info = set_names(rbindlist(map(self$worker_ids, function(worker_id) {
         r$command(c("HMGET", private$.get_key(worker_id), fields))
       })), fields)

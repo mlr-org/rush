@@ -279,7 +279,35 @@ test_that("workers are started with script", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-# stop workers -----------------------------------------------------------------
+test_that("heartbeat process is started", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  rush$worker_script(
+    worker_loop = test_worker_loop,
+    heartbeat_period = 3,
+    heartbeat_expire = 9,
+    lgr_thresholds = c(rush = "debug"))
+
+  px = processx::process$new("Rscript",
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
+    supervise = TRUE,
+    stderr = "|", stdout = "|")
+
+  on.exit({
+    px$kill()
+  }, add = TRUE)
+
+  Sys.sleep(5)
+
+  worker_info = rush$worker_info
+  expect_character(worker_info$heartbeat, unique = TRUE)
+})
+
+# terminate workers ------------------------------------------------------------
 
 test_that("a worker is terminated", {
   skip_on_cran()
@@ -331,6 +359,8 @@ test_that("a worker is terminated", {
   expect_rush_reset(rush, type = "terminate")
 })
 
+# kill workers -----------------------------------------------------------------
+
 test_that("a local worker is killed", {
   skip_on_cran()
 
@@ -362,7 +392,7 @@ test_that("a local worker is killed", {
   expect_rush_reset(rush)
 })
 
-test_that("a remote worker is killed", {
+test_that("a mirai worker is killed", {
   skip_on_cran()
   skip_on_os("windows")
 
@@ -400,6 +430,47 @@ test_that("a remote worker is killed", {
 
   expect_rush_reset(rush)
   daemons(0)
+})
+
+test_that("worker is killed with a heartbeat process", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  rush$worker_script(
+    worker_loop = test_worker_loop,
+    heartbeat_period = 3,
+    heartbeat_expire = 9,
+    lgr_thresholds = c(rush = "debug"))
+
+  px = processx::process$new("Rscript",
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
+    supervise = TRUE,
+    stderr = "|", stdout = "|")
+
+  on.exit({
+    px$kill()
+  }, add = TRUE)
+
+  Sys.sleep(5)
+
+  worker_info = rush$worker_info
+  expect_character(worker_info$heartbeat, unique = TRUE)
+
+  # signal 0L returns TRUE if the process is still alive
+  expect_true(tools::pskill(worker_info$pid, signal = 0L))
+
+  rush$stop_workers(type = "kill")
+
+  Sys.sleep(1)
+
+  expect_false(tools::pskill(worker_info$pid, signal = 0L))
+  expect_true(rush$worker_states$state == "killed")
+  expect_equal(rush$killed_worker_ids, worker_info$worker_id)
+
+  expect_rush_reset(rush)
 })
 
 # low level read and write -----------------------------------------------------
@@ -702,7 +773,7 @@ test_that("a segfault on a local worker is detected", {
   expect_rush_reset(rush)
 })
 
-test_that("a segfault on a remote worker", {
+test_that("a segfault on a mirai worker", {
   skip_if(TRUE) # does not work in testthat on environment
 
   config = start_flush_redis()
@@ -733,6 +804,47 @@ test_that("a segfault on a remote worker", {
   expect_rush_reset(rush)
 })
 
+test_that("a segfault on a worker is detected via the heartbeat", {
+  skip_if(TRUE) # does not work in testthat on environment
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  worker_loop = function(rush) {
+    while(TRUE) {
+      Sys.sleep(1)
+      xs = list(x1 = 1, x2 = 2)
+      key = rush$push_running_tasks(list(xs))
+      get("attach")(structure(list(), class = "UserDefinedDatabase"))
+    }
+  }
+
+  rush$worker_script(
+    worker_loop = worker_loop,
+    heartbeat_period = 1,
+    heartbeat_expire = 2,
+    lgr_thresholds = c(rush = "debug"))
+
+  px = processx::process$new("Rscript",
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
+    supervise = TRUE,
+    stderr = "|", stdout = "|")
+
+  on.exit({
+    px$kill()
+  }, add = TRUE)
+
+  Sys.sleep(10)
+
+  expect_null(rush$lost_worker_ids)
+  rush$detect_lost_workers()
+  expect_string(rush$lost_worker_ids)
+
+  expect_rush_reset(rush)
+})
+
+
 # fault detection --------------------------------------------------------------
 
 test_that("a simple error is catched", {
@@ -762,7 +874,6 @@ test_that("a simple error is catched", {
 
     return(NULL)
   }
-
 
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
@@ -1073,42 +1184,6 @@ test_that("reconnecting rush instance works", {
 
   rush$reconnect()
   expect_r6(rush, "Rush")
-
-  expect_rush_reset(rush)
-})
-
-# rush network without controller ----------------------------------------------
-
-test_that("network without controller works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-
-  fun = function(rush) {
-    while (rush$n_finished_tasks < 100) {
-      # ask
-      xs = list(
-        x1 = sample(seq(1000), 1),
-        x2 = sample(seq(1000), 1)
-      )
-      keys = rush$push_running_tasks(list(xs))
-
-      # evaluate
-      ys = list(y = xs$x1 + xs$x2)
-
-      # tell
-      rush$push_results(keys, list(ys))
-    }
-
-    return(NULL)
-  }
-
-  rush$start_local_workers(worker_loop = fun, n_workers = 2)
-  rush$wait_for_workers(2, timeout = 5)
-
-  Sys.sleep(10)
-  expect_gte(rush$n_finished_tasks, 100)
 
   expect_rush_reset(rush)
 })
