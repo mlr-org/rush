@@ -1,70 +1,23 @@
 #' @title Rush Controller
 #'
 #' @description
-#' [Rush] is the controller in a rush network.
-#' The controller starts, observes and stops the worker of the network.
+#' The `Rush` controller initializes a decentralized network.
+#' The controller starts and stops workers ([RushWorker]) and observes the state of the network.
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
-#' Local workers are spawned with the `$start_local_workers() method via the `processx` package.
-#'
-#' @section Mirai Workers:
-#' A mirai worker is started with the `mirai` package on local and remote machines
+#' Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
 #'
 #' @section Remote Workers:
 #' A remote worker runs on a different machine than the controller.
-#' Remote workers are started with the `$start_remote_workers()` method via the `mirai` package.
+#' Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
 #'
-#' @section Stopping Workers:
-#' Local and remote workers can be stopped with the `$stop_workers(type)` method.
-#' The options `type = "kill"` stops the workers immediately.
-#' Currently only all remote workers can be stopped at once.
-#' The option `type = "terminate"` sends a stop signal to the workers via the Redis database.
-#' This option must be implemented in the worker loop via `rush$terminated`.
+#' @section Script Workers:
+#' Workers can be started with a script anywhere.
+#' The only requirement is that the worker can connect to the Redis server.
+#' The script is created with the `$worker_script()` method.
 #'
-#' @section Data Structure:
-#' Tasks are stored in Redis [hashes](https://redis.io/docs/latest/develop/data-types/hashes/).
-#' Hashes are collections of field-value pairs.
-#' The key of the hash identifies the task in Redis and `rush`.
 #'
-#' ```
-#' key : xs | ys | xs_extra
-#' ```
-#'
-#' The field-value pairs are written by different methods, e.g. `$push_tasks()` writes `xs` and `$push_results()` writes `ys`.
-#' The values of the fields are serialized lists or atomic values e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`
-#' This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.
-#'
-#' ```
-#' | key | x1 | x2 | y | timestamp |
-#' | 1.. |  3 |  4 | 7 |  12:04:11 |
-#' | 2.. |  1 |  4 | 5 |  12:04:12 |
-#' | 3.. |  1 |  1 | 2 |  12:04:13 |
-#' ```
-#' When the value of a field is a named list, the field can store the cells of multiple columns of the table.
-#' When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
-#' The methods `$push_tasks()` and `$push_results()` write into multiple hashes.
-#' For example, `$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))` writes `xs` in two hashes.
-#'
-#' @section Task States:
-#' A task can go through four states `"running"`, `"finished"`, `"failed"` and `"queued"`.
-#' Internally, the keys of the tasks are pushed through Redis [lists](https://redis.io/docs/latest/develop/data-types/lists/) and [sets](https://redis.io/docs/latest/develop/data-types/sets/) to keep track of their state.
-#' A worker creates a task and marks it as `"running` when evaluating the task.
-#' When the task is finished, the state is changed to `"finished"` and the result is written to the data base.
-#' If the task fails, the state is changed to `"failed"` instead of `"finished"`.
-#' `"queued"` tasks are waiting to be evaluated (see Queues)
-#'
-#' @section Fetch Tasks and Results:
-#' The `$fetch_*()` methods retrieve data from the Redis database.
-#' A matching method is defined for each task state e.g. `$fetch_running_tasks()` and `$fetch_finished_tasks()`.
-#' The methods `$fetch_new_tasks()` and `$fetch_finished_tasks()` cache the already queried data.
-#' The `$wait_for_finished_tasks()` variant wait until a new result is available.
-#'
-#' @section Logging:
-#' The worker logs all messages written with the `lgr` package to the data base.
-#' The `lgr_thresholds` argument defines the logging level for each logger e.g. `c(rush = "debug")`.
-#' Saving log messages adds a small overhead but is useful for debugging.
-#' By default, no log messages are stored.
 #'
 #' @template param_network_id
 #' @template param_config
@@ -74,6 +27,8 @@
 #' @template param_remote
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
+#' @template param_heatbeat_period
+#' @template param_heatbeat_expire
 #' @template param_seed
 #' @template param_data_format
 #'
@@ -239,8 +194,6 @@ Rush = R6::R6Class("Rush",
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' @param supervise (`logical(1)`)\cr
-    #' Whether to kill the workers when the main R process is shut down.
     start_remote_workers = function(
       worker_loop,
       ...,
@@ -248,8 +201,7 @@ Rush = R6::R6Class("Rush",
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = NULL,
-      supervise = TRUE
+      lgr_buffer_size = NULL
       ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
       lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
@@ -294,6 +246,11 @@ Rush = R6::R6Class("Rush",
       return(invisible(worker_ids))
     },
 
+    #' @description
+    #' Generate a script to start workers.
+    #'
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
     worker_script = function(
       worker_loop,
       ...,

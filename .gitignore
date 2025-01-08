@@ -103,3 +103,6 @@ CRAN-SUBMISSION
 revdep/
 
 /.quarto/
+inst/doc
+/doc/
+/Meta/

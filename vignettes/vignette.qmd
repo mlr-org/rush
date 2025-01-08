@@ -1,0 +1,16 @@
+---
+title: "rush"
+vignette: >
+  %\VignetteIndexEntry{rush}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(rush)
+```
+
+
+```{r}
+1 + 1
+```
