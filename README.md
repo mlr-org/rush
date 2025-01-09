@@ -3,35 +3,80 @@
 
 # rush
 
-*rush* is a package for decentralized and distributed computing in R.
+Package website: [release](https://rush.mlr-org.com/) \|
+[dev](https://rush.mlr-org.com/dev/)
+
+<!-- badges: start -->
+
+[![r-cmd-check](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml/badge.svg)](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml)
+[![CRAN
+Status](https://www.r-pkg.org/badges/version-ago/rush)](https://cran.r-project.org/package=rush)
+[![StackOverflow](https://img.shields.io/badge/stackoverflow-mlr3-orange.svg)](https://stackoverflow.com/questions/tagged/mlr3)
+[![Mattermost](https://img.shields.io/badge/chat-mattermost-orange.svg)](https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/)
+<!-- badges: end -->
+
+*rush* is a package designed for decentralized and distributed computing
+in R. It enables workers to communicate over a shared
+[`Redis`](https://redis.io/) database to solve large-scale problems in
+parallel. The package powers the asynchronous optimization algorithms in
+the [`bbotk`](https://CRAN.R-project.org/package=bbotk) and
+[`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
 
 # Features
 
-- Decentralized network architecture
-- Small overhead of a few milliseconds per task
-- Easy start of local workers with `processx` and remote workers with
-  `mirai`.
-- Designed to work with
+- Decentralized network architecture for robust scalability.
+- Efficient communication between workers using a shared
+  [`Redis`](https://redis.io/) database.
+- Maintains low overhead, limiting delays to just a millisecond per
+  task.
+- Reduces read/write operations with a lightweight and efficient caching
+  system.
+- Offers centralized system features, such as task queues.
+- Provides fast data transformation from Redis to
   [`data.table`](https://CRAN.R-project.org/package=data.table).
-- Results are cached in the R session to minimize read and write
-  operations.
-- Detect and recover from worker failures.
-- Store [`lgr`](https://CRAN.R-project.org/package=lgr) messages of the
-  workers in the Redis data base.
-- Light on dependencies.
+- Simplifies local worker setup with
+  [`processx`](https://CRAN.R-project.org/package=processx).
+- Enables scaling to large remote worker networks via the
+  [`mirai`](https://CRAN.R-project.org/package=mirai) package.
+- Automatically detects and recovers from worker failures for high
+  reliability.
+- Logs worker messages directly into the Redis database using
+  [`lgr`](https://CRAN.R-project.org/package=lgr).
+- Designed with minimal dependencies for lightweight integration.
 
 ## Install
+
+Install the latest release from CRAN.
+
+``` r
+install.packages("rush")
+```
 
 Install the development version from GitHub.
 
 ``` r
-remotes::install_github("mlr-org/rush")
+pak::pak("mlr-org/rush")
 ```
 
-And install [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
+And install
+[Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
 
 ## Decentralized Rush Network
 
 ![](man/figures/README-flow-2.png)
 
 *Decentralized network with four workers.*
+
+# Related Work
+
+- The [rrq](https://github.com/mrc-ide/rrq) package is a task queue
+  system for R using Redis.
+- The [future](https://CRAN.R-project.org/package=future) package
+  provides a simple and uniform way of evaluating R expressions
+  asynchronously across a range of backends.
+- [batchtools](https://CRAN.R-project.org/package=batchtools) is a
+  package for the execution of long-running tasks on high-performance
+  computing clusters.
+- The [mirai](https://CRAN.R-project.org/package=mirai) package
+  evaluates an R expression asynchronously in a parallel process,
+  locally or distributed over the network.

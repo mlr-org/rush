@@ -104,7 +104,7 @@ start_worker = function(
   timestamp_large_objects = Sys.time()
 
   # load packages and globals to worker environment
-  # envir = .GlobalEnv
+  envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
 

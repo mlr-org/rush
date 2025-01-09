@@ -15,7 +15,7 @@ Imports:
     ids,
     jsonlite,
     lgr,
-    mirai,
+    mirai (>= 2.0.0),
     mlr3misc,
     parallel,
     processx,

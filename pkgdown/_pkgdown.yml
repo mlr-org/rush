@@ -16,7 +16,7 @@ toc:
 
 navbar:
   structure:
-    left:  [reference, news, book]
+    left:  [reference, news, book, articles]
     right: [github, mattermost, stackoverflow, rss, lightswitch]
   components:
     home: ~
@@ -31,6 +31,11 @@ navbar:
       text: mlr3book
       icon: fa fa-link
       href: https://mlr3book.mlr-org.com
+    articles:
+        text: Articles
+        menu:
+        - text: Get Started
+          href: articles/vignette.html
     stackoverflow:
       icon: fab fa-stack-overflow
       href: https://stackoverflow.com/questions/tagged/mlr
