@@ -277,16 +277,21 @@ Rush = R6::R6Class("Rush",
       )
 
       # convert arguments to character
+      args = list(network_id = sprintf("'%s'", self$network_id))
       config = mlr3misc::discard(unclass(self$config), is.null)
       config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
-      config = paste0("list(", config, ")")
-      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
-      lgr_thresholds = paste0("c(", lgr_thresholds, ")")
+      args[["config"]] = paste0("list(", config, ")")
+      if (!is.null(lgr_thresholds)) {
+        lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+        args[["lgr_thresholds"]] = paste0("c(", lgr_thresholds, ")")
+        args[["lgr_buffer_size"]] = lgr_buffer_size
+      }
+      if (!is.null(heartbeat_period)) args[["heartbeat_period"]] = heartbeat_period
+      if (!is.null(heartbeat_expire)) args[["heartbeat_expire"]] = heartbeat_expire
+      args = paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
 
-      script = sprintf("Rscript -e \"rush::start_worker(network_id = '%s', config = %s, remote = TRUE, lgr_thresholds = %s, lgr_buffer_size = %i, heartbeat_period = %i, heartbeat_expire = %i)\"",
-          self$network_id, config, lgr_thresholds, lgr_buffer_size, heartbeat_period, heartbeat_expire)
-
-      lg$info("Worker script: %s", script)
+      lg$info("Creating worker script")
+      lg$info("Rscript -e \"rush::start_worker(%s)\"", args)
     },
 
     #' @description
