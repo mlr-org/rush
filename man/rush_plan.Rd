@@ -10,7 +10,8 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  start_worker_timeout = Inf
+  start_worker_timeout = Inf,
+  worker_type = "local"
 )
 }
 \arguments{

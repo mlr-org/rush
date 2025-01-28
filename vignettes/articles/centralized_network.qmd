@@ -6,8 +6,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-*rush*
+*rush* can also be used as a centralized network.
+In such a network, a central controller creates tasks and distributes them to the workers.
+The workers evaluate the tasks and send the results back to the controller.
+At the heart of a centralized network is a queue that holds the tasks to be evaluated.
 
+
+The `$push_tasks()` method pushes tasks to the queue and the `$pop_task()` method pops tasks from the queue.
+We know the `$push_results()` method already from the decentralized network.
+
+The `worker_loop` is different in a centralized network.
+Instead of creating new tasks, the worker pops tasks from the queue.
+The task is evaluated and the results are sent to the data base.
+The controller usually fetches the results from the database and and creates new tasks.
 
 ```{r}
 worker_loop = function(rush) {

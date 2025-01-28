@@ -27,8 +27,8 @@
 #' @template param_remote
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
-#' @template param_heatbeat_period
-#' @template param_heatbeat_expire
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
 #' @template param_seed
 #' @template param_data_format
 #'
@@ -132,26 +132,28 @@ Rush = R6::R6Class("Rush",
     #' Start workers locally with `processx`.
     #' The [processx::process] are stored in `$processes_processx`.
     #' Alternatively, use `$start_remote_workers()` to start workers on remote machines with `mirai`.
+    #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
+    #' Default is `1`.
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
     start_local_workers = function(
       worker_loop = NULL,
       ...,
-      n_workers = NULL,
+      n_workers = 1,
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       supervise = TRUE
       ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
-      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
-      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
+      n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
+      lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
       assert_flag(supervise)
 
       r = self$connector
@@ -189,31 +191,33 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Start workers on remote machines with `mirai`.
     #' The [mirai::mirai] are stored in `$processes_mirai`.
+    #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
+    #' Default is `1`.
     start_remote_workers = function(
       worker_loop,
       ...,
-      n_workers = NULL,
+      n_workers = 1,
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL
       ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers, .var.name = "n_workers")
-      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
-      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
-      assert_flag(supervise)
+      n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
+      lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
 
+      mirai_status = status()
       # check number of daemons
-      if (!daemons()$connections) {
+      if (!mirai_status$connections) {
         stop("No daemons available. Start daemons with `mirai::daemons()`")
       }
-      if (n_workers > sum(daemons()$daemons[,2])) {
-        warningf("Number of workers %i exceeds number of available daemons %i", n_workers, sum(daemons()$daemons[,2]))
+      if (n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
+        warningf("Number of workers %i exceeds number of available daemons %i", n_workers, mirai_status$connections - mirai_status$mirai["executing"])
       }
 
       # push worker config to redis
@@ -261,8 +265,8 @@ Rush = R6::R6Class("Rush",
       heartbeat_period = NULL,
       heartbeat_expire = NULL
       ) {
-      lgr_thresholds = assert_vector(lgr_thresholds %??% rush_env$lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
-      lgr_buffer_size = assert_count(lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
+      lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
+      lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
 
       # push worker config to redis
       private$.push_worker_config(
@@ -299,16 +303,47 @@ Rush = R6::R6Class("Rush",
       restarted_worker_ids = character(0)
 
       # restart mirai workers
-      if (worker_ids %in% names(self$processes_mirai)) {
-        stop("Remote workers cannot be restarted")
+      worker_id_mirai = intersect(worker_ids, names(self$processes_mirai))
+      if (length(worker_id_mirai)) {
+        mirai_status = status()
+        # check number of daemons
+        if (!mirai_status$connections) {
+          stop("No daemons available. Start daemons with `mirai::daemons()`")
+        }
+        if (length(worker_id_mirai) > mirai_status$connections - mirai_status$mirai["executing"]) {
+          warningf("Number of workers %i exceeds number of available daemons %i", n_workers, mirai_status$connections - mirai_status$mirai["executing"])
+        }
+
+        # stop running workers
+        self$stop_workers(type = "kill", intersect(rush$running_worker_ids, worker_id_mirai))
+
+        lg$info("Restarting %i worker(s): %s", length(worker_id_mirai), str_collapse(worker_id_mirai))
+
+        # reduce redis config
+        config = mlr3misc::discard(unclass(self$config), is.null)
+
+        r$command(c("SREM", private$.get_key("killed_worker_ids"), worker_id_mirai))
+        r$command(c("SREM", private$.get_key("lost_worker_ids"), worker_id_mirai))
+
+        # start rush worker with mirai
+        new_processes = set_names(
+          mirai_map(worker_id_mirai, rush::start_worker,
+            .args = list(
+              network_id = self$network_id,
+              config = config,
+              remote = TRUE,
+              lgr_thresholds = c(rush = "debug"))), # FIXME LOG Level
+          worker_id_mirai)
+
+        self$processes_mirai = insert_named(self$processes_mirai, new_processes)
+        restarted_worker_ids = c(restarted_worker_ids, worker_id_mirai)
       }
 
       # restart processx workers
-      if (worker_ids %in% names(self$processes_processx)) {
-        worker_id_processx = intersect(worker_ids, names(self$processes_processx))
-
+      worker_id_processx = intersect(worker_ids, names(self$processes_processx))
+      if (length(worker_id_processx)) {
         # stop running workers
-        self$stop_workers(type = "kill", worker_id_processx)
+        self$stop_workers(type = "kill", intersect(rush$running_worker_ids, worker_id_processx))
 
         lg$info("Restarting %i worker(s): %s", length(worker_id_processx), str_collapse(worker_id_processx))
 
@@ -316,6 +351,9 @@ Rush = R6::R6Class("Rush",
         config = mlr3misc::discard(unclass(self$config), is.null)
         config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
         config = paste0("list(", config, ")")
+
+        r$command(c("SREM", private$.get_key("killed_worker_ids"), worker_id_processx))
+        r$command(c("SREM", private$.get_key("lost_worker_ids"), worker_id_processx))
 
         new_processes = set_names(map(worker_id_processx, function(worker_id) {
           processx::process$new("Rscript",
@@ -403,24 +441,21 @@ Rush = R6::R6Class("Rush",
 
         worker_ids_mirai = intersect(worker_ids, names(self$processes_mirai))
         if (length(worker_ids_mirai)) {
+          lg$debug("Killing %i remote worker(s)", length(worker_ids_mirai))
 
-          # FIXME: mirai can only kill all daemons together at the moment
-          worker_id_mirai = names(self$processes_mirai)
+          walk(worker_ids_mirai, function(id) {
+            lg$info("Kill worker '%s'", id)
 
-          lg$debug("Killing %i mirai worker(s)", length(worker_id_mirai))
+            # kill with mirai
+            killed = stop_mirai(self$processes_mirai[[id]])
+            if (!killed) lg$error("Failed to kill worker '%s'", id)
 
-          # kill all daemons
-          i = daemons()$daemons[,1]
-          map(i, function(i) saisei(i, force = TRUE))
-
-          # move worker to killed
-          cmds = map(worker_ids, function(id) {
-            c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id)
+            # move worker to killed
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("killed_worker_ids"), id))
           })
-          r$pipeline(.commands = cmds)
         }
 
-        worker_ids_heartbeat = rush$worker_info[!is.na(heartbeat), worker_id]
+        worker_ids_heartbeat = rush$worker_info[heartbeat == TRUE, worker_id]
         if (length(worker_ids_heartbeat)) {
           lg$debug("Killing %i worker(s) with heartbeat", length(worker_ids_heartbeat))
 
@@ -444,6 +479,8 @@ Rush = R6::R6Class("Rush",
         r$pipeline(.commands = cmds)
       }
 
+
+
       return(invisible(self))
     },
 
@@ -462,7 +499,7 @@ Rush = R6::R6Class("Rush",
 
       # check mirai workers
       if (length(self$processes_mirai)) {
-        iwalk(self$processes_mirai[self$running_worker_ids], function(m, id) {
+        iwalk(self$processes_mirai[intersect(self$running_worker_ids, names(self$processes_mirai))], function(m, id) {
           if (is_mirai_error(m$data) || is_error_value(m$data)) {
             lg$error("Lost worker '%s'", id)
 
@@ -490,7 +527,7 @@ Rush = R6::R6Class("Rush",
 
       # check processx workers
       if (length(self$processes_processx)) {
-        iwalk(self$processes_processx[self$running_worker_ids], function(m, id) {
+        iwalk(self$processes_processx[intersect(self$running_worker_ids, names(self$processes_processx))], function(m, id) {
           if (!self$processes_processx[[id]]$is_alive()) {
             lg$error("Lost worker '%s'", id)
             # print error messages
@@ -1375,6 +1412,7 @@ Rush = R6::R6Class("Rush",
 
       # fix type
       worker_info[, remote := as.logical(remote)][]
+      worker_info[, heartbeat := as.logical(heartbeat)][]
       worker_info[, pid := as.integer(pid)][]
 
       worker_info

@@ -12,6 +12,8 @@
 #' @template param_remote
 #' @template param_worker_id
 #' @template param_seed
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
 #' @export
@@ -86,7 +88,7 @@ RushWorker = R6::R6Class("RushWorker",
         "pid", Sys.getpid(),
         "remote", self$remote,
         "hostname", rush::get_hostname(),
-        "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
+        "heartbeat", !is.null(self$heartbeat)))
     },
 
     #' @description

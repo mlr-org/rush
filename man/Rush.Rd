@@ -7,79 +7,26 @@
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller methods.
 }
 \description{
-\link{Rush} is the controller in a rush network.
-The controller starts, observes and stops the worker of the network.
+The \code{Rush} controller initializes a decentralized network.
+The controller starts and stops workers (\link{RushWorker}) and observes the state of the network.
 }
 \section{Local Workers}{
 
 A local worker runs on the same machine as the controller.
-Local workers are spawned with the \verb{$start_local_workers() method via the }processx` package.
+Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
 }
 
 \section{Remote Workers}{
 
 A remote worker runs on a different machine than the controller.
-Remote workers are started with the \verb{$start_remote_workers()} method via the \code{mirai} package.
+Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
 }
 
-\section{Stopping Workers}{
+\section{Script Workers}{
 
-Local and remote workers can be stopped with the \verb{$stop_workers(type)} method.
-The options \code{type = "kill"} stops the workers immediately.
-Currently only all remote workers can be stopped at once.
-The option \code{type = "terminate"} sends a stop signal to the workers via the Redis database.
-This option must be implemented in the worker loop via \code{rush$terminated}.
-}
-
-\section{Data Structure}{
-
-Tasks are stored in Redis \href{https://redis.io/docs/latest/develop/data-types/hashes/}{hashes}.
-Hashes are collections of field-value pairs.
-The key of the hash identifies the task in Redis and \code{rush}.
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{key : xs | ys | xs_extra
-}\if{html}{\out{</div>}}
-
-The field-value pairs are written by different methods, e.g. \verb{$push_tasks()} writes \code{xs} and \verb{$push_results()} writes \code{ys}.
-The values of the fields are serialized lists or atomic values e.g. unserializing \code{xs} gives \code{list(x1 = 1, x2 = 2)}
-This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{| key | x1 | x2 | y | timestamp |
-| 1.. |  3 |  4 | 7 |  12:04:11 |
-| 2.. |  1 |  4 | 5 |  12:04:12 |
-| 3.. |  1 |  1 | 2 |  12:04:13 |
-}\if{html}{\out{</div>}}
-
-When the value of a field is a named list, the field can store the cells of multiple columns of the table.
-When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
-The methods \verb{$push_tasks()} and \verb{$push_results()} write into multiple hashes.
-For example, \verb{$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))} writes \code{xs} in two hashes.
-}
-
-\section{Task States}{
-
-A task can go through four states \code{"running"}, \code{"finished"}, \code{"failed"} and \code{"queued"}.
-Internally, the keys of the tasks are pushed through Redis \href{https://redis.io/docs/latest/develop/data-types/lists/}{lists} and \href{https://redis.io/docs/latest/develop/data-types/sets/}{sets} to keep track of their state.
-A worker creates a task and marks it as \verb{"running} when evaluating the task.
-When the task is finished, the state is changed to \code{"finished"} and the result is written to the data base.
-If the task fails, the state is changed to \code{"failed"} instead of \code{"finished"}.
-\code{"queued"} tasks are waiting to be evaluated (see Queues)
-}
-
-\section{Fetch Tasks and Results}{
-
-The \verb{$fetch_*()} methods retrieve data from the Redis database.
-A matching method is defined for each task state e.g. \verb{$fetch_running_tasks()} and \verb{$fetch_finished_tasks()}.
-The methods \verb{$fetch_new_tasks()} and \verb{$fetch_finished_tasks()} cache the already queried data.
-The \verb{$wait_for_finished_tasks()} variant wait until a new result is available.
-}
-
-\section{Logging}{
-
-The worker logs all messages written with the \code{lgr} package to the data base.
-The \code{lgr_thresholds} argument defines the logging level for each logger e.g. \code{c(rush = "debug")}.
-Saving log messages adds a small overhead but is useful for debugging.
-By default, no log messages are stored.
+Workers can be started with a script anywhere.
+The only requirement is that the worker can connect to the Redis server.
+The script is created with the \verb{$worker_script()} method.
 }
 
 \examples{
@@ -220,6 +167,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
 \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
 \item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
+\item \href{#method-Rush-worker_script}{\code{Rush$worker_script()}}
 \item \href{#method-Rush-restart_workers}{\code{Rush$restart_workers()}}
 \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
@@ -335,11 +283,12 @@ Call this method to reconnect after loading the object.
 Start workers locally with \code{processx}.
 The \link[processx:process]{processx::process} are stored in \verb{$processes_processx}.
 Alternatively, use \verb{$start_remote_workers()} to start workers on remote machines with \code{mirai}.
+Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the parameters set here.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   worker_loop = NULL,
   ...,
-  n_workers = NULL,
+  n_workers = 1,
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
@@ -358,7 +307,8 @@ Loop run on the workers.}
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.}
+Number of workers to be started.
+Default is \code{1}.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -386,16 +336,16 @@ Whether to kill the workers when the main R process is shut down.}
 \subsection{Method \code{start_remote_workers()}}{
 Start workers on remote machines with \code{mirai}.
 The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_mirai}.
+Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the parameters set here.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
   worker_loop,
   ...,
-  n_workers = NULL,
+  n_workers = 1,
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
-  lgr_buffer_size = NULL,
-  supervise = TRUE
+  lgr_buffer_size = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -409,7 +359,52 @@ Loop run on the workers.}
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.}
+Number of workers to be started.
+Default is \code{1}.}
+
+\item{\code{globals}}{(\code{character()})\cr
+Global variables to be loaded to the workers global environment.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-worker_script"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-worker_script}{}}}
+\subsection{Method \code{worker_script()}}{
+Generate a script to start workers.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$worker_script(
+  worker_loop,
+  ...,
+  globals = NULL,
+  packages = NULL,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = NULL,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -425,8 +420,13 @@ By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in 
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
 
-\item{\code{supervise}}{(\code{logical(1)})\cr
-Whether to kill the workers when the main R process is shut down.}
+\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.
+The heartbeat is updated every \code{heartbeat_period} seconds.}
+
+\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 }
 \if{html}{\out{</div>}}
 }

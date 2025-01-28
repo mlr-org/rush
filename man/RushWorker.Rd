@@ -24,6 +24,9 @@ Identifier of the worker.}
 
 \item{\code{remote}}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
+
+\item{\code{heartbeat}}{(\code{callr::r_bg})\cr
+Background process for the heartbeat.}
 }
 \if{html}{\out{</div>}}
 }
@@ -85,6 +88,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_new_tasks'><code>rush::Rush$wait_for_new_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>rush::Rush$wait_for_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href='../../rush/html/Rush.html#method-Rush-wait_for_workers'><code>rush::Rush$wait_for_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="worker_script"><a href='../../rush/html/Rush.html#method-Rush-worker_script'><code>rush::Rush$worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>rush::Rush$write_hashes()</code></a></span></li>
 </ul>
 </details>
@@ -100,6 +104,8 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   config = NULL,
   remote,
   worker_id = NULL,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL,
   seed = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -126,6 +132,14 @@ See \link{Rush} for details.}
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
+
+\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.
+The heartbeat is updated every \code{heartbeat_period} seconds.}
+
+\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 
 \item{\code{seed}}{(\code{integer()})\cr
 Initial seed for the random number generator.

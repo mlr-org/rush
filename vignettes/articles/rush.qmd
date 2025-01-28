@@ -6,7 +6,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Random Search
+# Scope
+
+`rush` is package to tackle large-scale problems in a distributed and decentralized network of workers.
+A rush network consists of multiple workers that communicate over a shared Redis database.
+At its core, rush operates through a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database
+The package ...
+
+//rush set ups the worker loop, provides a simple API for the communication between the workers and a efficient caching system for maximum performance.
+Since the workers communicate over a shared database, they can exchange results and the tasks they are currently working on.
+This allows for the implementation of decentralized optimization algorithms that can scale to large problems.
+We demonstrate how to use the `rush` package with a simply random search and a more sophisticated random search with a median stopping rule.
+
+# Random Search
 
 ```{r}
 library(rush)
@@ -22,7 +34,7 @@ branin = function(x1, x2) {
 }
 ```
 
-The branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$.
+The Branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$.
 
 ```{r}
 #| echo: false
@@ -45,13 +57,14 @@ ggplot(data, aes(x = x, y = y, fill = z)) +
   theme_minimal()
 ```
 
-We start by implementing a simple random search algorithm that evaluates the Braning function at different points.
+
+We want to optimize the Branin function using a simple random search algorithm.
 The algorithm draws random points and evaluates them using the Branin function.
-The results are then pushed back to the Redis database.
+We start by implementing the `worker_loop` that includes the random search algorithm and the communication with the database.
 We stop the optimization process after 100 evaluated tasks.
 
 ```{r}
-random_search = function(rush) {
+wl_random_search = function(rush) {
   repeat {
     # draw new task
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
@@ -93,7 +106,7 @@ rush = rsh(
   config = config)
 
 rush$start_local_workers(
-  worker_loop = random_search,
+  worker_loop = wl_random_search,
   n_workers = 4,
   globals = "branin")
 
@@ -102,16 +115,16 @@ Sys.sleep(5)
 rush$fetch_tasks()
 ```
 
-## Median Stopping Rule
+To learn more about starting, stopping and observing workers, see the [Rush Controller](rush_controller.html) vignette.
 
-The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
-Let's write a more sophisticated algorithm that uses the results of previous tasks to decide whether to increase the fidelity of the current task.
-The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
-This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
-
+# Median Stopping
 
 The fidelity parameter in the `branin_wu` function modifies the behavior of the classic Branin function, introducing a fidelity-dependent adjustment.
-The function becomes distorted, representing a "cheaper" but less precise evaluation.
+The fidelity parameter is a value between 0 and 1 that controls the exactness of the evaluation.
+When the fidelity is 1, the function evaluates the true Branin function.
+For lower fidelity levels, the function becomes distorted, representing a "cheaper" but less precise evaluation.
+Real optimization problems often have different fidelity levels, where the evaluation of the objective function can be costly or time-consuming.
+The fidelity allows us to trade-off between the evaluation cost and the precision of the evaluation.
 
 ```{r}
 branin_wu = function(x1, x2, fidelity) {
@@ -119,12 +132,14 @@ branin_wu = function(x1, x2, fidelity) {
 }
 ```
 
-The example uses the Branin function with fidelity.
 
-Example with median stopping rule.
+The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
+Let's write a more sophisticated algorithm that uses the results of previous tasks to decide whether to increase the fidelity of the current task.
+The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
+This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
 
 ```{r}
-median_stopping = function(rush) {
+wl_median_stopping = function(rush) {
   repeat {
     # draw new task and set lowest fidelity level
     current_fidelity = 0.1
@@ -166,7 +181,7 @@ rush = rsh(
   config = config)
 
 rush$start_local_workers(
-  worker_loop = median_stopping,
+  worker_loop = wl_median_stopping,
   n_workers = 1,
   globals = "branin_wu")
 
@@ -174,4 +189,3 @@ Sys.sleep(5)
 
 rush$fetch_tasks()
 ```
-

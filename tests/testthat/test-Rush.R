@@ -394,7 +394,6 @@ test_that("a local worker is killed", {
 
 test_that("a mirai worker is killed", {
   skip_on_cran()
-  skip_on_os("windows")
 
   config = start_flush_redis()
   mirai::daemons(2)
@@ -410,23 +409,22 @@ test_that("a mirai worker is killed", {
   worker_info = rush$worker_info
   expect_true(all(tools::pskill(worker_info$pid, signal = 0L)))
 
-  # mirai can only kill all workers at the moment
-  rush$stop_workers(type = "kill")
-  expect_equal(sum(daemons()$daemons[,2]), 0)
+  # worker 1
+  rush$stop_workers(worker_ids = worker_id_1, type = "kill")
+  Sys.sleep(1)
+  expect_equal(worker_id_1, rush$killed_worker_ids)
+  expect_equal(rush$running_worker_ids, worker_id_2)
 
-  # # worker 1
-  # rush$stop_workers(worker_ids = worker_id_1, type = "kill")
-  # Sys.sleep(1)
-  # expect_equal(worker_id_1, rush$killed_worker_ids)
-  # expect_equal(rush$running_worker_ids, worker_id_2)
+  expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
+  expect_false(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 
-  # #expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
+  # worker 2
+  rush$stop_workers(worker_ids = worker_id_2, type = "kill")
+  Sys.sleep(1)
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
 
-  # # worker 2
-  # rush$stop_workers(worker_ids = worker_id_2, type = "kill")
-  # Sys.sleep(1)
-  # expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
-  # #expect_false(tools::pskill(worker_info[worker_id == worker_id_2, pid], signal = 0L))
+  expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
+  expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 
   expect_rush_reset(rush)
   daemons(0)
@@ -792,7 +790,7 @@ test_that("a segfault on a mirai worker", {
     worker_loop = worker_loop,
     n_workers = 1,
     lgr_thresholds = c(rush = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
+  rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(3)
 
@@ -972,7 +970,7 @@ test_that("a lost task is detected", {
 
 # restart workers --------------------------------------------------------------
 
-test_that("restarting a worker works", {
+test_that("restarting a local worker works", {
   skip_on_cran()
 
   config = start_flush_redis()
@@ -996,7 +994,7 @@ test_that("restarting a worker works", {
   expect_rush_reset(rush)
 })
 
-test_that("restarting a worker kills the worker", {
+test_that("restarting a worker kills the local worker", {
   skip_on_cran()
   skip_on_os("windows")
 
@@ -1018,6 +1016,45 @@ test_that("restarting a worker kills the worker", {
 
   expect_false(pid == rush$worker_info$pid)
   expect_false(tools::pskill(pid, signal = 0))
+
+  expect_rush_reset(rush)
+})
+
+
+test_that("restarting a remote worker works", {
+  skip_if(TRUE) # does not work in testthat on environment
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_loop = function(rush) {
+    while(TRUE) {
+      Sys.sleep(1)
+      xs = list(x1 = 1, x2 = 2)
+      key = rush$push_running_tasks(list(xs))
+      get("attach")(structure(list(), class = "UserDefinedDatabase"))
+    }
+  }
+
+  mirai::daemons(1)
+  worker_ids = rush$start_remote_workers(
+    worker_loop = worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c(rush = "debug"))
+  rush$wait_for_workers(1, timeout = 5)
+
+  Sys.sleep(3)
+
+  expect_null(rush$lost_worker_ids)
+  rush$detect_lost_workers()
+  expect_equal(rush$lost_worker_ids, worker_ids)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
+
+  mirai::daemons(1)
+
+  rush$restart_workers(worker_ids = worker_ids)
+  rush$detect_lost_workers()
+  expect_equal(rush$lost_worker_ids, worker_ids)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
 
   expect_rush_reset(rush)
 })

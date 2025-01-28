@@ -1,10 +1,10 @@
 Package: rush
-Title: Rapid Parallel and Distributed Computing
+Title: Rapid Decentralized and Distributed Computing
 Version: 0.1.2.9000
 Authors@R:
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut", "cph"),
            comment = c(ORCID = "0000-0002-8115-0400"))
-Description: Decentralized and distributed computing.
+Description: Package to tackle large-scale problems in a distributed and decentralized network of workers.
 URL: https://github.com/mlr-org/rush
 BugReports: https://github.com/mlr-org/rush/issues
 Depends:

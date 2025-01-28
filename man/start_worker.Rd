@@ -10,7 +10,9 @@ start_worker(
   config = NULL,
   remote = TRUE,
   lgr_thresholds = NULL,
-  lgr_buffer_size = 0
+  lgr_buffer_size = 0,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL
 )
 }
 \arguments{

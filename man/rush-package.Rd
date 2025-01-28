@@ -4,9 +4,9 @@
 \name{rush-package}
 \alias{rush}
 \alias{rush-package}
-\title{rush: Rapid Parallel and Distributed Computing}
+\title{rush: Rapid Decentralized and Distributed Computing}
 \description{
-Decentralized and distributed computing.
+Package to tackle large-scale problems in a distributed and decentralized network of workers.
 }
 \seealso{
 Useful links:
