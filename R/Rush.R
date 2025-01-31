@@ -216,7 +216,8 @@ Rush = R6::R6Class("Rush",
       if (!mirai_status$connections) {
         stop("No daemons available. Start daemons with `mirai::daemons()`")
       }
-      if (n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
+      # $mirai is only available when mirai is started with a dispatcher
+      if (!is.null(mirai_status$mirai) & n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
         warningf("Number of workers %i exceeds number of available daemons %i", n_workers, mirai_status$connections - mirai_status$mirai["executing"])
       }
 
