@@ -105,3 +105,19 @@ AppenderRedis = R6::R6Class("AppenderRedis",
     .key = NULL
   )
 )
+
+#' @title Filter Custom Fields
+#'
+#' @description
+#' Filters custom fields from log events.
+#'
+#' @param event ([lgr::LogEvent])\cr
+#' Log event.
+#'
+#' @export
+filter_custom_fields = function(event) {
+  extra_cols = setdiff(names(event$values), c("level", "timestamp", "logger", "caller", "msg"))
+  rm(list = extra_cols, envir = event)
+  TRUE
+}
+

@@ -80,3 +80,35 @@ test_that("settings the buffer size in redis appender works", {
   logs = r$command(c("LRANGE", key, 0, -1))
   expect_list(logs, len = 3)
 })
+
+test_that("R6 classes can be filtered", {
+  skip_on_cran()
+
+  appenders = lgr::get_logger("root")$appenders
+
+  on.exit({
+    lgr::get_logger("root")$set_appenders(appenders)
+  })
+
+  config = start_flush_redis()
+
+  key = sprintf("%s:%s:%s", "test", "worker_1", "events")
+
+  appender = rush::AppenderRedis$new(
+    config = config,
+    key = key,
+    buffer_size = 0
+  )
+
+  appender$add_filter(filter_r6)
+
+
+  root_logger = lgr::get_logger("root")
+  root_logger$add_appender(appender)
+
+
+  lg = lgr::get_logger("rush")
+  #lg$add_filter(filter_r6)
+
+  root_logger$info("test-1", rush = rsh())
+})
