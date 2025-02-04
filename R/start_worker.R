@@ -70,7 +70,7 @@ start_worker = function(
     )
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)
-    if ("console" %in% names(root_logger$appenders)) root_logger$remove_appender("console")
+    # if ("console" %in% names(root_logger$appenders)) root_logger$remove_appender("console")
 
     # restore log levels
     for (package in names(lgr_thresholds)) {
