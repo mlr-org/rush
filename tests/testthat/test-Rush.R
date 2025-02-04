@@ -246,6 +246,52 @@ test_that("mirai workers are started", {
   daemons(0)
 })
 
+test_that("new mirai workers can be started on used daemons", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  mirai::daemons(2)
+
+  worker_loop = function(rush) {
+    xs = list(x1 = 1, x2 = 2)
+    key = rush$push_running_tasks(list(xs))
+    ys = list(y = xs$x1 + xs$x2)
+    rush$push_results(key, yss = list(ys))
+  }
+
+  worker_ids = rush$start_remote_workers(
+    worker_loop = worker_loop,
+    n_workers = 2,
+    lgr_thresholds = c(rush = "debug"))
+  rush$wait_for_workers(2, timeout = 5)
+
+  Sys.sleep(1)
+
+  # check fields
+  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+
+  expect_equal(mirai::status()$mirai["completed"], c(completed = 2))
+
+  rush = rsh(network_id = "test-rush-2", config = config)
+  worker_ids = rush$start_remote_workers(
+    worker_loop = worker_loop,
+    n_workers = 2,
+    lgr_thresholds = c(rush = "debug"))
+  rush$wait_for_workers(2, timeout = 5)
+
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 2)
+
+  expect_equal(mirai::status()$mirai["completed"], c(completed = 4))
+
+  r = redux::hiredis()
+  r$FLUSHDB()
+  expect_rush_reset(rush)
+  daemons(0)
+})
+
 # start workers with script -----------------------------------------------------
 
 test_that("workers are started with script", {
