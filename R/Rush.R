@@ -182,7 +182,7 @@ Rush = R6::R6Class("Rush",
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i)",
           self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size)),
-        supervise = supervise, stderr = "|") # , stdout = "|"
+        supervise = supervise, stderr = "|", stdout = "|") # ,
       }), worker_ids))
 
       return(invisible(worker_ids))
@@ -690,6 +690,7 @@ Rush = R6::R6Class("Rush",
           tab = rbindlist(map(log, fromJSON))
           set(tab, j = "worker_id", value = worker_id)
           pwalk(tab, function(level, logger, timestamp, msg, ...) {
+             pkg_logger = lgr::get_logger(logger)
             pkg_logger$log(level, "[%s] [%s] %s", worker_id, timestamp, msg)
           })
           private$.log_counter[[worker_id]] = nrow(tab) + first_event
