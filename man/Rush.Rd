@@ -549,7 +549,7 @@ If \code{"kill"} the workers are stopped immediately.}
 \subsection{Method \code{read_log()}}{
 Read log messages written with the \code{lgr} package from a worker.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_ids = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_ids = NULL, time_difference = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -558,8 +558,14 @@ Read log messages written with the \code{lgr} package from a worker.
 \item{\code{worker_ids}}{(\code{character(1)})\cr
 Worker ids.
 If \code{NULL} all worker ids are used.}
+
+\item{\code{time_difference}}{(\code{logical(1)})\cr
+Whether to calculate the time difference between log messages.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{\link[data.table:data.table]{data.table::data.table()}}) with level, timestamp, logger, caller and message, and optionally time difference.
 }
 }
 \if{html}{\out{<hr>}}

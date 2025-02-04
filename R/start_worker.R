@@ -70,7 +70,7 @@ start_worker = function(
     )
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)
-    root_logger$remove_appender("console")
+    if ("console" %in% names(root_logger$appenders)) root_logger$remove_appender("console")
 
     # restore log levels
     for (package in names(lgr_thresholds)) {
@@ -79,36 +79,29 @@ start_worker = function(
       logger$set_threshold(threshold)
     }
   }
-
-  lg$debug("Setup worker %s at %s", worker_id, timestamp_start)
+  lg$log("debug", "Starting worker '%s'", worker_id, timestamp = timestamp_start)
 
   # get start arguments
-  timestamp_connected = Sys.time()
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
 
-  lg$debug("Downloaded start arguments %s bytes in %i seconds", format(object.size(bin_start_args), units = "MB"), as.integer(difftime(Sys.time(), timestamp_connected, units = "secs")))
-  timestamp_loaded = Sys.time()
-  loaded_packages = sessionInfo()
+  lg$debug("Start arguments %s bytes downloaded", format(object.size(bin_start_args), units = "MB"))
 
   start_args = unserialize(bin_start_args)
 
-  lg$debug("Unserialized start arguments in %i seconds", as.integer(difftime(Sys.time(), timestamp_loaded, units = "secs")))
-  timestamp_unserialized = Sys.time()
+  lg$debug("Start arguments unserialized")
 
   # load large object from disk
   if (inherits(start_args, "rush_large_object")) {
     start_args = readRDS(start_args$path)
+    lg$debug("Large objects loaded from disk")
   }
-
-  lg$debug("Loaded large object in %i seconds", as.integer(difftime(Sys.time(), timestamp_unserialized, units = "secs")))
-  timestamp_large_objects = Sys.time()
 
   # load packages and globals to worker environment
   envir = .GlobalEnv
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
+  lg$debug("Packages loaded")
   mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
-
-  lg$debug("Loaded packages and globals in %i seconds", as.integer(difftime(Sys.time(), timestamp_large_objects, units = "secs")))
+  lg$debug("Globals loaded")
 
   # initialize rush worker
   rush = rush::RushWorker$new(
@@ -119,14 +112,14 @@ start_worker = function(
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire)
 
-  lg$debug("Worker %s started in %i seconds", rush$worker_id, as.integer(difftime(Sys.time(), timestamp_start, units = "secs")))
+  lg$debug("Worker '%s' started")
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
 
   rush$set_terminated()
 
-  lg$debug("Worker %s terminated after %i seconds", rush$worker_id, as.integer(difftime(Sys.time(), timestamp_start, units = "secs")))
+  lg$debug("Worker '%s' terminated", rush$worker_id)
 
   invisible(TRUE)
 }

@@ -1136,7 +1136,7 @@ test_that("saving lgr logs works", {
     worker_loop = test_worker_loop,
     n_workers = 1,
     lgr_thresholds = c(rush = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
+  rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(5)
 
@@ -1146,6 +1146,49 @@ test_that("saving lgr logs works", {
   Sys.sleep(5)
 
   log = rush$read_log()
+  expect_data_table(log, nrows = 6)
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
+
+  log = rush$read_log(time_difference = TRUE)
+  expect_data_table(log, nrows = 6)
+  expect_names(names(log), must.include = c("time_difference"))
+  expect_class(log$time_difference, "difftime")
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2), list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+  Sys.sleep(5)
+
+  log = rush$read_log()
+  expect_data_table(log, nrows = 18)
+  expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
+
+  expect_rush_reset(rush)
+})
+
+test_that("logs with time differences work", {
+  skip_on_cran()
+  skip_if(TRUE) # does not work in testthat on environment
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c(rush = "debug"))
+  rush$wait_for_workers(2, timeout = 5)
+
+  Sys.sleep(5)
+
+  xss = list(list(x1 = 2, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+  Sys.sleep(5)
+
+  log = rush$read_log(time_difference = TRUE)
+
+
+
   expect_data_table(log, nrows = 6)
   expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
 
@@ -1160,6 +1203,7 @@ test_that("saving lgr logs works", {
 
   expect_rush_reset(rush)
 })
+
 
 test_that("snapshot option works", {
   skip_on_cran()

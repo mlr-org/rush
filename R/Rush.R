@@ -654,7 +654,11 @@ Rush = R6::R6Class("Rush",
     #' @param worker_ids (`character(1)`)\cr
     #' Worker ids.
     #' If `NULL` all worker ids are used.
-    read_log = function(worker_ids = NULL) {
+    #' @param time_difference (`logical(1)`)\cr
+    #' Whether to calculate the time difference between log messages.
+    #' @return ([data.table::data.table()]) with level, timestamp, logger, caller and message, and optionally time difference.
+    read_log = function(worker_ids = NULL, time_difference = FALSE) {
+      assert_flag(time_difference)
       worker_ids = worker_ids %??% self$worker_ids
       r = self$connector
       cmds =  map(worker_ids, function(worker_id) c("LRANGE", private$.get_worker_key("events", worker_id), 0, -1))
@@ -662,7 +666,13 @@ Rush = R6::R6Class("Rush",
       tab = rbindlist(set_names(map(worker_logs, function(logs) {
         rbindlist(map(logs, fromJSON))
       }), worker_ids), idcol = "worker_id")
-      if (nrow(tab)) setkeyv(tab, "timestamp")
+      if (nrow(tab)) {
+        tab[, timestamp := as.POSIXct(timestamp, format = "%Y-%m-%d %H:%M:%OS")]
+        setkeyv(tab, "timestamp")
+        if (time_difference) {
+          tab[, time_difference := difftime(timestamp, shift(timestamp, fill = timestamp[1L]), units = "secs"), by = worker_id]
+        }
+      }
       tab[]
     },
 
@@ -680,7 +690,6 @@ Rush = R6::R6Class("Rush",
           tab = rbindlist(map(log, fromJSON))
           set(tab, j = "worker_id", value = worker_id)
           pwalk(tab, function(level, logger, timestamp, msg, ...) {
-            pkg_logger = lgr::get_logger(logger)
             pkg_logger$log(level, "[%s] [%s] %s", worker_id, timestamp, msg)
           })
           private$.log_counter[[worker_id]] = nrow(tab) + first_event
