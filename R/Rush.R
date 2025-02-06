@@ -462,7 +462,7 @@ Rush = R6::R6Class("Rush",
           })
         }
 
-        worker_ids_heartbeat = rush$worker_info[heartbeat == TRUE, worker_id]
+        worker_ids_heartbeat = self$worker_info[heartbeat == TRUE, worker_id]
         if (length(worker_ids_heartbeat)) {
           lg$debug("Killing %i worker(s) with heartbeat", length(worker_ids_heartbeat))
 
