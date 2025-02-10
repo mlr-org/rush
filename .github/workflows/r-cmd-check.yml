@@ -42,6 +42,10 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
 
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: true
+
       - uses: supercharge/redis-github-action@1.7.0
         with:
           redis-version: 7
