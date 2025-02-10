@@ -25,6 +25,7 @@ Imports:
 Suggests:
     callr,
     knitr,
+    quarto,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
