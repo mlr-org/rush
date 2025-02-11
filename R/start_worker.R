@@ -21,6 +21,8 @@
 #' @template param_worker_id
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
+#' @template param_heartbeat_period
+#' @template param_heartbeat_expire
 #'
 #' @return `NULL`
 #' @export

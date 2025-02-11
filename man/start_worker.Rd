@@ -38,6 +38,14 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
+
+\item{heartbeat_period}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.
+The heartbeat is updated every \code{heartbeat_period} seconds.}
+
+\item{heartbeat_expire}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 }
 \value{
 \code{NULL}
