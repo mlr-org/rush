@@ -10,7 +10,6 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  start_worker_timeout = Inf,
   worker_type = "local"
 )
 }
@@ -35,8 +34,9 @@ This improves the performance of the logging.}
 \item{large_objects_path}{(\code{character(1)})\cr
 The path to the directory where large objects are stored.}
 
-\item{start_worker_timeout}{(\code{numeric(1)})\cr
-The time in seconds to wait for a worker to start.}
+\item{worker_type}{(\code{character(1)})\cr
+The type of worker to use.
+Options are \code{"local"} to start with \CRANpkg{processx}, \code{"remote"} to use \CRANpkg{mirai} or \code{"script"} to get a script to run.}
 }
 \value{
 \code{list()} with the stored configuration.
@@ -44,6 +44,7 @@ The time in seconds to wait for a worker to start.}
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.
 The function tests the connection to Redis and throws an error if the connection fails.
+This function is usually used in third-party packages to setup how workers are started.
 }
 \examples{
 # This example is not executed since Redis must be installed

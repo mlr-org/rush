@@ -3,14 +3,16 @@
 #' @description
 #' Stores the number of workers and Redis configuration options ([redux::redis_config]) for [Rush].
 #' The function tests the connection to Redis and throws an error if the connection fails.
+#' This function is usually used in third-party packages to setup how workers are started.
 #'
 #' @param config ([redux::redis_config])\cr
 #' Configuration options used to connect to Redis.
 #' If `NULL`, the `REDIS_URL` environment variable is parsed.
 #' If `REDIS_URL` is not set, a default configuration is used.
 #' See [redux::redis_config] for details.
-#' @param start_worker_timeout (`numeric(1)`)\cr
-#' The time in seconds to wait for a worker to start.
+#' @param worker_type (`character(1)`)\cr
+#' The type of worker to use.
+#' Options are `"local"` to start with \CRANpkg{processx}, `"remote"` to use \CRANpkg{mirai} or `"script"` to get a script to run.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
@@ -34,7 +36,6 @@ rush_plan = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  start_worker_timeout = Inf,
   worker_type = "local"
   ) {
   assert_count(n_workers, null.ok = TRUE)
@@ -42,7 +43,6 @@ rush_plan = function(
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
-  assert_number(start_worker_timeout)
   assert_choice(worker_type, c("local", "remote", "script"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
@@ -53,7 +53,6 @@ rush_plan = function(
   assign("lgr_thresholds", lgr_thresholds, rush_env)
   assign("lgr_buffer_size", lgr_buffer_size, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
-  assign("start_worker_timeout", start_worker_timeout, rush_env)
   assign("worker_type", worker_type, rush_env)
   invisible(as.list(rush_env))
 }

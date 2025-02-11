@@ -350,7 +350,7 @@ Rush = R6::R6Class("Rush",
       worker_id_processx = intersect(worker_ids, names(self$processes_processx))
       if (length(worker_id_processx)) {
         # stop running workers
-        self$stop_workers(type = "kill", intersect(rush$running_worker_ids, worker_id_processx))
+        self$stop_workers(type = "kill", intersect(self$running_worker_ids, worker_id_processx))
 
         lg$info("Restarting %i worker(s): %s", length(worker_id_processx), str_collapse(worker_id_processx))
 

@@ -100,15 +100,12 @@ test_that("R6 classes can be filtered", {
     buffer_size = 0
   )
 
-  appender$add_filter(filter_r6)
+  appender$add_filter(filter_custom_fields)
 
 
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
 
-
   lg = lgr::get_logger("rush")
-  #lg$add_filter(filter_r6)
-
   root_logger$info("test-1", rush = rsh())
 })

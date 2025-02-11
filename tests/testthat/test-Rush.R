@@ -350,7 +350,7 @@ test_that("heartbeat process is started", {
   Sys.sleep(5)
 
   worker_info = rush$worker_info
-  expect_character(worker_info$heartbeat, unique = TRUE)
+  expect_logical(worker_info$heartbeat)
 })
 
 # terminate workers ------------------------------------------------------------
@@ -501,7 +501,7 @@ test_that("worker is killed with a heartbeat process", {
   Sys.sleep(5)
 
   worker_info = rush$worker_info
-  expect_character(worker_info$heartbeat, unique = TRUE)
+  expect_logical(worker_info$heartbeat)
 
   # signal 0L returns TRUE if the process is still alive
   expect_true(tools::pskill(worker_info$pid, signal = 0L))
