@@ -11,12 +11,10 @@ vignette: >
 `rush` is package to tackle large-scale problems in a distributed and decentralized network of workers.
 A rush network consists of multiple workers that communicate over a shared Redis database.
 At its core, rush operates through a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database
-The package ...
-
-//rush set ups the worker loop, provides a simple API for the communication between the workers and a efficient caching system for maximum performance.
 Since the workers communicate over a shared database, they can exchange results and the tasks they are currently working on.
 This allows for the implementation of decentralized optimization algorithms that can scale to large problems.
 We demonstrate how to use the `rush` package with a simply random search and a more sophisticated random search with a median stopping rule.
+For more information on how to start, stop, and observe workers, see the [Rush Controller](rush_controller.html) vignette.
 
 # Random Search
 
@@ -56,7 +54,6 @@ ggplot(data, aes(x = x, y = y, fill = z)) +
        fill = "Z") +
   theme_minimal()
 ```
-
 
 We want to optimize the Branin function using a simple random search algorithm.
 The algorithm draws random points and evaluates them using the Branin function.
@@ -132,7 +129,6 @@ branin_wu = function(x1, x2, fidelity) {
 }
 ```
 
-
 The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
 Let's write a more sophisticated algorithm that uses the results of previous tasks to decide whether to increase the fidelity of the current task.
 The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
@@ -170,6 +166,8 @@ wl_median_stopping = function(rush) {
   }
 }
 ```
+
+We start the optimization process with the median stopping rule and fetch the results.
 
 ```{r}
 # Connection to the Redis database

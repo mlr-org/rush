@@ -113,7 +113,6 @@ The workers pull the globals from the data base and assign them to their global 
 
 ## Stop Worker
 
-
 Workers can be stopped individually or all at once.
 
 ```{r}
@@ -418,4 +417,27 @@ The script can be executed on the local machine or a remote machine.
 The only requirement is that the machine can run R scripts and has access to the Redis database.
 
 # Error Handling
+
+The heartbeat is a mechanism to monitor the status of script workers in distributed computing systems.
+The mechanism consists of a heartbeat key with a set [expiration timeout](https://redis.io/commands/expire/) and a dedicated heartbeat process that refreshes the timeout periodically.
+The heartbeat process is started with `callr` and is linked to main process of the worker.
+In the event of a worker's failure, the associated heartbeat process also ceases to function, thus halting the renewal of the timeout.
+The absence of the heartbeat key acts as an indicator to the controller that the worker is no longer operational.
+Consequently, the controller updates the worker's status to `"lost"`.
+
+Heartbeats are initiated upon worker startup by specifying the `heartbeat_period` and `heartbeat_expire` parameters.
+The `heartbeat_period` defines the frequency at which the heartbeat process will update the timeout.
+The `heartbeat_expire` sets the duration, in seconds, before the heartbeat key expires.
+The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.
+
+```{r}
+rush$start_script_worker(
+  worker_loop = wl_random_search,
+  heartbeat_period = 1,
+  heartbeat_expire = 3)
+```
+
+The heartbeat process is also the only way to kill a script worker.
+The `$stop_workers(type = "kill")` method pushes a kill signal to the heartbeat process.
+The heartbeat process terminates the main process of the worker.
 
