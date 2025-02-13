@@ -6,6 +6,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r}
+#| include: false
+r = redux::hiredis()
+r$FLUSHDB()
+```
+
 
 # Introduction
 
@@ -65,7 +71,7 @@ Packages that are needed by the `worker_loop` can be passed to the `packages` ar
 
 ```{r}
 worker_ids = rush$start_local_workers(
-  worker_loop = random_search,
+  worker_loop = wl_random_search,
   n_workers = 4)
 ```
 
@@ -90,7 +96,7 @@ We can add more workers to the network.
 
 ```{r}
 rush$start_local_workers(
-  worker_loop = random_search,
+  worker_loop = wl_random_search,
   n_workers = 2,
   lgr_thresholds = c(rush = "info"))
 ```
@@ -126,6 +132,12 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
+Reset workers
+
+```{r}
+rush$reset()
+```
+
 In the previous example, the optimization was stopped after 100 iterations.
 We now want to terminate the optimization with a terminate signal.
 For this, we use the `rush$terminated` flag which can be controlled from the `Rush` controller.
@@ -154,6 +166,14 @@ wl_terminate = function(rush) {
 ```
 
 ```{r}
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-random-search",
+  config = config)
+
 rush$start_local_workers(
   worker_loop = wl_terminate,
   n_workers = 2,
@@ -192,7 +212,7 @@ wl_failed_worker = function(rush) {
 ```
 
 ```{r}
-rush$start_local_workers(
+worker_ids =  rush$start_local_workers(
   worker_loop = wl_failed_worker,
   n_workers = 2)
 ```
@@ -209,25 +229,6 @@ rush$detect_lost_workers()
 ## Restart Workers
 
 Workers can be restarted after they failed.
-
-```{r}
-rush = rsh(network = "test-failed-workers")
-
-wl_failed_worker = function(rush) {
-  # simulate a segmentation fault
-  tools::pskill(Sys.getpid(), tools::SIGKILL)
-}
-
-worker_ids = rush$start_local_workers(
-  worker_loop = wl_failed_worker,
-  n_workers = 2)
-```
-
-```{r}
-Sys.sleep(1)
-rush$detect_lost_workers()
-rush$worker_states
-```
 
 ```{r}
 rush$restart_workers(worker_ids = worker_ids[1])
@@ -279,7 +280,6 @@ Reset Rush Network
 ```{r}
 rush$reset()
 ```
-
 
 # Remote Workers
 
@@ -385,7 +385,7 @@ wl_failed_worker = function(rush) {
 ```
 
 ```{r}
-daemons(2)
+mirai::daemons(2)
 
 worker_ids = rush$start_remote_workers(
   worker_loop = wl_failed_worker,
@@ -405,8 +405,13 @@ A segfault also tears down the mirai daemon.
 Thus, we need to restart the daemon before we can restart the workers.
 
 ```{r}
-daemons(2)
+mirai::daemons(2)
+mirai::status()
+```
 
+Restart the workers.
+
+```{r}
 rush$restart_workers(worker_ids)
 ```
 
@@ -415,6 +420,15 @@ rush$restart_workers(worker_ids)
 The most flexible way to start workers is to use a script generate with `$worker_script()`.
 The script can be executed on the local machine or a remote machine.
 The only requirement is that the machine can run R scripts and has access to the Redis database.
+
+```{r}
+rush = rsh(
+  network = "test-script-workers",
+  config = config)
+
+rush$worker_script(
+  worker_loop = wl_random_search)
+```
 
 # Error Handling
 
@@ -431,7 +445,7 @@ The `heartbeat_expire` sets the duration, in seconds, before the heartbeat key e
 The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.
 
 ```{r}
-rush$start_script_worker(
+rush$worker_script(
   worker_loop = wl_random_search,
   heartbeat_period = 1,
   heartbeat_expire = 3)

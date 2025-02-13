@@ -17,8 +17,6 @@
 #' The only requirement is that the worker can connect to the Redis server.
 #' The script is created with the `$worker_script()` method.
 #'
-#'
-#'
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
@@ -31,6 +29,7 @@
 #' @template param_heartbeat_expire
 #' @template param_seed
 #' @template param_data_format
+#' @template param_consistent
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
@@ -64,11 +63,16 @@ Rush = R6::R6Class("Rush",
     #' List of mirai processes started with `$start_remote_workers()`.
     processes_mirai = NULL,
 
+    #' @field consistent (`logical(1)`)\cr
+    #' Whether tasks are consistent.
+    consistent = NULL,
+
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(network_id = NULL, config = NULL, seed = NULL) {
+    initialize = function(network_id = NULL, config = NULL, seed = NULL, consistent = FALSE) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
+      self$consistent = assert_flag(consistent)
       if (is.null(self$config)) self$config = redux::redis_config()
       if (!redux::redis_available(self$config)) {
         stop("Can't connect to Redis. Check the configuration.")
@@ -958,8 +962,13 @@ Rush = R6::R6Class("Rush",
       private$.n_seen_results = private$.n_seen_results + n_new_results
 
       # fetch finished tasks
-      data = self$fetch_finished_tasks(fields, data_format = data_format)
-      tail(data, n_new_results)
+      data = self$fetch_finished_tasks(fields, data_format = "list")
+      data = tail(data, n_new_results)
+      if (data_format == "list") return(data)
+      # it is much faster to only convert the new results to data.table instead of doing it in fetch_finished_tasks
+      tab = rbindlist(data, use.names = !self$consistent, fill = !self$consistent)
+      tab[, keys := names(data)]
+      tab[]
     },
 
     #' @description
@@ -1618,11 +1627,10 @@ Rush = R6::R6Class("Rush",
       lg$debug("Fetching %i task(s)", length(data))
 
       if (data_format == "list") return(set_names(data, keys))
-      tab = rbindlist(data, use.names = TRUE, fill = TRUE)
+      tab = rbindlist(data, use.names = !self$consistent, fill = !self$consistent)
       tab[, keys := unlist(keys)]
       tab[]
     },
-
 
     # fetch and cache tasks
     .fetch_cached_tasks = function(new_keys, fields, reset_cache = FALSE, data_format = "data.table") {
@@ -1646,7 +1654,7 @@ Rush = R6::R6Class("Rush",
       lg$debug("Fetching %i task(s)", length(private$.cached_tasks))
 
       if (data_format == "list") return(private$.cached_tasks)
-      tab = rbindlist(private$.cached_tasks, use.names = TRUE, fill = TRUE)
+      tab = rbindlist(private$.cached_tasks, use.names = !self$consistent, fill = !self$consistent)
       if (nrow(tab)) tab[, keys := names(private$.cached_tasks)]
       tab[]
     }

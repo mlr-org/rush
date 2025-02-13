@@ -6,6 +6,42 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r}
+library(rush)
+
+wl_random_search = function(rush) {
+  repeat {
+    # draw new task
+    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+
+    # mark task as running
+    key = rush$push_running_tasks(xss = list(xs))
+
+    # evaluate task
+    ys = list(y = branin(xs$x1, xs$x2))
+
+    # push result
+    rush$push_results(key, yss = list(ys))
+
+    # stop optimization after 100 tasks
+    if (rush$n_finished_tasks >= 100) break
+  }
+}
+
+
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-random-search",
+  config = config)
+
+worker_ids = rush$start_local_workers(
+  worker_loop = wl_random_search,
+  n_workers = 1)
+```
+
 # Retrieve Results {#sec-retrieve-results}
 
 The `$fetch_finished_tasks()` method retrieves the results of finished tasks.
@@ -26,7 +62,7 @@ The default of `$fetch_finished_tasks()` is `c("xs", "xs_extra", "worker_extra",
 If we don't want all that extra information, we can just query `"xs"` and `"ys"`.
 
 ```{r}
-rush$fetch_finished_tasks(fields = c("xs", "ys"))
+rush$fetch_finished_tasks(fields = c("xs", "ys"), reset_cache = TRUE)
 ```
 
 The option`data_format = "list"` returns a `list` instead of a `data.table`.
@@ -73,6 +109,7 @@ The occurring error leads to the task being labeled as `"failed"`, with the corr
 This process is demonstrated in the following example.
 
 ```{r}
+#| eval: false
 rush = rsh(network_id = "simple_error")
 
 fun = function(x) {
@@ -99,6 +136,7 @@ As an example, we define a function that simulates a segmentation fault by killi
 The package includes the method `$detect_lost_workers()` designed to identify and manage such instances effectively.
 
 ```{r}
+#| eval: false
 rush = rsh(network_id = "segmenation_fault")
 
 fun = function(x) {

@@ -54,6 +54,9 @@ List of processes started with \verb{$start_local_workers()}.}
 
 \item{\code{processes_mirai}}{(\link[mirai:mirai]{mirai::mirai})\cr
 List of mirai processes started with \verb{$start_remote_workers()}.}
+
+\item{\code{consistent}}{(\code{logical(1)})\cr
+Whether tasks are consistent.}
 }
 \if{html}{\out{</div>}}
 }
@@ -204,7 +207,7 @@ Information about the Redis server.}
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL, seed = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL, seed = NULL, consistent = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -227,6 +230,10 @@ Initial seed for the random number generator.
 Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
 The later is converted to a L'Ecuyer-CMRG seed.
 If \code{NULL}, no seed is used for the random number generator.}
+
+\item{\code{consistent}}{(\code{logical(1)})\cr
+Whether the task and result structure are consistent.
+When the tasks are consistent, fetching tasks is faster.}
 }
 \if{html}{\out{</div>}}
 }

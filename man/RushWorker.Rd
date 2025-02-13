@@ -106,7 +106,8 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
-  seed = NULL
+  seed = NULL,
+  consistent = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -146,6 +147,10 @@ Initial seed for the random number generator.
 Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
 The later is converted to a L'Ecuyer-CMRG seed.
 If \code{NULL}, no seed is used for the random number generator.}
+
+\item{\code{consistent}}{(\code{logical(1)})\cr
+Whether the task and result structure are consistent.
+When the tasks are consistent, fetching tasks is faster.}
 }
 \if{html}{\out{</div>}}
 }
