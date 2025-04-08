@@ -14,7 +14,6 @@
 #' @template param_seed
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
-#' @template param_consistent
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
 #' @export
@@ -43,10 +42,9 @@ RushWorker = R6::R6Class("RushWorker",
       worker_id = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
-      seed = NULL,
-      consistent = FALSE
+      seed = NULL
       ) {
-      super$initialize(network_id = network_id, config = config, seed = seed, consistent)
+      super$initialize(network_id = network_id, config = config, seed = seed)
 
       self$remote = assert_flag(remote)
       self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))

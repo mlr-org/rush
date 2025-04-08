@@ -1,0 +1,141 @@
+---
+title: "Receiving Results and Caching"
+vignette: >
+  %\VignetteIndexEntry{Rush Adcanved}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Scope {#sec-scope}
+
+This article is about the methods that retrieve results from the Redis database and caching.
+We start with an overview of the data structures in the Redis database.
+Then we discuss the methods that retrieve results from the database.
+Finally, we explain the caching mechanism and how to invalidate the cache.
+
+# Rush Data Store {#sec-data-store}
+
+## Hashes {#sec-hashes}
+
+Tasks are stored in Redis [hashes](https://redis.io/docs/data-types/hashes/).
+Hashes are collections of field-value pairs.
+The key of the hash identifies the task in Redis and `rush`.
+
+```
+key : xs | ys
+```
+
+The field-value pairs are written by different methods, e.g. `$push_running_tasks()` writes `xs` and `$push_results()` writes `ys`.
+The values of the fields are serialized lists or atomic values e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`.
+The `$fetch_*` methods read multiple hashes and return the values as a `list()` or a `data.table`.
+For example, `fetch_finished_tasks()` with `data_format = "list"` returns a list with one element per task `list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 5, x2 = 6, y = 11))`.
+This data structure allows `fetch_finished_tasks(data_format = "data.table")` to quickly convert multiple hashes into a table with `data.table::rbindlist()`.
+
+```
+| key | x1 | x2 | y  |
+| 1.. |  1 |  2 | 3  |
+| 2.. |  5 |  6 | 11 |
+| 3.. |  3 |  7 | 2  |
+```
+
+When the value of a field is a named list, the field can store the cells of multiple columns of the table.
+When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
+
+## Lists and Sets {#sec-lists-sets}
+
+A task life cycle can have four states: `"queued"`, `"running"`, `"finished"`, and `"failed"`.
+The state is stored in Redis [lists](https://redis.io/docs/data-types/lists/) and [sets](https://redis.io/docs/data-types/sets/).
+When a worker creates a new task, the task is marked as `"running"`.
+Upon completion, a task's state is updated to `"finished"`, and its result is stored in the database.
+In cases where a task encounters an error or issue, its state is marked as `"failed"`.
+In a centralized network, the controller can also add tasks to the `"queued"` state.
+
+# Retrieve Results {#sec-retrieve-results}
+
+We run the random search example again.
+
+```{r}
+library(rush)
+
+wl_random_search = function(rush) {
+  repeat {
+    # draw new task
+    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+
+    # mark task as running
+    key = rush$push_running_tasks(xss = list(xs))
+
+    # evaluate task
+    ys = list(y = branin(xs$x1, xs$x2))
+
+    # push result
+    rush$push_results(key, yss = list(ys))
+
+    # stop optimization after 100 tasks
+    if (rush$n_finished_tasks >= 100) break
+  }
+}
+
+
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-random-search",
+  config = config)
+
+worker_ids = rush$start_local_workers(
+  worker_loop = wl_random_search,
+  n_workers = 1)
+```
+
+
+The `$fetch_finished_tasks()` method retrieves the results of finished tasks.
+The method returns a `data.table` with additional meta information.
+The `worker_id` of the worker that evaluated the task and the `pid` of the worker process are stored in the table.
+
+```{r}
+rush$fetch_finished_tasks()
+```
+
+There are multiple `$fetch_*()` methods available for retrieving data from the Redis database.
+A matching method is defined for each task state e.g. `$fetch_queued_tasks()` and `$fetch_running_tasks()`.
+The method `$fetch_finished_tasks()` caches the already queried data (see @sec-caching).
+
+We can change the included columns with the `fields` argument.
+The default of `$fetch_finished_tasks()` is `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
+If we don't want all that extra information, we can just query `"xs"` and `"ys"`.
+
+```{r}
+# fix bug
+rush$fetch_finished_tasks(fields = c("xs", "ys"), reset_cache = TRUE)
+```
+
+The option`data_format = "list"` returns a `list` instead of a `data.table`.
+
+```{r}
+#| eval: false
+rush$fetch_finished_tasks(data_format = "list")
+```
+
+An advantage of the `data.table` format is that we can easily sort the results and give us access to the best result.
+However, when we only need the result, a `list` has less overhead.
+
+## Caching {#sec-caching}
+
+The tasks queried with `$fetch_finished_tasks()` and `$fetch_new_tasks()` are cached.
+This gives a significant speedup when we query the same data multiple times.
+The cache is a `list` to which new results are appended.
+
+```{r}
+rush$fetch_finished_tasks()
+```
+
+If we change the queried fields, the change is not reflected in the cache.
+In this case, we can clear the cache with the `reset_cache = TRUE` option.
+
+
+
+
+

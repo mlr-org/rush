@@ -29,7 +29,6 @@
 #' @template param_heartbeat_expire
 #' @template param_seed
 #' @template param_data_format
-#' @template param_consistent
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
@@ -63,16 +62,11 @@ Rush = R6::R6Class("Rush",
     #' List of mirai processes started with `$start_remote_workers()`.
     processes_mirai = NULL,
 
-    #' @field consistent (`logical(1)`)\cr
-    #' Whether tasks are consistent.
-    consistent = NULL,
-
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(network_id = NULL, config = NULL, seed = NULL, consistent = FALSE) {
+    initialize = function(network_id = NULL, config = NULL, seed = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
-      self$consistent = assert_flag(consistent)
       if (is.null(self$config)) self$config = redux::redis_config()
       if (!redux::redis_available(self$config)) {
         stop("Can't connect to Redis. Check the configuration.")
@@ -641,7 +635,7 @@ Rush = R6::R6Class("Rush",
       # be safe
       remaining_keys = self$connector$command(c("KEYS", "*"))
       map(remaining_keys, function(key) {
-        lg$info("Found remaining key: %s", key)
+        lg$debug("Found remaining key: %s", key)
         if (grepl(self$network_id, key)) r$DEL(key)
       })
 
@@ -966,7 +960,7 @@ Rush = R6::R6Class("Rush",
       data = tail(data, n_new_results)
       if (data_format == "list") return(data)
       # it is much faster to only convert the new results to data.table instead of doing it in fetch_finished_tasks
-      tab = rbindlist(data, use.names = !self$consistent, fill = !self$consistent)
+      tab = rbindlist(data, use.names = TRUE, fill = TRUE)
       tab[, keys := names(data)]
       tab[]
     },
@@ -1627,7 +1621,7 @@ Rush = R6::R6Class("Rush",
       lg$debug("Fetching %i task(s)", length(data))
 
       if (data_format == "list") return(set_names(data, keys))
-      tab = rbindlist(data, use.names = !self$consistent, fill = !self$consistent)
+      tab = rbindlist(data, use.names = TRUE, fill = TRUE)
       tab[, keys := unlist(keys)]
       tab[]
     },
@@ -1654,7 +1648,7 @@ Rush = R6::R6Class("Rush",
       lg$debug("Fetching %i task(s)", length(private$.cached_tasks))
 
       if (data_format == "list") return(private$.cached_tasks)
-      tab = rbindlist(private$.cached_tasks, use.names = !self$consistent, fill = !self$consistent)
+      tab = rbindlist(private$.cached_tasks, use.names = TRUE, fill = TRUE)
       if (nrow(tab)) tab[, keys := names(private$.cached_tasks)]
       tab[]
     }

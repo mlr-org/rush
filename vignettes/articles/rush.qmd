@@ -8,21 +8,14 @@ vignette: >
 
 # Scope
 
-`rush` is package to tackle large-scale problems in a distributed and decentralized network of workers.
+*rush* is a package to tackle large-scale problems in a distributed and decentralized network.
 A rush network consists of multiple workers that communicate over a shared Redis database.
-At its core, rush operates through a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database
-Since the workers communicate over a shared database, they can exchange results and the tasks they are currently working on.
-This allows for the implementation of decentralized optimization algorithms that can scale to large problems.
-We demonstrate how to use the `rush` package with a simply random search and a more sophisticated random search with a median stopping rule.
-For more information on how to start, stop, and observe workers, see the [Rush Controller](rush_controller.html) vignette.
+The workers run a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database.
+This article demonstrates how to use the `rush` package with multiple examples, including a simple random search, a median stopping rule, and a Bayesian optimization algorithm.
 
 # Random Search
 
-```{r}
-library(rush)
-```
-
-The following example demonstrates how to use the `rush` package to solve a simple optimization problem in parallel.
+We start with a simple example of a random search to optimize the Branin function in parallel.
 The classic Branin function (also called the Branin-Hoo function) is a well-known benchmark problem in global optimization.
 It is a two-dimensional function that is non-convex, multimodal, and has three global minima.
 
@@ -34,37 +27,291 @@ branin = function(x1, x2) {
 
 The Branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$.
 
-```{r}
-#| echo: false
-library(ggplot2)
+![](branin.png)
 
-x = seq(-5, 10, length.out = 100)
-y = seq(0, 15, length.out = 100)
-grid = expand.grid(x = x, y = y)
+## Worker Loop
 
-z = apply(grid, 1, function(row) branin(row[1], row[2]))
-data = cbind(grid, z = z)
-
-ggplot(data, aes(x = x, y = y, fill = z)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "Branin Function",
-       x = "X",
-       y = "Y",
-       fill = "Z") +
-  theme_minimal()
-```
-
-We want to optimize the Branin function using a simple random search algorithm.
-The algorithm draws random points and evaluates them using the Branin function.
-We start by implementing the `worker_loop` that includes the random search algorithm and the communication with the database.
-We stop the optimization process after 100 evaluated tasks.
+We start by implementing the `worker_loop` function.
+As the name suggests, the `worker_loop` function is a loop that runs on each worker.
+Usually, the loop iteratively draws new tasks, evaluates them, and pushes the results back to the Redis database.
+In our example, the worker draws random points and evaluates them using the Branin function.
+It stops after 100 tasks are evaluated.
+The only argument of the `worker_loop` function is the `RushWorker` object.
+The `RushWorker` object provides methods to communicate with the Redis database.
 
 ```{r}
 wl_random_search = function(rush) {
-  repeat {
+  # stop optimization after 100 tasks
+  while(rush$n_finished_tasks < 100) {
     # draw new task
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+
+    # mark task as running
+    key = rush$push_running_tasks(xss = list(xs))
+
+    # evaluate task
+    ys = list(y = branin(xs$x1, xs$x2))
+
+    # push result
+    rush$push_results(key, yss = list(ys))
+  }
+}
+```
+
+The most important methods of the `RushWorker` are the `$push_running_tasks()` and `$push_results()` methods.
+The first method `$push_running_tasks()` creates a new task in the Redis database and marks it as running.
+The `$push_running_tasks()` method returns a unique **key** that is used to identify the task.
+The second method `$push_results()` is used to push the results back to the Redis database.
+It takes the key of the task and a list of results.
+To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next.
+For example, Bayesian optimization algorithms would sample the next point further away from the previous points to explore the search space.
+
+## Tasks
+
+Tasks are the unit in which workers exchange information.
+The main components of a task are the state, key, configuration, and result.
+The four possible states are `"queued"`, `"running"`, `"finished"`, and `"failed"`.
+The `$push_running_tasks()` method creates a new task, marks it as `"running"` and returns the key of the task.
+The `$push_results()` method marks a task as `"finished"` and stores the result.
+In cases where a task encounters an error or issue, its state is marked as `"failed"` with the `$push_failed()` method (see [Error Handling](error_handling.html) for more details).
+Tasks can also be pushed to a queue with the `$push_tasks()` method which changes the state to `"queued"`.
+The [Results and Caching](results_caching.html) article gives more details on the data structure of tasks in Redis and the different methods to retrieve results from the database.
+
+## Controller
+
+The `Rush` controller starts, observes, and stops the workers in the network.
+The controller is initialized with the `rsh()` function.
+The `rsh()` function takes a the network id and a `config` argument.
+The `config` argument is a configuration file which is used to connect to the Redis database.
+
+```{r}
+library(rush)
+
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-random-search",
+  config = config)
+```
+
+We can now start workers with the `$start_local_workers()` method.
+The method takes the `worker_loop` and the number of workers.
+The workers are started locally with the `processx` package but it is also possible to start workers on a remote machine (see [Rush Controller](rush_controller.html)).
+We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
+More on globals and the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
+
+```{r}
+rush$start_local_workers(
+  worker_loop = wl_random_search,
+  n_workers = 4,
+  globals = "branin")
+
+rush
+```
+
+The optimization is quickly finished and we retrieve the results.
+The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
+```{r}
+Sys.sleep(5)
+
+# best configuration
+rush$fetch_finished_tasks()[order(y)]
+```
+
+The rush controller shows us how many workers are running and how many tasks are in each state.
+We can see that all 100 tasks are finished and the workers are stopped.
+
+```{r}
+rush
+```
+
+We can stop the workers and reset the database with the `$reset()` method.
+
+```{r}
+rush$reset()
+
+rush
+```
+
+To learn more about starting, stopping and observing workers, see the [Rush Controller](rush_controller.html) vignette.
+
+# Median Stopping
+
+The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
+Let's write a more sophisticated algorithm that uses the results of finished tasks to decide whether to continue with the current task.
+For this purpose, we introduce a fidelity parameter to the Branin function.
+The fidelity parameter in the `branin_wu` function modifies the behavior of the classic Branin function.
+The fidelity parameter is a value between 0 and 1 that controls the exactness of the evaluation.
+When the fidelity is 1, the function evaluates the true Branin function.
+For lower fidelity levels, the function becomes distorted, representing a "cheaper" but less precise evaluation.
+Real optimization problems often have different fidelity levels, where the evaluation of the objective function can be costly or time-consuming.
+The fidelity allows us to trade-off between the evaluation cost and the precision of the evaluation.
+
+```{r}
+branin_wu = function(x1, x2, fidelity) {
+  (x2 - (5.1 / (4 * pi^2) - 0.1 * (1 - fidelity)) * x1^2 + 5 / pi * x1 - 6) ^ 2 +  10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
+}
+```
+
+## Worker Loop
+
+We implement a worker loop that uses the fidelity parameter to evaluate the Branin function.
+The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
+This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
+
+```{r}
+wl_median_stopping = function(rush) {
+  repeat {
+    # draw new task and set lowest fidelity level
+    current_fidelity = 0.1
+    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+    xs$fidelity = current_fidelity
+
+    # loop until the fidelity is 1
+    while (current_fidelity < 1) {
+
+      # evaluate task
+      key = rush$push_running_tasks(xss = list(xs))
+      ys = list(y = branin_wu(xs$x1, xs$x2, current_fidelity))
+      rush$push_results(key, yss = list(ys))
+
+      # fetch tasks from the other workers
+      tasks = rush$fetch_finished_tasks()
+
+      # sample new tasks when performance of current task is worse than the median
+      if (ys$y > median(tasks[fidelity == current_fidelity, y])) break
+
+      # increase fidelity
+      current_fidelity = current_fidelity + 0.1
+      xs$fidelity = current_fidelity
+    }
+
+    # stop optimization after 100 tasks
+    if (rush$n_finished_tasks >= 100) break
+  }
+}
+```
+
+The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
+The median stopping rule compares the performance of the current task with the median performance of the other workers at the same fidelity level.
+If the performance of the current task is worse than the median performance, the algorithm stops the evaluation of the current task and samples a new task.
+The fidelity level is increased by 0.1 until the fidelity level is 1.
+The algorithm stops after 100 evaluated tasks.
+
+We start the optimization process like before by starting 4 local workers that run the median stopping worker loop.
+
+```{r}
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-median-stopping",
+  config = config)
+
+rush$start_local_workers(
+  worker_loop = wl_median_stopping,
+  n_workers = 4,
+  globals = "branin_wu")
+
+Sys.sleep(5)
+
+# best configuration
+rush$fetch_finished_tasks()[order(y)]
+```
+
+```{r}
+rush$reset()
+```
+
+# Bayesian Optimization
+
+We implement Asynchronous Distributed Bayesian Optimization (ADBO) [@egele_2023] next.
+This example shows how workers use information about running tasks and introduces task queues.
+ADBO runs sequential [Bayesian optimization](https://mlr3book.mlr-org.com/chapters/chapter5/advanced_tuning_methods_and_black_box_optimization.html#sec-bayesian-optimization) on multiple workers in parallel.
+Each worker maintains its own surrogate model (a random forest) and selects the next hyperparameter configuration by maximizing the upper confidence bounds acquisition function.
+To promote a varying exploration-exploitation tradeoff between the workers, the acquisition functions are initialized with different lambda values ranging from 0.1 to 10.
+When a worker completes an evaluation, it asynchronously sends the result to its peers via a Redis data base; each worker then updates its local model with this shared information.
+This decentralized design enables workers to proceed independently; eliminating the need for a central coordinator that could become a bottleneck in large-scale optimization scenarios.
+
+We first create a new rush network.
+
+```{r}
+# Connection to the Redis database
+config = redux::redis_config()
+
+# Initialize rush controller
+rush = rsh(
+  network = "test-bayesian-optimization",
+  config = config)
+```
+
+## Queues
+
+The queue system works by pushing and popping tasks from a queue.
+The `$push_task()` method creates new tasks and pushes them to the queue.
+
+```{r}
+# Draw initial design
+xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
+
+rush$push_tasks(xss = xss)
+
+rush
+```
+
+We see 25 queued tasks in the database.
+The worker loop pops tasks with the `$pop_task()` method from the queue.
+The task is evaluated and the results are pushed back to the database.
+
+## Worker Loop
+
+When all tasks of the initial design are evaluated, the worker loop runs the Bayesian optimization.
+All running and finished tasks are fetched from the database.
+Using `rush$fetch_tasks_with_state()` instead of using `$fetch_running_tasks()` and `$fetch_finished_tasks()` is important because it prevents tasks from appearing twice.
+This could be the case if a worker changes the state of a task from `"running"` to `"finished"` while the tasks are being fetched.
+The missing y values of the running tasks are imputed with the mean of the finished tasks.
+A random forest is fitted to the data and the acquisition function is optimized to find the next task.
+Marking the task as running is important for the Bayesian optimization algorithm, as it uses the already sampled points of the other workers to decide which task to evaluate next.
+The next task is evaluated and the results are pushed back to the database.
+We stop the optimization process after 100 evaluated tasks.
+
+```{r}
+wl_bayesian_optimization = function(rush) {
+  # evaluate initial design
+  while(rush$n_queued_tasks > 0) {
+    task = rush$pop_task()
+    if (is.null(task)) break
+    ys = list(y = branin(task$xs$x1, task$xs$x2))
+    rush$push_results(task$key, yss = list(ys))
+  }
+
+  # sample acquisition function parameter
+  lambda = runif(1, 0.01, 10)
+
+  repeat {
+
+    # fetch running and finished tasks
+    xydt = rush$fetch_tasks_with_state(states = c("running", "finished"))
+
+    # impute missing y values
+    mean_y = mean(xydt$y, na.rm = TRUE)
+    xydt["running", y := mean_y, on = "state"]
+
+    # fit surrogate model
+    surrogate = ranger::ranger(y ~ x1 + x2, data = xydt, num.trees = 100L, keep.inbag = TRUE)
+
+    # random search acquisition optimizer
+    xdt = data.table::data.table(x1 = runif(1000, -5, 10), x2 = runif(1000, 0, 15))
+
+    # upper confidence bound acquisition function
+    p = predict(surrogate, xdt, type = "se", se.method = "jack")
+    cb = p$predictions - lambda * p$se
+
+    # find the best candidate
+    xs = as.list(xdt[which.min(cb)])
 
     # mark task as running
     key = rush$push_running_tasks(xss = list(xs))
@@ -81,109 +328,22 @@ wl_random_search = function(rush) {
 }
 ```
 
-Here we see 2 important components of a worker loop: the `$push_running_tasks()` and `$push_results()` methods.
-The first method is used to mark a task as running, while the second method is used to push the results back to the Redis database.
-The `$push_running_tasks()` method returns a unique key that is used to identify the task.
-To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next.
-For example, Bayesian optimization algorithms would sample the next point further away from the previous points to explore the search space.
-
-We first connect to the Redis database and initialize the `rush` controller.
-The `rush` controller starts, observes, and stops the workers in the network.
-We then start 4 local workers that run the `random_search` worker loop.
-We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
-The optimization is quickly finished and we retrieve the results.
+We start the optimization process by starting 4 local workers that run the Bayesian optimization worker loop.
 
 ```{r}
-# Connection to the Redis database
-config = redux::redis_config()
-
-# Initialize rush controller
-rush = rsh(
-  network = "test-random-search",
-  config = config)
-
 rush$start_local_workers(
-  worker_loop = wl_random_search,
+  worker_loop = wl_bayesian_optimization,
   n_workers = 4,
   globals = "branin")
 
 Sys.sleep(5)
 
-rush$fetch_tasks()
+# best configuration
+rush$fetch_finished_tasks()[order(y)]
 ```
 
-To learn more about starting, stopping and observing workers, see the [Rush Controller](rush_controller.html) vignette.
-
-# Median Stopping
-
-The fidelity parameter in the `branin_wu` function modifies the behavior of the classic Branin function, introducing a fidelity-dependent adjustment.
-The fidelity parameter is a value between 0 and 1 that controls the exactness of the evaluation.
-When the fidelity is 1, the function evaluates the true Branin function.
-For lower fidelity levels, the function becomes distorted, representing a "cheaper" but less precise evaluation.
-Real optimization problems often have different fidelity levels, where the evaluation of the objective function can be costly or time-consuming.
-The fidelity allows us to trade-off between the evaluation cost and the precision of the evaluation.
+The optimization is quickly finished and we retrieve the results.
 
 ```{r}
-branin_wu = function(x1, x2, fidelity) {
-  (x2 - (5.1 / (4 * pi^2) - 0.1 * (1 - fidelity)) * x1^2 + 5 / pi * x1 - 6) ^ 2 +  10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
-}
-```
-
-The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
-Let's write a more sophisticated algorithm that uses the results of previous tasks to decide whether to increase the fidelity of the current task.
-The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
-This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
-
-```{r}
-wl_median_stopping = function(rush) {
-  repeat {
-    # draw new task and set lowest fidelity level
-    current_fidelity = 0.1
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
-    xs$fidelity = current_fidelity
-
-    # loop until the fidelity is 1
-    while (current_fidelity < 1) {
-
-      # evaluate task
-      key = rush$push_running_tasks(list(xs))
-      ys = list(y = branin_wu(xs$x1, xs$x2, current_fidelity))
-      rush$push_results(key, yss = list(ys))
-
-      # fetch tasks from the other workers
-      tasks = rush$fetch_finished_tasks()
-
-      # sample new tasks when performance of current task is worse than the median
-      if (ys > median(tasks[fidelity == current_fidelity, y])) break
-
-      # increase fidelity
-      current_fidelity = current_fidelity + 0.1
-      xs$fidelity = current_fidelity
-    }
-
-    # stop optimization after 100 tasks
-    if (rush$n_finished_tasks >= 100) break
-  }
-}
-```
-
-We start the optimization process with the median stopping rule and fetch the results.
-
-```{r}
-# Connection to the Redis database
-config = redux::redis_config()
-
-# Initialize rush controller
-rush = rsh(
-  network = "test-median-stopping",
-  config = config)
-
-rush$start_local_workers(
-  worker_loop = wl_median_stopping,
-  n_workers = 1,
-  globals = "branin_wu")
-
-Sys.sleep(5)
-
-rush$fetch_tasks()
+rush$reset()
 ```

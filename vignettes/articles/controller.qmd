@@ -13,17 +13,18 @@ r$FLUSHDB()
 ```
 
 
-# Introduction
+# Scope
 
-The `Rush` controller manages the network of workers.
-The controller starts local and remote workers and monitors their status.
-If a worker fails, the controller can detect the failure and restart the worker.
-The controller can terminate the workers or kill them.
-The controller can read log messages from the workers.
+A **rush** network can consists of thousands of workers.
+To manage the workers, we use the `Rush` controller.
+It starts and oversees local and remote workers.
+The controller monitors the status of each worker and it can detect and restart failed workers.
+Additionally, the controller offers the ability to terminate or kill workers as needed.
+The controller reads log messages from workers to help with debugging and monitoring
 
 # Local Workers
 
-We use the random search example again to demonstrate how the controller works.
+We use the random search example from the [Rush article](rush.html) to demonstrate how the controller works.
 
 ```{r}
 library(rush)
@@ -97,8 +98,7 @@ We can add more workers to the network.
 ```{r}
 rush$start_local_workers(
   worker_loop = wl_random_search,
-  n_workers = 2,
-  lgr_thresholds = c(rush = "info"))
+  n_workers = 2)
 ```
 
 ```{r}
@@ -113,9 +113,19 @@ rush$worker_states
 ## Globals
 
 Global are variables that are defined in the global environment but should be available on the workers.
-Global variables are passed by name in the `$start_local_workers()`, `start_remote_workers()` and `$worker_script()` methods.
+Global variables are passed by name in the `$start_local_workers()` methods.
 The globals are serialized and stored in the redis data base.
 The workers pull the globals from the data base and assign them to their global environment.
+
+::: {.callout-note}
+
+The maximum size of a Redis string is 512 MiB.
+If the globals of the worker loop function are larger than 512 MiB, `rush` throws an error.
+If the controller and workers can access the same file system, `rush` writes the large objects to disk.
+The `large_objects_path` argument of `rush_plan()` defines the directory where the large objects are stored.
+
+:::
+
 
 ## Stop Worker
 
@@ -132,7 +142,7 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
-Reset workers
+Reset workers.
 
 ```{r}
 rush$reset()
@@ -171,13 +181,12 @@ config = redux::redis_config()
 
 # Initialize rush controller
 rush = rsh(
-  network = "test-random-search",
+  network = "test-random-search-2",
   config = config)
 
 rush$start_local_workers(
   worker_loop = wl_terminate,
-  n_workers = 2,
-  lgr_thresholds = c(rush = "info"))
+  n_workers = 2)
 ```
 
 The random search runs.
@@ -193,7 +202,7 @@ We now want to terminate the optimization.
 rush$stop_workers(type = "terminate")
 ```
 
-The workers are termianted.
+The workers are terminated.
 
 ```{r}
 Sys.sleep(1)
@@ -201,6 +210,8 @@ rush$worker_states
 ```
 
 ## Failed Workers
+
+We simulate a segfault on the worker by killing the worker process.
 
 ```{r}
 rush = rsh(network = "test-failed-workers")
@@ -222,8 +233,12 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
+The `$detect_lost_workers()` method detects failed workers.
+The worker states are updated to `"lost"`.
+
 ```{r}
 rush$detect_lost_workers()
+rush$worker_states
 ```
 
 ## Restart Workers
@@ -242,7 +257,7 @@ rush$worker_states
 ## Log Messages
 
 The worker logs all messages written with the `lgr` package to the database.
-The `lgr_thresholds` argument of `$start_workers()` defines the logging level for each logger e.g. `c(rush = "debug")`.
+The `lgr_thresholds` argument of `$start_local_workers()` defines the logging level for each logger e.g. `c(rush = "debug")`.
 Saving log messages adds a small overhead but is useful for debugging.
 By default, no log messages are stored.
 
@@ -359,6 +374,7 @@ After the daemons are started, we can start the remote workers.
 The `start_remote_workers()` method starts the workers on `mirai` daemons.
 
 ```{r}
+daemons(0)
 daemons(n = 2)
 
 Sys.sleep(1)
@@ -375,17 +391,18 @@ rush$worker_info
 
 ## Failed Workers
 
+Failed workers started with `mirai` are also detected by the controller.
+
 ```{r}
-rush = rsh(network = "test-failed-workers")
+daemons(0)
+daemons(2)
+
+rush = rsh(network = "test-failed-mirai-workers")
 
 wl_failed_worker = function(rush) {
   # simulate a segmentation fault
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
-```
-
-```{r}
-mirai::daemons(2)
 
 worker_ids = rush$start_remote_workers(
   worker_loop = wl_failed_worker,
@@ -405,14 +422,18 @@ A segfault also tears down the mirai daemon.
 Thus, we need to restart the daemon before we can restart the workers.
 
 ```{r}
-mirai::daemons(2)
-mirai::status()
+daemons(0)
+daemons(2)
+status()
 ```
 
 Restart the workers.
 
 ```{r}
 rush$restart_workers(worker_ids)
+
+Sys.sleep(1)
+rush$worker_states
 ```
 
 # Script Workers
@@ -430,7 +451,7 @@ rush$worker_script(
   worker_loop = wl_random_search)
 ```
 
-# Error Handling
+## Error Handling
 
 The heartbeat is a mechanism to monitor the status of script workers in distributed computing systems.
 The mechanism consists of a heartbeat key with a set [expiration timeout](https://redis.io/commands/expire/) and a dedicated heartbeat process that refreshes the timeout periodically.
