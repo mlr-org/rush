@@ -6,12 +6,22 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r}
+#| include: false
+r = redux::hiredis()
+r$FLUSHDB()
+```
+
 # Scope
 
-*rush* is a package to tackle large-scale problems in a distributed and decentralized network.
+*rush* is a package to tackle large-scale problems in a decentralized distributed network.
 A rush network consists of multiple workers that communicate over a shared Redis database.
 The workers run a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database.
-This article demonstrates how to use the `rush` package with multiple examples, including a simple random search, a median stopping rule, and a Bayesian optimization algorithm.
+This article demonstrates how to use the rush package with multiple examples, including a simple random search, a median stopping rule, and a Bayesian optimization algorithm.
+The first examples introduces the main components package worker, worker loop, task and controller.
+Further it shows how tasks are created and results are exchanged between workers.
+The second example builds a median stopping rule and shows how tasks are fetched from the database.
+The third example implements a Bayesian optimization algorithm and introduces the concept of task queues.
 
 # Random Search
 
@@ -34,10 +44,9 @@ The Branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x
 We start by implementing the `worker_loop` function.
 As the name suggests, the `worker_loop` function is a loop that runs on each worker.
 Usually, the loop iteratively draws new tasks, evaluates them, and pushes the results back to the Redis database.
-In our example, the worker draws random points and evaluates them using the Branin function.
-It stops after 100 tasks are evaluated.
-The only argument of the `worker_loop` function is the `RushWorker` object.
-The `RushWorker` object provides methods to communicate with the Redis database.
+The only argument of the `worker_loop` function is the `RushWorker` object which provides methods to communicate with the Redis database.
+In our example, the worker draws a random point, evaluates it using the Branin function, and pushes the result back to the Redis database.
+The optimization stops after 100 tasks are evaluated.
 
 ```{r}
 wl_random_search = function(rush) {
@@ -60,7 +69,7 @@ wl_random_search = function(rush) {
 
 The most important methods of the `RushWorker` are the `$push_running_tasks()` and `$push_results()` methods.
 The first method `$push_running_tasks()` creates a new task in the Redis database and marks it as running.
-The `$push_running_tasks()` method returns a unique **key** that is used to identify the task.
+The `$push_running_tasks()` method returns a unique key that is used to identify the task.
 The second method `$push_results()` is used to push the results back to the Redis database.
 It takes the key of the task and a list of results.
 To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next.
@@ -69,13 +78,14 @@ For example, Bayesian optimization algorithms would sample the next point furthe
 ## Tasks
 
 Tasks are the unit in which workers exchange information.
-The main components of a task are the state, key, configuration, and result.
+The main components of a task are the key, state, configuration (`xs`), and result (`ys`).
+The key is a unique identifier for the task.
 The four possible states are `"queued"`, `"running"`, `"finished"`, and `"failed"`.
-The `$push_running_tasks()` method creates a new task, marks it as `"running"` and returns the key of the task.
+The `$push_running_tasks()` method marks it as `"running"` and returns the key of the task.
 The `$push_results()` method marks a task as `"finished"` and stores the result.
-In cases where a task encounters an error or issue, its state is marked as `"failed"` with the `$push_failed()` method (see [Error Handling](error_handling.html) for more details).
-Tasks can also be pushed to a queue with the `$push_tasks()` method which changes the state to `"queued"`.
-The [Results and Caching](results_caching.html) article gives more details on the data structure of tasks in Redis and the different methods to retrieve results from the database.
+In cases where a task encounters an error, its state is marked as `"failed"` with the `$push_failed()` method (see [Error Handling](error_handling.html) for more details).
+Tasks can also be pushed to a queue with the `$push_tasks()` method which sets the state to `"queued"`.
+The [Queues](queues.html) article gives more details on the task queue and the different methods to push and pop tasks.
 
 ## Controller
 
@@ -113,6 +123,7 @@ rush
 
 The optimization is quickly finished and we retrieve the results.
 The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
+
 ```{r}
 Sys.sleep(5)
 
@@ -263,10 +274,12 @@ rush
 ```
 
 We see 25 queued tasks in the database.
-The worker loop pops tasks with the `$pop_task()` method from the queue.
-The task is evaluated and the results are pushed back to the database.
+To retrieve the tasks from the queue, we need to implement the `$pop_task()` method in the worker loop.
 
 ## Worker Loop
+
+The worker loop pops tasks with the `$pop_task()` method from the queue.
+The task is evaluated and the results are pushed back to the database with the `$push_results()` method.
 
 When all tasks of the initial design are evaluated, the worker loop runs the Bayesian optimization.
 All running and finished tasks are fetched from the database.
