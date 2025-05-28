@@ -1,16 +1,13 @@
 ---
-title: "Error Handling"
+title: "Error Handling and Debugging"
 vignette: >
   %\VignetteIndexEntry{Error Handling}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
 
-# Scope
-
 *rush*  is equipped with an advanced error-handling mechanism designed to manage and mitigate errors encountered during the execution of tasks.
 It adeptly handles a range of error scenarios, from standard R errors to more complex issues such as segmentation faults and network errors.
-The heartbeat mechanism allows to monitor of remote workers.
 
 # Simple R Errors {#sec-error-handling-simple}
 
@@ -148,3 +145,64 @@ rush$worker_script(
 The heartbeat process is also the only way to kill a script worker.
 The `$stop_workers(type = "kill")` method pushes a kill signal to the heartbeat process.
 The heartbeat process terminates the main process of the worker.
+
+# Debugging
+
+When the worker loop fails unexpectedly with an uncaught error, we have to debug the worker loop.
+We consider a simple example where the worker loop randomly throws an error.
+
+```{r}
+library(rush)
+
+
+worker_loop = function(rush) {
+
+  repeat {
+    x1 = runif(1)
+    x2 = runif(1)
+
+    xss = list(list(x1 = x1, x2 = x2))
+
+    key = rush$push_running_tasks(xss = xss)
+
+    if (x1 > 0.90) {
+      stop("Unexpected error")
+    }
+
+    rush$push_results(key, yss = list(list(y = x1 + x2)))
+  }
+}
+```
+
+We start by running the worker loop locally.
+For this we need to initialize a `RushWorker`.
+Usually the rush worker is created while the worker is initialized but we can also create it manually.
+We pass the worker to the worker loop as an argument.
+
+```{r}
+rush_worker = RushWorker$new("test", remote = FALSE)
+
+worker_loop(rush_worker)
+```
+
+The error is raised in the main process and we can call `traceback()` to see the stack trace.
+We can also set breakpoints in the worker loop to inspect the state.
+This gives us a lot of control over debugging process.
+
+Common errors you do not see when running locally are missing packages or global variables.
+But this can easily spotted with `detect_lost_workers()`.
+
+```{r}
+rush = rsh("test")
+
+rush$start_local_workers(
+  worker_loop = worker_loop,
+  n_workers = 1
+)
+```
+
+```{r}
+rush$detect_lost_workers()
+```
+
+

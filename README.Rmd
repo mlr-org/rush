@@ -15,14 +15,15 @@ Package website: [release](https://rush.mlr-org.com/) | [dev](https://rush.mlr-o
 [![Mattermost](https://img.shields.io/badge/chat-mattermost-orange.svg)](https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/)
 <!-- badges: end -->
 
-*rush* is a package designed for decentralized and distributed computing in R.
-It enables workers to communicate over a shared [`Redis`](https://redis.io/) database to solve large-scale problems in parallel.
-The package powers the asynchronous optimization algorithms in the [`bbotk`](https://CRAN.R-project.org/package=bbotk) and [`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
+*rush* is a package designed to solve large-scale problems asynchronously across a distributed network.
+Employing a database centric model, rush enables workers to communicate tasks and their results over a shared [`Redis`](https://redis.io/) database.
+Features include low task overhead, efficient caching, and robust error handling.
+The package powers asynchronous optimization algorithms in the [`bbotk`](https://CRAN.R-project.org/package=bbotk) and [`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
 
 # Features
 
-* Decentralized network architecture for robust scalability.
-* Efficient communication between workers using a shared [`Redis`](https://redis.io/) database.
+* Database centric model for robust scalability.
+* Efficient communication between workers using[`Redis`](https://redis.io/).
 * Maintains low overhead, limiting delays to just a millisecond per task.
 * Reduces read/write operations with a lightweight and efficient caching system.
 * Offers centralized system features, such as task queues.
@@ -48,12 +49,6 @@ pak::pak("mlr-org/rush")
 ```
 
 And install [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
-
-## Decentralized Rush Network
-
-![](man/figures/README-flow-2.png)
-
-*Decentralized network with four workers.*
 
 # Related Work
 

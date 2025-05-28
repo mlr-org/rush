@@ -1,7 +1,7 @@
 ---
-title: "rush - Decentralized and Distributed Computing"
+title: "rush - Asynchronous and Distributed Computing"
 vignette: >
-  %\VignetteIndexEntry{rush - Decentralized and Distributed Computing}
+  %\VignetteIndexEntry{rush - Asynchronous and Distributed Computing}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,22 +12,18 @@ r = redux::hiredis()
 r$FLUSHDB()
 ```
 
-# Scope
 
-*rush* is a package to tackle large-scale problems in a decentralized distributed network.
-A rush network consists of multiple workers that communicate over a shared Redis database.
-The workers run a user-defined worker loop that creates new tasks, evaluates them, and pushes the results to the database.
-This article demonstrates how to use the rush package with multiple examples, including a simple random search, a median stopping rule, and a Bayesian optimization algorithm.
-The first examples introduces the main components package worker, worker loop, task and controller.
-Further it shows how tasks are created and results are exchanged between workers.
-The second example builds a median stopping rule and shows how tasks are fetched from the database.
-The third example implements a Bayesian optimization algorithm and introduces the concept of task queues.
+*rush* is a package designed to solve large-scale problems asynchronously across a distributed network.
+Employing a database centric model, rush enables workers to communicate tasks and their results over a shared [`Redis`](https://redis.io/) database.
+This article demonstrates how to use `rush` with 3 different examples.
 
 # Random Search
 
 We start with a simple example of a random search to optimize the Branin function in parallel.
+A random search does not yet really benefit from a rush network, but it is well suited as a simple example.
 The classic Branin function (also called the Branin-Hoo function) is a well-known benchmark problem in global optimization.
 It is a two-dimensional function that is non-convex, multimodal, and has three global minima.
+The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.
 
 ```{r}
 branin = function(x1, x2) {
@@ -45,62 +41,61 @@ We start by implementing the `worker_loop` function.
 As the name suggests, the `worker_loop` function is a loop that runs on each worker.
 Usually, the loop iteratively draws new tasks, evaluates them, and pushes the results back to the Redis database.
 The only argument of the `worker_loop` function is the `RushWorker` object which provides methods to communicate with the Redis database.
-In our example, the worker draws a random point, evaluates it using the Branin function, and pushes the result back to the Redis database.
+In our example, the worker draws a random point, creates a task from the point, evaluates it using the Branin function, and pushes the result back to the Redis database.
 The optimization stops after 100 tasks are evaluated.
 
 ```{r}
 wl_random_search = function(rush) {
-  # stop optimization after 100 tasks
-  while(rush$n_finished_tasks < 100) {
-    # draw new task
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
 
-    # mark task as running
+  while(rush$n_finished_tasks < 100) {
+
+    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
 
-    # evaluate task
     ys = list(y = branin(xs$x1, xs$x2))
-
-    # push result
     rush$push_results(key, yss = list(ys))
   }
 }
 ```
 
 The most important methods of the `RushWorker` are the `$push_running_tasks()` and `$push_results()` methods.
-The first method `$push_running_tasks()` creates a new task in the Redis database and marks it as running.
+The first method `$push_running_tasks()` creates a new task in the Redis database.
+Since it is evaluated next, the task is marked as running.
 The `$push_running_tasks()` method returns a unique key that is used to identify the task.
 The second method `$push_results()` is used to push the results back to the Redis database.
 It takes the key of the task and a list of results.
 To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next.
 For example, Bayesian optimization algorithms would sample the next point further away from the previous points to explore the search space.
+The `$n_finished_tasks` shows how many tasks are finished and is used to stop the worker loop.
 
 ## Tasks
 
 Tasks are the unit in which workers exchange information.
-The main components of a task are the key, state, configuration (`xs`), and result (`ys`).
+The main components of a task are the key, computational state, input (`xs`), and result (`ys`).
 The key is a unique identifier for the task.
-The four possible states are `"queued"`, `"running"`, `"finished"`, and `"failed"`.
+It identifies the task in the Redis database.
+The four possible computational states are `"running"`, `"finished"`, `"failed"`, and `"queued"`.
 The `$push_running_tasks()` method marks it as `"running"` and returns the key of the task.
 The `$push_results()` method marks a task as `"finished"` and stores the result.
-In cases where a task encounters an error, its state is marked as `"failed"` with the `$push_failed()` method (see [Error Handling](error_handling.html) for more details).
+Failed tasks can be marked as `"failed"` with the `$push_failed()` method.
+The error catching must be implemented in the worker loop (see [Error Handling](error_handling.html) for more details).
 Tasks can also be pushed to a queue with the `$push_tasks()` method which sets the state to `"queued"`.
-The [Queues](queues.html) article gives more details on the task queue and the different methods to push and pop tasks.
+The last example gives more details on the task queue and the different methods to push and pop tasks.
+The input `xs` and result `ys` are lists that can contain arbitrary data.
+Usually the methods of the `RushWorker` work on multiple tasks at once, so `xxs` and `yss` are lists of inputs and results.
 
 ## Controller
 
 The `Rush` controller starts, observes, and stops the workers in the network.
 The controller is initialized with the `rsh()` function.
 The `rsh()` function takes a the network id and a `config` argument.
-The `config` argument is a configuration file which is used to connect to the Redis database.
+The `config` argument is a configuration file which is used to connect to the Redis database via the `redux` package.
 
 ```{r}
 library(rush)
 
-# Connection to the Redis database
 config = redux::redis_config()
 
-# Initialize rush controller
 rush = rsh(
   network = "test-random-search",
   config = config)
@@ -123,16 +118,25 @@ rush
 
 The optimization is quickly finished and we retrieve the results.
 The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
+The method returns a `data.table()` with the key, input, and result.
+The `pid` and `worker_id` column are additional information that are stored when the task is created.
+The `worker_id` is the id of the worker that evaluated the task and the `pid` is the process id of that worker.
+Further extra information can be passed as `list`s to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
 
 ```{r}
+#| include: false
 Sys.sleep(5)
+```
 
-# best configuration
+```{r}
 rush$fetch_finished_tasks()[order(y)]
 ```
 
 The rush controller shows us how many workers are running and how many tasks are in each state.
-We can see that all 100 tasks are finished and the workers are stopped.
+We can see that 103 tasks are finished and the workers are stopped.
+The number of finished tasks is slightly higher than 100 because when multiple workers run in parallel, they independently check the stopping condition.
+If several workers check the condition at nearly the same moment when there are 99 finished tasks, they might all create new tasks before any of them sees the updated count of 100.
+Moreover, new tasks are created as long as the evaluation of the 100th task is not finished.
 
 ```{r}
 rush
@@ -169,38 +173,26 @@ branin_wu = function(x1, x2, fidelity) {
 ## Worker Loop
 
 We implement a worker loop that uses the fidelity parameter to evaluate the Branin function.
-The algorithm will evaluate the current task at different fidelity levels and increase the fidelity if the performance of the current task is better than the median performance of the previous tasks at the same fidelity level.
+The algorithm starts by drawing a new task.
+The worker loop then evaluates the task at increasing fidelity level.
+In each iteration, the performance of the task is compared to the other tasks in the network at the same fidelity level.
+If the performance of the task is worse than the median performance, the worker stops the evaluation of the task and samples a new task.
 This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
 
 ```{r}
 wl_median_stopping = function(rush) {
-  repeat {
-    # draw new task and set lowest fidelity level
-    current_fidelity = 0.1
+  while(rush$n_finished_tasks < 100) {
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
-    xs$fidelity = current_fidelity
 
-    # loop until the fidelity is 1
-    while (current_fidelity < 1) {
-
-      # evaluate task
+    for (fidelity in seq(0.1, 1, by = 0.1)) {
+      xs$fidelity = fidelity
       key = rush$push_running_tasks(xss = list(xs))
-      ys = list(y = branin_wu(xs$x1, xs$x2, current_fidelity))
+      ys = list(y = branin_wu(xs$x1, xs$x2, xs$fidelity))
       rush$push_results(key, yss = list(ys))
 
-      # fetch tasks from the other workers
       tasks = rush$fetch_finished_tasks()
-
-      # sample new tasks when performance of current task is worse than the median
       if (ys$y > median(tasks[fidelity == current_fidelity, y])) break
-
-      # increase fidelity
-      current_fidelity = current_fidelity + 0.1
-      xs$fidelity = current_fidelity
     }
-
-    # stop optimization after 100 tasks
-    if (rush$n_finished_tasks >= 100) break
   }
 }
 ```
@@ -214,10 +206,8 @@ The algorithm stops after 100 evaluated tasks.
 We start the optimization process like before by starting 4 local workers that run the median stopping worker loop.
 
 ```{r}
-# Connection to the Redis database
 config = redux::redis_config()
 
-# Initialize rush controller
 rush = rsh(
   network = "test-median-stopping",
   config = config)
@@ -227,11 +217,20 @@ rush$start_local_workers(
   n_workers = 4,
   globals = "branin_wu")
 
-Sys.sleep(5)
+```
 
-# best configuration
+We fetch the finished tasks and sort them by the objective value.
+
+```{r}
+#| include: false
+Sys.sleep(5)
+```
+
+```{r}
 rush$fetch_finished_tasks()[order(y)]
 ```
+
+We stop the workers and reset the database.
 
 ```{r}
 rush$reset()
@@ -250,10 +249,8 @@ This decentralized design enables workers to proceed independently; eliminating 
 We first create a new rush network.
 
 ```{r}
-# Connection to the Redis database
 config = redux::redis_config()
 
-# Initialize rush controller
 rush = rsh(
   network = "test-bayesian-optimization",
   config = config)
@@ -263,9 +260,9 @@ rush = rsh(
 
 The queue system works by pushing and popping tasks from a queue.
 The `$push_task()` method creates new tasks and pushes them to the queue.
+In this example, we draw an initial design of 25 points and push them to the queue.
 
 ```{r}
-# Draw initial design
 xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -280,63 +277,43 @@ To retrieve the tasks from the queue, we need to implement the `$pop_task()` met
 
 The worker loop pops tasks with the `$pop_task()` method from the queue.
 The task is evaluated and the results are pushed back to the database with the `$push_results()` method.
-
-When all tasks of the initial design are evaluated, the worker loop runs the Bayesian optimization.
-All running and finished tasks are fetched from the database.
+If there are no more tasks in the queue, the `$pop_task()` method returns `NULL` and the worker loop starts the Bayesian optimization.
+First, a lambda value for the acquisition function is sampled between 0.01 and 10.
+Then all running and finished tasks are fetched from the database.
 Using `rush$fetch_tasks_with_state()` instead of using `$fetch_running_tasks()` and `$fetch_finished_tasks()` is important because it prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task from `"running"` to `"finished"` while the tasks are being fetched.
 The missing y values of the running tasks are imputed with the mean of the finished tasks.
-A random forest is fitted to the data and the acquisition function is optimized to find the next task.
+Then the surrogate random forest model is fitted to the data and the acquisition function is optimized to find the next task.
 Marking the task as running is important for the Bayesian optimization algorithm, as it uses the already sampled points of the other workers to decide which task to evaluate next.
-The next task is evaluated and the results are pushed back to the database.
+The task is evaluated and the results are pushed back to the database.
 We stop the optimization process after 100 evaluated tasks.
 
 ```{r}
 wl_bayesian_optimization = function(rush) {
-  # evaluate initial design
-  while(rush$n_queued_tasks > 0) {
+  repeat {
     task = rush$pop_task()
     if (is.null(task)) break
     ys = list(y = branin(task$xs$x1, task$xs$x2))
     rush$push_results(task$key, yss = list(ys))
   }
 
-  # sample acquisition function parameter
   lambda = runif(1, 0.01, 10)
 
-  repeat {
+  while(rush$n_finished_tasks < 100) {
 
-    # fetch running and finished tasks
     xydt = rush$fetch_tasks_with_state(states = c("running", "finished"))
-
-    # impute missing y values
     mean_y = mean(xydt$y, na.rm = TRUE)
     xydt["running", y := mean_y, on = "state"]
 
-    # fit surrogate model
     surrogate = ranger::ranger(y ~ x1 + x2, data = xydt, num.trees = 100L, keep.inbag = TRUE)
-
-    # random search acquisition optimizer
     xdt = data.table::data.table(x1 = runif(1000, -5, 10), x2 = runif(1000, 0, 15))
-
-    # upper confidence bound acquisition function
     p = predict(surrogate, xdt, type = "se", se.method = "jack")
     cb = p$predictions - lambda * p$se
-
-    # find the best candidate
     xs = as.list(xdt[which.min(cb)])
-
-    # mark task as running
     key = rush$push_running_tasks(xss = list(xs))
 
-    # evaluate task
     ys = list(y = branin(xs$x1, xs$x2))
-
-    # push result
     rush$push_results(key, yss = list(ys))
-
-    # stop optimization after 100 tasks
-    if (rush$n_finished_tasks >= 100) break
   }
 }
 ```
@@ -349,14 +326,23 @@ rush$start_local_workers(
   n_workers = 4,
   globals = "branin")
 
-Sys.sleep(5)
-
-# best configuration
-rush$fetch_finished_tasks()[order(y)]
 ```
 
 The optimization is quickly finished and we retrieve the results.
 
 ```{r}
+#| include: false
+Sys.sleep(5)
+```
+
+```{r}
+rush$fetch_finished_tasks()[order(y)]
+```
+
+```{r}
+#| include: false
 rush$reset()
 ```
+
+how to debug
+tags for jobs

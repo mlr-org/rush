@@ -12,17 +12,10 @@ r = redux::hiredis()
 r$FLUSHDB()
 ```
 
+A **rush** network consists of thousands of workers started on different machines.
+rush offers three ways to start workers: local workers with `processx`, remote workers with `mirai` and script workers.
 
-# Scope
-
-A **rush** network can consists of thousands of workers.
-To manage the workers, we use the `Rush` controller.
-It starts and oversees local and remote workers.
-The controller monitors the status of each worker and it can detect and restart failed workers.
-Additionally, the controller offers the ability to terminate or kill workers as needed.
-The controller reads log messages from workers to help with debugging and monitoring
-
-# Local Workers
+# Local Workers {#sec-local-workers}
 
 We use the random search example from the [Rush article](rush.html) to demonstrate how the controller works.
 
@@ -58,7 +51,7 @@ rush = rsh(
   config = config)
 ```
 
-## Start Workers
+## Start Workers {#sec-local-start-workers}
 
 Workers can be started on the local machine or a remote machine.
 A local worker runs on the same machine as the controller.
@@ -78,7 +71,9 @@ worker_ids = rush$start_local_workers(
 
 We get more information about the workers with `$worker_info`.
 The `worker_id` identifies the worker.
-The `pid` is the process id of the worker process.
+The `pid` is the process id of the worker process and the `hostname` is the name of the machine.
+The `remote` column indicates if the worker is running on a remote machine and the `heartbeat` column shows if a heartbeat process is running.
+Heartbeats are explained in the [Error Handling](#error-handling) section.
 
 ```{r}
 Sys.sleep(1)
@@ -110,7 +105,18 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
-## Globals
+## Rush Plan {#sec-local-rush-plan}
+
+When rush is integrated into a third-party package, the workers are usually started by the package.
+The user can call the `rush_plan()` function to set the options for the workers.
+We can specify the number and type of workers, and the redux configuration.
+
+```{r}
+#| eval: false
+rush_plan(n_workers = 4, config = redux::redis_config(), worker_type = "local")
+```
+
+## Globals {#sec-local-globals}
 
 Global are variables that are defined in the global environment but should be available on the workers.
 Global variables are passed by name in the `$start_local_workers()` methods.
@@ -127,7 +133,7 @@ The `large_objects_path` argument of `rush_plan()` defines the directory where t
 :::
 
 
-## Stop Worker
+## Stop Worker {#sec-local-stop-worker}
 
 Workers can be stopped individually or all at once.
 
@@ -209,7 +215,7 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
-## Failed Workers
+## Failed Workers {#sec-local-failed-workers}
 
 We simulate a segfault on the worker by killing the worker process.
 
@@ -241,7 +247,7 @@ rush$detect_lost_workers()
 rush$worker_states
 ```
 
-## Restart Workers
+## Restart Workers {#sec-local-restart-workers}
 
 Workers can be restarted after they failed.
 
@@ -254,7 +260,7 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
-## Log Messages
+## Log Messages {#sec-local-log-messages}
 
 The worker logs all messages written with the `lgr` package to the database.
 The `lgr_thresholds` argument of `$start_local_workers()` defines the logging level for each logger e.g. `c(rush = "debug")`.
@@ -296,7 +302,7 @@ Reset Rush Network
 rush$reset()
 ```
 
-# Remote Workers
+# Remote Workers {#sec-remote-workers}
 
 With the `mirai` package it is very easy to start `rush` workers on remote machines
 The `mirai` package starts daemons (persistent background processes) that run arbitrary R code in parallel.
@@ -306,7 +312,7 @@ The daemons call back to main session.
 library(mirai)
 ```
 
-## Start Workers
+## Start Workers {#sec-remote-start-workers}
 
 Start local daemons.
 
@@ -436,7 +442,7 @@ Sys.sleep(1)
 rush$worker_states
 ```
 
-# Script Workers
+# Script Workers {#sec-script-workers}
 
 The most flexible way to start workers is to use a script generate with `$worker_script()`.
 The script can be executed on the local machine or a remote machine.
@@ -451,7 +457,7 @@ rush$worker_script(
   worker_loop = wl_random_search)
 ```
 
-## Error Handling
+## Error Handling {#sec-script-error-handling}
 
 The heartbeat is a mechanism to monitor the status of script workers in distributed computing systems.
 The mechanism consists of a heartbeat key with a set [expiration timeout](https://redis.io/commands/expire/) and a dedicated heartbeat process that refreshes the timeout periodically.
