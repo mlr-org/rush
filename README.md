@@ -18,9 +18,9 @@ Status](https://www.r-pkg.org/badges/version-ago/rush)](https://cran.r-project.o
 *rush* is a package designed to solve large-scale problems
 asynchronously across a distributed network. Employing a database
 centric model, rush enables workers to communicate tasks and their
-results over a shared [`Redis`](https://redis.io/) database. Features
-include low task overhead, efficient caching, and robust error handling.
-The package powers asynchronous optimization algorithms in the
+results over a shared [`Redis`](https://redis.io/) database. Key
+features include low task overhead, efficient caching, and robust error
+handling. The package powers asynchronous optimization algorithms in the
 [`bbotk`](https://CRAN.R-project.org/package=bbotk) and
 [`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
 

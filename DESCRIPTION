@@ -1,10 +1,17 @@
 Package: rush
-Title: Rapid Decentralized and Distributed Computing
+Title: Rapid Asynchronous and Distributed Computing
 Version: 0.1.2.9000
 Authors@R:
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut", "cph"),
            comment = c(ORCID = "0000-0002-8115-0400"))
-Description: Package to tackle large-scale problems in a distributed and decentralized network of workers.
+Description: Package to tackle large-scale problems asynchronously across
+    a distributed network. Employing a database centric model, rush
+    enables workers to communicate tasks and their results over a shared
+    'Redis' database. Key features include low task overhead, efficient
+    caching, and robust error handling. The package powers the
+    asynchronous optimization algorithms in the 'bbotk' and 'mlr3tuning'
+    packages.
+License: MIT + file LICENSE
 URL: https://github.com/mlr-org/rush
 BugReports: https://github.com/mlr-org/rush/issues
 Depends:
@@ -19,8 +26,8 @@ Imports:
     mlr3misc,
     parallel,
     processx,
-    redux,
     R6,
+    redux,
     uuid
 Suggests:
     callr,
@@ -28,10 +35,10 @@ Suggests:
     quarto,
     rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: 
+    quarto
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-VignetteBuilder: quarto
-License: MIT + file LICENSE
