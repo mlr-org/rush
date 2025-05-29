@@ -238,7 +238,7 @@ Sys.sleep(5)
 ```
 
 ```{r rush-013}
-rush$fetch_finished_tasks()[order(y), .(max_depth, lambda, alpha, nrounds, rmse)]
+rush$fetch_finished_tasks()[order(y), list(max_depth, lambda, alpha, nrounds, rmse)]
 ```
 
 We stop the workers and reset the database.ch
