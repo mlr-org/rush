@@ -4,14 +4,14 @@
 \name{rush-package}
 \alias{rush}
 \alias{rush-package}
-\title{rush: Rapid Decentralized and Distributed Computing}
+\title{rush: Rapid Asynchronous and Distributed Computing}
 \description{
-Package to tackle large-scale problems in a distributed and decentralized network of workers.
+Package to tackle large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared 'Redis' database. Key features include low task overhead, efficient caching, and robust error handling. The package powers the asynchronous optimization algorithms in the 'bbotk' and 'mlr3tuning' packages.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/mlr-org/rush}
+  \item \url{https://rush.mlr-org.com}
   \item Report bugs at \url{https://github.com/mlr-org/rush/issues}
 }
 

@@ -18,26 +18,6 @@
 #' @return `NULL`
 #' @keywords internal
 #' @export
-#' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
-#'    config_local = redux::redis_config()
-#'
-#'    rush_plan(
-#'      config = config_local,
-#'      n_workers = 2,
-#'      lgr_thresholds = c(rush = "info"))
-#'
-#'    rush = rsh(network_id = "test_network")
-#'
-#'    fun = function(x1, x2, ...) list(y = x1 + x2)
-#'    rush$start_local_workers(
-#'      fun = fun,
-#'      heartbeat_period = 3,
-#'      heartbeat_expire = 9)
-#'
-#'    rush$stop_workers()
-#' }
 heartbeat = function(network_id, config, worker_id, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
   worker_id_key = sprintf("%s:%s", network_id, worker_id)

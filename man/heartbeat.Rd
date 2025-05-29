@@ -45,25 +45,4 @@ The heartbeat loop updates the heartbeat key if the worker is still alive.
 If the kill key is set, the worker is killed.
 This function is called in a callr session.
 }
-\examples{
-# This example is not executed since Redis must be installed
-\donttest{
-   config_local = redux::redis_config()
-
-   rush_plan(
-     config = config_local,
-     n_workers = 2,
-     lgr_thresholds = c(rush = "info"))
-
-   rush = rsh(network_id = "test_network")
-
-   fun = function(x1, x2, ...) list(y = x1 + x2)
-   rush$start_local_workers(
-     fun = fun,
-     heartbeat_period = 3,
-     heartbeat_expire = 9)
-
-   rush$stop_workers()
-}
-}
 \keyword{internal}
