@@ -315,7 +315,11 @@ wl_bayesian_optimization = function(rush) {
     mean_y = mean(xydt$y, na.rm = TRUE)
     xydt["running", y := mean_y, on = "state"]
 
-    surrogate = ranger::ranger(y ~ x1 + x2, data = xydt, num.trees = 100L, keep.inbag = TRUE)
+    surrogate = ranger::ranger(
+      y ~ x1 + x2,
+      data = xydt,
+      num.trees = 100L,
+      keep.inbag = TRUE)
     xdt = data.table::data.table(x1 = runif(1000, -5, 10), x2 = runif(1000, 0, 15))
     p = predict(surrogate, xdt, type = "se", se.method = "jack")
     cb = p$predictions - lambda * p$se
