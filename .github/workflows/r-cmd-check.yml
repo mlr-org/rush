@@ -50,6 +50,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+          install-quarto: true
 
       - uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}

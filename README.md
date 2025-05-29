@@ -3,115 +3,76 @@
 
 # rush
 
-*rush* is a package for parallel and distributed computing in R. It
-evaluates an R expression asynchronously on a cluster of workers and
-provides a shared storage between the workers. The shared storage is a
-[Redis](https://redis.io) data base. Rush offers a centralized and
-decentralized network architecture. The centralized network has a single
-controller (`Rush`) and multiple workers (`RushWorker`). Tasks are
-created centrally and distributed to workers by the controller. The
-decentralized network has no controller. The workers sample tasks and
-communicate the results asynchronously with other workers.
+Package website: [release](https://rush.mlr-org.com/) \|
+[dev](https://rush.mlr-org.com/dev/)
+
+<!-- badges: start -->
+
+[![r-cmd-check](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml/badge.svg)](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml)
+[![CRAN
+Status](https://www.r-pkg.org/badges/version-ago/rush)](https://cran.r-project.org/package=rush)
+[![StackOverflow](https://img.shields.io/badge/stackoverflow-mlr3-orange.svg)](https://stackoverflow.com/questions/tagged/mlr3)
+[![Mattermost](https://img.shields.io/badge/chat-mattermost-orange.svg)](https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/)
+<!-- badges: end -->
+
+*rush* is a package designed to solve large-scale problems
+asynchronously across a distributed network. Employing a database
+centric model, rush enables workers to communicate tasks and their
+results over a shared [`Redis`](https://redis.io/) database. Key
+features include low task overhead, efficient caching, and robust error
+handling. The package powers asynchronous optimization algorithms in the
+[`bbotk`](https://CRAN.R-project.org/package=bbotk) and
+[`mlr3tuning`](https://CRAN.R-project.org/package=paradox) packages.
 
 # Features
 
--   Parallelize arbitrary R expressions.
--   Centralized and decentralized network architecture.
--   Small overhead of a few milliseconds per task.
--   Easy start of local workers with `processx`
--   Start workers on any platform with a batch script.
--   Designed to work with
-    [`data.table`](https://CRAN.R-project.org/package=data.table).
--   Results are cached in the R session to minimize read and write
-    operations.
--   Detect and recover from worker failures.
--   Start heartbeats to monitor workers on remote machines.
--   Snapshot the in-memory data base to disk.
--   Store [`lgr`](https://CRAN.R-project.org/package=lgr) messages of
-    the workers in the Redis data base.
--   Light on dependencies.
+- Database centric model for robust scalability.
+- Efficient communication between workers
+  using[`Redis`](https://redis.io/).
+- Maintains low overhead, limiting delays to just a millisecond per
+  task.
+- Reduces read/write operations with a lightweight and efficient caching
+  system.
+- Offers centralized system features, such as task queues.
+- Provides fast data transformation from Redis to
+  [`data.table`](https://CRAN.R-project.org/package=data.table).
+- Simplifies local worker setup with
+  [`processx`](https://CRAN.R-project.org/package=processx).
+- Enables scaling to large remote worker networks via the
+  [`mirai`](https://CRAN.R-project.org/package=mirai) package.
+- Automatically detects and recovers from worker failures for high
+  reliability.
+- Logs worker messages directly into the Redis database using
+  [`lgr`](https://CRAN.R-project.org/package=lgr).
+- Designed with minimal dependencies for lightweight integration.
 
 ## Install
+
+Install the latest release from CRAN.
+
+``` r
+install.packages("rush")
+```
 
 Install the development version from GitHub.
 
 ``` r
-remotes::install_github("mlr-org/rush")
+pak::pak("mlr-org/rush")
 ```
 
 And install
 [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
 
-## Centralized Rush Network
+# Related Work
 
-![](man/figures/README-flow.png)
-
-*Centralized network with a single controller and three workers.*
-
-The example below shows the evaluation of a simple function in a
-centralized network. The `network_id` identifies the instance and
-workers in the network. The `config` is a list of parameters for the
-connection to Redis.
-
-``` r
-library(rush)
-
-config = redux::redis_config()
-rush = Rush$new(network_id = "test", config)
-
-rush
-```
-
-    ## <Rush>
-    ## * Running Workers: 0
-    ## * Queued Tasks: 0
-    ## * Queued Priority Tasks: 0
-    ## * Running Tasks: 0
-    ## * Finished Tasks: 0
-    ## * Failed Tasks: 0
-
-Next, we define a function that we want to evaluate on the workers.
-
-``` r
-fun = function(x1, x2, ...) {
-  list(y = x1 + x2)
-}
-```
-
-We start two workers.
-
-``` r
-rush$start_local_workers(fun = fun, n_workers = 2)
-```
-
-    ## INFO  [17:30:43.422] [rush] Starting 2 worker(s)
-    ## $`d82afa87-9f2c-41a4-891c-7490ea5eba46`
-    ## PROCESS 'Rscript', running, pid 24531.
-    ## 
-    ## $`fad19573-bfe6-4809-8be2-bdde44191210`
-    ## PROCESS 'Rscript', running, pid 24542.
-
-Now we can push tasks to the workers.
-
-``` r
-xss = list(list(x1 = 3, x2 = 5), list(x1 = 4, x2 = 6))
-keys = rush$push_tasks(xss)
-rush$wait_for_tasks(keys)
-```
-
-And retrieve the results.
-
-``` r
-rush$fetch_finished_tasks()
-```
-
-    ##       x1    x2     y   pid     worker_id          keys
-    ##    <num> <num> <num> <int>        <char>        <char>
-    ## 1:     3     5     8 24542 fad19573-b... 7ac77ca4-6...
-    ## 2:     4     6    10 24531 d82afa87-9... 0fb60722-6...
-
-## Decentralized Rush Network
-
-![](man/figures/README-flow-2.png)
-
-*Decentralized network with four workers.*
+- The [rrq](https://github.com/mrc-ide/rrq) package is a task queue
+  system for R using Redis.
+- The [future](https://CRAN.R-project.org/package=future) package
+  provides a simple and uniform way of evaluating R expressions
+  asynchronously across a range of backends.
+- [batchtools](https://CRAN.R-project.org/package=batchtools) is a
+  package for the execution of long-running tasks on high-performance
+  computing clusters.
+- The [mirai](https://CRAN.R-project.org/package=mirai) package
+  evaluates an R expression asynchronously in a parallel process,
+  locally or distributed over the network.

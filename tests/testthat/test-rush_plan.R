@@ -25,8 +25,11 @@ test_that("start workers", {
   expect_equal(rush_env$n_workers, 2)
 
   rush = rsh("test-rush")
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  rush$start_local_workers(fun = fun)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 2,
+    lgr_thresholds = c(rush = "debug"))
+  rush$wait_for_workers(2, timeout = 5)
 
   expect_equal(rush$n_running_workers, 2)
 
@@ -48,23 +51,15 @@ test_that("set threshold", {
   expect_equal(rush_env$lgr_thresholds, c(rush = "debug"))
 
   rush = rsh("test-rush")
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  expect_output(rush$start_local_workers(fun = fun), "Pushing.*")
+  expect_output(rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 2,
+    lgr_thresholds = c(rush = "debug"),
+    wait_for_workers = TRUE),
+    "Pushing.*")
+
+  Sys.sleep(2)
 
   expect_rush_reset(rush)
 })
 
-test_that("set start worker timeout", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush_plan(n_workers = 2, config, start_worker_timeout = -Inf)
-
-  expect_equal(rush_env$start_worker_timeout, -Inf)
-
-  rush = rsh("test-rush")
-  fun = function(x1, x2, ...) list(y = x1 + x2)
-  expect_error(rush$start_local_workers(fun = fun), "Timeout waiting")
-
-  expect_rush_reset(rush)
-})

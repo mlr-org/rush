@@ -4,23 +4,48 @@
 \alias{start_worker}
 \title{Start a worker}
 \usage{
-start_worker(network_id, worker_id = NULL, remote = TRUE, ...)
+start_worker(
+  worker_id = NULL,
+  network_id,
+  config = NULL,
+  remote = TRUE,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = 0,
+  heartbeat_period = NULL,
+  heartbeat_expire = NULL
+)
 }
 \arguments{
+\item{worker_id}{(\code{character(1)})\cr
+Identifier of the worker.
+Keys in redis specific to the worker are prefixed with the worker id.}
+
 \item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
 Keys in Redis are prefixed with the instance id.}
 
-\item{worker_id}{(\code{character(1)})\cr
-Identifier of the worker.
-Keys in redis specific to the worker are prefixed with the worker id.}
+\item{config}{(\code{list()})\cr
+Configuration for the Redis connection.}
 
 \item{remote}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
 
-\item{...}{(\code{any})\cr
-Arguments passed to \link[redux:redis_config]{redux::redis_config}.}
+\item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+
+\item{lgr_buffer_size}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{heartbeat_period}{(\code{integer(1)})\cr
+Period of the heartbeat in seconds.
+The heartbeat is updated every \code{heartbeat_period} seconds.}
+
+\item{heartbeat_expire}{(\code{integer(1)})\cr
+Time to live of the heartbeat in seconds.
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 }
 \value{
 \code{NULL}

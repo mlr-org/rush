@@ -13,18 +13,6 @@ The worker inherits from \link{Rush}.
 \note{
 The worker registers itself in the data base of the rush network.
 }
-\examples{
-# This example is not executed since Redis must be installed
-\donttest{
-   config_local = redux::redis_config()
-   rush = rsh(network_id = "test_network", config = config_local)
-
-   fun = function(x1, x2, ...) list(y = x1 + x2)
-   rush$start_local_workers(fun = fun)
-
-   rush$stop_workers()
-}
-}
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }
@@ -37,7 +25,7 @@ Identifier of the worker.}
 \item{\code{remote}}{(\code{logical(1)})\cr
 Whether the worker is on a remote machine.}
 
-\item{\code{heartbeat}}{(`r_process``)\cr
+\item{\code{heartbeat}}{(\code{callr::r_bg})\cr
 Background process for the heartbeat.}
 }
 \if{html}{\out{</div>}}
@@ -69,7 +57,6 @@ Used in the worker loop to determine whether to continue.}
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="create_worker_script"><a href='../../rush/html/Rush.html#method-Rush-create_worker_script'><code>rush::Rush$create_worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
@@ -92,8 +79,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_local_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_local_workers'><code>rush::Rush$restart_local_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="retry_tasks"><a href='../../rush/html/Rush.html#method-Rush-retry_tasks'><code>rush::Rush$retry_tasks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_workers'><code>rush::Rush$restart_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
@@ -102,6 +88,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_new_tasks'><code>rush::Rush$wait_for_new_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>rush::Rush$wait_for_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href='../../rush/html/Rush.html#method-Rush-wait_for_workers'><code>rush::Rush$wait_for_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="worker_script"><a href='../../rush/html/Rush.html#method-Rush-worker_script'><code>rush::Rush$worker_script()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>rush::Rush$write_hashes()</code></a></span></li>
 </ul>
 </details>
@@ -119,8 +106,6 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
-  lgr_thresholds = NULL,
-  lgr_buffer_size = 0,
   seed = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -149,18 +134,12 @@ Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
 
 \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.}
+Period of the heartbeat in seconds.
+The heartbeat is updated every \code{heartbeat_period} seconds.}
 
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
+Time to live of the heartbeat in seconds.
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 
 \item{\code{seed}}{(\code{integer()})\cr
 Initial seed for the random number generator.

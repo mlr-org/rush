@@ -11,25 +11,12 @@
 #' @template param_config
 #' @template param_remote
 #' @template param_worker_id
+#' @template param_seed
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
-#' @template param_lgr_thresholds
-#' @template param_lgr_buffer_size
-#' @template param_seed
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
 #' @export
-#' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
-#'    config_local = redux::redis_config()
-#'    rush = rsh(network_id = "test_network", config = config_local)
-#'
-#'    fun = function(x1, x2, ...) list(y = x1 + x2)
-#'    rush$start_local_workers(fun = fun)
-#'
-#'    rush$stop_workers()
-#' }
 RushWorker = R6::R6Class("RushWorker",
   inherit = Rush,
   public = list(
@@ -42,7 +29,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' Whether the worker is on a remote machine.
     remote = NULL,
 
-    #' @field heartbeat (`r_process``)\cr
+    #' @field heartbeat (`callr::r_bg`)\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
 
@@ -55,21 +42,19 @@ RushWorker = R6::R6Class("RushWorker",
       worker_id = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL,
-      lgr_thresholds = NULL,
-      lgr_buffer_size = 0,
       seed = NULL
       ) {
       super$initialize(network_id = network_id, config = config, seed = seed)
 
       self$remote = assert_flag(remote)
-      self$worker_id = assert_string(worker_id %??% uuid::UUIDgenerate())
+      self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
       r = self$connector
 
       # setup heartbeat
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
-        assert_numeric(heartbeat_period, null.ok = TRUE)
-        assert_numeric(heartbeat_expire, null.ok = TRUE)
+        assert_number(heartbeat_period)
+        assert_number(heartbeat_expire, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
 
         # set heartbeat key
@@ -88,41 +73,13 @@ RushWorker = R6::R6Class("RushWorker",
 
         # wait until heartbeat process is able to work
         Sys.sleep(1)
-      }
 
-      # setup logger
-      if (!is.null(lgr_thresholds)) {
-        assert_vector(lgr_thresholds, names = "named")
-        assert_count(lgr_buffer_size)
-
-        # add redis appender
-        appender = AppenderRedis$new(
-          config = self$config,
-          key = private$.get_worker_key("events"),
-          buffer_size = lgr_buffer_size
-        )
-        root_logger = lgr::get_logger("root")
-        root_logger$add_appender(appender)
-        root_logger$remove_appender("console")
-
-        # restore log levels
-        for (package in names(lgr_thresholds)) {
-          logger = lgr::get_logger(package)
-          threshold = lgr_thresholds[package]
-          logger$set_threshold(threshold)
-        }
+        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
       }
 
       # register worker ids
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
       r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
-
-      # if worker is started with a heartbeat, monitor with heartbeat, otherwise monitor with pid
-      if (!is.null(self$heartbeat)) {
-        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
-      } else if (!self$remote) {
-        r$SADD(private$.get_key("local_workers"), self$worker_id)
-      }
 
       # register worker info in
       r$command(c(
@@ -131,10 +88,7 @@ RushWorker = R6::R6Class("RushWorker",
         "pid", Sys.getpid(),
         "remote", self$remote,
         "hostname", rush::get_hostname(),
-        "heartbeat", if (is.null(self$heartbeat)) NA_character_ else private$.get_worker_key("heartbeat")))
-
-      # remove from pre-started workers
-      r$SREM(sprintf("%s:pre_worker_ids", self$network_id), self$worker_id)
+        "heartbeat", !is.null(self$heartbeat)))
     },
 
     #' @description
@@ -226,11 +180,7 @@ RushWorker = R6::R6Class("RushWorker",
     set_terminated = function() {
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
-      r$pipeline(.commands = list(
-        c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id),
-        c("SREM", private$.get_key("local_workers"), self$worker_id),
-        c("SREM", private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat")
-      )))
+      r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
       return(invisible(self))
     }
   ),

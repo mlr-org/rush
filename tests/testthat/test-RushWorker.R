@@ -55,7 +55,6 @@ test_that("a worker is registered", {
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
   expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "remote", "hostname", "heartbeat"))
-  expect_string(worker_info$heartbeat, na.ok = TRUE)
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_false(worker_info$remote)
   expect_equal(worker_info$pid, Sys.getpid())
@@ -75,19 +74,6 @@ test_that("a worker is terminated", {
   rush$set_terminated()
   expect_null(rush$running_worker_ids)
   expect_equal(rush$terminated_worker_ids, rush$worker_id)
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("a heartbeat is started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, heartbeat_period = 3)
-
-  expect_class(rush$heartbeat, "r_process")
-  expect_true(rush$heartbeat$is_alive())
-  expect_string(rush$worker_info$heartbeat)
 
   expect_rush_reset(rush, type = "terminate")
 })
@@ -428,143 +414,6 @@ test_that("pushing a failed tasks works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-test_that("retry a failed task works", {
-  skip_on_cran()
-
-  lg_rush = lgr::get_logger("rush")
-  old_threshold_rush = lg_rush$threshold
-  on.exit(lg_rush$set_threshold(old_threshold_rush))
-  lg_rush$set_threshold("info")
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  task = rush$pop_task()
-
-  expect_output(rush$retry_tasks(keys), "Not all task")
-
-  rush$push_failed(task$key, conditions = list(list(message = "error")))
-
-  expect_equal(rush$n_queued_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 1)
-  expect_true(rush$is_failed_task(task$key))
-
-  rush$retry_tasks(keys)
-
-  expect_equal(rush$n_queued_tasks, 1)
-  expect_equal(rush$n_failed_tasks, 0)
-  expect_false(rush$is_failed_task(task$key))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("retry a failed task works and setting a new seed works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-  xss = list(list(x1 = 1, x2 = 2))
-  seed = c(10407L, 1280795612L, -169270483L, -442010614L, -603558397L, -222347416L, 1489374793L)
-  keys = rush$push_tasks(xss, seeds = list(seed))
-  task = rush$pop_task(fields = c("xs", "seed"))
-  expect_equal(task$seed, seed)
-
-  rush$push_failed(task$key, conditions = list(list(message = "error")))
-
-  expect_equal(rush$n_queued_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 1)
-  expect_true(rush$is_failed_task(task$key))
-
-  rush$retry_tasks(keys, next_seed = TRUE)
-  task_info = rush$read_hash(keys, "seed")
-  expect_true(is_lecyer_cmrg_seed(task_info$seed))
-  expect_true(task_info$seed[2] != seed[2])
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("retry a failed task works with a maximum of retries", {
-  skip_on_cran()
-
-  lg_rush = lgr::get_logger("rush")
-  old_threshold_rush = lg_rush$threshold
-  on.exit(lg_rush$set_threshold(old_threshold_rush))
-  lg_rush$set_threshold("info")
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss, max_retries = 1)
-  task = rush$pop_task(fields = c("max_retries", "n_retries"))
-
-  expect_equal(task$max_retries, 1)
-  expect_null(task$n_retries)
-  expect_output(rush$retry_tasks(keys), "Not all task")
-
-  rush$push_failed(task$key, conditions = list(list(message = "error")))
-
-  expect_equal(rush$n_queued_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 1)
-  expect_true(rush$is_failed_task(task$key))
-
-  rush$retry_tasks(keys)
-
-  task_info = rush$read_hash(keys, fields = c("max_retries", "n_retries"))
-  expect_equal(task_info$max_retries, 1)
-  expect_equal(task_info$n_retries, 1)
-  expect_equal(rush$n_queued_tasks, 1)
-  expect_equal(rush$n_failed_tasks, 0)
-  expect_false(rush$is_failed_task(task$key))
-  task = rush$pop_task()
-
-  rush$push_failed(task$key, conditions = list(list(message = "error")))
-  expect_output(rush$retry_tasks(keys), "reached the maximum number of retries")
-
-  rush$retry_tasks(keys, ignore_max_retries = TRUE)
-  task_info = rush$read_hash(keys, fields = c("max_retries", "n_retries"))
-  expect_equal(task_info$max_retries, 1)
-  expect_equal(task_info$n_retries, 2)
-  expect_equal(rush$n_queued_tasks, 1)
-  expect_equal(rush$n_failed_tasks, 0)
-  expect_false(rush$is_failed_task(task$key))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("retry failed tasks works", {
-  skip_on_cran()
-
-  lg_rush = lgr::get_logger("rush")
-  old_threshold_rush = lg_rush$threshold
-  on.exit(lg_rush$set_threshold(old_threshold_rush))
-  lg_rush$set_threshold("info")
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
-  rush$push_tasks(xss)
-  task_1 = rush$pop_task()
-  task_2 = rush$pop_task()
-  keys = c(task_1$key, task_2$key)
-
-  expect_output(rush$retry_tasks(keys), "Not all task")
-
-  rush$push_failed(keys, conditions = list(list(message = "error")))
-
-  expect_equal(rush$n_queued_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 2)
-  expect_true(all(rush$is_failed_task(keys)))
-
-  rush$retry_tasks(keys)
-
-  expect_equal(rush$n_queued_tasks, 2)
-  expect_equal(rush$n_failed_tasks, 0)
-  expect_false(any(rush$is_failed_task(keys)))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
 test_that("moving and fetching tasks works", {
   skip_on_cran()
 
@@ -897,73 +746,6 @@ test_that("mixing priority queue and shared queue works", {
   expect_rush_task(rush_1$pop_task())
 
   expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("saving logs with redis appender works", {
-  skip_on_cran()
-
-  appenders = lgr::get_logger("root")$appenders
-
-  on.exit({
-    lgr::get_logger("root")$set_appenders(appenders)
-  })
-
-  config = start_flush_redis()
-  rush = RushWorker$new(
-    network_id = "test-rush",
-    config = config,
-    remote = FALSE,
-    lgr_thresholds = c(rush = "info"),
-    lgr_buffer_size = 0)
-  lg = lgr::get_logger("rush")
-
-  lg$info("test-1")
-
-  log = rush$read_log()
-  expect_data_table(log, nrows = 1)
-  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
-  expect_equal(log$msg, "[rush] test-1")
-
-  lg$info("test-2")
-
-  log = rush$read_log()
-  expect_data_table(log, nrows = 2)
-  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
-  expect_equal(log$msg, c("[rush] test-1", "[rush] test-2"))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("settings the buffer size in redis appender works", {
-  skip_on_cran()
-
-  appenders = lgr::get_logger("root")$appenders
-
-  on.exit({
-    lgr::get_logger("root")$set_appenders(appenders)
-  })
-
-  config = start_flush_redis()
-  rush = RushWorker$new(
-    network_id = "test-rush",
-    config = config,
-    remote = FALSE,
-    lgr_thresholds = c(rush = "info"),
-    lgr_buffer_size = 2)
-  lg = lgr::get_logger("rush")
-
-  lg$info("test-1")
-  expect_data_table(rush$read_log(), nrows = 0)
-
-  lg$info("test-2")
-  expect_data_table(rush$read_log(), nrows = 0)
-
-  lg$info("test-3")
-
-  log = rush$read_log()
-  expect_data_table(log, nrows = 3)
-  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
-  expect_equal(log$msg, c("[rush] test-1", "[rush] test-2", "[rush] test-3"))
 })
 
 test_that("pushing tasks and terminating worker works", {

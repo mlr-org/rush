@@ -65,7 +65,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   config,
   key,
   threshold = NA_integer_,
-  layout = lgr::LayoutJson$new(),
+  layout = lgr::LayoutJson$new(timestamp_fmt = "\%Y-\%m-\%d \%H:\%M:\%OS3"),
   buffer_size = 0,
   flush_threshold = "error",
   flush_on_exit = TRUE,

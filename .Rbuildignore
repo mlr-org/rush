@@ -23,3 +23,6 @@ benchmark/
 ^man/figures$
 .vscode
 ^LICENSE\.md$
+^doc$
+^Meta$
+^vignettes$

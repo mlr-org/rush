@@ -4,7 +4,7 @@
 \alias{rsh}
 \title{Synctatic Sugar for Rush Controller Construction}
 \usage{
-rsh(network_id = NULL, config = NULL, ...)
+rsh(network_id = NULL, config = NULL, seed = NULL, ...)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
@@ -18,6 +18,12 @@ If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is us
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
+
+\item{seed}{(\code{integer()})\cr
+Initial seed for the random number generator.
+Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
+The later is converted to a L'Ecuyer-CMRG seed.
+If \code{NULL}, no seed is used for the random number generator.}
 
 \item{...}{(ignored).}
 }

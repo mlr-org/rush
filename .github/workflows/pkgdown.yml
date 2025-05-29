@@ -23,7 +23,11 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: supercharge/redis-github-action@1.7.0
+        with:
+          redis-version: 7
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -33,6 +37,8 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+          install-quarto: true
+          cache: always
 
       - name: Install template
         run: pak::pkg_install("mlr-org/mlr3pkgdowntemplate")

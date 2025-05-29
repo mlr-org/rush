@@ -16,7 +16,7 @@ toc:
 
 navbar:
   structure:
-    left:  [reference, news, book]
+    left:  [reference, news, book, articles]
     right: [github, mattermost, stackoverflow, rss, lightswitch]
   components:
     home: ~
@@ -27,16 +27,24 @@ navbar:
     mattermost:
       icon: fa fa-comments
       href: https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/
+      aria-label: Mattermost
     book:
       text: mlr3book
       icon: fa fa-link
       href: https://mlr3book.mlr-org.com
+    articles:
+        text: Articles
+        menu:
+        - text: Get Started
+          href: articles/vignette.html
     stackoverflow:
       icon: fab fa-stack-overflow
       href: https://stackoverflow.com/questions/tagged/mlr
+      aria-label: Stack Overflow
     rss:
       icon: fa-rss
       href: https://mlr-org.com/
+      aria-label: mlr-org
 
 reference:
   - title: Controller and Worker
@@ -53,9 +61,6 @@ reference:
   - title: Worker Loop
     contents:
       - start_worker
-      - worker_loop_default
-      - worker_loop_callr
-      - heartbeat
       - AppenderRedis
   - title: Misc
     contents:
@@ -63,3 +68,4 @@ reference:
       - rush-package
       - with_rng_state
       - store_large_object
+      - filter_custom_fields
