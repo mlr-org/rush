@@ -27,6 +27,7 @@ navbar:
     mattermost:
       icon: fa fa-comments
       href: https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/
+      aria-label: Mattermost
     book:
       text: mlr3book
       icon: fa fa-link
