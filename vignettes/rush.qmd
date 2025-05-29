@@ -2,10 +2,11 @@
 title: "rush - Asynchronous and Distributed Computing"
 ---
 
-```{r}
+```{r rush-001}
 #| include: false
 r = redux::hiredis()
 r$FLUSHDB()
+options(datatable.prettyprint.char = 10L)
 ```
 
 
@@ -21,7 +22,7 @@ The classic Branin function (also called the Branin-Hoo function) is a well-know
 It is a two-dimensional function that is non-convex, multimodal, and has three global minima.
 The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.
 
-```{r}
+```{r rush-002}
 branin = function(x1, x2) {
   (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
 }
@@ -39,7 +40,7 @@ The function takes a single argument: a `RushWorker` object, which handles commu
 In this example, each worker samples a random point, creates a task, evaluates it using the Branin function, and submits the result.
 The optimization stops after 100 tasks have been evaluated.
 
-```{r}
+```{r rush-003}
 wl_random_search = function(rush) {
 
   while(rush$n_finished_tasks < 100) {
@@ -85,7 +86,7 @@ The Rush controller is responsible for starting, observing, and stopping workers
 It is initialized using the `rsh()` function, which requires a network ID and a config argument.
 The config argument is a configuration file used to connect to the Redis database via the `redux` package.
 
-```{r}
+```{r rush-004}
 library(rush)
 
 config = redux::redis_config()
@@ -100,7 +101,7 @@ The workers are started locally with the `processx` package but it is also possi
 We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
 More on globals and the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
 
-```{r}
+```{r rush-005}
 rush$start_local_workers(
   worker_loop = wl_random_search,
   n_workers = 4,
@@ -116,12 +117,12 @@ The `pid` and `worker_id` column are additional information that are stored when
 The `worker_id` is the id of the worker that evaluated the task and the `pid` is the process id of that worker.
 Further extra information can be passed as `list`s to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
 
-```{r}
+```{r rush-006}
 #| include: false
 Sys.sleep(5)
 ```
 
-```{r}
+```{r rush-007}
 rush$fetch_finished_tasks()[order(y)]
 ```
 
@@ -130,13 +131,13 @@ In this case, 103 tasks are marked as finished, and all workers have stopped.
 The number slightly exceeds 100 because workers check the stopping condition independently.
 If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.
 
-```{r}
+```{r rush-008}
 rush
 ```
 
 We can stop the workers and reset the database with the `$reset()` method.
 
-```{r}
+```{r rush-009}
 rush$reset()
 
 rush
@@ -163,7 +164,7 @@ This early stopping mechanism prevents workers from wasting time on poor-perform
 If the model performs at or above the median, the worker continues training for one more round.
 The process continues until the network has evaluated 1000 complete models across all workers.
 
-```{r}
+```{r rush-010}
 wl_median_stopping = function(rush) {
   while(rush$n_finished_tasks < 1000) {
 
@@ -207,7 +208,7 @@ The training set is used to fit the model and the test set is used to evaluate t
 Then we initialize the rush network and start the workers.
 This time we have to pass the training and test set to the workers via the `globals` argument and the `packages` argument to load the `data.table` and `xgboost` packages.
 
-```{r}
+```{r rush-011}
 data(mtcars)
 
 training_ids = sample(1:nrow(mtcars), 20)
@@ -230,18 +231,18 @@ rush$start_local_workers(
 
 We fetch the finished tasks and sort them by the objective value.
 
-```{r}
+```{r rush-012}
 #| include: false
 Sys.sleep(5)
 ```
 
-```{r}
+```{r rush-013}
 rush$fetch_finished_tasks()[order(y)]
 ```
 
 We stop the workers and reset the database.ch
 
-```{r}
+```{r rush-014}
 rush$reset()
 ```
 
@@ -257,7 +258,7 @@ This decentralized design enables workers to proceed independently; eliminating 
 
 We first create a new rush network.
 
-```{r}
+```{r rush-015}
 config = redux::redis_config()
 
 rush = rsh(
@@ -271,7 +272,7 @@ The queue system works by pushing and popping tasks from a queue.
 The `$push_task()` method creates new tasks and pushes them to the queue.
 In this example, we draw an initial design of 25 points and push them to the queue.
 
-```{r}
+```{r rush-016}
 xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -297,7 +298,7 @@ Marking the task as running is important for the Bayesian optimization algorithm
 The task is evaluated and the results are pushed back to the database.
 We stop the optimization process after 100 evaluated tasks.
 
-```{r}
+```{r rush-017}
 wl_bayesian_optimization = function(rush) {
   repeat {
     task = rush$pop_task()
@@ -329,7 +330,7 @@ wl_bayesian_optimization = function(rush) {
 
 We start the optimization process by starting 4 local workers that run the Bayesian optimization worker loop.
 
-```{r}
+```{r rush-018}
 rush$start_local_workers(
   worker_loop = wl_bayesian_optimization,
   n_workers = 4,
@@ -339,16 +340,16 @@ rush$start_local_workers(
 
 The optimization is quickly finished and we retrieve the results.
 
-```{r}
+```{r rush-019}
 #| include: false
 Sys.sleep(5)
 ```
 
-```{r}
+```{r rush-020}
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-```{r}
+```{r rush-021}
 #| include: false
 rush$reset()
 ```
