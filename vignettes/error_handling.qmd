@@ -106,7 +106,7 @@ rush$detect_lost_workers()
 ```
 
 This method works for workers started with `$start_local_workers()` and `$start_remote_workers()`.
-Workers started with `$worker_script()` must be started with a heartbeat mechanism (see @sec-heartbeat).
+Workers started with `$worker_script()` must be started with a heartbeat mechanism (see [vignette](controller.html#sec-script-error-handling)).
 
 The `$detect_lost_workers()` method also supports automatic restarting of lost workers when the option `restart_workers = TRUE` is specified.
 Alternatively, lost workers may be restarted manually using the `$restart_workers()` method.
@@ -164,7 +164,7 @@ However, such issues can be readily identified using the `$detect_lost_workers()
 rush = rsh("test-error")
 
 rush$start_local_workers(
-  worker_loop = worker_loop,
+  worker_loop = wl_error,
   n_workers = 1
 )
 ```
