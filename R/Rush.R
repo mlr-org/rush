@@ -1,8 +1,7 @@
 #' @title Rush Controller
 #'
 #' @description
-#' The `Rush` controller initializes a decentralized network.
-#' The controller starts and stops workers ([RushWorker]) and observes the state of the network.
+#' The `Rush` controller manages workers in a rush network.
 #'
 #' @section Local Workers:
 #' A local worker runs on the same machine as the controller.
@@ -14,7 +13,7 @@
 #'
 #' @section Script Workers:
 #' Workers can be started with a script anywhere.
-#' The only requirement is that the worker can connect to the Redis server.
+#' The only requirement is that the worker can connect to the Redis database.
 #' The script is created with the `$worker_script()` method.
 #'
 #' @template param_network_id

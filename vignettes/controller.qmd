@@ -10,8 +10,8 @@ options(datatable.prettyprint.char = 10L)
 ```
 
 A **rush** network consists of thousands of workers started on different machines.
-This article explains how to start workers in a rush network.
-Rush offers three ways to start workers: local workers with `processx`, remote workers with `mirai` and script workers.
+This article explains how to start, stop and monitor workers in a rush network.
+Rush offers three ways to start workers: local workers with `processx`, remote workers with `mirai` and script workers
 
 # Local Workers {#sec-local-workers}
 
