@@ -1,9 +1,5 @@
 ---
 title: "Error Handling and Debugging"
-vignette: >
-  %\VignetteIndexEntry{Error Handling}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
 ---
 
 *rush*  is equipped with an advanced error-handling mechanism designed to manage and mitigate errors encountered during the execution of tasks.
@@ -16,6 +12,10 @@ The user must catch errors within the worker loop and mark the task as `"failed"
 
 ```{r}
 library(rush)
+
+branin = function(x1, x2) {
+  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
+}
 
 wl_random_search = function(rush) {
   repeat {
@@ -180,6 +180,7 @@ Usually the rush worker is created while the worker is initialized but we can al
 We pass the worker to the worker loop as an argument.
 
 ```{r}
+#| error: true
 rush_worker = RushWorker$new("test", remote = FALSE)
 
 worker_loop(rush_worker)

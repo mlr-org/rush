@@ -1,9 +1,6 @@
 ---
 title: "Rush Controller"
-vignette: >
-  %\VignetteIndexEntry{Rush Manager}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
+
 ---
 
 ```{r}

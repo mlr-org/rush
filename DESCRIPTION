@@ -12,7 +12,7 @@ Description: Package to tackle large-scale problems asynchronously across
     asynchronous optimization algorithms in the 'bbotk' and 'mlr3tuning'
     packages.
 License: MIT + file LICENSE
-URL: https://github.com/mlr-org/rush
+URL: https://rush.mlr-org.com
 BugReports: https://github.com/mlr-org/rush/issues
 Depends:
     R (>= 3.1.0)
@@ -35,8 +35,6 @@ Suggests:
     quarto,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: 
-    quarto
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Encoding: UTF-8

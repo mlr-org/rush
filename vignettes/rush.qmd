@@ -1,9 +1,5 @@
 ---
 title: "rush - Asynchronous and Distributed Computing"
-vignette: >
-  %\VignetteIndexEntry{rush - Asynchronous and Distributed Computing}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
