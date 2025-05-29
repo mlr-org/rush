@@ -15,8 +15,8 @@ This article demonstrates how to use `rush` with 3 different examples.
 
 # Random Search
 
-We start with a simple example of a random search to optimize the Branin function in parallel.
-A random search does not yet really benefit from a rush network, but it is well suited as a simple example.
+We begin with a simple random search to optimize the Branin function in parallel.
+Although random search does not require communication between workers, it is a good way to introduce the basic ideas behind `rush`.
 The classic Branin function (also called the Branin-Hoo function) is a well-known benchmark problem in global optimization.
 It is a two-dimensional function that is non-convex, multimodal, and has three global minima.
 The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.
@@ -29,16 +29,15 @@ branin = function(x1, x2) {
 
 The Branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$.
 
-
+![](branin.png)
 
 ## Worker Loop
 
-We start by implementing the `worker_loop` function.
-As the name suggests, the `worker_loop` function is a loop that runs on each worker.
-Usually, the loop iteratively draws new tasks, evaluates them, and pushes the results back to the Redis database.
-The only argument of the `worker_loop` function is the `RushWorker` object which provides methods to communicate with the Redis database.
-In our example, the worker draws a random point, creates a task from the point, evaluates it using the Branin function, and pushes the result back to the Redis database.
-The optimization stops after 100 tasks are evaluated.
+We define the `worker_loop` function, which runs on each worker.
+It repeatedly draws tasks, evaluates them, and sends the results to the Redis database.
+The function takes a single argument: a `RushWorker` object, which handles communication with Redis.
+In this example, each worker samples a random point, creates a task, evaluates it using the Branin function, and submits the result.
+The optimization stops after 100 tasks have been evaluated.
 
 ```{r}
 wl_random_search = function(rush) {
@@ -82,10 +81,9 @@ Usually the methods of the `RushWorker` work on multiple tasks at once, so `xxs`
 
 ## Controller
 
-The `Rush` controller starts, observes, and stops the workers in the network.
-The controller is initialized with the `rsh()` function.
-The `rsh()` function takes a the network id and a `config` argument.
-The `config` argument is a configuration file which is used to connect to the Redis database via the `redux` package.
+The Rush controller is responsible for starting, observing, and stopping workers within the network.
+It is initialized using the `rsh()` function, which requires a network ID and a config argument.
+The config argument is a configuration file used to connect to the Redis database via the `redux` package.
 
 ```{r}
 library(rush)
@@ -97,8 +95,7 @@ rush = rsh(
   config = config)
 ```
 
-We can now start workers with the `$start_local_workers()` method.
-The method takes the `worker_loop` and the number of workers.
+Workers can be started using the `$start_local_workers()` method, which accepts the worker loop and the number of workers as arguments.
 The workers are started locally with the `processx` package but it is also possible to start workers on a remote machine (see [Rush Controller](rush_controller.html)).
 We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
 More on globals and the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
@@ -128,11 +125,10 @@ Sys.sleep(5)
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-The rush controller shows us how many workers are running and how many tasks are in each state.
-We can see that 103 tasks are finished and the workers are stopped.
-The number of finished tasks is slightly higher than 100 because when multiple workers run in parallel, they independently check the stopping condition.
-If several workers check the condition at nearly the same moment when there are 99 finished tasks, they might all create new tasks before any of them sees the updated count of 100.
-Moreover, new tasks are created as long as the evaluation of the 100th task is not finished.
+The rush controller displays how many workers are running and how many tasks exist in each state.
+In this case, 103 tasks are marked as finished, and all workers have stopped.
+The number slightly exceeds 100 because workers check the stopping condition independently.
+If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.
 
 ```{r}
 rush
@@ -150,58 +146,75 @@ To learn more about starting, stopping and observing workers, see the [Rush Cont
 
 # Median Stopping
 
-The random search is very simple example that does not use any information from previous tasks and hence does not need the communication between workers.
-Let's write a more sophisticated algorithm that uses the results of finished tasks to decide whether to continue with the current task.
-For this purpose, we introduce a fidelity parameter to the Branin function.
-The fidelity parameter in the `branin_wu` function modifies the behavior of the classic Branin function.
-The fidelity parameter is a value between 0 and 1 that controls the exactness of the evaluation.
-When the fidelity is 1, the function evaluates the true Branin function.
-For lower fidelity levels, the function becomes distorted, representing a "cheaper" but less precise evaluation.
-Real optimization problems often have different fidelity levels, where the evaluation of the objective function can be costly or time-consuming.
-The fidelity allows us to trade-off between the evaluation cost and the precision of the evaluation.
-
-```{r}
-branin_wu = function(x1, x2, fidelity) {
-  (x2 - (5.1 / (4 * pi^2) - 0.1 * (1 - fidelity)) * x1^2 + 5 / pi * x1 - 6) ^ 2 +  10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
-}
-```
+Random search is a simple example that doesn't rely on information from previous tasks and therefore doesn't require communication between workers.
+Now, let’s implement a more sophisticated algorithm that uses the results of completed tasks to decide whether to continue evaluating the current one.
+We tune an XGBoost model on the mtcars dataset and use the median stopping rule to stop the training early.
 
 ## Worker Loop
 
-We implement a worker loop that uses the fidelity parameter to evaluate the Branin function.
-The algorithm starts by drawing a new task.
-The worker loop then evaluates the task at increasing fidelity level.
-In each iteration, the performance of the task is compared to the other tasks in the network at the same fidelity level.
-If the performance of the task is worse than the median performance, the worker stops the evaluation of the task and samples a new task.
-This is a simple median stopping rule that can be used to stop the optimization process early if the current configuration is not promising.
+The worker starts by sampling a random hyperparameter configuration with three parameters: maximum tree depth, lambda regularization, and alpha regularization.
+These parameters control how the XGBoost model learns from the data.
+The worker then trains the model incrementally, starting with 5 boosting rounds and adding one round at a time up to 20 rounds.
+After each round, the worker evaluates the model's performance on a test set using root mean squared error (RMSE).
+At this point, the worker checks how well its model is doing compared to other workers by fetching their completed results and comparing its performance to the median score among all models with the same number of training rounds.
+
+If the current model performs worse than the median, the worker stops this hyperparameter configuration and starts over with a new one.
+This early stopping mechanism prevents workers from wasting time on poor-performing configurations.
+If the model performs at or above the median, the worker continues training for one more round.
+The process continues until the network has evaluated 1000 complete models across all workers.
 
 ```{r}
 wl_median_stopping = function(rush) {
-  while(rush$n_finished_tasks < 100) {
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+  while(rush$n_finished_tasks < 1000) {
 
-    for (fidelity in seq(0.1, 1, by = 0.1)) {
-      xs$fidelity = fidelity
-      key = rush$push_running_tasks(xss = list(xs))
-      ys = list(y = branin_wu(xs$x1, xs$x2, xs$fidelity))
-      rush$push_results(key, yss = list(ys))
+    params = list(
+      max_depth = sample(1:20, 1),
+      lambda = runif(1, 0, 1),
+      alpha = runif(1, 0, 1)
+    )
+
+    model = NULL
+    for (iteration in seq(5, 20, by = 1)) {
+
+      key = rush$push_running_tasks(xss = list(c(params, list(nrounds = iteration))))
+
+      model = xgboost(
+        data = as.matrix(data[training_ids, ]),
+        label = y[training_ids],
+        nrounds = if (is.null(model)) 5 else 1,
+        params = params,
+        xgb_model = model,
+        verbose = 0
+      )
+
+      pred = predict(model, as.matrix(data[test_ids, ]))
+      rmse = sqrt(mean((pred - y[test_ids])^2))
+
+      rush$push_results(key, yss = list(list(rmse = rmse)))
 
       tasks = rush$fetch_finished_tasks()
-      if (ys$y > median(tasks[fidelity == current_fidelity, y])) break
+      if (rmse > median(tasks[nrounds == iteration, rmse])) break
     }
   }
 }
 ```
 
-The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
-The median stopping rule compares the performance of the current task with the median performance of the other workers at the same fidelity level.
-If the performance of the current task is worse than the median performance, the algorithm stops the evaluation of the current task and samples a new task.
-The fidelity level is increased by 0.1 until the fidelity level is 1.
-The algorithm stops after 100 evaluated tasks.
+The worker loop uses a new method called `$fetch_finished_tasks()` to fetch all finished tasks from the database.
+Other methods like `$fetch_running_tasks()` and `$fetch_failed_tasks()` are also available.
 
-We start the optimization process like before by starting 4 local workers that run the median stopping worker loop.
+We sample a training and test set from the mtcars dataset.
+The training set is used to fit the model and the test set is used to evaluate the model.
+Then we initialize the rush network and start the workers.
+This time we have to pass the training and test set to the workers via the `globals` argument and the `packages` argument to load the `data.table` and `xgboost` packages.
 
 ```{r}
+data(mtcars)
+
+training_ids = sample(1:nrow(mtcars), 20)
+test_ids = setdiff(1:nrow(mtcars), training_ids)
+data = mtcars[, -1]
+y = mtcars$mpg
+
 config = redux::redis_config()
 
 rush = rsh(
@@ -211,8 +224,8 @@ rush = rsh(
 rush$start_local_workers(
   worker_loop = wl_median_stopping,
   n_workers = 4,
-  globals = "branin_wu")
-
+  packages = c("data.table", "xgboost"),
+  globals = c("training_ids", "test_ids", "data", "y"))
 ```
 
 We fetch the finished tasks and sort them by the objective value.
@@ -226,7 +239,7 @@ Sys.sleep(5)
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-We stop the workers and reset the database.
+We stop the workers and reset the database.ch
 
 ```{r}
 rush$reset()
@@ -340,5 +353,3 @@ rush$fetch_finished_tasks()[order(y)]
 rush$reset()
 ```
 
-how to debug
-tags for jobs
