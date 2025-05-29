@@ -38,7 +38,7 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
           install-quarto: true
-          cache: true
+          cache: always
 
       - name: Install template
         run: pak::pkg_install("mlr-org/mlr3pkgdowntemplate")
