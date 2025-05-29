@@ -29,7 +29,7 @@ branin = function(x1, x2) {
 
 The Branin function is usually evaluated on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$.
 
-![](branin.png)
+
 
 ## Worker Loop
 
