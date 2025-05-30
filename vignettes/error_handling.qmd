@@ -1,5 +1,6 @@
 ---
-title: "rush - Error Handling and Debugging"
+title: "Error Handling and Debugging"
+format: html
 ---
 
 ```{r error_handling-001}
