@@ -12,6 +12,7 @@ Package to tackle large-scale problems asynchronously across a distributed netwo
 Useful links:
 \itemize{
   \item \url{https://rush.mlr-org.com}
+  \item \url{https://github.com/mlr-org/rush}
   \item Report bugs at \url{https://github.com/mlr-org/rush/issues}
 }
 
