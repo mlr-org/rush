@@ -5,23 +5,28 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Rapid Parallel and Distributed Computing • rush</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
-<script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Rapid Asynchronous and Distributed Computing • rush</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Roboto-0.4.9/font.css" rel="stylesheet">
-<link href="deps/JetBrains_Mono-0.4.9/font.css" rel="stylesheet">
-<link href="deps/Roboto_Slab-0.4.9/font.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><script src="deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Rapid Parallel and Distributed Computing">
-<meta name="description" content="Parallel computing with a network of local and remote workers. Fast exchange of results between the workers through a Redis database. Key features include task queues, local caching, and sophisticated error handling.">
-<meta property="og:description" content="Parallel computing with a network of local and remote workers. Fast exchange of results between the workers through a Redis database. Key features include task queues, local caching, and sophisticated error handling.">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Roboto-0.4.10/font.css" rel="stylesheet">
+<link href="deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
+<link href="deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Rapid Asynchronous and Distributed Computing">
+<meta name="description" content="Package to tackle large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared Redis database. Key features include low task overhead, efficient caching, and robust error handling. The package powers the asynchronous optimization algorithms in the bbotk and mlr3tuning packages.">
+<meta property="og:description" content="Package to tackle large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared Redis database. Key features include low task overhead, efficient caching, and robust error handling. The package powers the asynchronous optimization algorithms in the bbotk and mlr3tuning packages.">
 <meta name="robots" content="noindex">
 </head>
 <body>
@@ -44,12 +49,18 @@
 <li class="nav-item"><a class="nav-link" href="reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://mlr3book.mlr-org.com"><span class="fa fa-link"></span> mlr3book</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/vignette.html">Get Started</a></li>
+  </ul>
+</li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/rush/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/"><span class="fa fa-comments"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://stackoverflow.com/questions/tagged/mlr"><span class="fa fab fa-stack-overflow"></span></a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://mlr-org.com/"><span class="fa fa-rss"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/" aria-label="Mattermost"><span class="fa fa-comments"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://stackoverflow.com/questions/tagged/mlr" aria-label="Stack Overflow"><span class="fa fab fa-stack-overflow"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://mlr-org.com/" aria-label="mlr-org"><span class="fa fa-rss"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -68,87 +79,49 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="rush">rush<a class="anchor" aria-label="anchor" href="#rush"></a>
 </h1></div>
-<p><em>rush</em> is a package for parallel and distributed computing in R. It evaluates an R expression asynchronously on a cluster of workers and provides a shared storage between the workers. The shared storage is a <a href="https://redis.io" class="external-link">Redis</a> data base. Rush offers a centralized and decentralized network architecture. The centralized network has a single controller (<code>Rush</code>) and multiple workers (<code>RushWorker</code>). Tasks are created centrally and distributed to workers by the controller. The decentralized network has no controller. The workers sample tasks and communicate the results asynchronously with other workers.</p>
+<p>Package website: <a href="https://rush.mlr-org.com/">release</a> | <a href="https://rush.mlr-org.com/dev/">dev</a></p>
+<!-- badges: start -->
+
+<p><em>rush</em> is a package designed to solve large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared <a href="https://redis.io/" class="external-link"><code>Redis</code></a> database. Key features include low task overhead, efficient caching, and robust error handling. The package powers asynchronous optimization algorithms in the <a href="https://CRAN.R-project.org/package=bbotk" class="external-link"><code>bbotk</code></a> and <a href="https://CRAN.R-project.org/package=paradox" class="external-link"><code>mlr3tuning</code></a> packages.</p>
 </div>
 <div class="section level1">
 <h1 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h1>
 <ul>
-<li>Parallelize arbitrary R expressions.</li>
-<li>Centralized and decentralized network architecture.</li>
-<li>Small overhead of a few milliseconds per task.</li>
-<li>Easy start of local workers with <code>processx</code>
-</li>
-<li>Start workers on any platform with a batch script.</li>
-<li>Designed to work with <a href="https://CRAN.R-project.org/package=data.table" class="external-link"><code>data.table</code></a>.</li>
-<li>Results are cached in the R session to minimize read and write operations.</li>
-<li>Detect and recover from worker failures.</li>
-<li>Start heartbeats to monitor workers on remote machines.</li>
-<li>Snapshot the in-memory data base to disk.</li>
-<li>Store <a href="https://CRAN.R-project.org/package=lgr" class="external-link"><code>lgr</code></a> messages of the workers in the Redis data base.</li>
-<li>Light on dependencies.</li>
+<li>Database centric model for robust scalability.</li>
+<li>Efficient communication between workers using<a href="https://redis.io/" class="external-link"><code>Redis</code></a>.</li>
+<li>Maintains low overhead, limiting delays to just a millisecond per task.</li>
+<li>Reduces read/write operations with a lightweight and efficient caching system.</li>
+<li>Offers centralized system features, such as task queues.</li>
+<li>Provides fast data transformation from Redis to <a href="https://CRAN.R-project.org/package=data.table" class="external-link"><code>data.table</code></a>.</li>
+<li>Simplifies local worker setup with <a href="https://CRAN.R-project.org/package=processx" class="external-link"><code>processx</code></a>.</li>
+<li>Enables scaling to large remote worker networks via the <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><code>mirai</code></a> package.</li>
+<li>Automatically detects and recovers from worker failures for high reliability.</li>
+<li>Logs worker messages directly into the Redis database using <a href="https://CRAN.R-project.org/package=lgr" class="external-link"><code>lgr</code></a>.</li>
+<li>Designed with minimal dependencies for lightweight integration.</li>
 </ul>
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
 </h2>
-<p>Install the development version from GitHub.</p>
+<p>Install the latest release from CRAN.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mlr-org/rush"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rush"</span><span class="op">)</span></span></code></pre></div>
+<p>Install the development version from GitHub.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"mlr-org/rush"</span><span class="op">)</span></span></code></pre></div>
 <p>And install <a href="https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/" class="external-link">Redis</a>.</p>
 </div>
-<div class="section level2">
-<h2 id="centralized-rush-network">Centralized Rush Network<a class="anchor" aria-label="anchor" href="#centralized-rush-network"></a>
-</h2>
-<p><img src="reference/figures/README-flow.png"></p>
-<p><em>Centralized network with a single controller and three workers.</em></p>
-<p>The example below shows the evaluation of a simple function in a centralized network. The <code>network_id</code> identifies the instance and workers in the network. The <code>config</code> is a list of parameters for the connection to Redis.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mlr-org/rush" class="external-link">rush</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="va"><a href="reference/Rush.html">Rush</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test"</span>, <span class="va">config</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## &lt;Rush&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="do">## * Running Workers: 0</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">## * Queued Tasks: 0</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="do">## * Queued Priority Tasks: 0</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="do">## * Running Tasks: 0</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">## * Finished Tasks: 0</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="do">## * Failed Tasks: 0</span></span></code></pre></div>
-<p>Next, we define a function that we want to evaluate on the workers.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fun</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>We start two workers.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">fun</span>, n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## INFO  [17:30:43.422] [rush] Starting 2 worker(s)</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="do">## $`d82afa87-9f2c-41a4-891c-7490ea5eba46`</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="do">## PROCESS 'Rscript', running, pid 24531.</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="do">## $`fad19573-bfe6-4809-8be2-bdde44191210`</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="do">## PROCESS 'Rscript', running, pid 24542.</span></span></code></pre></div>
-<p>Now we can push tasks to the workers.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">xss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fl">3</span>, x2 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fl">4</span>, x2 <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">keys</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span><span class="op">)</span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="fu">wait_for_tasks</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div>
-<p>And retrieve the results.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">##       x1    x2     y   pid     worker_id          keys</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">##    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## 1:     3     5     8 24542 fad19573-b... 7ac77ca4-6...</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## 2:     4     6    10 24531 d82afa87-9... 0fb60722-6...</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="decentralized-rush-network">Decentralized Rush Network<a class="anchor" aria-label="anchor" href="#decentralized-rush-network"></a>
-</h2>
-<p><img src="reference/figures/README-flow-2.png"></p>
-<p><em>Decentralized network with four workers.</em></p>
-</div>
+<div class="section level1">
+<h1 id="related-work">Related Work<a class="anchor" aria-label="anchor" href="#related-work"></a>
+</h1>
+<ul>
+<li>The <a href="https://github.com/mrc-ide/rrq" class="external-link">rrq</a> package is a task queue system for R using Redis.</li>
+<li>The <a href="https://CRAN.R-project.org/package=future" class="external-link">future</a> package provides a simple and uniform way of evaluating R expressions asynchronously across a range of backends.</li>
+<li>
+<a href="https://CRAN.R-project.org/package=batchtools" class="external-link">batchtools</a> is a package for the execution of long-running tasks on high-performance computing clusters.</li>
+<li>The <a href="https://CRAN.R-project.org/package=mirai" class="external-link">mirai</a> package evaluates an R expression asynchronously in a parallel process, locally or distributed over the network.</li>
+</ul>
 </div>
 
   </main><aside class="col-md-3"><div class="links">
@@ -179,11 +152,19 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Marc Becker <br><small class="roles"> Maintainer, author, copyright holder </small> <a href="https://orcid.org/0000-0002-8115-0400" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Marc Becker <br><small class="roles"> Maintainer, author, copyright holder </small> <a href="https://orcid.org/0000-0002-8115-0400" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml" class="external-link"><img src="https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml/badge.svg" alt="r-cmd-check"></a></li>
+<li><a href="https://cran.r-project.org/package=rush" class="external-link"><img src="https://www.r-pkg.org/badges/version-ago/rush" alt="CRAN Status"></a></li>
+<li><a href="https://stackoverflow.com/questions/tagged/mlr3" class="external-link"><img src="https://img.shields.io/badge/stackoverflow-mlr3-orange.svg" alt="StackOverflow"></a></li>
+<li><a href="https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/" class="external-link"><img src="https://img.shields.io/badge/chat-mattermost-orange.svg" alt="Mattermost"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
@@ -194,7 +175,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

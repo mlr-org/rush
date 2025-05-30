@@ -1,12 +1,17 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://rush.mlr-org.com/dev/LICENSE-text.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/LICENSE.html</loc></url>
+<url><loc>https://rush.mlr-org.com/dev/articles/controller.html</loc></url>
+<url><loc>https://rush.mlr-org.com/dev/articles/error_handling.html</loc></url>
+<url><loc>https://rush.mlr-org.com/dev/articles/index.html</loc></url>
+<url><loc>https://rush.mlr-org.com/dev/articles/rush.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/authors.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/index.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/news/index.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/AppenderRedis.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/Rush.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/RushWorker.html</loc></url>
+<url><loc>https://rush.mlr-org.com/dev/reference/filter_custom_fields.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/get_hostname.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/heartbeat.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/index.html</loc></url>
@@ -20,7 +25,5 @@
 <url><loc>https://rush.mlr-org.com/dev/reference/start_worker.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/store_large_object.html</loc></url>
 <url><loc>https://rush.mlr-org.com/dev/reference/with_rng_state.html</loc></url>
-<url><loc>https://rush.mlr-org.com/dev/reference/worker_loop_callr.html</loc></url>
-<url><loc>https://rush.mlr-org.com/dev/reference/worker_loop_default.html</loc></url>
 </urlset>
 
