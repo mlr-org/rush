@@ -1,5 +1,6 @@
 ---
 title: "rush - Asynchronous and Distributed Computing"
+format: html
 ---
 
 ```{r rush-001}
