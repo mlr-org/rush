@@ -37,7 +37,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.1.2.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -136,10 +136,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;
-1: delicious_...  8982  FALSE pkrvmf6wy0...     FALSE
-2: stational_...  8993  FALSE pkrvmf6wy0...     FALSE
-3: social_hec...  9012  FALSE pkrvmf6wy0...     FALSE
-4: dreamy_nen...  9002  FALSE pkrvmf6wy0...     FALSE</code></pre>
+1: lively_gra...  9053  FALSE pkrvmf6wy0...     FALSE
+2: overskepti...  9064  FALSE pkrvmf6wy0...     FALSE
+3: handwritte...  9069  FALSE pkrvmf6wy0...     FALSE
+4: wisteria_s...  9080  FALSE pkrvmf6wy0...     FALSE</code></pre>
 </div>
 </div>
 <p>The <code>$worker_states</code> method returns the current state of each worker. Possible states include <code>"running"</code>, <code>"terminated"</code>, <code>"killed"</code>, and <code>"lost"</code>.</p>
@@ -149,10 +149,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running delicious_...
-2: running stational_...
-3: running social_hec...
-4: running dreamy_nen...</code></pre>
+1: running lively_gra...
+2: running overskepti...
+3: running handwritte...
+4: running wisteria_s...</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -168,12 +168,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running delicious_...
-2: running stational_...
-3: running social_hec...
-4: running dreamy_nen...
-5: running overration...
-6: running nontrigono...</code></pre>
+1: running lively_gra...
+2: running overskepti...
+3: running handwritte...
+4: running wisteria_s...
+5: running content_co...
+6: running unafraid_g...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -199,7 +199,7 @@
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">stop_workers</span><span class="op">(</span>worker_ids <span class="op">=</span> <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ERROR [07:57:56.019] [rush] Failed to kill worker 'delicious_bilby'</code></pre>
+<pre><code>ERROR [10:06:05.010] [rush] Failed to kill worker 'lively_grackle'</code></pre>
 </div>
 </div>
 <p>This command terminates the selected worker process.</p>
@@ -209,12 +209,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running stational_...
-2: running social_hec...
-3: running dreamy_nen...
-4: running overration...
-5: running nontrigono...
-6:  killed delicious_...</code></pre>
+1: running overskepti...
+2: running handwritte...
+3: running wisteria_s...
+4: running content_co...
+5: running unafraid_g...
+6:  killed lively_gra...</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -222,11 +222,11 @@
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ERROR [07:57:57.122] [rush] Failed to kill worker 'stational_caiman'
-ERROR [07:57:57.129] [rush] Failed to kill worker 'social_hectorsdolphin'
-ERROR [07:57:57.130] [rush] Failed to kill worker 'dreamy_nene'
-ERROR [07:57:57.131] [rush] Failed to kill worker 'overrational_bustard'
-ERROR [07:57:57.132] [rush] Failed to kill worker 'nontrigonometrical_aztecant'</code></pre>
+<pre><code>ERROR [10:06:06.109] [rush] Failed to kill worker 'overskeptical_thoroughbred'
+ERROR [10:06:06.116] [rush] Failed to kill worker 'handwritten_douglasfirbarkbeetle'
+ERROR [10:06:06.117] [rush] Failed to kill worker 'wisteria_siamesecat'
+ERROR [10:06:06.118] [rush] Failed to kill worker 'content_cockatoo'
+ERROR [10:06:06.119] [rush] Failed to kill worker 'unafraid_grub'</code></pre>
 </div>
 </div>
 <p>In the preceding example, the optimization process was stopped after 100 iterations. Alternatively, it is possible to terminate the optimization by sending a terminate signal. The worker loop must implement the <code>rush$terminated</code> flag. Then the rush controller can terminate the optimization.</p>
@@ -271,8 +271,8 @@ ERROR [07:57:57.132] [rush] Failed to kill worker 'nontrigonometrical_aztecant'<
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running aviaphobic...
-2: running magnesium_...</code></pre>
+1: running raspberry_...
+2: running elderly_wa...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -298,16 +298,16 @@ ERROR [07:57:57.132] [rush] Failed to kill worker 'nontrigonometrical_aztecant'<
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ERROR [07:58:00.282] [rush] Lost worker 'antimoral_whitetaileddeer'
-ERROR [07:58:00.284] [rush] Lost worker 'domestic_clumber'</code></pre>
+<pre><code>ERROR [10:06:09.262] [rush] Lost worker 'immolated_mouse'
+ERROR [10:06:09.264] [rush] Lost worker 'waterworn_asianlion'</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    state     worker_id
    &lt;char&gt;        &lt;char&gt;
-1:   lost antimoral_...
-2:   lost domestic_c...</code></pre>
+1:   lost immolated_...
+2:   lost waterworn_...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-restart-workers">Restart Workers<a class="anchor" aria-label="anchor" href="#sec-local-restart-workers"></a>
@@ -324,8 +324,8 @@ ERROR [07:58:00.284] [rush] Lost worker 'domestic_clumber'</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running antimoral_...
-2:    lost domestic_c...</code></pre>
+1: running immolated_...
+2:    lost waterworn_...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -359,8 +359,8 @@ ERROR [07:58:00.284] [rush] Lost worker 'domestic_clumber'</code></pre>
 <pre><code>Key: &lt;timestamp&gt;
        worker_id level           timestamp logger        caller           msg
           &lt;char&gt; &lt;int&gt;              &lt;POSc&gt; &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
-1: gymnastic_...   400 2025-05-30 07:58:01   rush start_args... [rush] Thi...
-2: semiconser...   400 2025-05-30 07:58:01   rush start_args... [rush] Thi...</code></pre>
+1: superzealo...   400 2025-05-30 10:06:10   rush start_args... [rush] Thi...
+2: electromet...   400 2025-05-30 10:06:10   rush start_args... [rush] Thi...</code></pre>
 </div>
 </div>
 <p>We reset the network.</p>
@@ -392,7 +392,7 @@ ERROR [07:58:00.284] [rush] Lost worker 'domestic_clumber'</code></pre>
 [1] 0
 
 $daemons
-[1] "tcp://10.1.0.196:37529"
+[1] "tcp://10.1.0.239:35787"
 
 $mirai
  awaiting executing completed
@@ -466,8 +466,8 @@ $mirai
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;
-1: fungoid_gr...  9530   TRUE pkrvmf6wy0...     FALSE
-2: bolstered_...  9528   TRUE pkrvmf6wy0...     FALSE</code></pre>
+1: jobless_ir...  9597   TRUE pkrvmf6wy0...     FALSE
+2: bacteriolo...  9599   TRUE pkrvmf6wy0...     FALSE</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-remote-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-remote-failed-workers"></a>
@@ -499,10 +499,10 @@ $mirai
 <div class="sourceCode cell-code" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>ERROR [07:58:07.336] [rush] Lost worker 'pedagogish_flatfish'
-ERROR [07:58:07.337] [rush] 19
-ERROR [07:58:07.349] [rush] Lost worker 'neighbourly_boa'
-ERROR [07:58:07.350] [rush] 19</code></pre>
+<pre><code>ERROR [10:06:16.313] [rush] Lost worker 'miniature_mammal'
+ERROR [10:06:16.314] [rush] 19
+ERROR [10:06:16.327] [rush] Lost worker 'astronautic_northerncardinals'
+ERROR [10:06:16.327] [rush] 19</code></pre>
 </div>
 </div>
 <p>A segmentation fault also terminates the associated <code>mirai</code> daemon. Therefore, it is necessary to restart the daemon before restarting the workers.</p>
@@ -524,7 +524,7 @@ ERROR [07:58:07.350] [rush] 19</code></pre>
 [1] 2
 
 $daemons
-[1] "abstract://2d7066f0f46bdd65b49aafbc"
+[1] "abstract://0b69a3cbe4f54c4675225c56"
 
 $mirai
  awaiting executing completed
