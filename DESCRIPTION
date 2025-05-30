@@ -1,6 +1,6 @@
 Package: rush
 Title: Rapid Asynchronous and Distributed Computing
-Version: 0.1.2.9000
+Version: 0.2.0
 Authors@R:
     person("Marc", "Becker", , "marcbecker@posteo.de", role = c("cre", "aut", "cph"),
            comment = c(ORCID = "0000-0002-8115-0400"))
