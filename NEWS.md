@@ -1,6 +1,11 @@
 # rush (development version)
 
+* BREAKING CHANGE: The mlr3 ecosystem has a base logger now which is named `mlr3`.
+  The `mlr3/rush` logger is a child of the `mlr3` logger and is used for logging messages from the `rush` package.
+
 # rush 0.2.0
+
+* feat: Worker can be started with the `mirai` package now.
 
 # rush 0.1.2
 

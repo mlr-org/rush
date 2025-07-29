@@ -14,13 +14,14 @@
 
 .onLoad = function(libname, pkgname) {
   # setup logger
-  lg = lgr::get_logger(pkgname)
+  lg = lgr::get_logger("mlr3/rush")
   assign("lg", lg, envir = parent.env(environment()))
   f = function(event) {
     event$msg = paste0("[rush] ", event$msg)
     TRUE
   }
   lg$set_filters(list(f))
+
   if (Sys.getenv("IN_PKGDOWN") == "true") {
     lg$set_threshold("warn")
   }
