@@ -55,15 +55,17 @@ start_worker = function(
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
 
   if (!is.null(message_log)) {
+    message_log = file.path(message_log, sprintf("message_%s.log", worker_id))
     message_log = file(message_log, open = "a")
-    on.exit(close(message_log), add = TRUE)
+    #on.exit(close(message_log), add = TRUE)
     sink(message_log, type = "message", append = TRUE)
     mlr3misc::messagef("Debug message logging on worker %s started", worker_id)
   }
 
   if (!is.null(output_log)) {
+    output_log = file.path(output_log, sprintf("output_%s.log", worker_id))
     output_log = file(output_log, open = "a")
-    on.exit(close(output_log), add = TRUE)
+    #on.exit(close(output_log), add = TRUE)
     sink(output_log, type = "output", append = TRUE)
     print(sprintf("Debug output logging on worker %s started", worker_id))
   }

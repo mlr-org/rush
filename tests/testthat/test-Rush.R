@@ -1547,8 +1547,8 @@ test_that("error and output logs work", {
     config = config,
     remote = FALSE)
 
-  message_log = tempfile()
-  output_log = tempfile()
+  message_log = tempdir()
+  output_log = tempdir()
 
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
@@ -1559,8 +1559,8 @@ test_that("error and output logs work", {
     output_log = output_log)
   rush$wait_for_workers(1)
 
-  expect_match(readLines(message_log)[1], "Debug message logging on worker")
-  expect_match(readLines(output_log)[1], "Debug output logging on worker")
+  expect_match(readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))[1], "Debug message logging on worker")
+  expect_match(readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))[1], "Debug output logging on worker")
 
   expect_rush_reset(rush)
 })

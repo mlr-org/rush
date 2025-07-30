@@ -175,19 +175,17 @@ Rush = R6::R6Class("Rush",
       config = paste0("list(", config, ")")
       lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("'%s' = '%s'", name, value)), collapse = ", ")
       lgr_thresholds = paste0("c(", lgr_thresholds, ")")
-      message_log = sprintf("'%s'", message_log)
-      output_log = sprintf("'%s'", output_log)
+      message_log = if(is.null(message_log)) "NULL" else sprintf("'%s'", message_log)
+      output_log = if(is.null(output_log)) "NULL" else sprintf("'%s'", output_log)
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
-
-
 
       self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
         args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
           self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
-        supervise = supervise)
+        supervise = supervise, stderr = "|")
       }), worker_ids))
 
       return(invisible(worker_ids))

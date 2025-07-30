@@ -329,11 +329,13 @@ This improves the performance of the logging.}
 Whether to kill the workers when the main R process is shut down.}
 
 \item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log file.
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log file.
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}
@@ -388,11 +390,13 @@ If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Re
 This improves the performance of the logging.}
 
 \item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log file.
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log file.
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}
@@ -450,11 +454,13 @@ Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 
 \item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log file.
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log file.
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}

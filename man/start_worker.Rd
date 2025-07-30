@@ -50,11 +50,13 @@ Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 
 \item{message_log}{(\code{character(1)})\cr
-Path to the message log file.
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
 
 \item{output_log}{(\code{character(1)})\cr
-Path to the output log file.
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
 }
 \value{
