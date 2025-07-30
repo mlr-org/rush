@@ -48,6 +48,14 @@ The heartbeat is updated every \code{heartbeat_period} seconds.}
 \item{heartbeat_expire}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+
+\item{message_log}{(\code{character(1)})\cr
+Path to the message log file.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{output_log}{(\code{character(1)})\cr
+Path to the output log file.
+If \code{NULL}, no output is stored.}
 }
 \value{
 \code{NULL}

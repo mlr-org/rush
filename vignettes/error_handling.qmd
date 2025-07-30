@@ -182,4 +182,14 @@ The `$detect_lost_workers()` method can be used to identify lost workers.
 rush$detect_lost_workers()
 ```
 
+Output and message logs can be written to files by specifying the `message_log` and `output_log` arguments.
 
+```{r error_handling-015}
+rush = rsh("test-error", )
+
+rush$start_local_workers(
+  worker_loop = wl_error,
+  n_workers = 1,
+  message_log = "message.log",
+  output_log = "output.log"
+)

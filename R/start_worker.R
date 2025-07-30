@@ -23,6 +23,8 @@
 #' @template param_lgr_buffer_size
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
+#' @template param_message_log
+#' @template param_output_log
 #'
 #' @return `NULL`
 #' @export

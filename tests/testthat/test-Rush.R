@@ -43,7 +43,7 @@ test_that("local workers are started with Redis on unix socket", {
   skip_if(TRUE)
 
   system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()))
-  Sys.sleep(5)error in `root_logger$info("test-1", rush = rsh()
+  Sys.sleep(5)
 
   config = redux::redis_config(path = "/tmp/redis.sock")
   r = redux::hiredis(config)
