@@ -81,7 +81,9 @@ The global environment is changed.</p>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -114,7 +116,7 @@ Whether the worker is on a remote machine.</p></dd>
 
 <dt id="arg-lgr-thresholds">lgr_thresholds<a class="anchor" aria-label="anchor" href="#arg-lgr-thresholds"></a></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
-Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
+Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
 
 <dt id="arg-lgr-buffer-size">lgr_buffer_size<a class="anchor" aria-label="anchor" href="#arg-lgr-buffer-size"></a></dt>
@@ -134,6 +136,20 @@ The heartbeat is updated every <code>heartbeat_period</code> seconds.</p></dd>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.</p></dd>
+
+
+<dt id="arg-message-log">message_log<a class="anchor" aria-label="anchor" href="#arg-message-log"></a></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the message log files e.g. <code>/tmp/message_logs/</code>
+The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
+
+
+<dt id="arg-output-log">output_log<a class="anchor" aria-label="anchor" href="#arg-output-log"></a></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the output log files e.g. <code>/tmp/output_logs/</code>
+The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no output is stored.</p></dd>
 
 </dl></div>
     <div class="section level2">
