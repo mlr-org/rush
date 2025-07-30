@@ -318,7 +318,7 @@ Global variables to be loaded to the workers global environment.}
 Packages to be loaded by the workers.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -382,7 +382,7 @@ Global variables to be loaded to the workers global environment.}
 Packages to be loaded by the workers.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -438,7 +438,7 @@ Global variables to be loaded to the workers global environment.}
 Packages to be loaded by the workers.}
 
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.

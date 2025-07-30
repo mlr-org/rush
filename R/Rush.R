@@ -348,7 +348,7 @@ Rush = R6::R6Class("Rush",
               network_id = self$network_id,
               config = config,
               remote = TRUE,
-              lgr_thresholds = c(rush = "debug"))), # FIXME LOG Level
+              lgr_thresholds = c("mlr3/rush" = "debug"))), # FIXME LOG Level
           worker_id_mirai)
 
         self$processes_mirai = insert_named(self$processes_mirai, new_processes)

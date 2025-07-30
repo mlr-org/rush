@@ -24,7 +24,7 @@ If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
 
 \item{lgr_buffer_size}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.

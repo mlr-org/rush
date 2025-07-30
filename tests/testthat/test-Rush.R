@@ -21,7 +21,7 @@ test_that("local workers are started", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2)
 
   # check fields
@@ -58,7 +58,7 @@ test_that("local workers are started with Redis on unix socket", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   # check fields
@@ -82,7 +82,7 @@ test_that("additional workers are started", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   expect_equal(rush$n_workers, 2)
@@ -90,7 +90,7 @@ test_that("additional workers are started", {
   worker_ids_2 = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(4, timeout = 5)
 
   expect_length(rush$processes_processx, 4)
@@ -114,7 +114,7 @@ test_that("packages are available on the worker", {
     worker_loop = test_worker_loop,
     n_workers = 2,
     packages = "uuid",
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
   expect_equal(rush$n_workers, 2)
 
@@ -157,7 +157,7 @@ test_that("packages are available on the worker", {
 #     worker_loop = worker_loop,
 #     n_workers = 2,
 #     globals = "x",
-#     lgr_thresholds = c(rush = "debug"))
+#     lgr_thresholds = c("mlr3/rush" = "debug"))
 #   rush$wait_for_workers(2, timeout = 5)
 #   expect_equal(rush$n_workers, 2)
 
@@ -200,7 +200,7 @@ test_that("packages are available on the worker", {
 #     worker_loop = worker_loop,
 #     n_workers = 2,
 #     globals = c(z = "x"),
-#     lgr_thresholds = c(rush = "debug"))
+#     lgr_thresholds = c("mlr3/rush" = "debug"))
 #   rush$wait_for_workers(2, timeout = 5)
 
 #   xss = list(list(x1 = 1, x2 = 2))
@@ -227,7 +227,7 @@ test_that("mirai workers are started", {
   worker_ids = rush$start_remote_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   # check fields
@@ -265,7 +265,7 @@ test_that("new mirai workers can be started on used daemons", {
   worker_ids = rush$start_remote_workers(
     worker_loop = worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   Sys.sleep(1)
@@ -279,7 +279,7 @@ test_that("new mirai workers can be started on used daemons", {
   worker_ids = rush$start_remote_workers(
     worker_loop = worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 2)
@@ -304,10 +304,10 @@ test_that("workers are started with script", {
 
   rush$worker_script(
     worker_loop = test_worker_loop,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
 
   px = processx::process$new("Rscript",
-    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0)")),
+    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0)")),
     supervise = TRUE,
     stderr = "|", stdout = "|")
 
@@ -336,10 +336,10 @@ test_that("heartbeat process is started", {
     worker_loop = test_worker_loop,
     heartbeat_period = 3,
     heartbeat_expire = 9,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
 
   px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
     supervise = TRUE,
     stderr = "|", stdout = "|")
 
@@ -382,7 +382,7 @@ test_that("a worker is terminated", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
     rush$wait_for_workers(2, timeout = 5)
 
   worker_id_1 = rush$running_worker_ids[1]
@@ -415,7 +415,7 @@ test_that("a local worker is killed", {
   worker_ids = rush$start_local_workers(
       worker_loop = test_worker_loop,
       n_workers = 2,
-      lgr_thresholds = c(rush = "debug"))
+      lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   worker_id_1 = rush$running_worker_ids[1]
@@ -447,7 +447,7 @@ test_that("a mirai worker is killed", {
   worker_ids = rush$start_remote_workers(
       worker_loop = test_worker_loop,
       n_workers = 2,
-      lgr_thresholds = c(rush = "debug"))
+      lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   worker_id_1 = rush$running_worker_ids[1]
@@ -487,10 +487,10 @@ test_that("worker is killed with a heartbeat process", {
     worker_loop = test_worker_loop,
     heartbeat_period = 3,
     heartbeat_expire = 9,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
 
   px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
     supervise = TRUE,
     stderr = "|", stdout = "|")
 
@@ -673,7 +673,7 @@ test_that("evaluating a task works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 4,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2))
@@ -714,7 +714,7 @@ test_that("evaluating tasks works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 4,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
@@ -755,7 +755,7 @@ test_that("caching results works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 4,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
@@ -804,7 +804,7 @@ test_that("a segfault on a local worker is detected", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   Sys.sleep(3)
@@ -835,7 +835,7 @@ test_that("a segfault on a mirai worker", {
   worker_ids = rush$start_remote_workers(
     worker_loop = worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(3)
@@ -868,10 +868,10 @@ test_that("a segfault on a worker is detected via the heartbeat", {
     worker_loop = worker_loop,
     heartbeat_period = 1,
     heartbeat_expire = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
 
   px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c(rush = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
+    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
     supervise = TRUE,
     stderr = "|", stdout = "|")
 
@@ -922,7 +922,7 @@ test_that("a simple error is catched", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 4,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
@@ -978,7 +978,7 @@ test_that("a lost task is detected", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   Sys.sleep(5)
@@ -1024,7 +1024,7 @@ test_that("restarting a local worker works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 4,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   worker_id_1 = rush$running_worker_ids[1]
@@ -1049,7 +1049,7 @@ test_that("restarting a worker kills the local worker", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   pid = rush$worker_info$pid
@@ -1085,7 +1085,7 @@ test_that("restarting a remote worker works", {
   worker_ids = rush$start_remote_workers(
     worker_loop = worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(3)
@@ -1138,7 +1138,7 @@ test_that("blocking on new results works", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2))
@@ -1159,7 +1159,7 @@ test_that("wait for tasks works when a task gets lost", {
   worker_ids = rush$start_local_workers(
     worker_loop = segfault_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
@@ -1181,7 +1181,7 @@ test_that("saving lgr logs works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(5)
@@ -1221,7 +1221,7 @@ test_that("logs with time differences work", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   Sys.sleep(5)
@@ -1259,7 +1259,7 @@ test_that("snapshot option works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 1,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   rush$snapshot_schedule = c(1, 1)
@@ -1281,7 +1281,7 @@ test_that("terminating workers on idle works", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2))
@@ -1374,7 +1374,7 @@ test_that("seed is set correctly on two workers", {
   worker_ids = rush$start_local_workers(
     worker_loop = worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   .keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 2, x2 = 3), list(x1 = 2, x2 = 4)))
@@ -1398,7 +1398,7 @@ test_that("printing logs with redis appender works", {
   skip_on_cran()
   skip_if(TRUE) # does not work in testthat on environment
 
-  lg_rush = lgr::get_logger("rush")
+  lg_rush = lgr::get_logger("mlr3/rush")
   old_threshold_rush = lg_rush$threshold
   on.exit(lg_rush$set_threshold(old_threshold_rush))
   lg_rush$set_threshold("info")
@@ -1412,7 +1412,7 @@ test_that("printing logs with redis appender works", {
         tryCatch({
           # evaluate task with seed
           fun = function(x1, x2, ...) {
-            lg = lgr::get_logger("rush")
+            lg = lgr::get_logger("mlr3/rush")
             lg$info("test-1-info")
             lg$warn("test-1-warn")
             lg$error("test-1-error")
@@ -1526,10 +1526,8 @@ test_that("saving logs with redis appender works", {
       worker_loop = test_worker_loop,
       n_workers = 1,
       lgr_thresholds = c("mlr3/rush" = "debug"),
-      lgr_buffer_size = 1,
-      message_log = "error.log",
-      output_log = "out.log")
-  rush$wait_for_workers(1)
+      lgr_buffer_size = 1)
+  rush$wait_for_workers(1, timeout = 5)
 
   log = rush$read_log()
   expect_data_table(log, min.rows = 1)
@@ -1555,7 +1553,7 @@ test_that("error and output logs work", {
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"),
     lgr_buffer_size = 1,
-      message_log = message_log,
+    message_log = message_log,
     output_log = output_log)
   rush$wait_for_workers(1)
 
