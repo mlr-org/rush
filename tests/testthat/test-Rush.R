@@ -43,7 +43,7 @@ test_that("local workers are started with Redis on unix socket", {
   skip_if(TRUE)
 
   system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()))
-  Sys.sleep(5)
+  Sys.sleep(5)error in `root_logger$info("test-1", rush = rsh()
 
   config = redux::redis_config(path = "/tmp/redis.sock")
   r = redux::hiredis(config)
@@ -1524,13 +1524,43 @@ test_that("saving logs with redis appender works", {
 
   worker_ids = rush$start_local_workers(
       worker_loop = test_worker_loop,
-      n_workers = 2,
-      lgr_thresholds = c(rush = "debug"))
-  rush$wait_for_workers(2)
+      n_workers = 1,
+      lgr_thresholds = c("mlr3/rush" = "debug"),
+      lgr_buffer_size = 1,
+      message_log = "error.log",
+      output_log = "out.log")
+  rush$wait_for_workers(1)
 
   log = rush$read_log()
   expect_data_table(log, min.rows = 1)
   expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
+
+  expect_rush_reset(rush)
+})
+
+test_that("error and output logs work", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(
+    network_id = "test-rush",
+    config = config,
+    remote = FALSE)
+
+  message_log = tempfile()
+  output_log = tempfile()
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"),
+    lgr_buffer_size = 1,
+      message_log = message_log,
+    output_log = output_log)
+  rush$wait_for_workers(1)
+
+  expect_match(readLines(message_log)[1], "Debug message logging on worker")
+  expect_match(readLines(output_log)[1], "Debug output logging on worker")
 
   expect_rush_reset(rush)
 })

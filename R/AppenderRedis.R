@@ -116,7 +116,7 @@ AppenderRedis = R6::R6Class("AppenderRedis",
 #'
 #' @export
 filter_custom_fields = function(event) {
-  extra_cols = setdiff(names(event$values), c("level", "timestamp", "logger", "caller", "msg"))
+  extra_cols = setdiff(names(event$values), c("level", "timestamp", "logger", "caller", "msg", "rawMsg"))
   rm(list = extra_cols, envir = event)
   TRUE
 }

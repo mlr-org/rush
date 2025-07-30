@@ -1,5 +1,7 @@
 # rush (development version)
 
+* feat: Output and message logs can be written to files now via the `message_log` and `output_log` arguments.
+* compatibility: lgr 0.5.0
 * BREAKING CHANGE: The mlr3 ecosystem has a base logger now which is named `mlr3`.
   The `mlr3/rush` logger is a child of the `mlr3` logger and is used for logging messages from the `rush` package.
 

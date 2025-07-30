@@ -28,6 +28,8 @@
 #' @template param_heartbeat_expire
 #' @template param_seed
 #' @template param_data_format
+#' @template param_message_log
+#' @template param_output_log
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
@@ -146,7 +148,9 @@ Rush = R6::R6Class("Rush",
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
-      supervise = TRUE
+      supervise = TRUE,
+      message_log = NULL,
+      output_log = NULL
       ) {
       n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
       lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
@@ -169,17 +173,21 @@ Rush = R6::R6Class("Rush",
       config = mlr3misc::discard(unclass(self$config), is.null)
       config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
       config = paste0("list(", config, ")")
-      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("'%s' = '%s'", name, value)), collapse = ", ")
       lgr_thresholds = paste0("c(", lgr_thresholds, ")")
+      message_log = sprintf("'%s'", message_log)
+      output_log = sprintf("'%s'", output_log)
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
 
+
+
       self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i)",
-          self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size)),
-        supervise = supervise, stderr = "|", stdout = "|") # ,
+        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
+          self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
+        supervise = supervise)
       }), worker_ids))
 
       return(invisible(worker_ids))
@@ -202,7 +210,9 @@ Rush = R6::R6Class("Rush",
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
-      lgr_buffer_size = NULL
+      lgr_buffer_size = NULL,
+      message_log = NULL,
+      output_log = NULL
       ) {
       n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
       lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
@@ -243,7 +253,9 @@ Rush = R6::R6Class("Rush",
             config = config,
             remote = TRUE,
             lgr_thresholds,
-            lgr_buffer_size)),
+            lgr_buffer_size,
+            message_log,
+            output_log)),
         worker_ids))
 
       return(invisible(worker_ids))
@@ -262,7 +274,9 @@ Rush = R6::R6Class("Rush",
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       heartbeat_period = NULL,
-      heartbeat_expire = NULL
+      heartbeat_expire = NULL,
+      message_log = NULL,
+      output_log = NULL
       ) {
       lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
       lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")

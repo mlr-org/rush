@@ -12,7 +12,9 @@ start_worker(
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  message_log = NULL,
+  output_log = NULL
 )
 }
 \arguments{

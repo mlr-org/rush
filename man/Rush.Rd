@@ -292,7 +292,9 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
   packages = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
-  supervise = TRUE
+  supervise = TRUE,
+  message_log = NULL,
+  output_log = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -325,6 +327,14 @@ This improves the performance of the logging.}
 
 \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log file.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log file.
+If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}
 }
@@ -344,7 +354,9 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
-  lgr_buffer_size = NULL
+  lgr_buffer_size = NULL,
+  message_log = NULL,
+  output_log = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -374,6 +386,14 @@ Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log file.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log file.
+If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}
 }
@@ -392,7 +412,9 @@ Generate a script to start workers.
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  message_log = NULL,
+  output_log = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -426,6 +448,14 @@ The heartbeat is updated every \code{heartbeat_period} seconds.}
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log file.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log file.
+If \code{NULL}, no output is stored.}
 }
 \if{html}{\out{</div>}}
 }
