@@ -28,7 +28,7 @@ test_that("start workers", {
   worker_ids = rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"))
+    lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
   expect_equal(rush$n_running_workers, 2)
@@ -39,22 +39,22 @@ test_that("start workers", {
 test_that("set threshold", {
   skip_on_cran()
 
-  lg_rush = lgr::get_logger("rush")
+  lg_rush = lgr::get_logger("mlr3/rush")
   old_threshold_rush = lg_rush$threshold
   on.exit(lg_rush$set_threshold(old_threshold_rush))
   lg_rush$set_threshold("debug")
 
   config = start_flush_redis()
-  rush_plan(n_workers = 2, config, lgr_thresholds = c(rush = "debug"))
+  rush_plan(n_workers = 2, config, lgr_thresholds = c("mlr3/rush" = "debug"))
 
   expect_equal(rush_env$n_workers, 2)
-  expect_equal(rush_env$lgr_thresholds, c(rush = "debug"))
+  expect_equal(rush_env$lgr_thresholds, c("mlr3/rush" = "debug"))
 
   rush = rsh("test-rush")
   expect_output(rush$start_local_workers(
     worker_loop = test_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c(rush = "debug"),
+    lgr_thresholds = c("mlr3/rush" = "debug"),
     wait_for_workers = TRUE),
     "Pushing.*")
 

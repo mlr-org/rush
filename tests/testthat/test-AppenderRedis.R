@@ -20,7 +20,7 @@ test_that("saving logs with redis appender works", {
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
   root_logger$remove_appender("console")
-  lg = lgr::get_logger("rush")
+  lg = lgr::get_logger("mlr3/rush")
 
   root_logger$info("test-1")
 
@@ -64,7 +64,7 @@ test_that("settings the buffer size in redis appender works", {
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
   root_logger$remove_appender("console")
-  lg = lgr::get_logger("rush")
+  lg = lgr::get_logger("mlr3/rush")
 
   r = redux::hiredis(config)
 
@@ -106,6 +106,13 @@ test_that("R6 classes can be filtered", {
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
 
-  lg = lgr::get_logger("rush")
+  lg = lgr::get_logger("mlr3/rush")
   root_logger$info("test-1", rush = rsh())
+
+  r = redux::hiredis(config)
+  logs = r$command(c("LRANGE", key, 0, -1))
+  tab = rbindlist(map(logs, fromJSON))
+  expect_data_table(tab, nrows = 1)
+  expect_names(colnames(tab), identical.to =  c("level", "timestamp", "logger", "caller", "msg"))
+  expect_equal(tab$msg, "test-1")
 })

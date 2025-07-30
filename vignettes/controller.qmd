@@ -257,7 +257,7 @@ rush$worker_states
 ## Log Messages {#sec-local-log-messages}
 
 Workers record all messages generated using the `lgr` package to the database.
-The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging level for each logger, e.g. `c(rush = "debug")`.
+The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging level for each logger, e.g. `c("mlr3/rush" = "debug")`.
 While enabling log message storage introduces a minor performance overhead, it is valuable for debugging purposes.
 By default, log messages are not stored.
 To enable logging, workers are started with the desired logging threshold.
@@ -266,7 +266,7 @@ To enable logging, workers are started with the desired logging threshold.
 rush = rsh(network = "test-log-messages")
 
 wl_log_message = function(rush) {
-  lg = lgr::get_logger("rush")
+  lg = lgr::get_logger("mlr3/rush")
   lg$info("This is an info message from worker %s", rush$worker_id)
 }
 

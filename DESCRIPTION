@@ -21,7 +21,7 @@ Imports:
     data.table,
     ids,
     jsonlite,
-    lgr,
+    lgr (>= 0.5.0),
     mirai (>= 2.0.0),
     mlr3misc,
     parallel,

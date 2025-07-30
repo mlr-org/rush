@@ -12,7 +12,9 @@ start_worker(
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  message_log = NULL,
+  output_log = NULL
 )
 }
 \arguments{
@@ -32,7 +34,7 @@ Configuration for the Redis connection.}
 Whether the worker is on a remote machine.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c(rush = "debug")}.}
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
 
 \item{lgr_buffer_size}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -46,6 +48,16 @@ The heartbeat is updated every \code{heartbeat_period} seconds.}
 \item{heartbeat_expire}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+
+\item{message_log}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{output_log}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 }
 \value{
 \code{NULL}

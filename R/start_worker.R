@@ -23,6 +23,8 @@
 #' @template param_lgr_buffer_size
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
+#' @template param_message_log
+#' @template param_output_log
 #'
 #' @return `NULL`
 #' @export
@@ -45,12 +47,30 @@ start_worker = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  message_log = NULL,
+  output_log = NULL
   ) {
   timestamp_start = Sys.time()
+  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+
+  if (!is.null(message_log)) {
+    message_log = file.path(message_log, sprintf("message_%s.log", worker_id))
+    message_log = file(message_log, open = "a")
+    #on.exit(close(message_log), add = TRUE)
+    sink(message_log, type = "message", append = TRUE)
+    mlr3misc::messagef("Debug message logging on worker %s started", worker_id)
+  }
+
+  if (!is.null(output_log)) {
+    output_log = file.path(output_log, sprintf("output_%s.log", worker_id))
+    output_log = file(output_log, open = "a")
+    #on.exit(close(output_log), add = TRUE)
+    sink(output_log, type = "output", append = TRUE)
+    print(sprintf("Debug output logging on worker %s started", worker_id))
+  }
 
   checkmate::assert_string(network_id)
-  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
   checkmate::assert_flag(remote)
 
   # connect to redis
@@ -75,7 +95,7 @@ start_worker = function(
 
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)
-    if ("console" %in% names(root_logger$appenders)) root_logger$remove_appender("console")
+    if ("console" %in% names(root_logger$appenders) && is.null(output_log)) root_logger$remove_appender("console")
 
     # restore log levels
     for (package in names(lgr_thresholds)) {
@@ -84,6 +104,7 @@ start_worker = function(
       logger$set_threshold(threshold)
     }
   }
+
   lg$log("debug", "Starting worker '%s'", worker_id, timestamp = timestamp_start)
 
   # get start arguments
@@ -117,7 +138,7 @@ start_worker = function(
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire)
 
-  lg$debug("Worker '%s' started")
+  lg$debug("Worker '%s' started", worker_id)
 
   # run worker loop
   mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
