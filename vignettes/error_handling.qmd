@@ -3,7 +3,7 @@ title: "Error Handling and Debugging"
 format: html
 ---
 
-```{r error_handling-001}
+```{r error_handling-001_handling-001_handling-001}
 #| include: false
 r = redux::hiredis()
 r$FLUSHDB()
@@ -20,7 +20,7 @@ To illustrate the error-handling mechanism in rush, we employ the random search 
 This time we introduce a random error with a 50% probability.
 Within the worker loop, users are responsible for catching errors and marking the corresponding task as `"failed"` using the `$push_failed()` method.
 
-```{r error_handling-002}
+```{r error_handling-002_handling-002_handling-002}
 library(rush)
 
 branin = function(x1, x2) {
@@ -51,7 +51,7 @@ wl_random_search = function(rush) {
 
 We start the workers.
 
-```{r error_handling-003}
+```{r error_handling-003_handling-003_handling-003}
 rush = rsh(
   network = "test-simply-error",
   config = redux::redis_config())
@@ -62,7 +62,7 @@ rush$start_local_workers(
   globals = "branin")
 ```
 
-```{r error_handling-004}
+```{r error_handling-004_handling-004_handling-004}
 #| include: false
 Sys.sleep(1)
 ```
@@ -71,7 +71,7 @@ When an error occurs, the task is marked as `"failed"`, and the error message is
 This approach ensures that errors do not interrupt the overall execution process.
 It allows for subsequent inspection of errors and the reevaluation of failed tasks as necessary.
 
-```{r error_handling-005}
+```{r error_handling-005_handling-005_handling-005}
 rush$fetch_failed_tasks()
 ```
 
@@ -81,7 +81,7 @@ The rush package provides mechanisms to address situations in which workers fail
 Such failures may result in tasks remaining in the "running" state indefinitely.
 To illustrate this, we define a function that simulates a segmentation fault by terminating the worker process.
 
-```{r error_handling-006}
+```{r error_handling-006_handling-006_handling-006}
 wl_failed_worker = function(rush) {
   xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
   key = rush$push_running_tasks(xss = list(xs))
@@ -96,14 +96,14 @@ worker_ids =  rush$start_local_workers(
   n_workers = 2)
 ```
 
-```{r error_handling-007}
+```{r error_handling-007_handling-007_handling-007}
 #| include: false
 Sys.sleep(1)
 ```
 
 The package offers the `$detect_lost_workers()` method, which is designed to identify and manage these occurrences.
 
-```{r error_handling-008}
+```{r error_handling-008_handling-008_handling-008}
 rush$detect_lost_workers()
 ```
 
@@ -115,7 +115,7 @@ Alternatively, lost workers may be restarted manually using the `$restart_worker
 Automatic restarting is only available for local workers.
 When a worker fails, the status of the task that caused the failure is set to `"failed"`.
 
-```{r error_handling-009}
+```{r error_handling-009_handling-009_handling-009}
 rush$fetch_failed_tasks()
 ```
 
@@ -124,7 +124,7 @@ rush$fetch_failed_tasks()
 When the worker loop fails unexpectedly due to an uncaught error, it is necessary to debug the worker loop.
 Consider the following example, in which the worker loop randomly generates an error.
 
-```{r error_handling-010}
+```{r error_handling-010_handling-010_handling-010}
 wl_error = function(rush) {
 
   repeat {
@@ -149,7 +149,7 @@ This requires the initialization of a `RushWorker` instance.
 Although the rush worker is typically created during worker initialization, it can also be instantiated manually.
 The worker instance is then passed as an argument to the worker loop.
 
-```{r error_handling-011}
+```{r error_handling-011_handling-011_handling-011}
 #| error: true
 rush_worker = RushWorker$new("test", remote = FALSE)
 
@@ -162,7 +162,7 @@ This approach provides substantial control over the debugging process.
 Certain errors, such as missing packages or undefined global variables, may not be encountered when running locally.
 However, such issues can be readily identified using the `$detect_lost_workers()` method.
 
-```{r error_handling-012}
+```{r error_handling-012_handling-012_handling-012}
 rush = rsh("test-error")
 
 rush$start_local_workers(
@@ -171,20 +171,20 @@ rush$start_local_workers(
 )
 ```
 
-```{r error_handling-013}
+```{r error_handling-013_handling-013_handling-013}
 #| include: false
 Sys.sleep(1)
 ```
 
 The `$detect_lost_workers()` method can be used to identify lost workers.
 
-```{r error_handling-014}
+```{r error_handling-014_handling-014_handling-014}
 rush$detect_lost_workers()
 ```
 
 Output and message logs can be written to files by specifying the `message_log` and `output_log` arguments.
 
-```{r error_handling-015}
+```{r error_handling-015_handling-015_handling-015}
 rush = rsh("test-error")
 
 message_log = tempdir()

@@ -72,18 +72,18 @@ rush$worker_info
 
 Additional workers may be added to the network at any time.
 
-```{r controller-007}
+```{r controller-006}
 rush$start_local_workers(
   worker_loop = wl_random_search,
   n_workers = 2)
 ```
 
-```{r controller-008}
+```{r controller-007}
 #| include: false
 Sys.sleep(1)
 ```
 
-```{r controller-009}
+```{r controller-008}
 rush$worker_info
 ```
 
@@ -93,7 +93,7 @@ When `rush` is integrated into a third-party package, the starting of workers is
 In such cases, users may configure worker options by invoking the `rush_plan()` function.
 This function allows explicit specification of the number of workers, the type of workers, and the configuration for connecting to the Redis database.
 
-```{r controller-010}
+```{r controller-009}
 #| eval: false
 rush_plan(n_workers = 4, config = redux::redis_config(), worker_type = "local")
 ```
@@ -120,24 +120,24 @@ The `large_objects_path` argument of `rush_plan()` specifies the directory used 
 Workers can be stopped individually or all at once.
 To terminate a specific worker, the `$stop_workers()` method is invoked with the corresponding `worker_ids` argument.
 
-```{r controller-011}
+```{r controller-010}
 rush$stop_workers(worker_ids = worker_ids[1])
 ```
 
 This command terminates the selected worker process.
 
-```{r controller-012}
+```{r controller-011}
 #| include: false
 Sys.sleep(1)
 ```
 
-```{r controller-013}
-rush$worker_states
+```{r controller-012}
+rush$worker_info
 ```
 
 To stop all workers and reset the network, the `$reset()` method is used.
 
-```{r controller-014}
+```{r controller-013}
 rush$reset()
 ```
 
@@ -146,7 +146,7 @@ Alternatively, it is possible to terminate the optimization by sending a termina
 The worker loop must implement the `rush$terminated` flag.
 Then the rush controller can terminate the optimization.
 
-```{r controller-015}
+```{r controller-014}
 wl_random_search = function(rush) {
   while(!rush$terminated) {
 
@@ -167,40 +167,40 @@ rush$start_local_workers(
   n_workers = 2)
 ```
 
-```{r controller-016}
+```{r controller-015}
 #| include: false
 Sys.sleep(1)
 ```
 
 The random search proceeds as usual.
 
-```{r controller-017}
+```{r controller-016}
 
 rush$fetch_finished_tasks()
 ```
 
 To terminate the optimization, the following command is used.
 
-```{r controller-018}
+```{r controller-017}
 rush$stop_workers(type = "terminate")
 ```
 
 The workers are terminated.
 
-```{r controller-019}
+```{r controller-018}
 #| include: false
 Sys.sleep(1)
 ```
 
-```{r controller-020}
-rush$worker_states
+```{r controller-019}
+rush$worker_info
 ```
 
 ## Failed Workers {#sec-local-failed-workers}
 
 We simulate a segfault on the worker by killing the worker process.
 
-```{r controller-021}
+```{r controller-020}
 rush = rsh(network = "test-failed-workers")
 
 wl_failed_worker = function(rush) {
@@ -210,13 +210,13 @@ wl_failed_worker = function(rush) {
 
 Workers are then started using the faulty worker loop.
 
-```{r controller-022}
+```{r controller-021}
 worker_ids =  rush$start_local_workers(
   worker_loop = wl_failed_worker,
   n_workers = 2)
 ```
 
-```{r controller-023}
+```{r controller-022}
 #| include: false
 Sys.sleep(1)
 ```
@@ -224,9 +224,9 @@ Sys.sleep(1)
 The `$detect_lost_workers()` method is used to identify failed workers.
 When a worker is detected, its state is updated to `"lost"`.
 
-```{r controller-024}
+```{r controller-023}
 rush$detect_lost_workers()
-rush$worker_states
+rush$worker_info
 ```
 
 ## Restart Workers {#sec-local-restart-workers}
@@ -234,19 +234,19 @@ rush$worker_states
 Workers that have failed can be restarted using the `$restart_workers()` method.
 This method accepts the `worker_ids` of the workers to be restarted.
 
-```{r controller-025}
+```{r controller-024}
 rush$restart_workers(worker_ids = worker_ids[1])
 ```
 
-```{r controller-026}
+```{r controller-025}
 #| include: false
 Sys.sleep(1)
 ```
 
 The first worker is restarted and its state is updated to `"running"`.
 
-```{r controller-027}
-rush$worker_states
+```{r controller-026}
+rush$worker_info
 ```
 
 ## Log Messages {#sec-local-log-messages}
@@ -257,7 +257,7 @@ While enabling log message storage introduces a minor performance overhead, it i
 By default, log messages are not stored.
 To enable logging, workers are started with the desired logging threshold.
 
-```{r controller-028}
+```{r controller-027}
 rush = rsh(network = "test-log-messages")
 
 wl_log_message = function(rush) {
@@ -271,27 +271,27 @@ rush$start_local_workers(
   lgr_thresholds = c(rush = "info"))
 ```
 
-```{r controller-029}
+```{r controller-028}
 #| include: false
 Sys.sleep(1)
 ```
 
 The most recent log messages can be printed as follows.
 
-```{r controller-030}
+```{r controller-029}
 Sys.sleep(1)
 rush$print_log()
 ```
 
 To retrieve all log entries, use the `$read_log()` method.
 
-```{r controller-031}
+```{r controller-030}
 rush$read_log()
 ```
 
 We reset the network.
 
-```{r controller-032}
+```{r controller-031}
 rush$reset()
 ```
 
@@ -301,28 +301,25 @@ The `mirai` package provides a straightforward mechanism for launching `rush` wo
 `mirai` manages daemons, which are persistent background processes capable of executing arbitrary R code in parallel.
 These daemons communicate with the main session.
 
-```{r controller-033}
-
+```{r controller-032}
+library(mirai)
 ```
 
 ## Start Workers {#sec-remote-start-workers}
 
 Usually `mirai` is used to start daemons on remote machines but it can also be used to start local daemons.
 
-```{r controller-034}
-library(mirai)
-
+```{r controller-033}
+#| eval: false
 daemons(
   n = 2,
   url = host_url()
 )
-
-status()
 ```
 
 Daemons may also be launched on a remote machine via SSH.
 
-```{r controller-035}
+```{r controller-034}
 #| eval: false
 daemons(
   n = 2L,
@@ -333,7 +330,7 @@ daemons(
 
 On high performance computing clusters, daemons can be started using a scheduler.
 
-```{r controller-036}
+```{r controller-035}
 #| eval: false
 daemons(
   n = 2L,
@@ -349,7 +346,7 @@ daemons(
 
 We define a worker loop.
 
-```{r controller-037}
+```{r controller-036}
 wl_random_search = function(rush) {
   while(rush$n_finished_tasks < 100) {
 
@@ -366,10 +363,17 @@ rush = rsh(
   config = redux::redis_config())
 ```
 
-We start the daemons.
-`daemons(0)` stops all daemons.
+First we stop all previously started daemons with`daemons(0)`.
+Then we start two new daemons.
+
+```{r controller-037}
+#| include: false
+daemons(0)
+daemons(2)
+```
 
 ```{r controller-038}
+#| eval: false
 daemons(0)
 daemons(2)
 ```
@@ -402,36 +406,32 @@ Failed workers started with `mirai` are also detected by the controller.
 We simulate a segfault on the worker by killing the worker process.
 
 ```{r controller-043}
-daemons(0)
-daemons(2)
-
 rush = rsh(network = "test-failed-mirai-workers")
 
 wl_failed_worker = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
-
-worker_ids = rush$start_remote_workers(
-  worker_loop = wl_failed_worker,
-  n_workers = 2)
 ```
 
+Start two new daemons.
 ```{r controller-044}
 #| include: false
-Sys.sleep(1)
+daemons(0)
+daemons(2)
 ```
 
 ```{r controller-045}
-rush$detect_lost_workers()
-```
-
-A segmentation fault also terminates the associated `mirai` daemon.
-Therefore, it is necessary to restart the daemon before restarting the workers.
-
-```{r controller-046}
+#| eval: false
 daemons(0)
 daemons(2)
-status()
+```
+
+Start two remote workers.
+
+```{r controller-046}
+worker_ids = rush$start_remote_workers(
+  worker_loop = wl_failed_worker,
+  n_workers = 2)
 ```
 
 ```{r controller-047}
@@ -439,9 +439,33 @@ status()
 Sys.sleep(1)
 ```
 
+```{r controller-048}
+rush$detect_lost_workers()
+```
+
+A segmentation fault also terminates the associated `mirai` daemon.
+Therefore, it is necessary to restart the daemon before restarting the workers.
+
+```{r controller-049}
+#| include: false
+daemons(0)
+daemons(2)
+```
+
+```{r controller-050}
+#| eval: false
+daemons(0)
+daemons(2)
+```
+
+```{r controller-051}
+#| include: false
+Sys.sleep(1)
+```
+
 Workers can then be restarted using the `$restart_workers()` method.
 
-```{r controller-048}
+```{r controller-052}
 rush$restart_workers(worker_ids)
 ```
 
@@ -451,7 +475,7 @@ The most flexible method for starting workers is to use a script generated with 
 This script can be executed either on the local machine or on a remote machine.
 The only requirement is that the machine is capable of running R scripts and has access to the Redis database.
 
-```{r controller-049}
+```{r controller-053}
 rush = rsh(
   network = "test-script-workers",
   config = redux::redis_config())
@@ -475,7 +499,7 @@ The `heartbeat_period` defines the frequency at which the heartbeat process will
 The `heartbeat_expire` sets the duration, in seconds, before the heartbeat key expires.
 The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.
 
-```{r controller-050}
+```{r controller-054}
 rush$worker_script(
   worker_loop = wl_random_search,
   heartbeat_period = 1,
