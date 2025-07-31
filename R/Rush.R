@@ -252,8 +252,8 @@ Rush = R6::R6Class("Rush",
             remote = TRUE,
             lgr_thresholds,
             lgr_buffer_size,
-            message_log,
-            output_log)),
+            message_log = message_log,
+            output_log = output_log)),
         worker_ids))
 
       return(invisible(worker_ids))
@@ -331,7 +331,7 @@ Rush = R6::R6Class("Rush",
         }
 
         # stop running workers
-        self$stop_workers(type = "kill", intersect(rush$running_worker_ids, worker_id_mirai))
+        self$stop_workers(type = "kill", intersect(self$running_worker_ids, worker_id_mirai))
 
         lg$info("Restarting %i worker(s): %s", length(worker_id_mirai), str_collapse(worker_id_mirai))
 
