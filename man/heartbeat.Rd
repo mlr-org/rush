@@ -8,6 +8,7 @@ heartbeat(
   network_id,
   config,
   worker_id,
+  heartbeat_key,
   heartbeat_period,
   heartbeat_expire,
   pid
@@ -25,6 +26,9 @@ Redis configuration options.}
 \item{worker_id}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
+
+\item{heartbeat_key}{(\code{character(1)})\cr
+Heartbeat key.}
 
 \item{heartbeat_period}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.

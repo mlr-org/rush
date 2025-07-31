@@ -51,6 +51,7 @@ RushWorker = R6::R6Class("RushWorker",
       r = self$connector
 
       # setup heartbeat
+      heartbeat_key = NA_character_
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
         assert_number(heartbeat_period)
@@ -58,13 +59,15 @@ RushWorker = R6::R6Class("RushWorker",
         heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
 
         # set heartbeat key
-        r$SET(private$.get_worker_key("heartbeat"), heartbeat_period)
+        heartbeat_key = private$.get_worker_key("heartbeat")
+        r$SET(heartbeat_key, heartbeat_period)
 
         # start heartbeat process
         heartbeat_args = list(
           network_id = self$network_id,
           config = self$config,
           worker_id = self$worker_id,
+          heartbeat_key = heartbeat_key,
           heartbeat_period = heartbeat_period,
           heartbeat_expire = heartbeat_expire,
           pid = Sys.getpid()
@@ -74,7 +77,7 @@ RushWorker = R6::R6Class("RushWorker",
         # wait until heartbeat process is able to work
         Sys.sleep(1)
 
-        r$SADD(private$.get_key("heartbeat_keys"), private$.get_worker_key("heartbeat"))
+        r$SADD(private$.get_key("heartbeat_keys"), heartbeat_key)
       }
 
       # register worker ids
@@ -88,7 +91,7 @@ RushWorker = R6::R6Class("RushWorker",
         "pid", Sys.getpid(),
         "remote", self$remote,
         "hostname", rush::get_hostname(),
-        "heartbeat", !is.null(self$heartbeat)))
+        "heartbeat", heartbeat_key))
     },
 
     #' @description

@@ -252,8 +252,8 @@ Rush = R6::R6Class("Rush",
             remote = TRUE,
             lgr_thresholds,
             lgr_buffer_size,
-            message_log,
-            output_log)),
+            message_log = message_log,
+            output_log = output_log)),
         worker_ids))
 
       return(invisible(worker_ids))
@@ -331,7 +331,7 @@ Rush = R6::R6Class("Rush",
         }
 
         # stop running workers
-        self$stop_workers(type = "kill", intersect(rush$running_worker_ids, worker_id_mirai))
+        self$stop_workers(type = "kill", intersect(self$running_worker_ids, worker_id_mirai))
 
         lg$info("Restarting %i worker(s): %s", length(worker_id_mirai), str_collapse(worker_id_mirai))
 
@@ -577,8 +577,11 @@ Rush = R6::R6Class("Rush",
         if (all(running)) return(invisible(self))
 
         # search for associated worker ids
-        heartbeat_keys = heartbeat_keys[!running]
-        lost_workers = self$worker_info[heartbeat_keys, worker_id, on = "heartbeat"]
+        running_worker_ids = self$running_worker_ids
+        expired_heartbeat_keys = heartbeat_keys[!running]
+        cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
+        all_heartbeat_keys = unlist(r$pipeline(.commands = cmds))
+        lost_workers = running_worker_ids[all_heartbeat_keys %in% expired_heartbeat_keys]
 
         # set worker state
         cmds = map(lost_workers, function(worker_id) {
@@ -1443,10 +1446,20 @@ Rush = R6::R6Class("Rush",
 
       # fix type
       worker_info[, remote := as.logical(remote)][]
-      worker_info[, heartbeat := as.logical(heartbeat)][]
+      worker_info[, heartbeat := heartbeat != "NA"][]
       worker_info[, pid := as.integer(pid)][]
 
-      worker_info
+      # worker states
+      worker_ids = list(
+        running = data.table(worker_id = self$running_worker_ids),
+        terminated =  data.table(worker_id = self$terminated_worker_ids),
+        killed =  data.table(worker_id = self$killed_worker_ids),
+        lost =  data.table(worker_id = self$lost_worker_ids)
+      )
+
+      worker_states = rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
+
+      worker_info[worker_states, , on = "worker_id"]
     },
 
     #' @field worker_states ([data.table::data.table()])\cr
