@@ -136,10 +136,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: congruent_...  8984  FALSE pkrvmjbmru...     FALSE running
-2: photolumin...  8995  FALSE pkrvmjbmru...     FALSE running
-3: evenhanded...  9000  FALSE pkrvmjbmru...     FALSE running
-4: boiled_san...  9010  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: finable_cl...  9030  FALSE pkrvmjbmru...     FALSE running
+2: inconseque...  9046  FALSE pkrvmjbmru...     FALSE running
+3: juiced_inc...  9041  FALSE pkrvmjbmru...     FALSE running
+4: niggling_g...  9056  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -151,16 +151,16 @@
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     state     worker_id
-    &lt;char&gt;        &lt;char&gt;
-1: running congruent_...
-2: running photolumin...
-3: running evenhanded...
-4: running boiled_san...
-5: running cut_rainbo...
-6: running dissonant_...</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: finable_cl...  9030  FALSE pkrvmjbmru...     FALSE running
+2: inconseque...  9046  FALSE pkrvmjbmru...     FALSE running
+3: juiced_inc...  9041  FALSE pkrvmjbmru...     FALSE running
+4: niggling_g...  9056  FALSE pkrvmjbmru...     FALSE running
+5: hendecasyl...  9181  FALSE pkrvmjbmru...     FALSE running
+6: pubescent_...  9183  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -193,12 +193,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running photolumin...
-2: running evenhanded...
-3: running boiled_san...
-4: running cut_rainbo...
-5: running dissonant_...
-6:  killed congruent_...</code></pre>
+1: running inconseque...
+2: running juiced_inc...
+3: running niggling_g...
+4: running hendecasyl...
+5: running pubescent_...
+6:  killed finable_cl...</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -248,8 +248,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running wellfreckl...
-2: running busying_mo...</code></pre>
+1: running gastric_ta...
+2: running cushy_sout...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -278,8 +278,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>    state     worker_id
    &lt;char&gt;        &lt;char&gt;
-1:   lost jokeless_b...
-2:   lost global_xen...</code></pre>
+1:   lost paralysed_...
+2:   lost talented_k...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-restart-workers">Restart Workers<a class="anchor" aria-label="anchor" href="#sec-local-restart-workers"></a>
@@ -296,8 +296,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running global_xen...
-2:    lost jokeless_b...</code></pre>
+1: running paralysed_...
+2:    lost talented_k...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -360,7 +360,7 @@
 [1] 0
 
 $daemons
-[1] "tcp://10.1.0.80:36175"
+[1] "tcp://10.1.0.23:46103"
 
 $mirai
  awaiting executing completed
@@ -434,8 +434,8 @@ $mirai
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: assiduous_...  9529   TRUE pkrvmjbmru...     FALSE running
-2: sulfur_amb...  9527   TRUE pkrvmjbmru...     FALSE running</code></pre>
+1: trisyllabi...  9574   TRUE pkrvmjbmru...     FALSE running
+2: only_wyver...  9576   TRUE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-remote-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-remote-failed-workers"></a>
@@ -486,7 +486,7 @@ $mirai
 [1] 2
 
 $daemons
-[1] "abstract://2871393a63d831700b67a443"
+[1] "abstract://40c72821123ffb50ffd9835e"
 
 $mirai
  awaiting executing completed
