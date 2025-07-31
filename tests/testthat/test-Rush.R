@@ -944,7 +944,7 @@ test_that("segfaults on workers are detected via the heartbeat", {
 
 # fault detection --------------------------------------------------------------
 
-test_that("a simple error is catched", {
+test_that("simple errors are pushed as failed tasks", {
   skip_on_cran()
 
   config = start_flush_redis()
@@ -953,18 +953,18 @@ test_that("a simple error is catched", {
   worker_loop = function(rush) {
     while(!rush$terminated && !rush$terminated_on_idle) {
       task = rush$pop_task(fields = c("xs", "seed"))
+
       if (!is.null(task)) {
-        tryCatch({
+        if (task$xs$x1 < 1) {
+          condition = list(message = "Test error")
+          rush$push_failed(task$key, conditions = list(condition))
+        } else {
           fun = function(x1, x2, ...) {
-            if (x1 < 1) stop("Test error")
             list(y = x1 + x2)
           }
           ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
           rush$push_results(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
-        })
+        }
       }
     }
 
