@@ -84,7 +84,7 @@ Sys.sleep(1)
 ```
 
 ```{r controller-009}
-rush$worker_states
+rush$worker_info
 ```
 
 ## Rush Plan {#sec-local-rush-plan}
