@@ -1446,7 +1446,7 @@ Rush = R6::R6Class("Rush",
 
       # fix type
       worker_info[, remote := as.logical(remote)][]
-      worker_info[, heartbeat := !is.na(heartbeat)][]
+      worker_info[, heartbeat := heartbeat != "NA"][]
       worker_info[, pid := as.integer(pid)][]
 
       # worker states
