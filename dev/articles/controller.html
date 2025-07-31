@@ -136,10 +136,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: finable_cl...  9030  FALSE pkrvmjbmru...     FALSE running
-2: inconseque...  9046  FALSE pkrvmjbmru...     FALSE running
-3: juiced_inc...  9041  FALSE pkrvmjbmru...     FALSE running
-4: niggling_g...  9056  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: mirthful_s...  8916  FALSE pkrvmjbmru...     FALSE running
+2: barbarian_...  8927  FALSE pkrvmjbmru...     FALSE running
+3: lyrical_tu...  8941  FALSE pkrvmjbmru...     FALSE running
+4: hip_irrawa...  8932  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -155,12 +155,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: finable_cl...  9030  FALSE pkrvmjbmru...     FALSE running
-2: inconseque...  9046  FALSE pkrvmjbmru...     FALSE running
-3: juiced_inc...  9041  FALSE pkrvmjbmru...     FALSE running
-4: niggling_g...  9056  FALSE pkrvmjbmru...     FALSE running
-5: hendecasyl...  9181  FALSE pkrvmjbmru...     FALSE running
-6: pubescent_...  9183  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: mirthful_s...  8916  FALSE pkrvmjbmru...     FALSE running
+2: barbarian_...  8927  FALSE pkrvmjbmru...     FALSE running
+3: lyrical_tu...  8941  FALSE pkrvmjbmru...     FALSE running
+4: hip_irrawa...  8932  FALSE pkrvmjbmru...     FALSE running
+5: corrupted_...  9066  FALSE pkrvmjbmru...     FALSE running
+6: creamy_red...  9068  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -189,16 +189,16 @@
 <p>This command terminates the selected worker process.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     state     worker_id
-    &lt;char&gt;        &lt;char&gt;
-1: running inconseque...
-2: running juiced_inc...
-3: running niggling_g...
-4: running hendecasyl...
-5: running pubescent_...
-6:  killed finable_cl...</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: barbarian_...  8927  FALSE pkrvmjbmru...     FALSE running
+2: lyrical_tu...  8941  FALSE pkrvmjbmru...     FALSE running
+3: hip_irrawa...  8932  FALSE pkrvmjbmru...     FALSE running
+4: corrupted_...  9066  FALSE pkrvmjbmru...     FALSE running
+5: creamy_red...  9068  FALSE pkrvmjbmru...     FALSE running
+6: mirthful_s...  8916  FALSE pkrvmjbmru...     FALSE  killed</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -244,12 +244,12 @@
 <p>The workers are terminated.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     state     worker_id
-    &lt;char&gt;        &lt;char&gt;
-1: running gastric_ta...
-2: running cushy_sout...</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: cerise_nij...  9140  FALSE pkrvmjbmru...     FALSE running
+2: unemotiona...  9142  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -274,12 +274,12 @@
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
+<span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>    state     worker_id
-   &lt;char&gt;        &lt;char&gt;
-1:   lost paralysed_...
-2:   lost talented_k...</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat  state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt; &lt;char&gt;
+1: holistic_g...  9214  FALSE pkrvmjbmru...     FALSE   lost
+2: citylike_i...  9216  FALSE pkrvmjbmru...     FALSE   lost</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-restart-workers">Restart Workers<a class="anchor" aria-label="anchor" href="#sec-local-restart-workers"></a>
@@ -292,12 +292,12 @@
 <p>The first worker is restarted and its state is updated to <code>"running"</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_states</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     state     worker_id
-    &lt;char&gt;        &lt;char&gt;
-1: running paralysed_...
-2:    lost talented_k...</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: holistic_g...  9284  FALSE pkrvmjbmru...     FALSE running
+2: citylike_i...  9216  FALSE pkrvmjbmru...     FALSE    lost</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -339,37 +339,23 @@
 </section></section><section class="section level2"><h2 id="sec-remote-workers">Remote Workers<a class="anchor" aria-label="anchor" href="#sec-remote-workers"></a>
 </h2>
 <p>The <code>mirai</code> package provides a straightforward mechanism for launching <code>rush</code> workers on remote machines. <code>mirai</code> manages daemons, which are persistent background processes capable of executing arbitrary R code in parallel. These daemons communicate with the main session.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mirai.r-lib.org" class="external-link">mirai</a></span><span class="op">)</span></span></code></pre></div>
+</div>
 <section class="level2"><h3 id="sec-remote-start-workers">Start Workers<a class="anchor" aria-label="anchor" href="#sec-remote-start-workers"></a>
 </h3>
 <p>Usually <code>mirai</code> is used to start daemons on remote machines but it can also be used to start local daemons.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mirai.r-lib.org" class="external-link">mirai</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span></span>
+<div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  url <span class="op">=</span> <span class="fu"><a href="https://mirai.r-lib.org/reference/host_url.html" class="external-link">host_url</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/status.html" class="external-link">status</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$connections
-[1] 0
-
-$daemons
-[1] "tcp://10.1.0.23:46103"
-
-$mirai
- awaiting executing completed
-        0         0         0 </code></pre>
-</div>
 </div>
 <p>Daemons may also be launched on a remote machine via SSH.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  url <span class="op">=</span> <span class="fu"><a href="https://mirai.r-lib.org/reference/host_url.html" class="external-link">host_url</a></span><span class="op">(</span>port <span class="op">=</span> <span class="fl">5555</span><span class="op">)</span>,</span>
@@ -378,7 +364,7 @@ $mirai
 </div>
 <p>On high performance computing clusters, daemons can be started using a scheduler.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  url <span class="op">=</span> <span class="fu"><a href="https://mirai.r-lib.org/reference/host_url.html" class="external-link">host_url</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -392,7 +378,7 @@ $mirai
 </div>
 <p>We define a worker loop.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wl_random_search</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
@@ -408,101 +394,73 @@ $mirai
 <span>  network <span class="op">=</span> <span class="st">"test-network"</span>,</span>
 <span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>We start the daemons. <code>daemons(0)</code> stops all daemons.</p>
+<p>First we stop all previously started daemons with<code>daemons(0)</code>. Then we start two new daemons.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>After the daemons are started, we can start the remote workers.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_remote_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: trisyllabi...  9574   TRUE pkrvmjbmru...     FALSE running
-2: only_wyver...  9576   TRUE pkrvmjbmru...     FALSE running</code></pre>
+1: finegrain_...  9430   TRUE pkrvmjbmru...     FALSE running
+2: pseudoscie...  9428   TRUE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-remote-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-remote-failed-workers"></a>
 </h3>
 <p>Failed workers started with <code>mirai</code> are also detected by the controller. We simulate a segfault on the worker by killing the worker process.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span>network <span class="op">=</span> <span class="st">"test-failed-mirai-workers"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">wl_failed_worker</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">pskill</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getpid.html" class="external-link">Sys.getpid</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu">tools</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">SIGKILL</a></span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_remote_workers</span><span class="op">(</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<p>Start two new daemons.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>Start two remote workers.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_remote_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_failed_worker</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>A segmentation fault also terminates the associated <code>mirai</code> daemon. Therefore, it is necessary to restart the daemon before restarting the workers.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb53"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb55"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/status.html" class="external-link">status</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$connections
-[1] 2
-
-$daemons
-[1] "abstract://40c72821123ffb50ffd9835e"
-
-$mirai
- awaiting executing completed
-        0         0         0 </code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>Workers can then be restarted using the <code>$restart_workers()</code> method.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">restart_workers</span><span class="op">(</span><span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section></section><section class="section level2"><h2 id="sec-script-workers">Script Workers<a class="anchor" aria-label="anchor" href="#sec-script-workers"></a>
 </h2>
 <p>The most flexible method for starting workers is to use a script generated with the <code>$worker_script()</code> method. This script can be executed either on the local machine or on a remote machine. The only requirement is that the machine is capable of running R scripts and has access to the Redis database.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"test-script-workers"</span>,</span>
 <span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -515,7 +473,7 @@ $mirai
 <p>Workers started with <code>processx</code> or <code>mirai</code> are monitored by these packages. The heartbeat is a mechanism to monitor the status of script workers. The mechanism consists of a heartbeat key with a set <a href="https://redis.io/commands/expire/" class="external-link">expiration timeout</a> and a dedicated heartbeat process that refreshes the timeout periodically. The heartbeat process is started with <code>callr</code> and is linked to the main process of the worker. In the event of a worker’s failure, the associated heartbeat process also ceases to function, thus halting the renewal of the timeout. The absence of the heartbeat key acts as an indicator to the controller that the worker is no longer operational. Consequently, the controller updates the worker’s status to <code>"lost"</code>.</p>
 <p>Heartbeats are initiated upon worker startup by specifying the <code>heartbeat_period</code> and <code>heartbeat_expire</code> parameters. The <code>heartbeat_period</code> defines the frequency at which the heartbeat process will update the timeout. The <code>heartbeat_expire</code> sets the duration, in seconds, before the heartbeat key expires. The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="fl">1</span>,</span>
