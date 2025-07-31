@@ -35,6 +35,11 @@ test_that("a mirai worker is killed", {
   skip_on_cran()
 
   config = start_flush_redis()
+
+  on.exit({
+    mirai::daemons(0)
+  }, add = TRUE)
+
   mirai::daemons(2)
   rush = rsh(network_id = "test-rush", config = config)
   worker_ids = rush$start_remote_workers(
@@ -66,7 +71,6 @@ test_that("a mirai worker is killed", {
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 
   expect_rush_reset(rush)
-  daemons(0)
 })
 
 test_that("a simple error is catched", {
