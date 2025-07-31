@@ -57,6 +57,8 @@ Worker information is accessible through the `$worker_info` method.
 Each worker is identified by a `worker_id`.
 The `pid` field denotes the process identifier, and the `hostname` field indicates the machine name.
 The `remote` column specifies whether the worker is remote, and the `heartbeat` column indicates the presence of a heartbeat process.
+The `state` column indicates the current state of the worker.
+Possible states include `"running"`, `"terminated"`, `"killed"`, and `"lost"`.
 Heartbeat mechanisms are discussed in the [Error Handling](#error-handling) section.
 
 ```{r controller-004}
@@ -66,13 +68,6 @@ Sys.sleep(1)
 
 ```{r controller-005}
 rush$worker_info
-```
-
-The `$worker_states` method returns the current state of each worker.
-Possible states include `"running"`, `"terminated"`, `"killed"`, and `"lost"`.
-
-```{r controller-006}
-rush$worker_states
 ```
 
 Additional workers may be added to the network at any time.
