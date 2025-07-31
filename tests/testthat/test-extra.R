@@ -1,3 +1,5 @@
+# this test are slightly fragile
+
 test_that("globals are available on the worker", {
   skip_on_cran()
 
@@ -136,7 +138,6 @@ test_that("evaluating a task works", {
 })
 
 test_that("workers are started with script", {
-  #skip_if(TRUE)
   skip_on_cran()
 
   config = start_flush_redis()
@@ -242,7 +243,6 @@ test_that("simple errors are pushed as failed tasks", {
 
 test_that("printing logs with redis appender works", {
   skip_on_cran()
-  #skip_if(TRUE) # does not work in testthat on environment
 
   lg_rush = lgr::get_logger("mlr3/rush")
   old_threshold_rush = lg_rush$threshold
