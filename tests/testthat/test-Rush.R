@@ -964,11 +964,17 @@ test_that("a simple error is catched", {
     return(NULL)
   }
 
-  worker_ids = rush$start_local_workers(
+  on.exit({
+    mirai::daemons(0)
+  }, add = TRUE)
+
+  mirai::daemons(1)
+
+  worker_ids = rush$start_remote_workers(
     worker_loop = worker_loop,
-    n_workers = 4,
+    n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
+  rush$wait_for_workers(1, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
