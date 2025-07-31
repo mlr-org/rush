@@ -134,12 +134,12 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid remote      hostname heartbeat
-          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;
-1: delayable_... 26152  FALSE pkrvmjbmru...     FALSE
-2: beelike_fu... 26141  FALSE pkrvmjbmru...     FALSE
-3: recognized... 26157  FALSE pkrvmjbmru...     FALSE
-4: wretched_d... 26167  FALSE pkrvmjbmru...     FALSE</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: avaricious...  8922  FALSE pkrvmjbmru...     FALSE running
+2: creationar...  8948  FALSE pkrvmjbmru...     FALSE running
+3: unheedful_...  8942  FALSE pkrvmjbmru...     FALSE running
+4: multipurpo...  8933  FALSE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 <p>The <code>$worker_states</code> method returns the current state of each worker. Possible states include <code>"running"</code>, <code>"terminated"</code>, <code>"killed"</code>, and <code>"lost"</code>.</p>
@@ -149,10 +149,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running delayable_...
-2: running beelike_fu...
-3: running recognized...
-4: running wretched_d...</code></pre>
+1: running avaricious...
+2: running creationar...
+3: running unheedful_...
+4: running multipurpo...</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -168,12 +168,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running delayable_...
-2: running beelike_fu...
-3: running recognized...
-4: running wretched_d...
-5: running delayable_...
-6: running bothersome...</code></pre>
+1: running avaricious...
+2: running creationar...
+3: running unheedful_...
+4: running multipurpo...
+5: running nonspirito...
+6: running baroque_ba...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -206,12 +206,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running delayable_...
-2: running recognized...
-3: running wretched_d...
-4: running delayable_...
-5: running bothersome...
-6:  killed beelike_fu...</code></pre>
+1: running creationar...
+2: running unheedful_...
+3: running multipurpo...
+4: running nonspirito...
+5: running baroque_ba...
+6:  killed avaricious...</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -261,8 +261,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running uniliteral...
-2: running oceangoing...</code></pre>
+1: running nonartisti...
+2: running skimpy_ala...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -291,8 +291,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>    state     worker_id
    &lt;char&gt;        &lt;char&gt;
-1:   lost xenophobic...
-2:   lost quasiterri...</code></pre>
+1:   lost premonarch...
+2:   lost superroman...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-restart-workers">Restart Workers<a class="anchor" aria-label="anchor" href="#sec-local-restart-workers"></a>
@@ -309,8 +309,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>     state     worker_id
     &lt;char&gt;        &lt;char&gt;
-1: running xenophobic...
-2:    lost quasiterri...</code></pre>
+1: running superroman...
+2:    lost premonarch...</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -373,7 +373,7 @@
 [1] 0
 
 $daemons
-[1] "tcp://10.1.1.13:33231"
+[1] "tcp://10.1.0.157:38627"
 
 $mirai
  awaiting executing completed
@@ -445,10 +445,10 @@ $mirai
 <div class="sourceCode cell-code" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid remote      hostname heartbeat
-          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;
-1: chemical_l... 26687   TRUE pkrvmjbmru...     FALSE
-2: semimetall... 26685   TRUE pkrvmjbmru...     FALSE</code></pre>
+<pre><code>       worker_id   pid remote      hostname heartbeat   state
+          &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: chalky_kak...  9468   TRUE pkrvmjbmru...     FALSE running
+2: respectabl...  9465   TRUE pkrvmjbmru...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-remote-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-remote-failed-workers"></a>
@@ -499,7 +499,7 @@ $mirai
 [1] 2
 
 $daemons
-[1] "abstract://f3bd78655a3e70d9e5c6abe1"
+[1] "abstract://8ad46b51a395a322c228e83b"
 
 $mirai
  awaiting executing completed
