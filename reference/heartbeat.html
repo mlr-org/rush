@@ -17,7 +17,7 @@ This function is called in a callr session."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,6 +71,7 @@ This function is called in a callr session.</p>
 <span>  <span class="va">network_id</span>,</span>
 <span>  <span class="va">config</span>,</span>
 <span>  <span class="va">worker_id</span>,</span>
+<span>  <span class="va">heartbeat_key</span>,</span>
 <span>  <span class="va">heartbeat_period</span>,</span>
 <span>  <span class="va">heartbeat_expire</span>,</span>
 <span>  <span class="va">pid</span></span>
@@ -97,6 +98,11 @@ Redis configuration options.</p></dd>
 <dd><p>(<code>character(1)</code>)<br>
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.</p></dd>
+
+
+<dt id="arg-heartbeat-key">heartbeat_key<a class="anchor" aria-label="anchor" href="#arg-heartbeat-key"></a></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Heartbeat key.</p></dd>
 
 
 <dt id="arg-heartbeat-period">heartbeat_period<a class="anchor" aria-label="anchor" href="#arg-heartbeat-period"></a></dt>

@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -409,7 +409,9 @@ Parameters set by <code><a href="rush_plan.html">rush_plan()</a></code> have pre
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  supervise <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  supervise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -443,7 +445,7 @@ Packages to be loaded by the workers.</p></dd>
 
 <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
-Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
+Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
 
 <dt><code>lgr_buffer_size</code></dt>
@@ -456,6 +458,20 @@ This improves the performance of the logging.</p></dd>
 <dt><code>supervise</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to kill the workers when the main R process is shut down.</p></dd>
+
+
+<dt><code>message_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the message log files e.g. <code>/tmp/message_logs/</code>
+The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
+
+
+<dt><code>output_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the output log files e.g. <code>/tmp/output_logs/</code>
+The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no output is stored.</p></dd>
 
 
 </dl><p></p></div>
@@ -474,7 +490,9 @@ Parameters set by <code><a href="rush_plan.html">rush_plan()</a></code> have pre
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -508,7 +526,7 @@ Packages to be loaded by the workers.</p></dd>
 
 <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
-Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
+Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
 
 <dt><code>lgr_buffer_size</code></dt>
@@ -516,6 +534,20 @@ Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
+
+
+<dt><code>message_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the message log files e.g. <code>/tmp/message_logs/</code>
+The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
+
+
+<dt><code>output_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the output log files e.g. <code>/tmp/output_logs/</code>
+The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no output is stored.</p></dd>
 
 
 </dl><p></p></div>
@@ -533,7 +565,9 @@ This improves the performance of the logging.</p></dd>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -561,7 +595,7 @@ Packages to be loaded by the workers.</p></dd>
 
 <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
-Logger threshold on the workers e.g. <code>c(rush = "debug")</code>.</p></dd>
+Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
 
 <dt><code>lgr_buffer_size</code></dt>
@@ -581,6 +615,20 @@ The heartbeat is updated every <code>heartbeat_period</code> seconds.</p></dd>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.</p></dd>
+
+
+<dt><code>message_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the message log files e.g. <code>/tmp/message_logs/</code>
+The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
+
+
+<dt><code>output_log</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Path to the output log files e.g. <code>/tmp/output_logs/</code>
+The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
+If <code>NULL</code>, no output is stored.</p></dd>
 
 
 </dl><p></p></div>
