@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.3.0
 
 * feat: Output and message logs can be written to files now via the `message_log` and `output_log` arguments.
