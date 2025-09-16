@@ -287,7 +287,7 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   worker_loop = NULL,
   ...,
-  n_workers = 1,
+  n_workers = NULL,
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
@@ -309,7 +309,8 @@ Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.
-Default is \code{1}.}
+Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
+If \code{rush_plan()} is not called, the default is \code{1}.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -352,7 +353,7 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
   worker_loop,
   ...,
-  n_workers = 1,
+  n_workers = NULL,
   globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
@@ -373,7 +374,8 @@ Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.
-Default is \code{1}.}
+Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
+If \code{rush_plan()} is not called, the default is \code{1}.}
 
 \item{\code{globals}}{(\code{character()})\cr
 Global variables to be loaded to the workers global environment.}
@@ -891,7 +893,8 @@ Updates the cache of the finished tasks.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table"
+  data_format = "data.table",
+  id = FALSE
 )}\if{html}{\out{</div>}}
 }
 
