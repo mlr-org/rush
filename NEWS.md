@@ -2,6 +2,8 @@
 
 # rush 0.3.1
 
+feat: change default of n_workers
+
 # rush 0.3.0
 
 * feat: Output and message logs can be written to files now via the `message_log` and `output_log` arguments.
