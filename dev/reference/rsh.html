@@ -76,12 +76,12 @@ Keys in Redis are prefixed with the instance id.</p></dd>
 
 
 <dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
-<dd><p>(<a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a>)<br>
+<dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.
 If <code>NULL</code>, configuration set by <code><a href="rush_plan.html">rush_plan()</a></code> is used.
 If <code><a href="rush_plan.html">rush_plan()</a></code> has not been called, the <code>REDIS_URL</code> environment variable is parsed.
 If <code>REDIS_URL</code> is not set, a default configuration is used.
-See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
+See <a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
@@ -105,7 +105,7 @@ If <code>NULL</code>, no seed is used for the random number generator.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This example is not executed since Redis must be installed</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span> <span class="op">=</span> <span class="fu">rsh</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test_network"</span>, config <span class="op">=</span> <span class="va">config_local</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;Rush&gt;</span>

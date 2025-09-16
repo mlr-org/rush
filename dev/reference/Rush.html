@@ -94,12 +94,12 @@ Identifier of the rush network.</p></dd>
 
 
 <dt><code>config</code></dt>
-<dd><p>(<a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a>)<br>
+<dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.</p></dd>
 
 
 <dt><code>connector</code></dt>
-<dd><p>(<a href="https://rdrr.io/pkg/redux/man/redis_api.html" class="external-link">redux::redis_api</a>)<br>
+<dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_api.html" class="external-link">redux::redis_api</a>)<br>
 Returns a connection to Redis.</p></dd>
 
 
@@ -333,12 +333,12 @@ Keys in Redis are prefixed with the instance id.</p></dd>
 
 
 <dt><code>config</code></dt>
-<dd><p>(<a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a>)<br>
+<dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.
 If <code>NULL</code>, configuration set by <code><a href="rush_plan.html">rush_plan()</a></code> is used.
 If <code><a href="rush_plan.html">rush_plan()</a></code> has not been called, the <code>REDIS_URL</code> environment variable is parsed.
 If <code>REDIS_URL</code> is not set, a default configuration is used.
-See <a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
+See <a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a> for details.</p></dd>
 
 
 <dt><code>seed</code></dt>
@@ -404,7 +404,7 @@ Parameters set by <code><a href="rush_plan.html">rush_plan()</a></code> have pre
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -430,7 +430,8 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.
-Default is <code>1</code>.</p></dd>
+Default is <code>NULL</code>, which means the number of workers is set by <code><a href="rush_plan.html">rush_plan()</a></code>.
+If <code><a href="rush_plan.html">rush_plan()</a></code> is not called, the default is <code>1</code>.</p></dd>
 
 
 <dt><code>globals</code></dt>
@@ -486,7 +487,7 @@ Parameters set by <code><a href="rush_plan.html">rush_plan()</a></code> have pre
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_remote_workers</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  globals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -511,7 +512,8 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
 <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.
-Default is <code>1</code>.</p></dd>
+Default is <code>NULL</code>, which means the number of workers is set by <code><a href="rush_plan.html">rush_plan()</a></code>.
+If <code><a href="rush_plan.html">rush_plan()</a></code> is not called, the default is <code>1</code>.</p></dd>
 
 
 <dt><code>globals</code></dt>
@@ -1087,7 +1089,8 @@ Updates the cache of the finished tasks.</p><div class="section">
 <h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_new_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
-<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span></span>
+<span>  data_format <span class="op">=</span> <span class="st">"data.table"</span>,</span>
+<span>  id <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -1474,7 +1477,7 @@ States of the tasks.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This example is not executed since Redis must be installed</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   <span class="va">config_local</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="rsh.html">rsh</a></span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test_network"</span>, config <span class="op">=</span> <span class="va">config_local</span><span class="op">)</span></span></span>
 <span class="r-in"><span>   <span class="va">rush</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;Rush&gt;</span>
