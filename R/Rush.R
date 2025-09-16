@@ -137,13 +137,14 @@ Rush = R6::R6Class("Rush",
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' Default is `1`.
+    #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
+    #' If `rush_plan()` is not called, the default is `1`.
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
     start_local_workers = function(
       worker_loop = NULL,
       ...,
-      n_workers = 1,
+      n_workers = NULL,
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
@@ -152,7 +153,7 @@ Rush = R6::R6Class("Rush",
       message_log = NULL,
       output_log = NULL
       ) {
-      n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
+      n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
       lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
       lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
       assert_flag(supervise)
@@ -200,11 +201,12 @@ Rush = R6::R6Class("Rush",
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' Default is `1`.
+    #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
+    #' If `rush_plan()` is not called, the default is `1`.
     start_remote_workers = function(
       worker_loop,
       ...,
-      n_workers = 1,
+      n_workers = NULL,
       globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
@@ -212,7 +214,7 @@ Rush = R6::R6Class("Rush",
       message_log = NULL,
       output_log = NULL
       ) {
-      n_workers = assert_count(rush_env$n_workers %??% n_workers, .var.name = "n_workers")
+      n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
       lgr_thresholds = assert_vector(rush_env$lgr_thresholds %??% lgr_thresholds, names = "named", null.ok = TRUE, .var.name = "lgr_thresholds")
       lgr_buffer_size = assert_count(rush_env$lgr_buffer_size %??% lgr_buffer_size %??% 0, .var.name = "lgr_buffer_size")
 
