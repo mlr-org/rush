@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,7 +117,7 @@
 <span></span>
 <span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"test-network"</span>,</span>
-<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="sec-local-start-workers">Start Workers<a class="anchor" aria-label="anchor" href="#sec-local-start-workers"></a>
 </h3>
@@ -135,10 +135,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: unmystic_l...  9083  FALSE pkrvmjbmru...     FALSE running
-2: declared_b...  9067  FALSE pkrvmjbmru...     FALSE running
-3: prenationa...  9078  FALSE pkrvmjbmru...     FALSE running
-4: convictive...  9093  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: open_lampr...  8984  FALSE runnervmf4...     FALSE running
+2: cephalic_z...  9000  FALSE runnervmf4...     FALSE running
+3: germproof_...  8995  FALSE runnervmf4...     FALSE running
+4: disastrous...  9014  FALSE runnervmf4...     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -154,12 +154,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: unmystic_l...  9083  FALSE pkrvmjbmru...     FALSE running
-2: declared_b...  9067  FALSE pkrvmjbmru...     FALSE running
-3: prenationa...  9078  FALSE pkrvmjbmru...     FALSE running
-4: convictive...  9093  FALSE pkrvmjbmru...     FALSE running
-5: scribbopho...  9217  FALSE pkrvmjbmru...     FALSE running
-6: halfwitted...  9219  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: open_lampr...  8984  FALSE runnervmf4...     FALSE running
+2: cephalic_z...  9000  FALSE runnervmf4...     FALSE running
+3: germproof_...  8995  FALSE runnervmf4...     FALSE running
+4: disastrous...  9014  FALSE runnervmf4...     FALSE running
+5: vernal_hor...  9133  FALSE runnervmf4...     FALSE running
+6: irrational...  9135  FALSE runnervmf4...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -167,7 +167,7 @@
 <p>When <code>rush</code> is integrated into a third-party package, the starting of workers is typically managed by the package itself. In such cases, users may configure worker options by invoking the <code><a href="../reference/rush_plan.html">rush_plan()</a></code> function. This function allows explicit specification of the number of workers, the type of workers, and the configuration for connecting to the Redis database.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/rush_plan.html">rush_plan</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span>, worker_type <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rush_plan.html">rush_plan</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span>, worker_type <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-local-globals">Globals<a class="anchor" aria-label="anchor" href="#sec-local-globals"></a>
 </h3>
@@ -192,12 +192,12 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: unmystic_l...  9083  FALSE pkrvmjbmru...     FALSE running
-2: prenationa...  9078  FALSE pkrvmjbmru...     FALSE running
-3: convictive...  9093  FALSE pkrvmjbmru...     FALSE running
-4: scribbopho...  9217  FALSE pkrvmjbmru...     FALSE running
-5: halfwitted...  9219  FALSE pkrvmjbmru...     FALSE running
-6: declared_b...  9067  FALSE pkrvmjbmru...     FALSE  killed</code></pre>
+1: cephalic_z...  9000  FALSE runnervmf4...     FALSE running
+2: germproof_...  8995  FALSE runnervmf4...     FALSE running
+3: disastrous...  9014  FALSE runnervmf4...     FALSE running
+4: vernal_hor...  9133  FALSE runnervmf4...     FALSE running
+5: irrational...  9135  FALSE runnervmf4...     FALSE running
+6: open_lampr...  8984  FALSE runnervmf4...     FALSE  killed</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -221,7 +221,7 @@
 <span></span>
 <span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"test-random-search-terminate"</span>,</span>
-<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
@@ -247,8 +247,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: pseudorhom...  9291  FALSE pkrvmjbmru...     FALSE running
-2: supersensi...  9293  FALSE pkrvmjbmru...     FALSE running</code></pre>
+1: sanitarian...  9210  FALSE runnervmf4...     FALSE running
+2: continual_...  9208  FALSE runnervmf4...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -277,8 +277,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat  state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt; &lt;char&gt;
-1: soubrettis...  9366  FALSE pkrvmjbmru...     FALSE   lost
-2: synarchist...  9368  FALSE pkrvmjbmru...     FALSE   lost</code></pre>
+1: appealing_...  9282  FALSE runnervmf4...     FALSE   lost
+2: humourless...  9284  FALSE runnervmf4...     FALSE   lost</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-restart-workers">Restart Workers<a class="anchor" aria-label="anchor" href="#sec-local-restart-workers"></a>
@@ -295,8 +295,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: soubrettis...  9437  FALSE pkrvmjbmru...     FALSE running
-2: synarchist...  9368  FALSE pkrvmjbmru...     FALSE    lost</code></pre>
+1: appealing_...  9353  FALSE runnervmf4...     FALSE running
+2: humourless...  9284  FALSE runnervmf4...     FALSE    lost</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -391,7 +391,7 @@
 <span></span>
 <span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"test-network"</span>,</span>
-<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>First we stop all previously started daemons with<code>daemons(0)</code>. Then we start two new daemons.</p>
 <div class="cell">
@@ -412,8 +412,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid remote      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt; &lt;lgcl&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: frostbitte...  9579   TRUE pkrvmjbmru...     FALSE running
-2: braided_he...  9581   TRUE pkrvmjbmru...     FALSE running</code></pre>
+1: national_g...  9498   TRUE runnervmf4...     FALSE running
+2: clerkish_p...  9495   TRUE runnervmf4...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-remote-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-remote-failed-workers"></a>
@@ -462,7 +462,7 @@
 <div class="sourceCode cell-code" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"test-script-workers"</span>,</span>
-<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/redux/man/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span><span class="op">)</span></span></code></pre></div>
