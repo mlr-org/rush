@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 0.3.1
 
 # rush 0.3.0
 
