@@ -978,7 +978,6 @@ Rush = R6::R6Class("Rush",
       # it is much faster to only convert the new results to data.table instead of doing it in fetch_finished_tasks
       tab = rbindlist(data, use.names = TRUE, fill = TRUE)
       tab[, keys := names(data)]
-      if (id) tab[, id := seq(n_new_results - nrow(tab) + 1, n_new_results)]
       tab[]
     },
 
