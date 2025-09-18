@@ -832,10 +832,23 @@ Rush = R6::R6Class("Rush",
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
 
-      # move key from running to failed
-      r$pipeline(.commands = map(keys, function(key) {
+      is_running_task = as.logical(r$pipeline(.commands = map(keys, function(key) c("SISMEMBER", private$.get_key("running_tasks"), key))))
+      running_tasks = keys[is_running_task]
+      queued_tasks = keys[!is_running_task]
+
+      # move keys from running to failed
+      commands_running = map(running_tasks, function(key) {
         c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
-      }))
+      })
+
+      # move keys from queued to failed
+      commands_queued = unlist(map(queued_tasks, function(key) {
+        list(
+          c("LREM", private$.get_key("queued_tasks"), 1, key),
+          c("SADD", private$.get_key("failed_tasks"), key))
+      }), recursive = FALSE)
+
+      r$pipeline(.commands = c(commands_running, commands_queued))
 
       return(invisible(self))
     },

@@ -489,6 +489,44 @@ test_that("moving and fetching tasks works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
+test_that("moving a queued task to failed works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  xss = list(list(x1 = 1, x2 = 2))
+  rush$push_tasks(xss)
+  queued_tasks = rush$queued_tasks
+  rush$push_failed(queued_tasks, conditions = list(list(message = "error")))
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
+  rush$push_tasks(xss)
+  task = rush$pop_task()
+
+  rush$push_failed(task$key, conditions = list(list(message = "error")))
+
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 1)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
+  expect_set_equal(rush$failed_tasks, c(task$key, queued_tasks))
+
+  queued_tasks = rush$queued_tasks
+  rush$push_failed(queued_tasks, conditions = list(list(message = "error")))
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
+
+  xss = list(list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
+  rush$push_tasks(xss)
+  queued_tasks = rush$queued_tasks
+  rush$push_failed(queued_tasks, conditions = replicate(2, list(message = "error"), simplify = FALSE))
+
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 5)
+
+  expect_rush_reset(rush, type = "terminate")
+})
+
 test_that("fetching as list works", {
   skip_on_cran()
 
