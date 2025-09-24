@@ -1234,6 +1234,38 @@ test_that("reconnecting rush instance works", {
   expect_rush_reset(rush)
 })
 
+test_that("empty queue works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+
+  worker_loop = function(rush) {
+    while(TRUE) {
+      Sys.sleep(1)
+    }
+  }
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = worker_loop,
+    n_workers = 1)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$empty_queue()
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
+
+  xss = list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$empty_queue()
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
+
+  expect_rush_reset(rush)
+})
+
+
 # seed -------------------------------------------------------------------------
 
 test_that("seeds are generated from regular rng seed", {

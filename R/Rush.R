@@ -819,6 +819,7 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Pushes failed tasks to the data base.
+    #' Tasks are moved from queued and running to failed.
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
@@ -849,6 +850,30 @@ Rush = R6::R6Class("Rush",
       }), recursive = FALSE)
 
       r$pipeline(.commands = c(commands_running, commands_queued))
+
+      return(invisible(self))
+    },
+
+    #' @description
+    #' Empty the queue of tasks.
+    #' Moves tasks from queued to failed.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks to be moved.
+    #' Defaults to all queued tasks.
+    #' @param conditions (named `list()`)\cr
+    #' List of lists of conditions.
+    empty_queue = function(keys = NULL, conditions = NULL) {
+      r = self$connector
+      keys = keys %??% self$queued_tasks
+
+      if (is.null(conditions)) {
+        conditions = replicate(length(keys), list(message = "Removed from queue"), simplify = FALSE)
+      }
+
+      if (length(keys)) {
+        self$push_failed(keys, conditions = conditions)
+      }
 
       return(invisible(self))
     },
