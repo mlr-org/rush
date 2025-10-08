@@ -58,6 +58,7 @@ Used in the worker loop to determine whether to continue.}
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href='../../rush/html/Rush.html#method-Rush-empty_queue'><code>rush::Rush$empty_queue()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_new_tasks'><code>rush::Rush$fetch_new_tasks()</code></a></span></li>

@@ -177,6 +177,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
+\item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
@@ -703,6 +704,7 @@ Keys of the tasks.
 \if{latex}{\out{\hypertarget{method-Rush-push_failed}{}}}
 \subsection{Method \code{push_failed()}}{
 Pushes failed tasks to the data base.
+Tasks are moved from queued and running to failed.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed(keys, conditions)}\if{html}{\out{</div>}}
 }
@@ -712,6 +714,29 @@ Pushes failed tasks to the data base.
 \describe{
 \item{\code{keys}}{(\code{character(1)})\cr
 Keys of the associated tasks.}
+
+\item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-empty_queue"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-empty_queue}{}}}
+\subsection{Method \code{empty_queue()}}{
+Empty the queue of tasks.
+Moves tasks from queued to failed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks to be moved.
+Defaults to all queued tasks.}
 
 \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
@@ -893,8 +918,7 @@ Updates the cache of the finished tasks.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table",
-  id = FALSE
+  data_format = "data.table"
 )}\if{html}{\out{</div>}}
 }
 
