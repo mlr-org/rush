@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.4.0
 
 feat: Add `$empty_queue()` method.
