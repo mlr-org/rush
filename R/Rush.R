@@ -401,12 +401,12 @@ Rush = R6::R6Class("Rush",
 
       start_time = Sys.time()
 
-      i = self$n_workers
-      while(self$n_workers < n) {
+      i = self$n_running_workers
+      while(self$n_running_workers < n) {
 
-        if (self$n_workers > i) {
-          i = self$n_workers
-          lg$info("%i of %i worker(s) started", self$n_workers, n)
+        if (self$n_running_workers > i) {
+          i = self$n_running_workers
+          lg$info("%i of %i worker(s) started", self$n_running_workers, n)
         }
 
         Sys.sleep(0.1)
@@ -415,7 +415,7 @@ Rush = R6::R6Class("Rush",
         }
       }
 
-      lg$info("%i worker(s) started", self$n_workers)
+      lg$info("%i worker(s) started", self$n_running_workers)
 
       return(invisible(self))
     },

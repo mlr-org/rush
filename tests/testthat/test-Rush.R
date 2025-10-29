@@ -1400,3 +1400,32 @@ test_that("error and output logs work", {
 
   expect_rush_reset(rush)
 })
+
+test_that("wait for workers works when a worker is already terminated", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+
+  rush$wait_for_workers(1, timeout = 5)
+  rush$stop_workers(worker_ids = worker_ids[1], type = "terminate")
+
+  Sys.sleep(5)
+
+  expect_equal(rush$n_running_workers, 0)
+  expect_equal(rush$n_terminated_workers, 1)
+  expect_equal(rush$n_workers, 1)
+
+  expect_error(rush$wait_for_workers(1, timeout = 1), "Timeout waiting for 1 worker")
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+
+  rush$wait_for_workers(1, timeout = 5)
+})
