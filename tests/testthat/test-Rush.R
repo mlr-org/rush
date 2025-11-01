@@ -1400,3 +1400,60 @@ test_that("error and output logs work", {
 
   expect_rush_reset(rush)
 })
+
+test_that("wait for workers works with worker ids", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+
+  rush$wait_for_workers(worker_ids = worker_ids, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_error(rush$wait_for_workers(worker_ids = "x", timeout = 1), "Timeout waiting for 1 worker")
+
+  expect_rush_reset(rush)
+})
+
+test_that("wait for workers works with n", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+  rush$wait_for_workers(n = 1, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_error(rush$wait_for_workers(n = 2, timeout = 1), "Timeout waiting for 2 worker")
+
+  expect_rush_reset(rush)
+})
+
+test_that("wait for workers works with both n and worker ids", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+  rush$wait_for_workers(n = 1, worker_ids = worker_ids, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_error(rush$wait_for_workers(n = 2, worker_ids = worker_ids, timeout = 1), "Number of workers to wait for")
+
+  expect_error(rush$wait_for_workers(n = 1, worker_ids = "x", timeout = 1), "Timeout waiting for 1 worker")
+
+  rush$wait_for_workers(n = 1, worker_ids = c(worker_ids, "x"), timeout = 1)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_rush_reset(rush)
+})

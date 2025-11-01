@@ -387,37 +387,50 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Wait until `n` workers are available.
+    #' Wait until workers are registered in the network.
+    #' Either `n`, `worker_ids` or both must be provided.
     #'
     #' @param n (`integer(1)`)\cr
     #' Number of workers to wait for.
+    #' If `NULL`, wait for all workers in `worker_ids`.
+    #' @param worker_ids (`character()`)\cr
+    #' Worker ids to wait for.
+    #' If `NULL`, wait for any `n` workers to be registered.
     #' @param timeout (`numeric(1)`)\cr
     #' Timeout in seconds.
     #' Default is `Inf`.
-    wait_for_workers = function(n, timeout = Inf) {
-      assert_count(n)
+    wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = Inf) {
+      assert_count(n, null.ok = TRUE)
+      assert_character(worker_ids, null.ok = TRUE)
       assert_number(timeout)
       timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout %??% Inf
-
       start_time = Sys.time()
 
-      i = self$n_workers
-      while(self$n_workers < n) {
-
-        if (self$n_workers > i) {
-          i = self$n_workers
-          lg$info("%i of %i worker(s) started", self$n_workers, n)
-        }
-
-        Sys.sleep(0.1)
-        if (difftime(Sys.time(), start_time, units = "secs") > timeout) {
-          stopf("Timeout waiting for %i worker(s)", n)
-        }
+      if (is.null(n) && is.null(worker_ids)) {
+        stopf("Either `n`, `worker_ids` or both must be provided.")
       }
 
-      lg$info("%i worker(s) started", self$n_workers)
+      if (!is.null(n) && !is.null(worker_ids) && n > length(worker_ids)) {
+        stopf("Number of workers to wait for %i exceeds number of worker ids %i", n, length(worker_ids))
+      }
 
-      return(invisible(self))
+      n = n %??% length(worker_ids)
+      i = 0
+      while(difftime(Sys.time(), start_time, units = "secs") < timeout) {
+        n_registered_workers = if (is.null(worker_ids)) self$n_workers else length(intersect(self$worker_ids, worker_ids))
+
+        # print updated number of registered workers
+        if (n_registered_workers > i) {
+          i = n_registered_workers
+          lg$info("%i worker(s) registered", i)
+        }
+
+        if (n_registered_workers >= n) return(invisible(self))
+        Sys.sleep(0.1)
+      }
+
+      stopf("Timeout waiting for %i worker(s)", n)
+
     },
 
     #' @description
