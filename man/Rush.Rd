@@ -495,16 +495,22 @@ Whether to kill the workers when the main R process is shut down.}
 \if{html}{\out{<a id="method-Rush-wait_for_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-wait_for_workers}{}}}
 \subsection{Method \code{wait_for_workers()}}{
-Wait until \code{n} workers are available.
+Wait until workers are registered in the network.
+Either \code{n}, \code{worker_ids} or both must be provided.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n, timeout = Inf)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{n}}{(\code{integer(1)})\cr
-Number of workers to wait for.}
+Number of workers to wait for.
+If \code{NULL}, wait for all workers in \code{worker_ids}.}
+
+\item{\code{worker_ids}}{(\code{character()})\cr
+Worker ids to wait for.
+If \code{NULL}, wait for any \code{n} workers to be registered.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Timeout in seconds.
