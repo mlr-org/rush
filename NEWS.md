@@ -1,5 +1,8 @@
 # rush (development version)
 
+* feat: The `$wait_for_workers()` method can now wait for a specific number of workers or a specific set of worker ids.
+  The workers are checked for registration in the network now.
+
 # rush 0.4.0
 
 feat: Add `$empty_queue()` method.
