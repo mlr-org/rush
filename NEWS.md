@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.4.1
 
 * feat: The `$wait_for_workers()` method can now wait for a specific number of workers or a specific set of worker ids.
