@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -662,16 +662,24 @@ Whether to kill the workers when the main R process is shut down.</p></dd>
 
 </div><p></p><hr><a id="method-Rush-wait_for_workers"></a><div class="section">
 <h3 id="method-wait-for-workers-">Method <code>wait_for_workers()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-workers-"></a></h3>
-<p>Wait until <code>n</code> workers are available.</p><div class="section">
+<p>Wait until workers are registered in the network.
+Either <code>n</code>, <code>worker_ids</code> or both must be provided.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span><span class="va">n</span>, timeout <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>n <span class="op">=</span> <span class="cn">NULL</span>, worker_ids <span class="op">=</span> <span class="cn">NULL</span>, timeout <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>n</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
-Number of workers to wait for.</p></dd>
+Number of workers to wait for.
+If <code>NULL</code>, wait for all workers in <code>worker_ids</code>.</p></dd>
+
+
+<dt><code>worker_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Worker ids to wait for.
+If <code>NULL</code>, wait for any <code>n</code> workers to be registered.</p></dd>
 
 
 <dt><code>timeout</code></dt>
@@ -1524,7 +1532,7 @@ States of the tasks.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
