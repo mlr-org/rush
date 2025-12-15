@@ -4,6 +4,8 @@
 
 ## rush 0.4.1
 
+CRAN release: 2025-11-06
+
 - feat: The `$wait_for_workers()` method can now wait for a specific
   number of workers or a specific set of worker ids. The workers are
   checked for registration in the network now.
