@@ -676,6 +676,31 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
+    #' Reset the data stored in the Redis database.
+    #' This is useful to remove all tasks but keep the workers.
+    reset_data = function() {
+      r = self$connector
+
+      # remove all tasks
+      walk(self$tasks, function(key) {
+        r$DEL(key)
+      })
+
+      # remove states
+      r$DEL(private$.get_key("queued_tasks"))
+      r$DEL(private$.get_key("running_tasks"))
+      r$DEL(private$.get_key("finished_tasks"))
+      r$DEL(private$.get_key("failed_tasks"))
+      r$DEL(private$.get_key("all_tasks"))
+
+      # reset counters and caches
+      private$.cached_tasks = list()
+      private$.n_seen_results = 0
+
+      return(invisible(self))
+    },
+
+    #' @description
     #' Read log messages written with the `lgr` package from a worker.
     #'
     #' @param worker_ids (`character(1)`)\cr

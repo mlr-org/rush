@@ -1457,3 +1457,32 @@ test_that("wait for workers works with both n and worker ids", {
 
   expect_rush_reset(rush)
 })
+
+test_that("reset data works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+
+  mirai::daemons(1)
+
+  worker_ids = rush$start_remote_workers(
+    worker_loop = test_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+  rush$wait_for_workers(1, timeout = 5)
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+
+  Sys.sleep(1)
+
+  expect_string(rush$tasks)
+  expect_string(rush$finished_tasks)
+
+  rush$reset_data()
+
+  expect_null(rush$tasks)
+  expect_null(rush$finished_tasks)
+
+  expect_rush_reset(rush)
+})
