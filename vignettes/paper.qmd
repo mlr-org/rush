@@ -1,0 +1,301 @@
+---
+title: "rush - A Database-Centric Architecture for Distributed Computing"
+format: html
+---
+
+
+
+```{r}
+#| include: false
+library(rush)
+library(here)
+here::i_am("vignettes/paper.qmd")
+
+r = redux::hiredis()
+r$FLUSHDB()
+options(datatable.prettyprint.char = 10L)
+```
+
+# Abstract
+
+Distributed computing is a powerful tool for solving large-scale problems.
+Relying on a central process to generate tasks becomes a bottleneck in large-scale problems.
+We present rush, a package for distributed computing in R.
+The package is designed for inter-process communication via a shared Redis database.
+Aiming for minimal overhead per tasks, robust error handling and
+
+Rush provides the infrastructure for powerful optimization algorithms.
+We demonstrate the useability of rush by implementing asynchronous bayesian optimization.
+We show that rush can be used to solve large-scale problems with 1024 workers.
+
+
+
+# Introduction
+
+Distributed computing is a powerful tool for solving large-scale problems.
+Employing a database centric model, rush enables workers to communicate tasks and their results over a shared Redis database.
+
+## Related Work {#sec-related-work}
+
+As multi-core processors became commonplace in the 2000s, there was a growing need to utilize these resources effectively for computational tasks in R.
+The first packages to address this need were `"snow"` and `"multicore"`.
+With R version 2.14.0 (released in 2011), parallel computing capabilities were integrated into the base R system through the `parallel` package.
+The functions `parallel::mclapply()` and `parallel::parLapply()` are parallel versions of the `lapply()` function for multicore and cluster computing, respectively.
+Both functions are widely used in R packages but have some limitations.
+The R session is blocked until all tasks are finished and it is not possible to retrieve partial results.
+Moreover, load balancing can be an issue when the tasks have different runtimes.
+
+The landscape further evolved with the release of the `future` package in 2016, which provided a unified and flexible parallel computing interface in R, supporting various backends such as `multisession`, `multicore`, and `callr`.
+The `"future.apply"` package implements parallel versions of the `*apply()` family functions, compatible with the `future` backends.
+
+With the rise of high-performance computing (HPC) clusters, the `"batchtools"` package was developed to facilitate the execution of long-running tasks on these systems.
+The communication between the main process and the workers runs completely over the file system.
+A notable feature of the package is the assistance in conducting large-scale computer experiments.
+A more recent development in distributed computing is the `"crew"` package.
+The package is designed for long-running tasks in distributed systems, ranging from traditional high-performance clusters to cloud computing platforms.
+A drawback of both systems is the high overhead per task.
+
+The `rrq` package is a task queue system for R using Redis.
+It addresses the limitations of the packages by providing a non-blocking interface to parallel computing and keeping the overhead per task low.
+The package allows non-interacting queues with priority levels within a queue and dependencies among tasks.
+The package has an advanced error-handling mechanism, heavily influencing the heartbeat mechanism of `rush`.
+
+##
+
+
+
+
+`rush` aligns closely with `rrq` but differentiates itself with its integration into our optimization packages packages `botk` and `mlr3tuning`.
+This includes a data structure in Redis that can be efficiently converted to a `"data.table::data.table()"` and a cache mechanism that minimizes the number of read and write operations in the R session.
+Moreover, the start of workers with minimal user configuration is integrated with the `"processx"` package.
+Looking ahead, rush allows a decentralized network architecture devoid of a central controller.
+This allows the implementation of recently developed optimization algorithms such as Asynchronous Decentralized Bayesian Optimization [@Egele2023].
+
+
+# General Structure of Rush
+
+A rush network consists of multiple workers that communicate over a shared Redis database.
+Each worker is responsible for evaluating tasks and pushing the results back to the database.
+
+We demonstrate the basic functionality of rush via an example optimization of the Branin function:
+
+$$f(x_1,x_2)=\left(x_2-\frac{5.1}{4\pi^2}x_1^2+\frac{5}{\pi}x_1-6\right)^2 +10\left(1-\frac{1}{8\pi}\right)\cos(x_1)+10$$
+
+optimized on the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$, as shown in Figure @fig-branin.
+The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.
+
+![Branin function](branin.png){#fig-branin width=100%}
+
+## Worker Loop
+
+We define the `worker_loop` function, which runs on each worker.
+It repeatedly draws tasks, evaluates them, and sends the results to the Redis database.
+The function takes a single argument: a `RushWorker` object, which handles communication with Redis.
+In this example, each worker samples a random point, creates a task, evaluates it using the Branin function, and submits the result.
+The optimization stops after 100 tasks have been evaluated.
+
+```{r rush-003}
+library(rush)
+
+wl_random_search = function(rush) {
+
+  while(rush$n_finished_tasks < 100) {
+
+    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+    key = rush$push_running_tasks(xss = list(xs))
+
+    ys = list(y = branin(xs$x1, xs$x2))
+    rush$push_results(key, yss = list(ys))
+  }
+}
+```
+
+The most important methods of the `RushWorker` are the `$push_running_tasks()` and `$push_results()` methods.
+The first method `$push_running_tasks()` creates a new task in the Redis database.
+Since it is evaluated next, the task is marked as running.
+The `$push_running_tasks()` method returns a unique key that is used to identify the task.
+The second method `$push_results()` is used to push the results back to the Redis database.
+It takes the key of the task and a list of results.
+To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next.
+For example, Bayesian optimization algorithms would sample the next point further away from the previous points to explore the search space.
+The `$n_finished_tasks` shows how many tasks are finished and is used to stop the worker loop.
+
+## Tasks
+
+Tasks are the unit in which workers exchange information.
+The main components of a task are the key, computational state, input (`xs`), and result (`ys`).
+The key is a unique identifier for the task.
+It identifies the task in the Redis database.
+The four possible computational states are `"running"`, `"finished"`, `"failed"`, and `"queued"`.
+The `$push_running_tasks()` method marks it as `"running"` and returns the key of the task.
+The `$push_results()` method marks a task as `"finished"` and stores the result.
+Failed tasks can be marked as `"failed"` with the `$push_failed()` method.
+The error catching must be implemented in the worker loop (see [Error Handling](error_handling.html) for more details).
+Tasks can also be pushed to a queue with the `$push_tasks()` method which sets the state to `"queued"`.
+<!-- The last example gives more details on the task queue and the different methods to push and pop tasks. -->
+The input `xs` and result `ys` are lists that can contain arbitrary data.
+Usually the methods of the `RushWorker` work on multiple tasks at once, so `xxs` and `yss` are lists of inputs and results.
+
+## Controller
+
+The Rush controller is responsible for starting, observing, and stopping workers within the network.
+It is initialized using the `rsh()` function, which requires a network ID and a config argument.
+The config argument is a configuration file used to connect to the Redis database via the `redux` package.
+
+```{r rush-004}
+library(rush)
+
+config = redux::redis_config()
+
+rush = rsh(
+  network = "test-random-search",
+  config = config)
+```
+
+Workers can be started using the `$start_local_workers()` method, which accepts the worker loop and the number of workers as arguments.
+The workers are started locally with the `processx` package but it is also possible to start workers on a remote machine (see [Rush Controller](rush_controller.html)).
+We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
+More on globals and the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
+
+```{r rush-005}
+rush$start_local_workers(
+  worker_loop = wl_random_search,
+  n_workers = 4,
+  globals = "branin")
+
+rush
+```
+
+The optimization is quickly finished and we retrieve the results.
+The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
+The method returns a `data.table()` with the key, input, and result.
+The `pid` and `worker_id` column are additional information that are stored when the task is created.
+The `worker_id` is the id of the worker that evaluated the task and the `pid` is the process id of that worker.
+Further extra information can be passed as `list`s to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
+
+```{r rush-006}
+#| include: false
+Sys.sleep(5)
+```
+
+```{r rush-007}
+rush$fetch_finished_tasks()[order(y)]
+```
+
+The rush controller displays how many workers are running and how many tasks exist in each state.
+In this case, 103 tasks are marked as finished, and all workers have stopped.
+The number slightly exceeds 100 because workers check the stopping condition independently.
+If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.
+
+```{r rush-008}
+rush
+```
+
+We can stop the workers and reset the database with the `$reset()` method.
+
+```{r rush-009}
+rush$reset()
+
+rush
+```
+
+To learn more about starting, stopping and observing workers, see the [Rush Controller](rush_controller.html) vignette.
+
+
+
+## Redis
+
+Redis is a in-memory key-value store.
+
+
+# Advanced Features of Rush
+
+## Queues
+
+Sometimes it is advantageous to create tasks in central process and push them to the workers.
+
+
+## Fault Tolerance
+
+* Fault tolerance of the Redis database
+  - Save state to disk periodically
+* Fault tolerance of the workers
+  - Restart workers after failure
+  - Restart the failed tasks
+
+# Tutorial
+
+We implement Asynchronous Distributed Bayesian Optimization (ADBO) [@egele_2023] next.
+This example shows how workers use information about running and finished tasks and introduces task queues.
+ADBO runs sequential [Bayesian optimization](https://mlr3book.mlr-org.com/chapters/chapter5/advanced_tuning_methods_and_black_box_optimization.html#sec-bayesian-optimization) on multiple workers in parallel.
+Each worker maintains its own surrogate model (a random forest) and selects the next hyperparameter configuration by maximizing the upper confidence bounds acquisition function.
+To promote a varying exploration-exploitation tradeoff between the workers, the acquisition functions are initialized with different lambda values ranging from 0.1 to 10.
+When a worker completes an evaluation, it asynchronously sends the result to its peers via a Redis data base; each worker then updates its local model with this shared information.
+This decentralized design enables workers to proceed independently; eliminating the need for a central coordinator that could become a bottleneck in large-scale optimization scenarios.
+
+# Benchmarks
+
+## Setup
+
+The evaluation of fast running tasks is sensible to runtime overhead.
+Therefore, we measure the runtime of the core functions of rush in a benchmark.
+This includes pushing a task to the database, pushing a result to the database, and fetching finished tasks.
+The fetching operation is done with and without caching.
+Runtime is reported as median and median absolute deviation (MAD) over 1000 runs.
+The runtime is measured with the `microbenchmark` R package.
+
+We run ABO on 1024 workers.
+
+## Results
+
+Pushing a running task to the database is the most frequent operation in rush.
+This operation takes 0.5 ms (MAD 0.25 ms) on average.
+Pushing a result to the database takes around the same time.
+The workers usually fetch new results frequently, so fetching has a build in caching mechanism.
+The difference between fetching with and without caching is negligible for a small number of tasks.
+However, fetching with caching is much faster when caching more than 1000 tasks, as shown in Figure @fig-fetch-finished-tasks.
+The difference grows with the number of tasks fetched.
+We fetch one new tasks from the database and the rest from the cache.
+Still the runtime increases with the number of tasks fetched.
+This is because binding a new row to a data.table gets slower with the total number of rows.
+
+```{r}
+#| echo: false
+#| fig-cap: |
+#|   "Runtime of fetching finished tasks with (red lines) and without (blue lines) caching."
+#|   "The x-axis shows the number of tasks fetched from the database."
+#|   "The fetching with caching gets one new task from the database and the rest from the cache."
+#|   "The fetching without caching gets all tasks from the database."
+#| label: fig-fetch-finished-tasks
+library(data.table)
+library(ggplot2)
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+data = fread(here("vignettes/rush_fetch_finished_tasks.csv"))
+data_cache = fread(here("vignettes/rush_fetch_cached_tasks.csv"))
+
+data = rbindlist(list(
+  data[, list(n_tasks = n_tasks, runtime = median_runtime, benchmark = "fetch_tasks")],
+  data_cache[, list(n_tasks = cache_size, runtime = median_runtime, benchmark = "fetch_cached_tasks")]
+))
+
+ggplot(data, aes(x = n_tasks, y = runtime, color = benchmark)) +
+  scale_x_continuous(trans='log10') +
+  #scale_y_continuous(trans='log10') +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = gg_color_hue(2), labels = c("with cache", "without cache")) +
+  labs(x = "Number of Tasks", y = "Runtime (ms)", color = "Fetching") +
+  theme_minimal()
+```
+
+# Discussion and Conclusion
+
+We presented rush, a novel package for distributed computing in R.
+
+
+

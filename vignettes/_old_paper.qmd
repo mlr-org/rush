@@ -1,0 +1,733 @@
+---
+title: "Parallel Computing with Rush"
+description: |
+  Run a centralized parallel computing network with the `rush` package.
+author:
+  - name: Marc Becker
+    url: https://github.com/be-marc
+date: 2023-10-23
+image: cover.jpg
+bibliography: ../../bibliography.bib
+---
+
+{{< include ../../_setup.qmd >}}
+
+```{r}
+#| include: false
+
+options(datatable.prettyprint.char = 5L)
+lgr::get_logger("mlr3")$set_threshold("warn")
+lgr::get_logger("bbotk")$set_threshold("warn")
+set.seed(1)
+
+library(microbenchmark)
+library(ggplot2)
+
+config = redux::redis_config()
+r = redux::hiredis(config)
+r$FLUSHALL()
+```
+
+# Scope
+
+Parallel computing plays an important role in machine learning, especially as the size of datasets and the computational intensity of algorithms increase.
+This trend necessitates the distribution of computing tasks across multiple workers.
+In this context, we present `rush`, our novel framework for parallel and distributed computing in R.
+`rush` enables the parallelization of arbitrary R expressions in a network of workers.
+The framework implements a queue system and an efficient data store based on [Redis](https://redis.io).
+It integrates the `r ref_pkg("future")` package to start workers on the local machine or remote machines.
+Rush is engineered to impose minimal overhead, with the aim of a few milliseconds per task, and is optimized for both rapid and long-running tasks.
+The package is designed to be lightweight and easy to use, with a simple interface and minimal dependencies.
+We integrate `rush` into our optimization packages `r ref_pkg("bbotk")` and `r ref_pkg("mlr3tuning")` but still keep it as a general-purpose package.
+
+We start the article with an overview of parallel computing in R (@sec-related-work).
+Next, we show how to install Redis and the rush package.
+Then we present the network architecture of the package (@sec-rush-network) and how to use the package to parallelize a simple task (@sec-example).
+In this example, we present the basic functionality of the package.
+Next, we present advanced features of the package (@sec-advanced-functionality).
+Finally, we look at the runtime performance of the package (@sec-benchmark).
+
+# Related Work {#sec-related-work}
+
+As multi-core processors became commonplace in the 2000s, there was a growing need to utilize these resources effectively for computational tasks in R.
+The first packages to address this need were `r ref_pkg("snow")` and `r ref_pkg("multicore")`.
+With R version 2.14.0 (released in 2011), parallel computing capabilities were integrated into the base R system through the `parallel` package.
+The functions `parallel::mclapply()` and `parallel::parLapply()` are parallel versions of the `lapply()` function for multicore and cluster computing, respectively.
+Both functions are widely used in R packages but have some limitations.
+The R session is blocked until all tasks are finished and it is not possible to retrieve partial results.
+Moreover, load balancing can be an issue when the tasks have different runtimes.
+
+The landscape further evolved with the release of the `future` package in 2016, which provided a unified and flexible parallel computing interface in R, supporting various backends such as `multisession`, `multicore`, and `callr`.
+The `r ref_pkg("future.apply")` package implements parallel versions of the `*apply()` family functions, compatible with the `future` backends.
+
+With the rise of high-performance computing (HPC) clusters, the `r ref_pkg("batchtools")` package was developed to facilitate the execution of long-running tasks on these systems.
+The communication between the main process and the workers runs completely over the file system.
+A notable feature of the package is the assistance in conducting large-scale computer experiments.
+A more recent development in distributed computing is the `r ref_pkg("crew")` package.
+The package is designed for long-running tasks in distributed systems, ranging from traditional high-performance clusters to cloud computing platforms.
+A drawback of both systems is the high overhead per task.
+
+The [rrq](https://github.com/mrc-ide/rrq) package is a task queue system for R using Redis.
+It addresses the limitations of the packages by providing a non-blocking interface to parallel computing and keeping the overhead per task low.
+The package allows non-interacting queues with priority levels within a queue and dependencies among tasks.
+The package has an advanced error-handling mechanism, heavily influencing the heartbeat mechanism of `rush`.
+
+`rush` aligns closely with `rrq` but differentiates itself with its integration into our optimization packages packages `botk` and `mlr3tuning`.
+This includes a data structure in Redis that can be efficiently converted to a `r ref("data.table::data.table()")` and a cache mechanism that minimizes the number of read and write operations in the R session.
+Moreover, the start of workers with minimal user configuration is integrated with the `r ref_pkg("processx")` package.
+Looking ahead, rush allows a decentralized network architecture devoid of a central controller.
+This allows the implementation of recently developed optimization algorithms such as Asynchronous Decentralized Bayesian Optimization [@Egele2023].
+
+# Install {#sec-install}
+
+There are several options to install Redis depending on your operating system.
+You can find instructions on how to install Redis on [redis.io](https://redis.io/docs/install/install-redis/).
+The `rush` package is not yet on CRAN.
+You can install the development version from GitHub with `r ref_pkg("pak")`.
+
+```{r}
+#| eval: false
+pak::pkg_install("mlr-org/rush")
+```
+
+`rush` is designed to be light on dependencies.
+It utilizes a select few packages to establish its functionality:
+
+* `redux` - This package is integral to rush, facilitating robust communication with the Redis server for task queuing and data storage operations.
+* `processx` - Provides the core mechanism for initiating worker processes.
+* `callr` - Enables rush to maintain a heartbeat process, essential for monitoring the status of remote workers.
+* `parallel` - Adds L'Ecuyer-CMRG seeds to tasks, ensuring reproducibility of results.
+* `checkmate` and `mlr3misc` - Used for argument validation and miscellaneous utility functions.
+* `data.table` - Efficient data manipulation.
+* `lgr` and `jsonlite` - Logging to the Redis database.
+
+# Rush Network {#sec-rush-network}
+
+The rush network is orchestrated through a combination of a controller and multiple workers (as illustrated in @fig-rush).
+The controller initializes the system and starts the workers (@sec-controller).
+This stage prepares the environment for task processing which includes loading the function to be evaluated and any required packages.
+The controller pushes tasks to the queue and retrieves their outcomes (@sec-start-workers).
+The workers pop tasks from the queue, evaluate them, and push the results to the database.
+A task life cycle consists of four states: `"queued"`, `"running"`, `"finished"`, and `"failed"`.
+Tasks initially enter a `"queued"` state, awaiting processing (@sec-push-task).
+They remain in this state until a worker is available to handle them.
+When a worker picks up a task, its status transitions to `"running"`.
+This stage marks the active processing of the task.
+Upon completion, a task's state is updated to `"finished"`, and its result is stored in the database (@sec-retrieve-results).
+In cases where a task encounters an error or issue, its state is marked as `"failed"`.
+
+![The architecture of a centralized rush network.](rush_centralized.png){#fig-rush width=100%}
+
+## Example {#sec-example}
+
+To demonstrate the core capabilities of `rush`, we present a simple, practical example utilizing the `mlr3` package for machine learning.
+The example involves the assessment of a Support Vector Machine (SVM) model performance on the widely-used `spam` dataset.
+We first define a function, `evaluate_svm()`, that will be dispatched to the workers for execution.
+This function is designed to accept two parameters: `cost` and `gamma`.
+These parameters represent the cost and the gamma hyperparameters of the SVM model, respectively.
+Inside `evaluate_svm()`, the SVM model is trained on the `spam` dataset using the provided `cost` and `gamma` values.
+After training the model, `evaluate_svm()` computes the classification error, which serves as the performance metric.
+The function concludes by returning the classification error.
+This returned value is then captured by `rush`, which manages the collection and storage of results from all the workers.
+By employing `rush`, we can parallelize the evaluation of the SVM model over a grid of `cost` and `gamma` values, significantly accelerating the hyperparameter tuning process.
+
+```{r}
+library(mlr3)
+library(mlr3learners)
+
+task = tsk("spam")
+splits = partition(task)
+learner = lrn("classif.svm", type = "C-classification", kernel = "radial")
+
+eval_svm = function(cost, gamma, ...) {
+  learner$param_set$set_values(cost = cost, gamma = gamma)
+  learner$train(task, row_ids = splits$train)
+  pred = learner$predict(task, row_ids = splits$test)
+  list(ce = pred$score())
+}
+```
+
+## Controller {#sec-controller}
+
+The `Rush` instance is the controller of the centralized network.
+The controller starts and stops the workers, pushes tasks to the queue and fetches their results.
+The controller is initialized with the function `rsh()`.
+The `network_id` argument is used to identify the controller and workers belonging to the same network.
+The `config` argument is a list of Redis configuration options used by the `redux` package to connect to the Redis server.
+
+```{r}
+library(rush)
+
+config = redux::redis_config()
+rush = rsh(network_id = "svm", config = config)
+rush
+```
+
+Instead of passing the config to `rsh()`, we can use the `rush_plan()` function to set the config globally.
+The function stores the Redis configuration options and the maximum number of workers.
+
+```{r}
+#| eval: false
+config = redux::redis_config()
+rush_plan(n_workers = 2, config = config)
+
+rush = rsh(network_id = "svm")
+```
+
+Packages that use `rush` internally can access the config provided by the user to create `Rush` instances.
+
+## Start Workers {#sec-start-workers}
+
+Now we are ready to start the workers.
+The `RushWorker` class represents a worker in the network.
+The class inherits from the `Rush` controller class but adds methods to pop tasks from the queue and push results to the database.
+The worker runs a loop that processes the tasks from the queue.
+The default worker loop is `worker_loop_default`.
+This function fetches a task from the queue, evaluates the user-defined function `fun`, pushes the results back to the database and waits for the next task.
+Usually, we do not need to define a custom worker loop and pass the function `fun`.
+
+Workers can be started on the local machine or a remote machine.
+A local worker runs on the same machine as the controller.
+A remote worker runs on a different machine.
+We distinguish between local and remote workers because the mechanism to kill and monitor a remote worker is different.
+
+The `$start_workers()` method starts the workers with the `processx` package.
+We pass the `n_workers` argument to specify the number of workers.
+If `fun` depends on global variables, we can pass them to the `globals` argument.
+Our `eval_svm()` function depends on the `learner`, `task` and `splits` objects.
+Packages that are needed by `fun` can be passed to the `packages` argument.
+
+```{r}
+rush$start_workers(
+  fun = eval_svm,
+  n_workers = 2,
+  globals = c("learner", "task", "splits"),
+  packages = c("mlr3", "mlr3learners", "e1071")
+)
+
+rush
+```
+
+We get more information about the workers with `$worker_info`.
+The `worker_id` identifies the worker.
+The `pid` is the process id of the worker process.
+The `heartbeat` is the process id of the heartbeat process (see @sec-heartbeat).
+
+```{r}
+rush$worker_info
+```
+
+On a remote machine, we need to start the workers manually.
+See @sec-start-script for more information on how to start workers manually.
+
+A worker can have four states: `"running"`, `"terminated"`, `"killed"` (@sec-stop-workers) and `"lost"` (@sec-error-handling).
+
+## Push Task {#sec-push-task}
+
+The `$push_tasks()` method pushes tasks to the queue.
+The method takes a list of tasks as input.
+Each task is a list of parameters.
+We push 2 tasks to the queue.
+
+```{r}
+keys = rush$push_tasks(list(
+  list(cost = 1e-4, gamma = 1e-4),
+  list(cost = 1e-3, gamma = 1e-3)))
+```
+
+The keys of the pushed tasks are returned.
+Pushing a task takes around 0.5 milliseconds, and pushing 10,000 takes around 200 milliseconds (see @sec-benchmark).
+See @sec-data-store for more information on how the tasks are stored in the Redis database.
+
+Pushing a task is non-blocking i.e. the method returns immediately.
+We can wait for a task to finish with the `$wait_for_tasks()` method.
+The method blocks until all tasks are processed by the workers.
+
+```{r}
+rush$wait_for_tasks(keys)
+```
+
+
+## Retrieve Results {#sec-retrieve-results}
+
+The `$fetch_finished_tasks()` method retrieves the results of finished tasks.
+The method returns a `data.table` with additional meta information.
+The `worker_id` of the worker that evaluated the task and the `pid` of the worker process are stored in the table.
+
+```{r}
+rush$fetch_finished_tasks()
+```
+
+There are multiple `$fetch_*()` methods available for retrieving data from the Redis database.
+A matching method is defined for each task state e.g. `$fetch_queued_tasks()` and `$fetch_running_tasks()`.
+Fetching the results takes around 1 millisecond for one task and 130 milliseconds for 10,000 tasks.
+The method `$fetch_finished_tasks()` caches the already queried data (see @sec-caching).
+
+We can change the included columns with the `fields` argument.
+The default of `$fetch_finished_tasks()` is `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
+If we don't want all that extra information, we can just query `"xs"` and `"ys"`.
+
+```{r}
+rush$fetch_finished_tasks(fields = c("xs", "ys"))
+```
+
+The option`data_format = "list"` returns a `list` instead of a `data.table`.
+
+```{r}
+rush$fetch_finished_tasks(data_format = "list")
+```
+
+An advantage of the `data.table` format is that we can easily sort the results and give us access to the best result.
+However, when we only need the result, a `list` has less overhead.
+
+## Wait for Results {#sec-wait-for-results}
+
+The `$wait_for_finished_tasks()` methods wait until a new result is available.
+
+```{r}
+rush$wait_for_finished_tasks(timeout = 1)
+```
+
+The `timeout` argument sets a timeout in seconds.
+
+## Caching {#sec-caching}
+
+The tasks queried with `$fetch_finished_tasks()` and `$fetch_new_tasks()` are cached.
+This gives a significant speedup when we query the same data multiple times.
+The cache is a `list` that is stored in the controller.
+This takes around 4 milliseconds for 100 tasks, independent of the number of results in the cache (see @sec-benchmark).
+
+```{r}
+rush$fetch_finished_tasks()
+```
+
+If we change the queried fields, the change is not reflected in the cache.
+In this case, we can clear the cache with the `reset_cache = TRUE` option.
+
+## Stop Workers {#sec-stop-workers}
+
+Local and remote workers can be terminated with the `$stop_workers(type = "terminate")` method.
+The workers evaluate the currently running task and then terminate.
+
+```{r}
+rush$stop_workers(type = "terminate")
+```
+
+```{r}
+#| include: false
+Sys.sleep(5)
+```
+
+When we wait for a few seconds, we see that the workers are terminated.
+
+```{r}
+rush$worker_states
+```
+
+The option `type = "kill"` stops the workers immediately.
+Killing a local worker is done via the `processx` package.
+Remote workers are killed by pushing a kill signal to the heartbeat process.
+Without a heartbeat process a remote worker cannot be killed (see @sec-heartbeat).
+
+```{r}
+rush$stop_workers(type = "kill")
+```
+
+# Advanced Functionality {#sec-advanced-functionality}
+
+## Globals
+
+Global are variables that are defined in the global environment but should be available on the workers.
+Global variables are passed by name in the `$start_workers()` and `$create_worker_script()` methods.
+The globals are serialized and stored in the redis data base.
+The workers pull the globals from the data base and assign them to their global environment.
+
+## Reproducibility {#sec-reproducibility}
+
+Ensuring reproducibility is important in computational research.
+A critical aspect of achieving this is the consistent generation of pseudo-random numbers, which underpins the replicability of tasks that involve random processes.
+The Rush package addresses this need by integrating the `"L'Ecuyer-CMRG"` random number generator, as introduced by @Ecuyer2002.
+This generator is designed to prevent the synchronization of random number sequences, a critical aspect in parallel computing environments.
+
+For each task, a distinct stream of pseudo-random numbers is produced, guaranteeing consistent results independent of the number of workers.
+Rush allows the specification of an initial seed during the creation of a Rush instance.
+Users have the flexibility to initialize the rush controller with either a specific `"L'Ecuyer-CMRG"` seed or a standard seed.
+
+```{r}
+#| eval: false
+rush = rsh(network_id = "svm", seed = 123)
+```
+
+This ensures that every task is assigned a unique stream based on the initial seed.
+Furthermore, for finer control, it is possible to assign unique `"L'Ecuyer-CMRG"` seeds directly to individual tasks.
+
+```{r}
+#| eval: false
+rush$push_tasks(list(list(x1 = 1, x2 = 2)), seeds = list(c(10407L, 1801422725L, -2057975723L, 1156894209L, 1595475487L, 210384600L, -1655729657L)))
+```
+
+## Error Handling {#sec-error-handling}
+
+The `rush` package is equipped with an advanced error-handling mechanism designed to manage and mitigate errors encountered during the execution of tasks.
+It adeptly handles a range of error scenarios, from standard R errors to more complex issues such as segmentation faults and network errors.
+
+### Simple R Errors {#sec-error-handling-simple}
+
+For errors occurring within the R environment, rush employs a strategy where such errors are caught during the task evaluation.
+To illustrate, consider a scenario where we define a function intended to trigger a simple R error.
+The occurring error leads to the task being labeled as `"failed"`, with the corresponding error message captured and stored in the "message" column of the data store.
+This process is demonstrated in the following example.
+
+```{r}
+rush = rsh(network_id = "simple_error")
+
+fun = function(x) {
+  stop("Simple R Error")
+}
+
+rush$start_workers(fun = fun, n_workers = 2)
+rush$push_tasks(list(list(x = 1)))
+
+Sys.sleep(5)
+
+rush$fetch_failed_tasks()
+```
+
+This approach ensures that errors do not halt the overall execution process, allowing for error inspection and task reevaluation as necessary.
+
+### Handling Failing Workers {#sec-error-handling-workers}
+
+The rush package also addresses scenarios where workers may fail due to crashes or lost connections, potentially causing tasks to appear as if they are in the `"running"` state indefinitely.
+An example of this can be seen when simulating a segmentation fault, leading to the termination of a worker process.
+
+If a worker crashes or the connection gets lost, it looks like a task is `"running"` forever.
+As an example, we define a function that simulates a segmentation fault by killing the worker process.
+The package includes the method `$detect_lost_workers()` designed to identify and manage such instances effectively.
+
+```{r}
+rush = rsh(network_id = "segmenation_fault")
+
+fun = function(x) {
+  tools::pskill(Sys.getpid())
+}
+
+rush$start_workers(fun = fun, n_workers = 2)
+rush$push_tasks(list(list(x = 1)))
+
+Sys.sleep(5)
+
+rush$detect_lost_workers()
+```
+
+Running this method periodically adds a small overhead.
+For remote workers, the package utilizes the heartbeat mechanism to check the status of the workers (see @sec-heartbeat).
+Local workers are monitored using the `processx` package.
+Upon identifying a lost worker, its status is updated to `"lost"`.
+
+```{r}
+rush$worker_states
+```
+
+The `$detect_lost_workers()` method allows to restart lost workers when the option `restart_workers = TRUE` is specified.
+Workers that have been lost may also be restarted manually using `$restart_workers()`.
+Automatically restarting workers only works for local workers.
+
+The status of the task that caused the worker to fail is changed to `"failed"`.
+See @sec-retry-tasks for more information on restarting tasks.
+
+### Restarting Tasks {#sec-retry-tasks}
+
+One of the resilient features of the rush package is its ability to retry tasks that have failed, thereby enhancing the robustness of task execution processes.
+The `$retry_tasks()` method is central to this functionality, offering a straightforward way to reattempt the execution of tasks that did not complete successfully on their first run.
+An intriguing aspect of this method is its ability to generate a new random number stream for the task being retried, if the `next_seed = TRUE` option is specified.
+This ensures that the retry attempts are not merely repetitions but are executed under potentially different conditions, enhancing the chances of success.
+
+```{r}
+#| eval: false
+rush$retry_task(keys)
+```
+
+Tasks can be pushed with a specific maximum number of retries.
+This setting allows tasks to be attempted up to a pre-defined limit before being definitively marked as `"failed"`.
+For example, setting `max_retries = 3` will ensure that a task is retried up to three additional times if initial attempts fail.
+
+```{r}
+rush$push_tasks(list(list(x = 1), list(x = 2)), max_retries = 3)
+```
+
+### Encapsulation {#sec-error-handling-encapsulation}
+
+To bolster the resilience of the tasks, the `rush` package offers a sophisticated mechanism for function evaluation encapsulation using the `callr` package.
+This approach significantly enhances the stability of workers, particularly in scenarios where executed functions may lead to severe errors such as segmentation faults.
+By encapsulating function evaluations, workers are safeguarded against crashes that would otherwise tear down the entire worker.
+
+The encapsulation is achieved by passing a specialized worker loop function to the `$start_workers()` method, which leverages the `callr` package's capabilities to execute tasks in isolated R sessions.
+To illustrate, consider the scenario where we intentionally trigger a segmentation fault by terminating the process of the callr R session.
+
+```{r}
+rush = rsh(network_id = "callr")
+
+fun = function(x) {
+  tools::pskill(Sys.getpid())
+}
+
+rush$start_workers(fun = fun, n_workers = 2, worker_loop = worker_loop_callr)
+rush$push_tasks(list(list(x = 1)))
+
+Sys.sleep(5)
+
+rush$fetch_failed_tasks()
+```
+
+Despite this aggressive action, which would typically result in a worker crash, the encapsulation provided by `callr` ensures that the worker remains operational, marking the task as `"failed"` without affecting the stability of the worker process itself.
+Following this procedure, the worker's status is queried, confirming its continued operation despite the encountered error.
+
+```{r}
+rush$worker_states
+```
+
+## Timeouts {#sec-timeouts}
+
+In the context of executing tasks within parallel computing environments, the ability to enforce execution time limits is paramount.
+This ensures that no single task consumes disproportionate system resources, thereby maintaining overall system efficiency and responsiveness.
+The timeout parameter of the `$push_tasks()` method allows users to set a maximum execution time for each task.
+
+As an illustrative example, consider a scenario where a timeout of 100 milliseconds is applied to a task.
+This short duration is strictly enforced, guaranteeing that if the task execution surpasses this window, it is promptly halted and marked as `"failed"`.
+It is important to note that this timeout functionality is exclusively available when employing `callr` for task execution, alongside the specialized `worker_loop_callr`.
+Setting a timeout comes with an overhead of around 500 milliseconds (see @sec-benchmark).
+
+```{r}
+rush = rsh(network_id = "svm")
+
+rush$start_workers(
+  fun = eval_svm,
+  n_workers = 2,
+  globals = c("learner", "task", "splits"),
+  packages = c("mlr3", "mlr3learners", "e1071"),
+  worker_loop = worker_loop_callr
+)
+
+rush$push_tasks(list(list(cost = 1e-3, gamma = 1e-2)), timeouts = 0.1)
+
+rush$fetch_tasks()
+```
+
+
+## Logging {#sec-logging}
+
+The worker logs all messages written with the `lgr` package to the database.
+The `lgr_thresholds` argument of `$start_workers()` defines the logging level for each logger e.g. `c(rush = "debug")`.
+Saving log messages adds a small overhead but is useful for debugging.
+By default, no log messages are stored.
+
+```{r}
+rush$read_log()
+```
+
+The log level can also be changed with the `lgr_thresholds` argument of `rush_plan()`.
+
+## Start Script {#sec-start-script}
+
+We are not limited to start workers with the `processx` package.
+A work can be started manually with a script on a remote machine.
+The only requirement is that the machine has access to the Redis server and can run R scripts.
+
+```{r}
+rush$create_worker_script()
+```
+
+The `$create_worker_script()` takes also a `globals` and `packages` argument.
+The globals are serialized and passed to the worker via Redis.
+The packages must be installed on the remote machine but they are loaded automatically.
+
+## Large Objects {#sec-large-objects}
+
+The maximum size of a Redis string is 512 MiB.
+If the constants of the worker loop function are larger than 512 MiB, `rush` throws an error.
+If the controller and workers can access the same file system, `rush` writes the large objects to disk.
+The `large_objects_path` argument of `rush_plan()` defines the directory where the large objects are stored.
+
+::: {.callout-note}
+
+In a future version, tasks larger than 512 MiB can be stored on disk with the same mechanism.
+
+:::
+
+## Queues
+
+Rush uses a shared queue and a queue for each worker.
+The shared queue is used to push tasks to the workers.
+The first worker that pops a task from the shared queue evaluates the task.
+Until now we only used the shared queue.
+The worker queues are used to push tasks to specific workers.
+
+```{r}
+worker_id = rush$worker_ids[1]
+rush$push_priority_tasks(list(list(cost = 1e-1, gamma = 1e-1)), priority = worker_id)
+```
+
+## Heartbeats {#sec-heartbeat}
+
+The heartbeat is a mechanism to monitor the status of remote workers in distributed computing systems.
+The mechanism consists of a heartbeat key with a set [expiration timeout](https://redis.io/commands/expire/) and a dedicated heartbeat process that refreshes the timeout periodically.
+The heartbeat process is started with `callr` and is linked to main process of the worker.
+In the event of a worker's failure, the associated heartbeat process also ceases to function, thus halting the renewal of the timeout.
+The absence of the heartbeat key acts as an indicator to the controller that the worker is no longer operational.
+Consequently, the controller updates the worker's status to `"lost"`.
+
+Heartbeats are initiated upon worker startup by specifying the `heartbeat_period` and `heartbeat_expire` parameters.
+The `heartbeat_period` defines the frequency at which the heartbeat process will update the timeout.
+The `heartbeat_expire` sets the duration, in seconds, before the heartbeat key expires.
+The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.
+
+```{r}
+#| eval: false
+rush$start_workers(
+  worker_loop = fun_loop,
+  n_workers = 2,
+  globals = c("learner", "task", "splits"),
+  packages = c("mlr3", "mlr3learners", "e1071"),
+  host = "remote",
+  heartbeat_period = 1,
+  heartbeat_expire = 3,
+  fun = eval_svm)
+```
+
+The heartbeat process is also the only way to kill a remote worker.
+The `$stop_workers(type = "kill")` method pushes a kill signal to the heartbeat process.
+The heartbeat process terminates the main process of the worker.
+
+## Rush Data Store {#sec-data-store}
+
+Tasks are stored in Redis [hashes](https://redis.io/docs/data-types/hashes/).
+Hashes are collections of field-value pairs.
+The key of the hash identifies the task in Redis and `rush`.
+
+```
+key : xs | ys | xs_extra
+```
+
+The field-value pairs are written by different methods, e.g. `$push_tasks()` writes `xs` and `$push_results()` writes `ys`.
+The values of the fields are serialized lists or atomic values e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`
+This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.
+
+```
+| key | x1 | x2 | y | timestamp |
+| 1.. |  3 |  4 | 7 |  12:04:11 |
+| 2.. |  1 |  4 | 5 |  12:04:12 |
+| 3.. |  1 |  1 | 2 |  12:04:13 |
+```
+When the value of a field is a named list, the field can store the cells of multiple columns of the table.
+When the value of a field is an atomic value, the field stores a single cell of a column named after the field.
+The methods `$push_tasks()` and `$push_results()` write into multiple hashes.
+For example, `$push_tasks(xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))` writes `xs` in two hashes.
+
+::: {.callout-note}
+
+The alternative of writing each cell in a separate field turned out to be too slow because each element has to be serialized individually.
+In addition, grouping has the advantage that the worker can simply access the arguments of the function without having to store information about the search space.
+The other alternative of writing each row in a string is too slow because serialization and deserialization must be performed each time the row is accessed.
+
+:::
+
+## Fetch Tasks {#sec-fetch-tasks}
+
+Running the `$fetch_*` methods directly one after another could lead to tasks appearing twice because the worker could change the state of a task between the calls.
+The `$fetch_tasks_with_state()` method fetches tasks with different states in one call.
+The `states` parameter defines the states of the tasks that should be fetched.
+
+```{r}
+rush$fetch_tasks_with_state(states = c("queued", "running"))
+```
+
+# Benchmark {#sec-benchmark}
+
+We benchmark the performance of `rush` with the `r ref_pkg("microbenchmark")` package with 100 repetitions.
+
+We pushed tasks to the queue and measured the time (@fig-benchmark-push).
+The number of tasks was increased from 1 to 10,000.
+One task consisted of two numbers.
+The runtime increased sublinearly with the number of tasks.
+When pushing one task, the overhead per task was around 0.5 milliseconds.
+When pushing 10,000 tasks, the overhead per task was around 0.05 milliseconds.
+We use the pipeline mechanism of Redis to push multiple tasks at once which explains the sublinear increase.
+It is beneficial to push multiple tasks at once.
+But the overhead per task is already low for one task.
+Poping a task from the queue takes around 0.5 milliseconds independent of the number of tasks in the queue.
+
+```{r}
+#| echo: false
+#| label: fig-benchmark-push
+#| fig-cap: Runtime Performance, measured in milliseconds, of pushing a task. Both axes are on a logarithmic scale.
+tab = readRDS("bmr_push.rds")
+
+ggplot(tab, aes(x = n, y = median)) +
+  scale_x_log10() +
+  scale_y_log10(expand = expansion(mult = 0.1)) +
+  geom_point(
+    size = 3,
+    color = viridis::viridis(1, begin = 0.5),
+    alpha = 0.8) +
+  geom_line(color = viridis::viridis(1, begin = 0.5)) +
+  geom_text(aes(label = signif(median, 2)), hjust = 1,  vjust = -1) +
+  xlab("Number of Tasks") +
+  ylab("Time in Milliseconds") +
+  theme_minimal()
+```
+
+We fetched the results from the database and measured the time (@fig-benchmark-fetch).
+This includes fetching the results from the database and converting them to a `data.table`.
+The number of results was increased from 1 to 10,000.
+The runtime increased sublinearly with the number of results.
+When fetching one result,  the overhead per result was around 0.5 milliseconds.
+When fetching 10,000 results, the overhead per result was around 0.02 milliseconds.
+
+```{r}
+#| echo: false
+#| label: fig-benchmark-fetch
+#| fig-cap: Runtime Performance, measured in milliseconds, of fetching the results. Both axes are on a logarithmic scale.
+tab = readRDS("bmr_fetch.rds")
+
+ggplot(tab, aes(x = n, y = median)) +
+  scale_x_log10() +
+  scale_y_log10(expand = expansion(mult = 0.1)) +
+  geom_point(
+    size = 3,
+    color = viridis::viridis(1, begin = 0.5),
+    alpha = 0.8) +
+  geom_line(color = viridis::viridis(1, begin = 0.5)) +
+  geom_text(aes(label = signif(median, 2)), hjust = 1,  vjust = -1) +
+  xlab("Number of Results") +
+  ylab("Time in Milliseconds") +
+  theme_minimal()
+```
+
+`rush` caches already fetched results.
+Fetching 100 new tasks and adding them to the cache takes around 2 milliseconds independent of the number of results in the cache.
+
+Running the complete `woker_loop_default` function once only comes with a small overhead of around 0.8 milliseconds.
+When the task evaluation is encapsulated with `callr`, the overhead is around 500 milliseconds.
+
+
+
+# Conclusion {#sec-conclusion}
+
+
+#### Glossary
+
+* Parallel computing: The use of multiple processing elements simultaneously for solving a computational problem.
+* Distributed computing: Utilizing multiple computers in a network to solve a computational problem.
+* Worker: A process that performs tasks as part of a larger computation.
+* Computing task: A discrete portion of a larger computational problem, designed to be executed by a worker.
+* Redis: An open-source, in-memory data store, used as a database, cache, and message broker.
+
+
+```{r}
+#| include: false
+rush$stop_workers(type = "kill")
+
+config = redux::redis_config()
+r = redux::hiredis(config)
+r$FLUSHALL()
+```
