@@ -64,10 +64,10 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: rusty_bern... 25283  FALSE runnervm6q...     FALSE running
-    2: caloried_d... 25294  FALSE runnervm6q...     FALSE running
-    3: negligent_... 25299  FALSE runnervm6q...     FALSE running
-    4: timely_tic... 25309  FALSE runnervm6q...     FALSE running
+    1: orthoclase...  8704  FALSE runnervm6q...     FALSE running
+    2: quenching_...  8720  FALSE runnervm6q...     FALSE running
+    3: delighted_...  8715  FALSE runnervm6q...     FALSE running
+    4: besotted_s...  8730  FALSE runnervm6q...     FALSE running
 
 Additional workers may be added to the network at any time.
 
@@ -83,12 +83,12 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: rusty_bern... 25283  FALSE runnervm6q...     FALSE running
-    2: caloried_d... 25294  FALSE runnervm6q...     FALSE running
-    3: negligent_... 25299  FALSE runnervm6q...     FALSE running
-    4: timely_tic... 25309  FALSE runnervm6q...     FALSE running
-    5: deadsmooth... 25436  FALSE runnervm6q...     FALSE running
-    6: oozy_allig... 25439  FALSE runnervm6q...     FALSE running
+    1: orthoclase...  8704  FALSE runnervm6q...     FALSE running
+    2: quenching_...  8720  FALSE runnervm6q...     FALSE running
+    3: delighted_...  8715  FALSE runnervm6q...     FALSE running
+    4: besotted_s...  8730  FALSE runnervm6q...     FALSE running
+    5: interested...  8858  FALSE runnervm6q...     FALSE running
+    6: reanalyzab...  8860  FALSE runnervm6q...     FALSE running
 
 ### Rush Plan
 
@@ -141,12 +141,12 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: caloried_d... 25294  FALSE runnervm6q...     FALSE running
-    2: negligent_... 25299  FALSE runnervm6q...     FALSE running
-    3: timely_tic... 25309  FALSE runnervm6q...     FALSE running
-    4: deadsmooth... 25436  FALSE runnervm6q...     FALSE running
-    5: oozy_allig... 25439  FALSE runnervm6q...     FALSE running
-    6: rusty_bern... 25283  FALSE runnervm6q...     FALSE  killed
+    1: quenching_...  8720  FALSE runnervm6q...     FALSE running
+    2: delighted_...  8715  FALSE runnervm6q...     FALSE running
+    3: besotted_s...  8730  FALSE runnervm6q...     FALSE running
+    4: interested...  8858  FALSE runnervm6q...     FALSE running
+    5: reanalyzab...  8860  FALSE runnervm6q...     FALSE running
+    6: orthoclase...  8704  FALSE runnervm6q...     FALSE  killed
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -204,8 +204,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: premythica... 25512  FALSE runnervm6q...     FALSE running
-    2: different_... 25514  FALSE runnervm6q...     FALSE running
+    1: saltwater_...  8934  FALSE runnervm6q...     FALSE running
+    2: choral_neo...  8936  FALSE runnervm6q...     FALSE running
 
 ### Failed Workers
 
@@ -237,8 +237,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat  state
               <char> <int> <lgcl>        <char>    <lgcl> <char>
-    1: acidimetri... 25589  FALSE runnervm6q...     FALSE   lost
-    2: farseeing_... 25591  FALSE runnervm6q...     FALSE   lost
+    1:    rude_shrew  9010  FALSE runnervm6q...     FALSE   lost
+    2: postprophe...  9012  FALSE runnervm6q...     FALSE   lost
 
 ### Restart Workers
 
@@ -258,8 +258,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: acidimetri... 25661  FALSE runnervm6q...     FALSE running
-    2: farseeing_... 25591  FALSE runnervm6q...     FALSE    lost
+    1:    rude_shrew  9082  FALSE runnervm6q...     FALSE running
+    2: postprophe...  9012  FALSE runnervm6q...     FALSE    lost
 
 ### Log Messages
 
@@ -396,8 +396,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: reobtainab... 25811   TRUE runnervm6q...     FALSE running
-    2: cinematic_... 25813   TRUE runnervm6q...     FALSE running
+    1: waterresis...  9235   TRUE runnervm6q...     FALSE running
+    2: contortion...  9232   TRUE runnervm6q...     FALSE running
 
 ### Failed Workers
 

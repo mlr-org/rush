@@ -91,6 +91,7 @@ Inherited methods
 - [`rush::Rush$read_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_log)
 - [`rush::Rush$reconnect()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reconnect)
 - [`rush::Rush$reset()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset)
+- [`rush::Rush$reset_data()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset_data)
 - [`rush::Rush$restart_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-restart_workers)
 - [`rush::Rush$start_local_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_local_workers)
 - [`rush::Rush$start_remote_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_remote_workers)

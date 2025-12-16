@@ -239,6 +239,8 @@ with the `$worker_script()` method.
 
 - [`Rush$reset()`](#method-Rush-reset)
 
+- [`Rush$reset_data()`](#method-Rush-reset_data)
+
 - [`Rush$read_log()`](#method-Rush-read_log)
 
 - [`Rush$print_log()`](#method-Rush-print_log)
@@ -386,7 +388,7 @@ have precedence over the parameters set here.
 #### Usage
 
     Rush$start_local_workers(
-      worker_loop = NULL,
+      worker_loop,
       ...,
       n_workers = NULL,
       globals = NULL,
@@ -744,6 +746,17 @@ Stop workers and delete data stored in redis.
   Type of stopping. Either `"terminate"` or `"kill"`. If `"terminate"`
   the workers evaluate the currently running task and then terminate. If
   `"kill"` the workers are stopped immediately.
+
+------------------------------------------------------------------------
+
+### Method `reset_data()`
+
+Reset the data stored in the Redis database. This is useful to remove
+all tasks but keep the workers.
+
+#### Usage
+
+    Rush$reset_data()
 
 ------------------------------------------------------------------------
 
