@@ -172,6 +172,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
+\item \href{#method-Rush-reset_data}{\code{Rush$reset_data()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
 \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
@@ -286,7 +287,7 @@ Alternatively, use \verb{$start_remote_workers()} to start workers on remote mac
 Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the parameters set here.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
-  worker_loop = NULL,
+  worker_loop,
   ...,
   n_workers = NULL,
   globals = NULL,
@@ -586,6 +587,17 @@ If \code{"kill"} the workers are stopped immediately.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-reset_data"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-reset_data}{}}}
+\subsection{Method \code{reset_data()}}{
+Reset the data stored in the Redis database.
+This is useful to remove all tasks but keep the workers.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$reset_data()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_log"></a>}}

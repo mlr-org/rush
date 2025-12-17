@@ -142,7 +142,7 @@ Rush = R6::R6Class("Rush",
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
     start_local_workers = function(
-      worker_loop = NULL,
+      worker_loop,
       ...,
       n_workers = NULL,
       globals = NULL,
@@ -329,7 +329,7 @@ Rush = R6::R6Class("Rush",
           stop("No daemons available. Start daemons with `mirai::daemons()`")
         }
         if (length(worker_id_mirai) > mirai_status$connections - mirai_status$mirai["executing"]) {
-          warningf("Number of workers %i exceeds number of available daemons %i", n_workers, mirai_status$connections - mirai_status$mirai["executing"])
+          warningf("Number of workers %i exceeds number of available daemons %i", length(worker_id_mirai), mirai_status$connections - mirai_status$mirai["executing"])
         }
 
         # stop running workers
@@ -378,7 +378,7 @@ Rush = R6::R6Class("Rush",
             args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE)",
               self$network_id, worker_id, config)),
             supervise = supervise, stderr = "|") # , stdout = "|"
-        }), worker_ids)
+        }), worker_id_processx)
         self$processes_processx = insert_named(self$processes_processx, new_processes)
         restarted_worker_ids = c(restarted_worker_ids, worker_id_processx)
       }
@@ -605,7 +605,7 @@ Rush = R6::R6Class("Rush",
         })
 
         # remove heartbeat keys
-        cmds = c(cmds, list(c("SREM", "heartbeat_keys", heartbeat_keys)))
+        cmds = c(cmds, list(c("SREM", private$.get_key("heartbeat_keys"), expired_heartbeat_keys)))
 
         r$pipeline(.commands =  cmds)
       }
@@ -667,6 +667,31 @@ Rush = R6::R6Class("Rush",
         lg$debug("Found remaining key: %s", key)
         if (grepl(self$network_id, key)) r$DEL(key)
       })
+
+      # reset counters and caches
+      private$.cached_tasks = list()
+      private$.n_seen_results = 0
+
+      return(invisible(self))
+    },
+
+    #' @description
+    #' Reset the data stored in the Redis database.
+    #' This is useful to remove all tasks but keep the workers.
+    reset_data = function() {
+      r = self$connector
+
+      # remove all tasks
+      walk(self$tasks, function(key) {
+        r$DEL(key)
+      })
+
+      # remove states
+      r$DEL(private$.get_key("queued_tasks"))
+      r$DEL(private$.get_key("running_tasks"))
+      r$DEL(private$.get_key("finished_tasks"))
+      r$DEL(private$.get_key("failed_tasks"))
+      r$DEL(private$.get_key("all_tasks"))
 
       # reset counters and caches
       private$.cached_tasks = list()
