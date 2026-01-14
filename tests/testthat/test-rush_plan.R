@@ -2,7 +2,7 @@ test_that("rush_plan family works", {
   skip_on_cran()
 
   expect_false(rush_available())
-  config = redis_config()
+  config = redux::redis_config()
   rush_plan(n_workers = 2, config)
   expect_identical(config, rush_env$config)
   expect_identical(rush_config()$config, config)
@@ -12,7 +12,7 @@ test_that("rush_plan family works", {
 })
 
 test_that("rush_plan throws and error if redis is not available", {
-  config = redis_config(url = "redis://localhost:1234")
+  config = redux::redis_config(url = "redis://localhost:1234")
   expect_error(rush_plan(n_workers = 2, config), "Can't connect to Redis")
 })
 

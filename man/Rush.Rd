@@ -290,7 +290,6 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
   worker_loop,
   ...,
   n_workers = NULL,
-  globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
@@ -313,9 +312,6 @@ Arguments passed to \code{worker_loop}.}
 Number of workers to be started.
 Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
 If \code{rush_plan()} is not called, the default is \code{1}.}
-
-\item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
@@ -356,7 +352,6 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
   worker_loop,
   ...,
   n_workers = NULL,
-  globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
@@ -378,9 +373,6 @@ Arguments passed to \code{worker_loop}.}
 Number of workers to be started.
 Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
 If \code{rush_plan()} is not called, the default is \code{1}.}
-
-\item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
@@ -415,7 +407,6 @@ Generate a script to start workers.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$worker_script(
   worker_loop,
   ...,
-  globals = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
@@ -434,9 +425,6 @@ Loop run on the workers.}
 
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
-
-\item{\code{globals}}{(\code{character()})\cr
-Global variables to be loaded to the workers global environment.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
