@@ -396,7 +396,7 @@ rush$worker_info
 
 We stop the daemons.
 
-```{r controller-043}
+```{r controller-043a}
 rush$reset()
 ```
 
