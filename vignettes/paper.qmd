@@ -3,8 +3,6 @@ title: "rush - A Database-Centric Architecture for Distributed Computing"
 format: html
 ---
 
-
-
 ```{r}
 #| include: false
 library(rush)
@@ -244,7 +242,12 @@ The fetching operation is done with and without caching.
 Runtime is reported as median and median absolute deviation (MAD) over 1000 runs.
 The runtime is measured with the `microbenchmark` R package.
 
-We run ABO on 1024 workers.
+
+The benchmark optimizes eight hyperparameters of the XGBoost learner using the ADBO algorithm on 1024 workers.
+The bank marketing dataset, derived from a Portuguese bank’s marketing campaign, includes client demographics, financial details, and previous interactions to predict term deposit subscriptions.
+Experiments were conducted on 10 nodes, each with 128 cores, totaling 1,280 workers.
+The optimization ran for 30 minutes, consuming 640 CPU hours.
+We compute the effective cpu utilization defined as the ratio between the total time spent on training xgboost models and the execution time times the number of workers.
 
 ## Results
 
@@ -292,6 +295,9 @@ ggplot(data, aes(x = n_tasks, y = runtime, color = benchmark)) +
   labs(x = "Number of Tasks", y = "Runtime (ms)", color = "Fetching") +
   theme_minimal()
 ```
+
+The effective cpu utilization
+
 
 # Discussion and Conclusion
 
