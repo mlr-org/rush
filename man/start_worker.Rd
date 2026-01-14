@@ -66,8 +66,6 @@ If \code{NULL}, no output is stored.}
 Starts a worker.
 The function loads packages, initializes the \link{RushWorker} instance and invokes the worker loop.
 This function is called by \verb{$start_local_workers()} or by the user after creating the worker script with \verb{$create_worker_script()}.
-Use with caution.
-A new R session is started for each worker.
 }
 \note{
 The function initializes the connection to the Redis data base.
