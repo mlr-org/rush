@@ -169,20 +169,20 @@ Rush = R6::R6Class("Rush",
 
       # convert arguments to character
       config = mlr3misc::discard(unclass(self$config), is.null)
-      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste(imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh"))), collapse = ", ")
       config = paste0("list(", config, ")")
-      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("'%s' = '%s'", name, value)), collapse = ", ")
+      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = %s", shQuote(name, type = "sh"), shQuote(value, type = "sh"))), collapse = ", ")
       lgr_thresholds = paste0("c(", lgr_thresholds, ")")
-      message_log = if(is.null(message_log)) "NULL" else sprintf("'%s'", message_log)
-      output_log = if(is.null(output_log)) "NULL" else sprintf("'%s'", output_log)
+      message_log = if (is.null(message_log)) "NULL" else shQuote(message_log, type = "sh")
+      output_log = if (is.null(output_log)) "NULL" else shQuote(output_log, type = "sh")
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
 
       self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
-          self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
+        args = c("-e", sprintf("rush::start_worker(network_id = %s, worker_id = %s, config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
+          shQuote(self$network_id, type = "sh"), shQuote(worker_id, type = "sh"), config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
         supervise = supervise, stderr = "|")
       }), worker_ids))
 
@@ -247,8 +247,8 @@ Rush = R6::R6Class("Rush",
             network_id = self$network_id,
             config = config,
             remote = TRUE,
-            lgr_thresholds,
-            lgr_buffer_size,
+            lgr_thresholds = lgr_thresholds,
+            lgr_buffer_size = lgr_buffer_size,
             message_log = message_log,
             output_log = output_log)),
         worker_ids))
