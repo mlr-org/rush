@@ -37,3 +37,54 @@ rush = rsh(
   config = redux::redis_config())
 ```
 
+## Start Workers {#sec-local-start-workers}
+
+Workers may be initiated locally or remotely.
+Local workers run on the same machine as the controller, whereas remote workers operate on separate machines.
+The `$start_local_workers()` method initiates local workers using the `processx` package.
+The `n_workers` parameter specifies the number of workers to launch.
+The `worker_loop` parameter defines the function executed by each worker.
+If the `worker_loop` function depends on additional objects, these can be passed as arguments to `worker_loop`.
+Required packages for the `worker_loop` can be specified using the `packages` parameter.
+
+```{r controller-003}
+worker_ids = rush$start_local_workers(
+  worker_loop = wl_random_search,
+  branin = bbotk::branin,
+  n_workers = 2)
+```
+
+Worker information is accessible through the `$worker_info` method.
+Each worker is identified by a `worker_id`.
+The `pid` field denotes the process identifier, and the `hostname` field indicates the machine name.
+The `remote` column specifies whether the worker is remote, and the `heartbeat` column indicates the presence of a heartbeat process.
+The `state` column indicates the current state of the worker.
+Possible states include `"running"`, `"terminated"`, `"killed"`, and `"lost"`.
+Heartbeat mechanisms are discussed in the [Error Handling](#error-handling) section.
+
+```{r controller-004}
+#| include: false
+Sys.sleep(1)
+```
+
+```{r controller-005}
+rush$worker_info
+```
+
+Additional workers may be added to the network at any time.
+
+```{r controller-006}
+rush$start_local_workers(
+  worker_loop = wl_random_search,
+  branin = bbotk::branin,
+  n_workers = 2)
+```
+
+```{r controller-007}
+#| include: false
+Sys.sleep(1)
+```
+
+```{r controller-008}
+rush$worker_info
+```
