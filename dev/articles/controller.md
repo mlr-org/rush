@@ -14,8 +14,8 @@ how the controller works.
 ``` r
 library(rush)
 
-wl_random_search = function(rush) {
-  while(rush$n_finished_tasks < 100) {
+wl_random_search = function(rush, branin) {
+  while(TRUE) {
 
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
@@ -28,6 +28,10 @@ wl_random_search = function(rush) {
 rush = rsh(
   network = "test-network",
   config = redux::redis_config())
+
+branin = function(x1, x2) {
+  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
+}
 ```
 
 ### Start Workers
@@ -38,14 +42,15 @@ separate machines. The `$start_local_workers()` method initiates local
 workers using the `processx` package. The `n_workers` parameter
 specifies the number of workers to launch. The `worker_loop` parameter
 defines the function executed by each worker. If the `worker_loop`
-function depends on global variables, these can be provided via the
-`globals` parameter. Required packages for the `worker_loop` can be
+function depends on additional objects, these can be passed as arguments
+to `worker_loop`. Required packages for the `worker_loop` can be
 specified using the `packages` parameter.
 
 ``` r
 worker_ids = rush$start_local_workers(
   worker_loop = wl_random_search,
-  n_workers = 4)
+  branin = branin,
+  n_workers = 2)
 ```
 
 Worker information is accessible through the `$worker_info` method. Each
@@ -64,16 +69,15 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: orthoclase...  8704  FALSE runnervm6q...     FALSE running
-    2: quenching_...  8720  FALSE runnervm6q...     FALSE running
-    3: delighted_...  8715  FALSE runnervm6q...     FALSE running
-    4: besotted_s...  8730  FALSE runnervm6q...     FALSE running
+    1: loopy_quin... 10010  FALSE runnervmmt...     FALSE running
+    2: entertaini... 10021  FALSE runnervmmt...     FALSE running
 
 Additional workers may be added to the network at any time.
 
 ``` r
 rush$start_local_workers(
   worker_loop = wl_random_search,
+  branin = branin,
   n_workers = 2)
 ```
 
@@ -83,12 +87,10 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: orthoclase...  8704  FALSE runnervm6q...     FALSE running
-    2: quenching_...  8720  FALSE runnervm6q...     FALSE running
-    3: delighted_...  8715  FALSE runnervm6q...     FALSE running
-    4: besotted_s...  8730  FALSE runnervm6q...     FALSE running
-    5: interested...  8858  FALSE runnervm6q...     FALSE running
-    6: reanalyzab...  8860  FALSE runnervm6q...     FALSE running
+    1: loopy_quin... 10010  FALSE runnervmmt...     FALSE running
+    2: entertaini... 10021  FALSE runnervmmt...     FALSE running
+    3: selfevolve... 10084  FALSE runnervmmt...     FALSE running
+    4: unpronounc... 10086  FALSE runnervmmt...     FALSE running
 
 ### Rush Plan
 
@@ -101,25 +103,24 @@ workers, the type of workers, and the configuration for connecting to
 the Redis database.
 
 ``` r
-rush_plan(n_workers = 4, config = redux::redis_config(), worker_type = "local")
+rush_plan(n_workers = 2, config = redux::redis_config(), worker_type = "local")
 ```
 
-### Globals
+### Passing data to workers
 
-Global variables are those defined in the global environment that must
-also be accessible to workers. They are specified by name in the
-`$start_local_workers()` method. These variables are serialized and
-stored in the Redis database. Upon initialization, each worker retrieves
-the serialized globals from the database and assigns them to its own
-global environment.
+Objects required by the worker loop can be passed as arguments to
+`$start_local_workers()` / `$start_remote_workers()`. These arguments
+are serialized and stored in the Redis database as part of the worker
+configuration. Upon initialization, each worker retrieves and
+unserializes the worker configuration before invoking the worker loop.
 
 > **Note**
 >
 > The maximum size of a Redis string is 512 MiB. If the serialized
-> globals required by the worker loop exceed this limit, Rush will raise
-> an error. In scenarios where both the controller and the workers have
-> access to a shared file system, Rush will instead write large objects
-> to disk. The `large_objects_path` argument of
+> worker configuration exceeds this limit, Rush will raise an error. In
+> scenarios where both the controller and the workers have access to a
+> shared file system, Rush will instead write large objects to disk. The
+> `large_objects_path` argument of
 > [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
 > specifies the directory used for storing such large objects.
 
@@ -141,12 +142,10 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: quenching_...  8720  FALSE runnervm6q...     FALSE running
-    2: delighted_...  8715  FALSE runnervm6q...     FALSE running
-    3: besotted_s...  8730  FALSE runnervm6q...     FALSE running
-    4: interested...  8858  FALSE runnervm6q...     FALSE running
-    5: reanalyzab...  8860  FALSE runnervm6q...     FALSE running
-    6: orthoclase...  8704  FALSE runnervm6q...     FALSE  killed
+    1: entertaini... 10021  FALSE runnervmmt...     FALSE running
+    2: selfevolve... 10084  FALSE runnervmmt...     FALSE running
+    3: unpronounc... 10086  FALSE runnervmmt...     FALSE running
+    4: loopy_quin... 10010  FALSE runnervmmt...     FALSE  killed
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -155,14 +154,14 @@ used.
 rush$reset()
 ```
 
-In the preceding example, the optimization process was stopped after 100
-iterations. Alternatively, it is possible to terminate the optimization
-by sending a terminate signal. The worker loop must implement the
+Instead of killing the worker processes, it is also possible to send a
+terminate signal to the worker. The worker then terminates after it has
+finished the current task. The worker loop must implement the
 `rush$terminated` flag. Then the rush controller can terminate the
 optimization.
 
 ``` r
-wl_random_search = function(rush) {
+wl_random_search = function(rush, branin) {
   while(!rush$terminated) {
 
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
@@ -179,7 +178,8 @@ rush = rsh(
 
 rush$start_local_workers(
   worker_loop = wl_random_search,
-  n_workers = 2)
+  n_workers = 2,
+  branin = branin)
 ```
 
 The random search proceeds as usual.
@@ -188,7 +188,19 @@ The random search proceeds as usual.
 rush$fetch_finished_tasks()
 ```
 
-    Null data.table (0 rows and 0 cols)
+                 x1          x2          y   pid     worker_id          keys
+              <num>       <num>      <num> <int>        <char>        <char>
+      1:  7.0888916  0.07065129  17.947437 10159 exilable_v... 4dd3f8df-a...
+      2: -0.6849254  2.77981585  36.541105 10159 exilable_v... bde40e60-e...
+      3:  7.5997890 12.31104774 132.212092 10159 exilable_v... 52e30de7-a...
+      4:  8.8313747  0.45771748   4.479984 10159 exilable_v... 17ede0b4-a...
+      5: -0.4790338  0.73898474  55.160909 10159 exilable_v... 94763e07-1...
+     ---
+    578:  4.8946469 10.31117015  92.853754 10159 exilable_v... 9a8bca88-1...
+    579:  3.7721624 14.69661569 167.675632 10157 mad_montan... d3d7b914-e...
+    580:  0.6445911  9.16144724  34.762633 10159 exilable_v... f0a027f5-c...
+    581:  8.5444915  6.51198198  25.781063 10157 mad_montan... 376a8120-4...
+    582:  3.4271851  9.43639706  55.156537 10159 exilable_v... 67cdb02d-0...
 
 To terminate the optimization, the following command is used.
 
@@ -202,10 +214,10 @@ The workers are terminated.
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: saltwater_...  8934  FALSE runnervm6q...     FALSE running
-    2: choral_neo...  8936  FALSE runnervm6q...     FALSE running
+           worker_id   pid remote      hostname heartbeat      state
+              <char> <int> <lgcl>        <char>    <lgcl>     <char>
+    1: mad_montan... 10157  FALSE runnervmmt...     FALSE terminated
+    2: exilable_v... 10159  FALSE runnervmmt...     FALSE terminated
 
 ### Failed Workers
 
@@ -237,8 +249,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat  state
               <char> <int> <lgcl>        <char>    <lgcl> <char>
-    1:    rude_shrew  9010  FALSE runnervm6q...     FALSE   lost
-    2: postprophe...  9012  FALSE runnervm6q...     FALSE   lost
+    1: bacteriolo... 10235  FALSE runnervmmt...     FALSE   lost
+    2: light_grea... 10233  FALSE runnervmmt...     FALSE   lost
 
 ### Restart Workers
 
@@ -258,8 +270,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1:    rude_shrew  9082  FALSE runnervm6q...     FALSE running
-    2: postprophe...  9012  FALSE runnervm6q...     FALSE    lost
+    1: light_grea... 10305  FALSE runnervmmt...     FALSE running
+    2: bacteriolo... 10235  FALSE runnervmmt...     FALSE    lost
 
 ### Log Messages
 
@@ -358,8 +370,8 @@ daemons(
 We define a worker loop.
 
 ``` r
-wl_random_search = function(rush) {
-  while(rush$n_finished_tasks < 100) {
+wl_random_search = function(rush, branin) {
+  while(TRUE) {
 
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
@@ -374,11 +386,9 @@ rush = rsh(
   config = redux::redis_config())
 ```
 
-First we stop all previously started daemons with`daemons(0)`. Then we
-start two new daemons.
+We start two new daemons.
 
 ``` r
-daemons(0)
 daemons(2)
 ```
 
@@ -387,7 +397,8 @@ After the daemons are started, we can start the remote workers.
 ``` r
 worker_ids = rush$start_remote_workers(
   worker_loop = wl_random_search,
-  n_workers = 2)
+  n_workers = 2,
+  branin = branin)
 ```
 
 ``` r
@@ -396,8 +407,14 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: waterresis...  9235   TRUE runnervm6q...     FALSE running
-    2: contortion...  9232   TRUE runnervm6q...     FALSE running
+    1: carnivales... 10455   TRUE runnervmmt...     FALSE running
+    2: symbiotic_... 10457   TRUE runnervmmt...     FALSE running
+
+We stop the daemons.
+
+``` r
+rush$reset()
+```
 
 ### Failed Workers
 
@@ -415,7 +432,6 @@ wl_failed_worker = function(rush) {
 Start two new daemons.
 
 ``` r
-daemons(0)
 daemons(2)
 ```
 
@@ -436,7 +452,6 @@ Therefore, it is necessary to restart the daemon before restarting the
 workers.
 
 ``` r
-daemons(0)
 daemons(2)
 ```
 

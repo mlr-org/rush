@@ -39,7 +39,7 @@ Branin function, and submits the result. The optimization stops after
 100 tasks have been evaluated.
 
 ``` r
-wl_random_search = function(rush) {
+wl_random_search = function(rush, branin) {
 
   while(rush$n_finished_tasks < 100) {
 
@@ -112,9 +112,8 @@ accepts the worker loop and the number of workers as arguments. The
 workers are started locally with the `processx` package but it is also
 possible to start workers on a remote machine (see [Rush
 Controller](https://rush.mlr-org.com/dev/articles/rush_controller.md)).
-We need to export the `branin` function to the workers, so we set the
-`globals` argument to `"branin"`. More on globals and the different
-worker types can be found in the [Rush
+We pass the `branin` function explicitly as an argument to the worker
+loop. More on the different worker types can be found in the [Rush
 Controller](https://rush.mlr-org.com/dev/articles/rush_controller.md)
 vignette.
 
@@ -122,7 +121,7 @@ vignette.
 rush$start_local_workers(
   worker_loop = wl_random_search,
   n_workers = 4,
-  globals = "branin")
+  branin = branin)
 
 rush
 ```
@@ -151,17 +150,17 @@ rush$fetch_finished_tasks()[order(y)]
 
                 x1         x2           y   pid     worker_id          keys
              <num>      <num>       <num> <int>        <char>        <char>
-      1:  3.367786  1.8229204   0.7221683  9952 unmetallur... ad13cb5e-0...
-      2:  9.002419  2.2132475   1.2467864  9963 acidophili... 04ba2796-a...
-      3:  8.914890  1.7575072   1.7223120  9978 ranidaphob... d650e9b9-b...
-      4:  8.908386  2.3589451   1.7312159  9978 ranidaphob... d2b7129f-1...
-      5: -3.559390 12.5558435   1.7799953  9963 acidophili... b3935212-d...
+      1:  9.367293  2.7920694   0.5470697 11186 unemptied_... 08580839-c...
+      2:  2.788537  2.2687043   1.0787861 11195 peacocky_t... 5feffc17-6...
+      3: -3.136891 13.1741556   1.2269142 11195 peacocky_t... 04507fd7-4...
+      4: -3.105620 11.2767872   1.2357135 11175 washedout_... ebf0d0e9-5...
+      5: -2.497703 10.1728223   2.6905975 11195 peacocky_t... b5a1fd74-7...
      ---
-     99:  5.247815 13.7061143 171.1637358  9952 unmetallur... b7514cf8-c...
-    100:  6.820841 14.1875855 188.1097817  9968 predesirou... 146e3b81-5...
-    101: -4.175885  0.7861299 204.2608828  9968 predesirou... 55f54f13-f...
-    102: -4.206424  0.6761029 209.9627875  9952 unmetallur... b5a7c527-c...
-    103: -4.926010  1.8897009 239.5936151  9952 unmetallur... 19cd478c-6...
+     98:  4.250477 14.8348401 181.7012422 11175 washedout_... 2c65fedf-c...
+     99:  8.029601 14.8519457 185.2747795 11195 peacocky_t... 4cae1403-1...
+    100:  5.897529 14.0174041 185.5769926 11186 unemptied_... b7d3400c-7...
+    101: -4.344172  0.4454555 228.7461914 11195 peacocky_t... 0a9726fd-e...
+    102: -4.615034  0.8684414 240.9603524 11195 peacocky_t... 49747dc3-8...
 
 The rush controller displays how many workers are running and how many
 tasks exist in each state. In this case, 103 tasks are marked as
@@ -181,7 +180,7 @@ rush
     * Queued Tasks: 0
     * Queued Priority Tasks: 0
     * Running Tasks: 0
-    * Finished Tasks: 103
+    * Finished Tasks: 102
     * Failed Tasks: 0
 
 We can stop the workers and reset the database with the `$reset()`
@@ -237,7 +236,7 @@ continues until the network has evaluated 1000 complete models across
 all workers.
 
 ``` r
-wl_median_stopping = function(rush) {
+wl_median_stopping = function(rush, training_ids, test_ids, data, y) {
   while(rush$n_finished_tasks < 1000) {
 
     params = list(
@@ -279,9 +278,9 @@ fetch all finished tasks from the database. Other methods like
 We sample a training and test set from the mtcars dataset. The training
 set is used to fit the model and the test set is used to evaluate the
 model. Then we initialize the rush network and start the workers. This
-time we have to pass the training and test set to the workers via the
-`globals` argument and the `packages` argument to load the `data.table`
-and `xgboost` packages.
+time we pass the training/test split and the data explicitly as
+arguments to the worker loop, and use the `packages` argument to load
+the `data.table` and `xgboost` packages.
 
 ``` r
 data(mtcars)
@@ -301,7 +300,10 @@ rush$start_local_workers(
   worker_loop = wl_median_stopping,
   n_workers = 4,
   packages = c("data.table", "xgboost"),
-  globals = c("training_ids", "test_ids", "data", "y"))
+  training_ids = training_ids,
+  test_ids = test_ids,
+  data = data,
+  y = y)
 ```
 
 We fetch the finished tasks and sort them by the objective value.
@@ -397,7 +399,7 @@ the database. We stop the optimization process after 100 evaluated
 tasks.
 
 ``` r
-wl_bayesian_optimization = function(rush) {
+wl_bayesian_optimization = function(rush, branin_fun) {
   repeat {
     task = rush$pop_task()
     if (is.null(task)) break
@@ -424,7 +426,7 @@ wl_bayesian_optimization = function(rush) {
     xs = as.list(xdt[which.min(cb)])
     key = rush$push_running_tasks(xss = list(xs))
 
-    ys = list(y = branin(xs$x1, xs$x2))
+    ys = list(y = branin_fun(xs$x1, xs$x2))
     rush$push_results(key, yss = list(ys))
   }
 }
@@ -437,7 +439,7 @@ the Bayesian optimization worker loop.
 rush$start_local_workers(
   worker_loop = wl_bayesian_optimization,
   n_workers = 4,
-  globals = "branin")
+  branin_fun = branin)
 ```
 
 The optimization is quickly finished and we retrieve the results.
@@ -446,31 +448,4 @@ The optimization is quickly finished and we retrieve the results.
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-                x1          x2          y   pid     worker_id          keys
-             <num>       <num>      <num> <int>        <char>        <char>
-     1:  3.1900645  0.04242753   5.227519 10257 antisocial... 96db92fc-c...
-     2:  9.3146022  4.71383104   5.885932 10257 antisocial... 372cf702-7...
-     3:  2.2620656  0.68534852   9.521465 10257 antisocial... a3335294-d...
-     4:  8.2719211  3.58204809   9.742455 10257 antisocial... a2a3c1ed-c...
-     5:  1.4896436  4.81368208  11.584532 10259 daffy_kent... 260eca18-2...
-     6:  4.8194191  2.77771792  13.121065 10257 antisocial... 9ad31171-e...
-     7:  1.2568485  4.65679421  13.170551 10257 antisocial... 680bb0c2-b...
-     8: -1.1709228  7.79746325  13.797285 10259 daffy_kent... a0bcd342-2...
-     9: -4.4585296 12.59146555  17.028750 10257 antisocial... 566f07c3-0...
-    10: -0.3291837  6.75580352  19.134019 10259 daffy_kent... 9d80fc36-1...
-    11:  4.1144105  6.38733242  27.144769 10283 vivid_elep... f25d086c-6...
-    12:  4.1529900  6.37744623  27.552917 10257 antisocial... f8838bbf-1...
-    13:  6.8172954  4.62746175  30.330699 10257 antisocial... fc1cefd7-6...
-    14: -2.6167447  5.59101867  31.482626 10272 material_a... 46f706e2-c...
-    15:  0.9532838  8.59551962  31.522302 10257 antisocial... f9b4451d-3...
-    16: -2.9934786  6.27521455  32.387854 10272 material_a... 3aef2b0e-1...
-    17: -2.8819090  5.89385043  33.964043 10257 antisocial... dab912d8-0...
-    18:  5.7928451  5.53313042  37.986602 10257 antisocial... 53d4c7ae-9...
-    19:  7.0788219  6.37275150  43.403757 10257 antisocial... bbc76474-7...
-    20:  0.2226491  0.64898434  44.395729 10259 daffy_kent... fba38245-b...
-    21:  5.1139943  8.09102968  60.698539 10257 antisocial... 8470ca88-4...
-    22: -4.7897698  9.41946600  62.114285 10257 antisocial... 1f2645fd-6...
-    23:  8.4030487 12.83492220 127.908374 10257 antisocial... 11df48fd-7...
-    24: -4.5868418  3.76779209 158.868019 10257 antisocial... 47e01cde-6...
-    25:  6.6518042 13.99321742 184.437803 10257 antisocial... 3de8bbbd-3...
-                x1          x2          y   pid     worker_id          keys
+    Null data.table (0 rows and 0 cols)

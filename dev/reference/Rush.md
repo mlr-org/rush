@@ -391,7 +391,6 @@ have precedence over the parameters set here.
       worker_loop,
       ...,
       n_workers = NULL,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -421,11 +420,6 @@ have precedence over the parameters set here.
   If
   [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   is not called, the default is `1`.
-
-- `globals`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Global variables to be loaded to the workers global environment.
 
 - `packages`:
 
@@ -481,7 +475,6 @@ have precedence over the parameters set here.
       worker_loop,
       ...,
       n_workers = NULL,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -510,11 +503,6 @@ have precedence over the parameters set here.
   If
   [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   is not called, the default is `1`.
-
-- `globals`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Global variables to be loaded to the workers global environment.
 
 - `packages`:
 
@@ -560,7 +548,6 @@ Generate a script to start workers.
     Rush$worker_script(
       worker_loop,
       ...,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -581,11 +568,6 @@ Generate a script to start workers.
 
   (`any`)  
   Arguments passed to `worker_loop`.
-
-- `globals`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Global variables to be loaded to the workers global environment.
 
 - `packages`:
 

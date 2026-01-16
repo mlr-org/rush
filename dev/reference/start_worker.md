@@ -1,12 +1,10 @@
 # Start a worker
 
-Starts a worker. The function loads the globals and packages,
-initializes the
+Starts a worker. The function loads packages, initializes the
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)
 instance and invokes the worker loop. This function is called by
 `$start_local_workers()` or by the user after creating the worker script
-with `$create_worker_script()`. Use with caution. The global environment
-is changed.
+with `$create_worker_script()`.
 
 ## Usage
 
@@ -96,8 +94,7 @@ start_worker(
 ## Note
 
 The function initializes the connection to the Redis data base. It loads
-the packages and copies the globals to the global environment of the
-worker. The function initialize the
+the packages required by the worker loop. The function initialize the
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)
 instance and starts the worker loop.
 

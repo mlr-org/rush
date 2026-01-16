@@ -114,7 +114,7 @@
 <p>We define the <code>worker_loop</code> function, which runs on each worker. It repeatedly draws tasks, evaluates them, and sends the results to the Redis database. The function takes a single argument: a <code>RushWorker</code> object, which handles communication with Redis. In this example, each worker samples a random point, creates a task, evaluates it using the Branin function, and submits the result. The optimization stops after 100 tasks have been evaluated.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_random_search</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">wl_random_search</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span>, <span class="va">branin</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
 <span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
@@ -143,13 +143,13 @@
 <span>  network <span class="op">=</span> <span class="st">"test-random-search"</span>,</span>
 <span>  config <span class="op">=</span> <span class="va">config</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>Workers can be started using the <code>$start_local_workers()</code> method, which accepts the worker loop and the number of workers as arguments. The workers are started locally with the <code>processx</code> package but it is also possible to start workers on a remote machine (see <a href="rush_controller.html">Rush Controller</a>). We need to export the <code>branin</code> function to the workers, so we set the <code>globals</code> argument to <code>"branin"</code>. More on globals and the different worker types can be found in the <a href="rush_controller.html">Rush Controller</a> vignette.</p>
+<p>Workers can be started using the <code>$start_local_workers()</code> method, which accepts the worker loop and the number of workers as arguments. The workers are started locally with the <code>processx</code> package but it is also possible to start workers on a remote machine (see <a href="rush_controller.html">Rush Controller</a>). We pass the <code>branin</code> function explicitly as an argument to the worker loop. More on the different worker types can be found in the <a href="rush_controller.html">Rush Controller</a> vignette.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  globals <span class="op">=</span> <span class="st">"branin"</span><span class="op">)</span></span>
+<span>  branin <span class="op">=</span> <span class="va">branin</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rush</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -169,17 +169,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>            x1         x2           y   pid     worker_id          keys
          &lt;num&gt;      &lt;num&gt;       &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;
-  1:  3.367786  1.8229204   0.7221683  9952 unmetallur... ad13cb5e-0...
-  2:  9.002419  2.2132475   1.2467864  9963 acidophili... 04ba2796-a...
-  3:  8.914890  1.7575072   1.7223120  9978 ranidaphob... d650e9b9-b...
-  4:  8.908386  2.3589451   1.7312159  9978 ranidaphob... d2b7129f-1...
-  5: -3.559390 12.5558435   1.7799953  9963 acidophili... b3935212-d...
+  1:  9.367293  2.7920694   0.5470697 11186 unemptied_... 08580839-c...
+  2:  2.788537  2.2687043   1.0787861 11195 peacocky_t... 5feffc17-6...
+  3: -3.136891 13.1741556   1.2269142 11195 peacocky_t... 04507fd7-4...
+  4: -3.105620 11.2767872   1.2357135 11175 washedout_... ebf0d0e9-5...
+  5: -2.497703 10.1728223   2.6905975 11195 peacocky_t... b5a1fd74-7...
  ---
- 99:  5.247815 13.7061143 171.1637358  9952 unmetallur... b7514cf8-c...
-100:  6.820841 14.1875855 188.1097817  9968 predesirou... 146e3b81-5...
-101: -4.175885  0.7861299 204.2608828  9968 predesirou... 55f54f13-f...
-102: -4.206424  0.6761029 209.9627875  9952 unmetallur... b5a7c527-c...
-103: -4.926010  1.8897009 239.5936151  9952 unmetallur... 19cd478c-6...</code></pre>
+ 98:  4.250477 14.8348401 181.7012422 11175 washedout_... 2c65fedf-c...
+ 99:  8.029601 14.8519457 185.2747795 11195 peacocky_t... 4cae1403-1...
+100:  5.897529 14.0174041 185.5769926 11186 unemptied_... b7d3400c-7...
+101: -4.344172  0.4454555 228.7461914 11195 peacocky_t... 0a9726fd-e...
+102: -4.615034  0.8684414 240.9603524 11195 peacocky_t... 49747dc3-8...</code></pre>
 </div>
 </div>
 <p>The rush controller displays how many workers are running and how many tasks exist in each state. In this case, 103 tasks are marked as finished, and all workers have stopped. The number slightly exceeds 100 because workers check the stopping condition independently. If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.</p>
@@ -192,7 +192,7 @@
 * Queued Tasks: 0
 * Queued Priority Tasks: 0
 * Running Tasks: 0
-* Finished Tasks: 103
+* Finished Tasks: 102
 * Failed Tasks: 0</code></pre>
 </div>
 </div>
@@ -222,7 +222,7 @@
 <p>If the current model performs worse than the median, the worker stops this hyperparameter configuration and starts over with a new one. This early stopping mechanism prevents workers from wasting time on poor-performing configurations. If the model performs at or above the median, the worker continues training for one more round. The process continues until the network has evaluated 1000 complete models across all workers.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_median_stopping</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">wl_median_stopping</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span>, <span class="va">training_ids</span>, <span class="va">test_ids</span>, <span class="va">data</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
 <span>    <span class="va">params</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -257,7 +257,7 @@
 <span><span class="op">}</span></span></code></pre></div>
 </div>
 <p>The worker loop uses a new method called <code>$fetch_finished_tasks()</code> to fetch all finished tasks from the database. Other methods like <code>$fetch_running_tasks()</code> and <code>$fetch_failed_tasks()</code> are also available.</p>
-<p>We sample a training and test set from the mtcars dataset. The training set is used to fit the model and the test set is used to evaluate the model. Then we initialize the rush network and start the workers. This time we have to pass the training and test set to the workers via the <code>globals</code> argument and the <code>packages</code> argument to load the <code>data.table</code> and <code>xgboost</code> packages.</p>
+<p>We sample a training and test set from the mtcars dataset. The training set is used to fit the model and the test set is used to evaluate the model. Then we initialize the rush network and start the workers. This time we pass the training/test split and the data explicitly as arguments to the worker loop, and use the <code>packages</code> argument to load the <code>data.table</code> and <code>xgboost</code> packages.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -277,7 +277,10 @@
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_median_stopping</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"data.table"</span>, <span class="st">"xgboost"</span><span class="op">)</span>,</span>
-<span>  globals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"training_ids"</span>, <span class="st">"test_ids"</span>, <span class="st">"data"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  training_ids <span class="op">=</span> <span class="va">training_ids</span>,</span>
+<span>  test_ids <span class="op">=</span> <span class="va">test_ids</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">data</span>,</span>
+<span>  y <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>We fetch the finished tasks and sort them by the objective value.</p>
 <div class="cell">
@@ -330,7 +333,7 @@
 <p>The worker loop pops tasks with the <code>$pop_task()</code> method from the queue. The task is evaluated and the results are pushed back to the database with the <code>$push_results()</code> method. If there are no more tasks in the queue, the <code>$pop_task()</code> method returns <code>NULL</code> and the worker loop starts the Bayesian optimization. First, a lambda value for the acquisition function is sampled between 0.01 and 10. Then all running and finished tasks are fetched from the database. Using <code>rush$fetch_tasks_with_state()</code> instead of using <code>$fetch_running_tasks()</code> and <code>$fetch_finished_tasks()</code> is important because it prevents tasks from appearing twice. This could be the case if a worker changes the state of a task from <code>"running"</code> to <code>"finished"</code> while the tasks are being fetched. The missing y values of the running tasks are imputed with the mean of the finished tasks. Then the surrogate random forest model is fitted to the data and the acquisition function is optimized to find the next task. Marking the task as running is important for the Bayesian optimization algorithm, as it uses the already sampled points of the other workers to decide which task to evaluate next. The task is evaluated and the results are pushed back to the database. We stop the optimization process after 100 evaluated tasks.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_bayesian_optimization</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">wl_bayesian_optimization</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span>, <span class="va">branin_fun</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">repeat</span> <span class="op">{</span></span>
 <span>    <span class="va">task</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">pop_task</span><span class="op">(</span><span class="op">)</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">task</span><span class="op">)</span><span class="op">)</span> <span class="kw">break</span></span>
@@ -357,7 +360,7 @@
 <span>    <span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">xdt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min</a></span><span class="op">(</span><span class="va">cb</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span>    <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin_fun</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -368,41 +371,14 @@
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_bayesian_optimization</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  globals <span class="op">=</span> <span class="st">"branin"</span><span class="op">)</span></span></code></pre></div>
+<span>  branin_fun <span class="op">=</span> <span class="va">branin</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>The optimization is quickly finished and we retrieve the results.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x1          x2          y   pid     worker_id          keys
-         &lt;num&gt;       &lt;num&gt;      &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;
- 1:  3.1900645  0.04242753   5.227519 10257 antisocial... 96db92fc-c...
- 2:  9.3146022  4.71383104   5.885932 10257 antisocial... 372cf702-7...
- 3:  2.2620656  0.68534852   9.521465 10257 antisocial... a3335294-d...
- 4:  8.2719211  3.58204809   9.742455 10257 antisocial... a2a3c1ed-c...
- 5:  1.4896436  4.81368208  11.584532 10259 daffy_kent... 260eca18-2...
- 6:  4.8194191  2.77771792  13.121065 10257 antisocial... 9ad31171-e...
- 7:  1.2568485  4.65679421  13.170551 10257 antisocial... 680bb0c2-b...
- 8: -1.1709228  7.79746325  13.797285 10259 daffy_kent... a0bcd342-2...
- 9: -4.4585296 12.59146555  17.028750 10257 antisocial... 566f07c3-0...
-10: -0.3291837  6.75580352  19.134019 10259 daffy_kent... 9d80fc36-1...
-11:  4.1144105  6.38733242  27.144769 10283 vivid_elep... f25d086c-6...
-12:  4.1529900  6.37744623  27.552917 10257 antisocial... f8838bbf-1...
-13:  6.8172954  4.62746175  30.330699 10257 antisocial... fc1cefd7-6...
-14: -2.6167447  5.59101867  31.482626 10272 material_a... 46f706e2-c...
-15:  0.9532838  8.59551962  31.522302 10257 antisocial... f9b4451d-3...
-16: -2.9934786  6.27521455  32.387854 10272 material_a... 3aef2b0e-1...
-17: -2.8819090  5.89385043  33.964043 10257 antisocial... dab912d8-0...
-18:  5.7928451  5.53313042  37.986602 10257 antisocial... 53d4c7ae-9...
-19:  7.0788219  6.37275150  43.403757 10257 antisocial... bbc76474-7...
-20:  0.2226491  0.64898434  44.395729 10259 daffy_kent... fba38245-b...
-21:  5.1139943  8.09102968  60.698539 10257 antisocial... 8470ca88-4...
-22: -4.7897698  9.41946600  62.114285 10257 antisocial... 1f2645fd-6...
-23:  8.4030487 12.83492220 127.908374 10257 antisocial... 11df48fd-7...
-24: -4.5868418  3.76779209 158.868019 10257 antisocial... 47e01cde-6...
-25:  6.6518042 13.99321742 184.437803 10257 antisocial... 3de8bbbd-3...
-            x1          x2          y   pid     worker_id          keys</code></pre>
+<pre><code>Null data.table (0 rows and 0 cols)</code></pre>
 </div>
 </div>
 </section></section><script id="quarto-html-after-body" type="application/javascript">
