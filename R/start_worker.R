@@ -2,14 +2,12 @@
 #'
 #' @description
 #' Starts a worker.
-#' The function loads the globals and packages, initializes the [RushWorker] instance and invokes the worker loop.
+#' The function loads packages, initializes the [RushWorker] instance and invokes the worker loop.
 #' This function is called by `$start_local_workers()` or by the user after creating the worker script with `$create_worker_script()`.
-#' Use with caution.
-#' The global environment is changed.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
-#' It loads the packages and copies the globals to the global environment of the worker.
+#' It loads the packages required by the worker loop.
 #' The function initialize the [RushWorker] instance and starts the worker loop.
 #'
 #' @param remote (`logical(1)`)\cr
@@ -122,12 +120,9 @@ start_worker = function(
     lg$debug("Large objects loaded from disk")
   }
 
-  # load packages and globals to worker environment
-  envir = .GlobalEnv
+  # load packages to worker environment
   mlr3misc::walk(start_args$packages, function(package) library(package, character.only = TRUE))
   lg$debug("Packages loaded")
-  mlr3misc::iwalk(start_args$globals, function(value, name) assign(name, value, envir))
-  lg$debug("Globals loaded")
 
   # initialize rush worker
   rush = rush::RushWorker$new(
