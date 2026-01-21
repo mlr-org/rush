@@ -42,7 +42,7 @@ In this example, each worker samples a random point, creates a task, evaluates i
 The optimization stops after 100 tasks have been evaluated.
 
 ```{r rush-003}
-wl_random_search = function(rush) {
+wl_random_search = function(rush, branin) {
 
   while(rush$n_finished_tasks < 100) {
 
@@ -99,14 +99,14 @@ rush = rsh(
 
 Workers can be started using the `$start_local_workers()` method, which accepts the worker loop and the number of workers as arguments.
 The workers are started locally with the `processx` package but it is also possible to start workers on a remote machine (see [Rush Controller](rush_controller.html)).
-We need to export the `branin` function to the workers, so we set the `globals` argument to `"branin"`.
-More on globals and the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
+We pass the `branin` function explicitly as an argument to the worker loop.
+More on the different worker types can be found in the [Rush Controller](rush_controller.html) vignette.
 
 ```{r rush-005}
 rush$start_local_workers(
   worker_loop = wl_random_search,
   n_workers = 4,
-  globals = "branin")
+  branin = branin)
 
 rush
 ```
@@ -166,7 +166,7 @@ If the model performs at or above the median, the worker continues training for 
 The process continues until the network has evaluated 1000 complete models across all workers.
 
 ```{r rush-010}
-wl_median_stopping = function(rush) {
+wl_median_stopping = function(rush, training_ids, test_ids, data, y) {
   while(rush$n_finished_tasks < 1000) {
 
     params = list(
@@ -207,7 +207,7 @@ Other methods like `$fetch_running_tasks()` and `$fetch_failed_tasks()` are also
 We sample a training and test set from the mtcars dataset.
 The training set is used to fit the model and the test set is used to evaluate the model.
 Then we initialize the rush network and start the workers.
-This time we have to pass the training and test set to the workers via the `globals` argument and the `packages` argument to load the `data.table` and `xgboost` packages.
+This time we pass the training/test split and the data explicitly as arguments to the worker loop, and use the `packages` argument to load the `data.table` and `xgboost` packages.
 
 ```{r rush-011}
 data(mtcars)
@@ -227,7 +227,10 @@ rush$start_local_workers(
   worker_loop = wl_median_stopping,
   n_workers = 4,
   packages = c("data.table", "xgboost"),
-  globals = c("training_ids", "test_ids", "data", "y"))
+  training_ids = training_ids,
+  test_ids = test_ids,
+  data = data,
+  y = y)
 ```
 
 We fetch the finished tasks and sort them by the objective value.
@@ -300,7 +303,7 @@ The task is evaluated and the results are pushed back to the database.
 We stop the optimization process after 100 evaluated tasks.
 
 ```{r rush-017}
-wl_bayesian_optimization = function(rush) {
+wl_bayesian_optimization = function(rush, branin_fun) {
   repeat {
     task = rush$pop_task()
     if (is.null(task)) break
@@ -327,7 +330,7 @@ wl_bayesian_optimization = function(rush) {
     xs = as.list(xdt[which.min(cb)])
     key = rush$push_running_tasks(xss = list(xs))
 
-    ys = list(y = branin(xs$x1, xs$x2))
+    ys = list(y = branin_fun(xs$x1, xs$x2))
     rush$push_results(key, yss = list(ys))
   }
 }
@@ -339,7 +342,7 @@ We start the optimization process by starting 4 local workers that run the Bayes
 rush$start_local_workers(
   worker_loop = wl_bayesian_optimization,
   n_workers = 4,
-  globals = "branin")
+  branin_fun = branin)
 
 ```
 

@@ -64,14 +64,12 @@ If \code{NULL}, no output is stored.}
 }
 \description{
 Starts a worker.
-The function loads the globals and packages, initializes the \link{RushWorker} instance and invokes the worker loop.
+The function loads packages, initializes the \link{RushWorker} instance and invokes the worker loop.
 This function is called by \verb{$start_local_workers()} or by the user after creating the worker script with \verb{$create_worker_script()}.
-Use with caution.
-The global environment is changed.
 }
 \note{
 The function initializes the connection to the Redis data base.
-It loads the packages and copies the globals to the global environment of the worker.
+It loads the packages required by the worker loop.
 The function initialize the \link{RushWorker} instance and starts the worker loop.
 }
 \examples{

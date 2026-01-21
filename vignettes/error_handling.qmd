@@ -27,7 +27,7 @@ branin = function(x1, x2) {
   (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
 }
 
-wl_random_search = function(rush) {
+wl_random_search = function(rush, branin) {
 
   while(rush$n_finished_tasks < 100) {
 
@@ -59,7 +59,7 @@ rush = rsh(
 rush$start_local_workers(
   worker_loop = wl_random_search,
   n_workers = 4,
-  globals = "branin")
+  branin = branin)
 ```
 
 ```{r error_handling-004_handling-004_handling-004}

@@ -19,7 +19,6 @@
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
-#' @template param_globals
 #' @template param_packages
 #' @template param_remote
 #' @template param_lgr_thresholds
@@ -145,7 +144,6 @@ Rush = R6::R6Class("Rush",
       worker_loop,
       ...,
       n_workers = NULL,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -164,7 +162,6 @@ Rush = R6::R6Class("Rush",
       private$.push_worker_config(
         worker_loop = worker_loop,
         ...,
-        globals = globals,
         packages = packages
       )
 
@@ -172,20 +169,20 @@ Rush = R6::R6Class("Rush",
 
       # convert arguments to character
       config = mlr3misc::discard(unclass(self$config), is.null)
-      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste(imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh"))), collapse = ", ")
       config = paste0("list(", config, ")")
-      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("'%s' = '%s'", name, value)), collapse = ", ")
+      lgr_thresholds = paste(imap(lgr_thresholds, function(value, name) sprintf("%s = %s", shQuote(name, type = "sh"), shQuote(value, type = "sh"))), collapse = ", ")
       lgr_thresholds = paste0("c(", lgr_thresholds, ")")
-      message_log = if(is.null(message_log)) "NULL" else sprintf("'%s'", message_log)
-      output_log = if(is.null(output_log)) "NULL" else sprintf("'%s'", output_log)
+      message_log = if (is.null(message_log)) "NULL" else shQuote(message_log, type = "sh")
+      output_log = if (is.null(output_log)) "NULL" else shQuote(output_log, type = "sh")
 
       # generate worker ids
       worker_ids = adjective_animal(n = n_workers)
 
       self$processes_processx = c(self$processes_processx, set_names(map(worker_ids, function(worker_id) {
        processx::process$new("Rscript",
-        args = c("-e", sprintf("rush::start_worker(network_id = '%s', worker_id = '%s', config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
-          self$network_id, worker_id, config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
+        args = c("-e", sprintf("rush::start_worker(network_id = %s, worker_id = %s, config = %s, remote = FALSE, lgr_thresholds = %s, lgr_buffer_size = %i, message_log = %s, output_log = %s)",
+          shQuote(self$network_id, type = "sh"), shQuote(worker_id, type = "sh"), config, lgr_thresholds, lgr_buffer_size, message_log, output_log)),
         supervise = supervise, stderr = "|")
       }), worker_ids))
 
@@ -207,7 +204,6 @@ Rush = R6::R6Class("Rush",
       worker_loop,
       ...,
       n_workers = NULL,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -224,7 +220,7 @@ Rush = R6::R6Class("Rush",
         stop("No daemons available. Start daemons with `mirai::daemons()`")
       }
 
-      # $mirai is only available when mirai is started with a dispatcher
+      # mirai is only available when mirai is started with a dispatcher
       if (!is.null(mirai_status$mirai) && n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
         warningf("Number of workers %i exceeds number of available daemons %i", n_workers, mirai_status$connections - mirai_status$mirai["executing"])
       }
@@ -233,7 +229,6 @@ Rush = R6::R6Class("Rush",
       private$.push_worker_config(
         worker_loop = worker_loop,
         ...,
-        globals = globals,
         packages = packages
       )
 
@@ -252,8 +247,8 @@ Rush = R6::R6Class("Rush",
             network_id = self$network_id,
             config = config,
             remote = TRUE,
-            lgr_thresholds,
-            lgr_buffer_size,
+            lgr_thresholds = lgr_thresholds,
+            lgr_buffer_size = lgr_buffer_size,
             message_log = message_log,
             output_log = output_log)),
         worker_ids))
@@ -269,7 +264,6 @@ Rush = R6::R6Class("Rush",
     worker_script = function(
       worker_loop,
       ...,
-      globals = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -285,7 +279,6 @@ Rush = R6::R6Class("Rush",
       private$.push_worker_config(
         worker_loop = worker_loop,
         ...,
-        globals = globals,
         packages = packages
       )
 
@@ -1639,33 +1632,20 @@ Rush = R6::R6Class("Rush",
     .push_worker_config = function(
       worker_loop = NULL,
       ...,
-      globals = NULL,
       packages = NULL
       ) {
       assert_function(worker_loop)
       dots = list(...)
-      assert_character(globals, null.ok = TRUE)
       assert_character(packages, null.ok = TRUE)
 
       r = self$connector
 
       lg$debug("Pushing worker config to Redis")
 
-      # find globals
-      if (!is.null(globals)) {
-        global_names = if (!is.null(names(globals))) names(globals) else globals
-        globals = set_names(map(globals, function(global) {
-          value = get(global, envir = parent.frame(), inherits = TRUE)
-          if (is.null(value)) stopf("Global `%s` not found", global)
-          value
-        }), global_names)
-      }
-
       # arguments needed for initializing the worker
       start_args = list(
         worker_loop = worker_loop,
         worker_loop_args = dots,
-        globals = globals,
         packages = c("rush", packages))
 
       # serialize and push arguments to redis
