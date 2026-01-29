@@ -1401,3 +1401,18 @@ test_that("reset data works", {
 
   expect_rush_reset(rush)
 })
+
+# push finished tasks ------------------------------------------------------------
+
+test_that("pushing finished tasks works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+
+  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xs_extra = list(list(extra_input = "A")), ys_extra = list(list(extra_output = "B")))
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$fetch_finished_tasks()$extra_input, "A")
+  expect_equal(rush$fetch_finished_tasks()$extra_output, "B")
+})

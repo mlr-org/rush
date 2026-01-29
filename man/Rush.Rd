@@ -178,6 +178,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
+\item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
 \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
@@ -725,6 +726,38 @@ Keys of the associated tasks.}
 List of lists of conditions.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_finished_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_finished_tasks}{}}}
+\subsection{Method \code{push_finished_tasks()}}{
+Pushes finished tasks to the data base.
+Tasks are moved from running to finished.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xs_extra = NULL, ys_extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+
+\item{\code{yss}}{(list of named \code{list()})\cr
+Lists of results for the function e.g. \verb{list(list(y1, y2), list(y1, y2)))}.}
+
+\item{\code{xs_extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{ys_extra}}{(\code{list})\cr
+List of additional information stored along with the results e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Keys of the tasks.
 }
 }
 \if{html}{\out{<hr>}}
