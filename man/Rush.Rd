@@ -735,7 +735,7 @@ List of lists of conditions.}
 Pushes finished tasks to the data base.
 Tasks are moved from running to finished.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xs_extra = NULL, ys_extra = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -747,10 +747,10 @@ Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))
 \item{\code{yss}}{(list of named \code{list()})\cr
 Lists of results for the function e.g. \verb{list(list(y1, y2), list(y1, y2)))}.}
 
-\item{\code{xs_extra}}{(\code{list})\cr
+\item{\code{xss_extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
 
-\item{\code{ys_extra}}{(\code{list})\cr
+\item{\code{yss_extra}}{(\code{list})\cr
 List of additional information stored along with the results e.g. \verb{list(list(timestamp), list(timestamp)))}.}
 }
 \if{html}{\out{</div>}}

@@ -1410,7 +1410,7 @@ test_that("pushing finished tasks works", {
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
 
-  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xs_extra = list(list(extra_input = "A")), ys_extra = list(list(extra_output = "B")))
+  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xss_extra = list(list(extra_input = "A")), yss_extra = list(list(extra_output = "B")))
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$n_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$extra_input, "A")
