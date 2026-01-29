@@ -73,6 +73,7 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>rush::Rush$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>rush::Rush$print_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>rush::Rush$push_failed()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>rush::Rush$push_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_priority_tasks'><code>rush::Rush$push_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
