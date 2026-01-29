@@ -159,7 +159,7 @@ wl_error(rush_worker)
 When an error is raised in the main process, the `traceback()` function can be invoked to examine the stack trace.
 Breakpoints may also be set within the worker loop to inspect the program state.
 This approach provides substantial control over the debugging process.
-Certain errors, such as missing packages or undefined global variables, may not be encountered when running locally.
+Certain errors, such as missing packages, may not be encountered when running locally.
 However, such issues can be readily identified using the `$detect_lost_workers()` method.
 
 ```{r error_handling-012_handling-012_handling-012}

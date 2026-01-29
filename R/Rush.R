@@ -807,6 +807,33 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
+    #' Pushed task to the database.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param yss (list of named `list()`)\cr
+    #' Lists of results for the function e.g. `list(list(y1, y2), list(y1, y2)))`.
+    #' @param extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_finished_tasks = function(xss, yss, extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(yss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      keys = self$write_hashes(xs = xss, ys = yss, xs_extra = extra)
+      cmds = list(
+        c("RPUSH", private$.get_key("all_tasks"), keys),
+        c("RPUSH", private$.get_key("finished_tasks"), keys))
+      r$pipeline(.commands = cmds)
+
+      return(invisible(keys))
+    },
+
+    #' @description
     #' Pushes a task to the queue of a specific worker.
     #' Task is added to queued priority tasks.
     #' A worker evaluates the tasks in the priority queue before the shared queue.
