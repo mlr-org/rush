@@ -387,26 +387,122 @@ This decentralized design enables workers to proceed independently; eliminating 
 
 ## Bayesian Optimization
 
-### Setup
+### Experimental Setup
 
-We compare the performance of BO algorithms on hyperparameter optimization problems.
-The first algorithm evaluates a batch of hyperparameter configurations in parallel.
-The second algorithm evaluates hyperparameter configurations asynchronously.
-The third algorithm proposes new hyperparameter configurations and evaluates them asynchronously.
+We compare the effective cpu utilization of BO algorithms on hyperparameter optimization tasks.
+Each algorithm applies a different approach to parallelize the BO loop.
+We optimize nine hyperparameters of the LightGBM learner on four different datasets, as summarized in Tables @tab-hyperparameters and @tab-datasets.
+The datasets differ both in the number of features and the number of observations to induce different runtimes of the training process.
+This setup results in 12 experiments, each running for 10 minutes on 448 workers.
 
-Each BO experiment runs for 10 minutes and has 448 workers for parallelization.
+Sequential BO with multi-point batch proposals evaluates $q$ hyperparameter configurations in parallel.
+To obtain a batch of $q$ configurations the constant liar (CL) [@ginsbourger2010] strategy is used.
+Here, the first point is obtained by ordinary maximization of the acquisition function.
+We then preliminarily impute a fake value, update the surrogate model and propose the next point by maximizing the acquisition function again.
+Common choices for the imputed value are the minimum or maximum of the already evaluated points or the predicted posterior mean.
+`mlr3` makes use of the `mirai` package [@gao2025] to parallelize over the resampling iterations.
+In our setup, CL proposes 44 hyperparameter configurations that are evaluated with 10-fold cross-validation, resulting in 440 parallel evaluations.
+
+The batch parallelization requires all workers to finish before the next batch can be proposed.
+If there are strongly heterogeneous runtimes of the training process, the optimizer may end up waiting for the last model to finish while the other workers are idle.
+This is a synchronization overhead.
+We intentionally introduce heterogeneous runtimes by using early stopping to find the optimal number of boosting iterations.
+Some models may train only for a few iterations while others may train for up to 5000 iterations.
+
+Asynchronous Centralized Bayesian Optimization (ACBO) eliminates the synchronization overhead by evaluating the points asynchronously.
+When a worker becomes idle, the main process proposes a new configuration.
+The configuration is send to the worker without waiting for other evaluations to complete.
+To ensure diversity among proposals, configurations currently being evaluated are imputed, akin to the constant liar approach.
+
+However, the fitting of the surrogate model and the optimization of the acquisition function remain centralized.
+These steps are executed sequentially by the main process.
+With many workers, the main process becomes a bottleneck.
+New points cannot be proposed fast enough to keep up with the workers.
+
+Asynchronous Decentralized Bayesian Optimization (ADBO) [@egele_2023] distributes the surrogate updates and the acquisition function optimization across the workers.
+Each worker maintains its own surrogate model and proposes the next hyperparameter configuration by maximizing the acquisition function.
+When a worker completes an evaluation, it asynchronously sends the result to its peers; each worker then updates its local model with this shared information.
+Like CL and ACBO, configurations currently being evaluated are imputed.
+ADBO also uses stochastic acquisition functions to promote a varying exploration-exploitation tradeoff between the workers.
+For example, the lambda values of the upper confidence bounds acquisition function are initialized with different values for each worker.
+For algorithms like ADBO, a system like rush is necessary, allowing the workers to asynchronously exchange information.
+With rush, the the main process can be avoided completely.
+
+The benchmarks are focused on the effective CPU utilization of the algorithms following the recommendations of @egele_2023.
+The effective CPU utilization is an important metric because more utilization implies more evaluated points per time unit.
+Increased evaluation throughput might lead to a higher final performance.
+Let $n_{workers}$ denote the number of workers, where each worker corresponds to a single CPU core
+Let $T_{walltime}$ be the elapsed real time from the start to the end of the optimization.
+The total consumed CPU time is $T_{CPU} = T_{walltime} \cdot n_{workers}$.
+Let $T_{optimization}$ denote the cumulative time spent on surrogate fitting, acquisition optimization, and model training.
+The effective CPU utilization is defined as $U = \frac{T_{optimization}}{T_{CPU}}$.
+
+The benchmark was conducted on linux cluster at the Leibniz Supercomputing Centre (LRZ).
+Each node has 112 Intel Xeon Sapphire Rapids cores and 488 GiB of memory.
+The cluster runs the operating system SUSE Linux Enterprise Server 15 SP6.
 
 
-The benchmark was conducted on linux cluster of the Leibniz Supercomputing Centre (LRZ).
-Each node has 112 Intel Xeon (Sapphire Rapids) cores and 488 GiB of memory.
+### Results
 
+::: {#tbl-benchmarks}
 
+| Task               | Algorithm | Mean Runtime Learners [s] | Evaluations | Utilization |
+|:-------------------|:----------|--------------------------:|------------:|------------:|
+| german-credit      | CL        |                         1 |         396 |      0.0033 |
+|                    | ACBO      |                         1 |         461 |      0.0031 |
+|                    | ADBO      |                         1 |      15,451 |      0.9500 |
+| kddcup09-appetency | CL        |                        27 |         132 |      0.0110 |
+|                    | ACBO      |                        23 |         473 |      0.0450 |
+|                    | ADBO      |                        30 |       6,702 |      0.9400 |
+| adult              | CL        |                        11 |         308 |      0.0160 |
+|                    | ACBO      |                        12 |         463 |      0.0230 |
+|                    | ADBO      |                        14 |      10,169 |      0.9600 |
+| airlines           | CL        |                       313 |          88 |      0.0970 |
+|                    | ACBO      |                       183 |         435 |      0.3100 |
+|                    | ADBO      |                       261 |         993 |      1.0000 |
+:::
 
+The effective CPU utilization and the number of completed evaluations are summarized in Table @tbl-benchmarks.
+Across all tasks, ADBO achieves substantially higher utilization than the alternative algorithms.
+The improvement is consistent across datasets with both short and long training runtimes.
+Higher utilization directly translates into a larger number of completed evaluations.
+As a consequence, ADBO explores the search space far more extensively within the same wall-clock budget.
 
+On tasks with very short learner runtimes, centralized methods leave most compute resources idle.
+This effect is particularly visible on the german-credit task.
+Here, CL and ACBO complete only a few hundred evaluations.
+In contrast, ADBO completes more than an order of magnitude additional evaluations.
+The utilization gap exceeds two orders of magnitude in this regime.
 
+On tasks with very short learner runtimes, centralized methods leave most compute resources idle.
+This effect is particularly visible on the german-credit task.
+Here, CL and ACBO complete only a few hundred evaluations.
+In contrast, ADBO completes more than an order of magnitude additional evaluations.
+The utilization gap exceeds two orders of magnitude in this regime.
 
+On medium-cost tasks such as adult and kddcup09-appetency, the same pattern persists.
+ACBO improves utilization relative to CL by reducing synchronization overhead.
+Nevertheless, the centralized update step remains a limiting factor.
 
-## Setup
+The airlines task has the longest learner training time.
+Longer evaluations reduce the relative overhead of model updates.
+As a result, utilization increases for all algorithms.
+Even in this favorable regime, ADBO maintains a substantial advantage.
+Its utilization remains at least three times higher than that of ACBO.
+The decentralized design therefore scales robustly across workload regimes.
+
+The wall-clock runtime of CLBO frequently exceeds the nominal 10-minute budget.
+This effect is documented in Table @tbl-benchmarks-extra.
+CLBO checks the termination criterion only after an entire batch finishes.
+If a batch starts shortly before the time limit, the experiment continues until all evaluations complete.
+This behavior introduces systematic budget overruns.
+ACBO and ADBO apply termination checks after every completed evaluation.
+This finer-grained control enforces the wall-clock constraint more accurately.
+Asynchronous scheduling therefore improves both utilization and budget compliance.
+
+## Rush
+
+## Experimental Setup
 
 The evaluation of fast running tasks is sensible to runtime overhead.
 Therefore, we measure the runtime of the core functions of rush in a benchmark.
@@ -414,27 +510,6 @@ This includes pushing a task to the database, pushing a result to the database, 
 The fetching operation is done with and without caching.
 Runtime is reported as median and median absolute deviation (MAD) over 1000 runs.
 The runtime is measured with the `microbenchmark` R package.
-
-
-I want to run benchmark.
-The benchmark runs 3 types of Bayesian optimization algorithms:
-
-1. Batch parallel Bayesian optimization `OptimizerMBO`
-2. Centralized Bayesian optimization
-3. Asynchronous distributed Bayesian optimization `OptimizerABO`
-
-Number 1 and 3 are already implemented.
-I need the second one.
-The evaluation of the objective should be done asynchronously but the fitting of the surrogate model and the selection of the next task should be done in the central process.
-You can use rush for the asynchronous evaluation of the objective.
-Also suggest a better name for the algorithm.
-
-
-The benchmark optimizes eight hyperparameters of the XGBoost learner using the ADBO algorithm on 1024 workers.
-The bank marketing dataset, derived from a Portuguese bank’s marketing campaign, includes client demographics, financial details, and previous interactions to predict term deposit subscriptions.
-Experiments were conducted on 10 nodes, each with 128 cores, totaling 1,280 workers.
-The optimization ran for 30 minutes, consuming 640 CPU hours.
-We compute the effective cpu utilization defined as the ratio between the total time spent on training xgboost models and the execution time times the number of workers.
 
 ## Results
 
@@ -490,9 +565,13 @@ The effective cpu utilization
 
 We presented rush, a novel package for distributed computing in R.
 
+# Acknowledgments
 
+The authors gratefully acknowledge the computational and data resources provided by the Leibniz Supercomputing Centre (www.lrz.de).
 
-#### Glossary
+# Appendix
+
+## Glossary
 
 * Parallel computing: The use of multiple processing elements simultaneously for solving a computational problem.
 * Distributed computing: Utilizing multiple computers in a network to solve a computational problem.
@@ -500,3 +579,27 @@ We presented rush, a novel package for distributed computing in R.
 * Computing task: A discrete portion of a larger computational problem, designed to be executed by a worker.
 * Redis: An open-source, in-memory data store, used as a database and for inter-process communication.
 * Inter-process communication: Set of mechanisms that allow separate processes to exchange data and coordinate their execution.
+
+## Performance of the BO algorithms
+
+![Performance of the three algorithms](performance.png){#fig-performance-algorithms}
+
+## Runtime of the BO algorithms
+
+::: {#tbl-benchmarks-extra}
+
+|Task               |Algorithm | Runtime Learners| Runtime Surrogate| Runtime Optimizer| Mean Runtime Learners [s]| Walltime [s]| CPU Hours| Performance|
+|:------------------|:---------|----------------:|-----------------:|-----------------:|-------------------------:|------------:|---------:|-----------:|
+|german-credit      |CL      |              298|               164|               365|                         1|          563|        70|       0.200|
+|                   |acbo      |              227|               209|               386|                         0|          595|        74|       0.190|
+|                   |adbo      |           11,077|           214,301|            27,884|                         1|          596|        74|       0.180|
+|kddcup09-appetency |CL      |            3,625|                27|               100|                        27|          752|        94|       0.018|
+|                   |acbo      |           11,088|               205|               374|                        23|          580|        72|       0.018|
+|                   |adbo      |          198,362|            37,236|             8,804|                        30|          582|        72|       0.017|
+|adult              |CL      |            3,512|               106|               267|                        11|          554|        69|       0.120|
+|                   |acbo      |            5,474|               214|               381|                        12|          593|        74|       0.120|
+|                   |adbo      |          139,828|           101,105|            14,214|                        14|          596|        74|       0.120|
+|airlines           |CL      |           27,517|                18|                74|                       313|          637|        79|       0.320|
+|                   |acbo      |           79,643|               196|               385|                       183|          580|        72|       0.320|
+|                   |adbo      |          259,320|               384|               648|                       261|          584|        73|       0.320|
+:::
