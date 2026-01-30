@@ -440,6 +440,7 @@ The effective CPU utilization is defined as $U = \frac{T_{optimization}}{T_{CPU}
 The benchmark was conducted on linux cluster at the Leibniz Supercomputing Centre (LRZ).
 Each node has 112 Intel Xeon Sapphire Rapids cores and 488 GiB of memory.
 The cluster runs the operating system SUSE Linux Enterprise Server 15 SP6.
+All code is available on GitHub at https://github.com/slds-lmu/paper_2026_rush.
 
 
 ### Results
@@ -476,7 +477,7 @@ The utilization gap exceeds two orders of magnitude in this regime.
 
 On tasks with very short learner runtimes, centralized methods leave most compute resources idle.
 This effect is particularly visible on the german-credit task.
-Here, CL and ACBO complete only a few hundred evaluations.
+Here, CL and ACBO complete only a few hundred evaluationhttps://github.com/slds-lmu/paper_2026_rushs.
 In contrast, ADBO completes more than an order of magnitude additional evaluations.
 The utilization gap exceeds two orders of magnitude in this regime.
 
