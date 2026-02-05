@@ -131,7 +131,7 @@ Each worker evaluates tasks and pushes the corresponding results back to the dat
 
 ::: {#fig-rush-network}
 
-![The architecture of a rush network.](rush_network.png){#fig-rush-network width=100%}
+![](rush_network.png){width=100%}
 
 The architecture of a rush network.
 A hexagon represents a worker and the rectangle represent the `Redis` database.
@@ -150,15 +150,15 @@ The Branin function serves as a toy benchmark for optimization that is fast to e
 
 ![Branin function](branin.png){#fig-branin width=100%}
 
-:::{.column-body-outset}
 
 ```{r}
-branin = function(x1, x2) {
-  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
+branin <- function(x1, x2) {
+  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 +
+  10 * (1 - 1 / (8 * pi)) * cos(x1) +
+  10
 }
 ```
 
-:::
 
 
 ## Worker Loop
@@ -554,7 +554,7 @@ Asynchronous scheduling therefore improves both utilization and budget adherence
 
 ::: {#fig-cl-cpu-utilization}
 
-![CPU Utilization of CL](cl_cpu_utilization.png)
+![](cl_cpu_utilization.png)
 
 CPU utilization over time for CL under short-running (left) and long-running (right) objective functions.
 Red rectangles denote the proposal phase, and blue rectangles denote the evaluation phase.
