@@ -26,15 +26,14 @@ options(datatable.prettyprint.char = 10L)
 # Abstract {#sec-abstract}
 
 Optimizing modern machine learning algorithms often requires substantial computational resources.
-Distributed computing provides an effective approach for addressing such large-scale optimization problems.
-We present `rush`, a package for asynchronous and distributed computing in R.
-Employing a database centric model, `rush` enables workers to communicate over a shared Redis database.
-This decentralized architecture allows workers to generate and evaluate tasks independently, thereby avoiding central coordination bottlenecks.
-Aiming for minimal overhead per task, rush features robust error handling with automatic detection of lost workers, and an efficient caching mechanism that minimizes database operations.
-Rush integrates seamlessly with the `mlr3` ecosystem, powering asynchronous optimization algorithms in the `bbotk` and `mlr3tuning` packages.
-We show how `rush` enables the implementation of state-of-the-art optimization algorithms such as asynchronous decentralized Bayesian optimization.
-The paper further includes a benchmark evaluating the runtime performance of the core functionality of `rush`.
-We demonstrate that `rush` scales efficiently to over 448 workers while achieving higher CPU utilization than traditional approaches.
+Distributing evaluations across many workers is a common strategy to address this challenge.
+However, scaling optimization algorithms to hundreds of workers exposes a fundamental limitation: the central controller becomes a bottleneck.
+We present `rush`, an R package for asynchronous and decentralized optimization that removes this single coordination point.
+`rush` uses a database-centric architecture in which workers communicate through a shared Redis database and independently run optimization loops.
+To support high-throughput workloads, `rush` combines low per-task overhead with caching strategies that reduce database operations.
+`rush` integrates with the `mlr3` ecosystem and serves as the backend for asynchronous optimization algorithms in `bbotk` and `mlr3tuning`.
+We demonstrate the usability of `rush` by implementing asynchronous decentralized Bayesian optimization.
+Further we benchmark the core functionality of `rush` and show that it scales efficiently to over 448 workers while achieving substantially higher CPU utilization than controller-centric approaches.
 
 # Introduction {#sec-introduction}
 
