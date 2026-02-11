@@ -654,26 +654,17 @@ test_that("caching results works", {
   rush$wait_for_tasks(keys)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
   keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 20)
-  expect_list(get_private(rush)$.cached_tasks, len = 20)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 20)
-  expect_list(get_private(rush)$.cached_tasks, len = 20)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 20)
 })
 
 # segfault detection -----------------------------------------------------------
@@ -1402,7 +1393,6 @@ test_that("reset data works", {
   expect_rush_reset(rush)
 })
 
-
 # push finished tasks ------------------------------------------------------------
 
 test_that("pushing finished tasks works", {
@@ -1410,7 +1400,10 @@ test_that("pushing finished tasks works", {
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)))
+
+  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xss_extra = list(list(extra_input = "A")), yss_extra = list(list(extra_output = "B")))
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$fetch_finished_tasks()$extra_input, "A")
+  expect_equal(rush$fetch_finished_tasks()$extra_output, "B")
 })

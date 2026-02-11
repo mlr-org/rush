@@ -2,23 +2,43 @@
 % Please edit documentation in R/Rush.R
 \name{Rush}
 \alias{Rush}
-\title{Rush Controller}
+\title{Rush Manager}
 \value{
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller methods.
 }
 \description{
-The \code{Rush} controller manages workers in a rush network.
+The \code{Rush} manager is responsible for starting, observing, and stopping workers within a rush network.
+It is initialized using the \code{\link[=rsh]{rsh()}} function, which requires a network ID and a config argument.
+The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
 }
+\section{Tasks}{
+
+Tasks are the unit in which workers exchange information.
+The main components of a task are the key, computational state, input (\code{xs}), and result (\code{ys}).
+The key is a unique identifier for the task in the Redis database.
+The four possible computational states are \code{"running"}, \code{"finished"}, \code{"failed"}, and \code{"queued"}.
+The input \code{xs} and result \code{ys} are lists that can contain arbitrary data.
+Usually the methods work on multiple tasks at once, so \code{xss} and \code{yss} are lists of inputs and results.
+}
+
+\section{Queues}{
+
+Tasks can be pushed to a queue with the \verb{$push_tasks()} method which sets the state to \code{"queued"}.
+Workers pop tasks from the queue with the \verb{$pop_task()} method of the \link{RushWorker}.
+Additionally, tasks can be pushed to a priority queue of a specific worker with the \verb{$push_priority_tasks()} method.
+A worker evaluates the tasks in the priority queue before the shared queue.
+}
+
 \section{Local Workers}{
 
-A local worker runs on the same machine as the controller.
-Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
+A local worker runs on the same machine as the manager.
+Local workers are spawned with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
 }
 
 \section{Remote Workers}{
 
-A remote worker runs on a different machine than the controller.
-Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
+A remote worker runs on a different machine than the manager.
+Remote workers are spawned with the \verb{$start_remote_workers()} method via the \CRANpkg{mirai} package.
 }
 
 \section{Script Workers}{
@@ -178,6 +198,7 @@ Information about the Redis server.}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_priority_tasks}{\code{Rush$push_priority_tasks()}}
 \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
+\item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
 \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_priority_tasks}{\code{Rush$fetch_priority_tasks()}}
@@ -305,6 +326,12 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -316,8 +343,30 @@ If \code{rush_plan()} is not called, the default is \code{1}.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -331,6 +380,26 @@ Whether to kill the workers when the main R process is shut down.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -366,6 +435,12 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -377,8 +452,30 @@ If \code{rush_plan()} is not called, the default is \code{1}.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -389,6 +486,26 @@ This improves the performance of the logging.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -423,14 +540,42 @@ Generate a script to start workers.
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -449,6 +594,26 @@ The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -728,6 +893,38 @@ List of lists of conditions.}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_finished_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_finished_tasks}{}}}
+\subsection{Method \code{push_finished_tasks()}}{
+Pushes finished tasks to the data base.
+Tasks are moved from running to finished.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+
+\item{\code{yss}}{(list of named \code{list()})\cr
+Lists of results for the function e.g. \verb{list(list(y1, y2), list(y1, y2)))}.}
+
+\item{\code{xss_extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{yss_extra}}{(\code{list})\cr
+List of additional information stored along with the results e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Keys of the tasks.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-empty_queue"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-empty_queue}{}}}
 \subsection{Method \code{empty_queue()}}{
@@ -756,10 +953,7 @@ List of lists of conditions.}
 \subsection{Method \code{fetch_queued_tasks()}}{
 Fetch queued tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(
-  fields = c("xs", "xs_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -768,11 +962,6 @@ Fetch queued tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -787,10 +976,7 @@ Table of queued tasks.
 \subsection{Method \code{fetch_priority_tasks()}}{
 Fetch queued priority tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(
-  fields = c("xs", "xs_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -799,11 +985,6 @@ Fetch queued priority tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -818,10 +999,7 @@ Table of queued priority tasks.
 \subsection{Method \code{fetch_running_tasks()}}{
 Fetch running tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(
-  fields = c("xs", "xs_extra", "worker_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -830,11 +1008,6 @@ Fetch running tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -852,8 +1025,7 @@ Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  reset_cache = FALSE,
-  data_format = "data.table"
+  reset_cache = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -866,11 +1038,6 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -888,8 +1055,7 @@ Returns all finished tasks or \code{NULL} if no new task is available after \cod
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_finished_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
-  timeout = Inf,
-  data_format = "data.table"
+  timeout = Inf
 )}\if{html}{\out{</div>}}
 }
 
@@ -902,11 +1068,6 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -923,8 +1084,7 @@ Fetch finished tasks from the data base that finished after the last fetch.
 Updates the cache of the finished tasks.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table"
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
 )}\if{html}{\out{</div>}}
 }
 
@@ -933,11 +1093,6 @@ Updates the cache of the finished tasks.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -955,8 +1110,7 @@ Returns new tasks or \code{NULL} if no new task is available after \code{timeout
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_new_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  timeout = Inf,
-  data_format = "data.table"
+  timeout = Inf
 )}\if{html}{\out{</div>}}
 }
 
@@ -969,16 +1123,11 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for new result in seconds.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-\code{data.table() | list()}.
+\code{data.table()}.
 }
 }
 \if{html}{\out{<hr>}}
@@ -987,10 +1136,7 @@ The default is \code{"data.table"} but \code{"list"} is easier when list columns
 \subsection{Method \code{fetch_failed_tasks()}}{
 Fetch failed tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(
-  fields = c("xs", "worker_extra", "condition"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -999,11 +1145,6 @@ Fetch failed tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \verb{c("xs", "xs_extra", "worker_extra", "condition"}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -1019,8 +1160,7 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table"
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
 )}\if{html}{\out{</div>}}
 }
 
@@ -1030,11 +1170,6 @@ Fetch all tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -1055,8 +1190,7 @@ Finished tasks are cached.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks_with_state(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
   states = c("queued", "running", "finished", "failed"),
-  reset_cache = FALSE,
-  data_format = "data.table"
+  reset_cache = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -1073,11 +1207,6 @@ Defaults to \code{c("queued", "running", "finished", "failed")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache of the finished tasks.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }

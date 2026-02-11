@@ -1,34 +1,23 @@
-#' @title Rush Controller
+#' @title Rush Manager
 #'
 #' @description
-#' The `Rush` controller manages workers in a rush network.
+#' The `Rush` manager is responsible for starting, observing, and stopping workers within a rush network.
+#' It is initialized using the [rsh()] function, which requires a network ID and a config argument.
+#' The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
 #'
-#' @section Local Workers:
-#' A local worker runs on the same machine as the controller.
-#' Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
+#' @section Tasks:
+#' Tasks are the unit in which workers exchange information.
+#' The main components of a task are the key, computational state, input (`xs`), and result (`ys`).
+#' The key is a unique identifier for the task in the Redis database.
+#' The four possible computational states are `"running"`, `"finished"`, `"failed"`, and `"queued"`.
+#' The input `xs` and result `ys` are lists that can contain arbitrary data.
+#' Usually the methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and results.
 #'
-#' @section Remote Workers:
-#' A remote worker runs on a different machine than the controller.
-#' Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
-#'
-#' @section Script Workers:
-#' Workers can be started with a script anywhere.
+#' @section Workers:
+#' Local workers run on the same machine as the controller and are spawned with the `$start_local_workers()` method via the \CRANpkg{processx} package.
+#' Remote workers run on a different machine and are spawned with the `$start_remote_workers()` method via the \CRANpkg{mirai} package.
+#' Workers can also be started with a script anywhere using the `$worker_script()` method.
 #' The only requirement is that the worker can connect to the Redis database.
-#' The script is created with the `$worker_script()` method.
-#'
-#' @template param_network_id
-#' @template param_config
-#' @template param_worker_loop
-#' @template param_packages
-#' @template param_remote
-#' @template param_lgr_thresholds
-#' @template param_lgr_buffer_size
-#' @template param_heartbeat_period
-#' @template param_heartbeat_expire
-#' @template param_seed
-#' @template param_data_format
-#' @template param_message_log
-#' @template param_output_log
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
@@ -64,6 +53,10 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
+    #'
+    #' @template param_network_id
+    #' @template param_config
+    #' @template param_seed
     initialize = function(network_id = NULL, config = NULL, seed = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
@@ -132,14 +125,20 @@ Rush = R6::R6Class("Rush",
     #' Alternatively, use `$start_remote_workers()` to start workers on remote machines with `mirai`.
     #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
     #' If `rush_plan()` is not called, the default is `1`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
+    #' @template param_message_log
+    #' @template param_output_log
     start_local_workers = function(
       worker_loop,
       ...,
@@ -194,12 +193,18 @@ Rush = R6::R6Class("Rush",
     #' The [mirai::mirai] are stored in `$processes_mirai`.
     #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
     #' If `rush_plan()` is not called, the default is `1`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
+    #' @template param_message_log
+    #' @template param_output_log
     start_remote_workers = function(
       worker_loop,
       ...,
@@ -259,8 +264,16 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Generate a script to start workers.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
+    #' @template param_heartbeat_period
+    #' @template param_heartbeat_expire
+    #' @template param_message_log
+    #' @template param_output_log
     worker_script = function(
       worker_loop,
       ...,
@@ -662,7 +675,7 @@ Rush = R6::R6Class("Rush",
       })
 
       # reset counters and caches
-      private$.cached_tasks = list()
+      private$.cached_tasks = data.table()
       private$.n_seen_results = 0
 
       return(invisible(self))
@@ -687,7 +700,7 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("all_tasks"))
 
       # reset counters and caches
-      private$.cached_tasks = list()
+      private$.cached_tasks = data.table()
       private$.n_seen_results = 0
 
       return(invisible(self))
@@ -913,6 +926,37 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
+    #' Pushes finished tasks to the data base.
+    #' Tasks are moved from running to finished.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param yss (list of named `list()`)\cr
+    #' Lists of results for the function e.g. `list(list(y1, y2), list(y1, y2)))`.
+    #' @param xss_extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' @param yss_extra (`list`)\cr
+    #' List of additional information stored along with the results e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_finished_tasks = function(xss, yss, xss_extra = NULL, yss_extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(yss, types = "list")
+      assert_list(xss_extra, types = "list", null.ok = TRUE)
+      assert_list(yss_extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      keys = self$write_hashes(xs = xss, ys = yss, xs_extra = xss_extra, ys_extra = yss_extra)
+      cmds = list(
+        c("RPUSH", private$.get_key("all_tasks"), keys),
+        c("RPUSH", private$.get_key("finished_tasks"), keys))
+      r$pipeline(.commands = cmds)
+
+      return(invisible(keys))
+    },
+
+    #' @description
     #' Empty the queue of tasks.
     #' Moves tasks from queued to failed.
     #'
@@ -945,9 +989,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of queued tasks.
-    fetch_queued_tasks = function(fields = c("xs", "xs_extra"), data_format = "data.table") {
+    fetch_queued_tasks = function(fields = c("xs", "xs_extra")) {
       keys = self$queued_tasks
-      private$.fetch_tasks(keys, fields, data_format)
+      private$.fetch_tasks(keys, fields)
     },
 
     #' @description
@@ -959,19 +1003,15 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of queued priority tasks.
-    fetch_priority_tasks = function(fields = c("xs", "xs_extra"), data_format = "data.table") {
+    fetch_priority_tasks = function(fields = c("xs", "xs_extra")) {
       assert_character(fields)
-      assert_choice(data_format, c("data.table", "list"))
       r = self$connector
 
       cmds = map(self$worker_ids, function(worker_id)  c("LRANGE", private$.get_worker_key("queued_tasks", worker_id), "0", "-1"))
-      if (!length(cmds)) {
-        data = if (data_format == "list") list() else data.table()
-        return(data)
-      }
+      if (!length(cmds)) return(data.table())
 
       keys = unlist(r$pipeline(.commands = cmds))
-      private$.fetch_tasks(keys, fields, data_format)
+      private$.fetch_tasks(keys, fields)
     },
 
     #' @description
@@ -983,9 +1023,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of running tasks.
-    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra"), data_format = "data.table") {
+    fetch_running_tasks = function(fields = c("xs", "xs_extra", "worker_extra")) {
       keys = self$running_tasks
-      private$.fetch_tasks(keys, fields, data_format)
+      private$.fetch_tasks(keys, fields)
     },
 
     #' @description
@@ -1000,12 +1040,12 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
-    fetch_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"), reset_cache = FALSE, data_format = "data.table") {
-      keys = if (self$n_finished_tasks > length(private$.cached_tasks)) {
+    fetch_finished_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"), reset_cache = FALSE) {
+      keys = if (self$n_finished_tasks > nrow(private$.cached_tasks)) {
          r = self$connector
-         r$command(c("LRANGE", private$.get_key("finished_tasks"), length(private$.cached_tasks), -1))
+         r$command(c("LRANGE", private$.get_key("finished_tasks"), nrow(private$.cached_tasks), -1))
       }
-      private$.fetch_cached_tasks(keys, fields, reset_cache, data_format)
+      private$.fetch_cached_tasks(keys, fields, reset_cache)
     },
 
     #' @description
@@ -1022,8 +1062,7 @@ Rush = R6::R6Class("Rush",
     #' Table of finished tasks.
     wait_for_finished_tasks = function(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
-      timeout = Inf,
-      data_format = "data.table"
+      timeout = Inf
       ) {
       assert_number(timeout, lower = 0)
       start_time = Sys.time()
@@ -1031,8 +1070,8 @@ Rush = R6::R6Class("Rush",
       lg$debug("Wait for new tasks for at least %s seconds", as.character(timeout))
 
       while(start_time + timeout > Sys.time()) {
-        if (self$n_finished_tasks > length(private$.cached_tasks)) {
-          return(self$fetch_finished_tasks(fields, data_format = data_format))
+        if (self$n_finished_tasks > nrow(private$.cached_tasks)) {
+          return(self$fetch_finished_tasks(fields))
         }
         Sys.sleep(0.01)
       }
@@ -1049,32 +1088,24 @@ Rush = R6::R6Class("Rush",
     #' @return `data.table()`\cr
     #' Latest results.
     fetch_new_tasks = function(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      data_format = "data.table"
+      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
       ) {
       assert_character(fields)
-      assert_choice(data_format, c("data.table", "list"))
       r = self$connector
       start_time = Sys.time()
 
-      # return empty data.table or list if all results are fetched
+      # return empty data.table if all results are fetched
       n_new_results = self$n_finished_tasks - private$.n_seen_results
-      if (!n_new_results) {
-        data = if (data_format == "list") list() else data.table()
-        return(data)
-      }
+      if (!n_new_results) return(data.table())
 
       # increase seen results counter
       private$.n_seen_results = private$.n_seen_results + n_new_results
 
-      # fetch finished tasks
-      data = self$fetch_finished_tasks(fields, data_format = "list")
-      data = tail(data, n_new_results)
-      if (data_format == "list") return(data)
-      # it is much faster to only convert the new results to data.table instead of doing it in fetch_finished_tasks
-      tab = rbindlist(data, use.names = TRUE, fill = TRUE)
-      tab[, keys := names(data)]
-      tab[]
+      # fetch finished tasks to populate cache
+      self$fetch_finished_tasks(fields)
+
+      # return only the new results from the cached data.table
+      tail(private$.cached_tasks, n_new_results)[]
     },
 
     #' @description
@@ -1087,11 +1118,10 @@ Rush = R6::R6Class("Rush",
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for new result in seconds.
     #'
-    #' @return `data.table() | list()`.
+    #' @return `data.table()`.
     wait_for_new_tasks = function(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      timeout = Inf,
-      data_format = "data.table"
+      timeout = Inf
       ) {
       assert_number(timeout, lower = 0)
       start_time = Sys.time()
@@ -1101,11 +1131,10 @@ Rush = R6::R6Class("Rush",
       while(start_time + timeout > Sys.time()) {
         n_new_results = self$n_finished_tasks - private$.n_seen_results
         if (n_new_results) {
-          return(self$fetch_new_tasks(fields, data_format = data_format))
+          return(self$fetch_new_tasks(fields))
         }
         Sys.sleep(0.01)
       }
-      if (data_format == "list") return(NULL)
       data.table()
     },
 
@@ -1118,9 +1147,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of failed tasks.
-    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition"), data_format = "data.table") {
+    fetch_failed_tasks = function(fields = c("xs", "worker_extra", "condition")) {
       keys = self$failed_tasks
-      private$.fetch_tasks(keys, fields, data_format)
+      private$.fetch_tasks(keys, fields)
     },
 
     #' @description
@@ -1132,9 +1161,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return `data.table()`\cr
     #' Table of all tasks.
-    fetch_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra",  "ys_extra", "condition"), data_format = "data.table") {
+    fetch_tasks = function(fields = c("xs", "ys", "xs_extra", "worker_extra",  "ys_extra", "condition")) {
       keys = self$tasks
-      private$.fetch_tasks(keys, fields, data_format)
+      private$.fetch_tasks(keys, fields)
     },
 
     #' @description
@@ -1154,8 +1183,7 @@ Rush = R6::R6Class("Rush",
     fetch_tasks_with_state = function(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
       states = c("queued", "running", "finished", "failed"),
-      reset_cache = FALSE,
-      data_format = "data.table"
+      reset_cache = FALSE
       ) {
       r = self$connector
       assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
@@ -1164,13 +1192,12 @@ Rush = R6::R6Class("Rush",
 
       data = imap(all_keys, function(keys, state) {
         if (state == "finished") {
-          private$.fetch_cached_tasks(keys, fields, reset_cache, data_format)
+          private$.fetch_cached_tasks(keys, fields, reset_cache)
         } else {
-          private$.fetch_tasks(keys, fields, data_format)
+          private$.fetch_tasks(keys, fields)
         }
       })
 
-      if (data_format == "list") return(data)
       data = rbindlist(data, use.names = TRUE, fill = TRUE, idcol = "state")
       data[]
     },
@@ -1631,7 +1658,7 @@ Rush = R6::R6Class("Rush",
   private = list(
 
     # cache for finished tasks
-    .cached_tasks = list(),
+    .cached_tasks = data.table(),
 
     # counter of the seen results for the latest results methods
     .n_seen_results = 0,
@@ -1700,7 +1727,7 @@ Rush = R6::R6Class("Rush",
       r = self$connector
 
       # optionally limit finished tasks to uncached tasks
-      start_finished_tasks = if (only_new_keys) length(private$.cached_tasks) else 0
+      start_finished_tasks = if (only_new_keys) nrow(private$.cached_tasks) else 0
 
       # get keys of tasks with different states in one transaction
       r$MULTI()
@@ -1715,51 +1742,44 @@ Rush = R6::R6Class("Rush",
     },
 
     # fetch tasks
-    .fetch_tasks = function(keys, fields, data_format = "data.table") {
+    .fetch_tasks = function(keys, fields) {
       r = self$connector
       assert_character(fields)
-      assert_choice(data_format, c("data.table", "list"))
 
-      if (!length(keys)) {
-        data = if (data_format == "list") list() else data.table()
-        return(data)
-      }
+      if (!length(keys)) return(data.table())
 
       data = self$read_hashes(keys, fields)
 
       lg$debug("Fetching %i task(s)", length(data))
 
-      if (data_format == "list") return(set_names(data, keys))
       tab = rbindlist(data, use.names = TRUE, fill = TRUE)
       tab[, keys := unlist(keys)]
       tab[]
     },
 
     # fetch and cache tasks
-    .fetch_cached_tasks = function(new_keys, fields, reset_cache = FALSE, data_format = "data.table") {
+    .fetch_cached_tasks = function(new_keys, fields, reset_cache = FALSE) {
       r = self$connector
       assert_flag(reset_cache)
-      assert_choice(data_format, c("data.table", "list"))
 
-      if (reset_cache) private$.cached_tasks = list()
+      if (reset_cache) private$.cached_tasks = data.table()
 
-      lg$debug("Reading %i cached task(s)", length(private$.cached_tasks))
+      lg$debug("Reading %i cached task(s)", nrow(private$.cached_tasks))
 
       if (length(new_keys)) {
 
         lg$debug("Caching %i new task(s)", length(new_keys))
 
-        # bind new results to cached results
-        data = set_names(self$read_hashes(new_keys, fields), new_keys)
-        private$.cached_tasks = c(private$.cached_tasks, data)
+        # rbindlist only the new results and append to cached data.table
+        data = self$read_hashes(new_keys, fields)
+        new_tab = rbindlist(data, use.names = TRUE, fill = TRUE)
+        if (nrow(new_tab)) new_tab[, keys := new_keys]
+        private$.cached_tasks = rbindlist(list(private$.cached_tasks, new_tab), use.names = TRUE, fill = TRUE)
       }
 
-      lg$debug("Fetching %i task(s)", length(private$.cached_tasks))
+      lg$debug("Fetching %i task(s)", nrow(private$.cached_tasks))
 
-      if (data_format == "list") return(private$.cached_tasks)
-      tab = rbindlist(private$.cached_tasks, use.names = TRUE, fill = TRUE)
-      if (nrow(tab)) tab[, keys := names(private$.cached_tasks)]
-      tab[]
+      private$.cached_tasks[]
     }
   )
 )
