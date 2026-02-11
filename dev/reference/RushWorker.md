@@ -84,6 +84,7 @@ Inherited methods
 - [`rush::Rush$print()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print)
 - [`rush::Rush$print_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print_log)
 - [`rush::Rush$push_failed()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed)
+- [`rush::Rush$push_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_finished_tasks)
 - [`rush::Rush$push_priority_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_priority_tasks)
 - [`rush::Rush$push_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_tasks)
 - [`rush::Rush$read_hash()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hash)

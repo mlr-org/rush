@@ -251,6 +251,8 @@ with the `$worker_script()` method.
 
 - [`Rush$push_failed()`](#method-Rush-push_failed)
 
+- [`Rush$push_finished_tasks()`](#method-Rush-push_finished_tasks)
+
 - [`Rush$empty_queue()`](#method-Rush-empty_queue)
 
 - [`Rush$fetch_queued_tasks()`](#method-Rush-fetch_queued_tasks)
@@ -900,6 +902,48 @@ running to failed.
 
   (named [`list()`](https://rdrr.io/r/base/list.html))  
   List of lists of conditions.
+
+------------------------------------------------------------------------
+
+### Method `push_finished_tasks()`
+
+Pushes finished tasks to the data base. Tasks are moved from running to
+finished.
+
+#### Usage
+
+    Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)
+
+#### Arguments
+
+- `xss`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  Lists of arguments for the function e.g.
+  `list(list(x1, x2), list(x1, x2)))`.
+
+- `yss`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  Lists of results for the function e.g.
+  `list(list(y1, y2), list(y1, y2)))`.
+
+- `xss_extra`:
+
+  (`list`)  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp), list(timestamp)))`.
+
+- `yss_extra`:
+
+  (`list`)  
+  List of additional information stored along with the results e.g.
+  `list(list(timestamp), list(timestamp)))`.
+
+#### Returns
+
+([`character()`](https://rdrr.io/r/base/character.html))  
+Keys of the tasks.
 
 ------------------------------------------------------------------------
 
