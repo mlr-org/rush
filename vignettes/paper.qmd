@@ -69,9 +69,9 @@ Our benchmarks show that `rush` scales efficiently to over 448 workers while mai
 
 ::: {#fig-rush-network layout-ncol=2}
 
-![Centralized network](centralized_network.png){#fig-centralized-network}
+![Centralized network](figures/centralized_network.png){#fig-centralized-network}
 
-![Decentralized network](decentralized_network.png){#fig-decentralized-network}
+![Decentralized network](figures/decentralized_network.png){#fig-decentralized-network}
 
 Centralized and decentralized optimization networks.
 Octagons denote processes, including the main process `M` and workers `W`.
@@ -137,7 +137,7 @@ Each worker evaluates tasks and pushes the corresponding results back to the dat
 
 ::: {#fig-worker-communication}
 
-![](worker_communication.png){width=100%}
+![](figures/worker_communication.png){width=100%}
 
 The communication flow between a worker and the `Redis` database in a `rush` network.
 The hexagon represents a worker and the rectangle represents the `Redis` database.
@@ -153,7 +153,7 @@ $$f(x_1,x_2)=\left(x_2-\frac{5.1}{4\pi^2}x_1^2+\frac{5}{\pi}x_1-6\right)^2 +10\l
 The function is optimized over the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$, as shown in Figure @fig-branin.
 The Branin function is a commonly used benchmark function that is fast to evaluate yet sufficiently nontrivial.
 
-![Branin function](branin.png){#fig-branin width=100%}
+![Branin function](figures/branin.png){#fig-branin width=100%}
 
 ```{r}
 branin = function(x1, x2) {
@@ -365,7 +365,9 @@ A queue avoids this problem: the initial design is created once in a central pro
 
 ```{r}
 lhs_points = lhs::maximinLHS(n = 25, k = 2)
-xss = lapply(1:25, function(i) list(x1 = lhs_points[i, 1] * 15 - 5, x2 = lhs_points[i, 2] * 15))
+xss = lapply(1:25, function(i) {
+  list(x1 = lhs_points[i, 1] * 15 - 5, x2 = lhs_points[i, 2] * 15)
+})
 ```
 
 The `$push_tasks()` method creates new tasks and adds them to the queue.
@@ -480,7 +482,7 @@ Higher evaluation throughput directly translates to more evaluated configuration
 
 The benchmarks are conducted on a linux cluster at the Leibniz Supercomputing Centre (LRZ).
 Each node has 112 Intel Xeon Sapphire Rapids cores and 488 GiB of memory, running SUSE Linux Enterprise Server 15 SP6.
-All code is available on GitHub at https://github.com/slds-lmu/paper_2026_rush.
+All code is available on GitHub at https://github.com/slds-lmu/benchmark_2026_rush.
 
 ## Results
 
@@ -524,14 +526,14 @@ If a batch starts shortly before the time limit, the experiment continues until 
 In contrast, ACBO and ADBO check for termination after every completed evaluation, enforcing the wall-clock constraint more accurately.
 Asynchronous scheduling therefore improves both utilization and budget adherence.
 
-::: {#fig-cl-cpu-utilization}
+::: {#fig-cl-cpu-utilization layout-ncol=2}
 
-<!-- Split figure and remove legend -->
+![Short-running objective](figures/cl_cpu_utilization_short.png){#fig-cl-cpu-utilization-short}
 
-![](cl_cpu_utilization.png)
+![Long-running objective](figures/cl_cpu_utilization_long.png){#fig-cl-cpu-utilization-long}
 
-Short-running and long-running objective functions.
-Each bar represents one BO iteration, with the proposal phase (red) and evaluation phase (blue) shown as stacked components.
+CPU utilization for short-running and long-running objective functions.
+Bars represent the proposal phase (red) and evaluation phase (blue) of the BO loop.
 Bar height indicates CPU utilization relative to a 10-core machine: during proposal, CL uses a single core (≈10% utilization), whereas during evaluation it uses all 10 cores (≈100% utilization).
 The proposal phase grows over iterations as surrogate fitting becomes more expensive with an increasing number of observations.
 For long-running objectives, evaluation dominates wall-clock time, yielding higher average CPU utilization than for short-running objectives.
@@ -553,58 +555,31 @@ Runtime is reported as median and median absolute deviation (MAD) over 1000 repl
 
 ::: {#tbl-runtime-results}
 
-| Operation               | Median Runtime [ms] | MAD [ms] |
-|:------------------------|:--------------------|:---------|
-| `$push_running_tasks()` | 0.5                 | 0.25     |
-| `$push_results()`       | 0.5                 | 0.25     |
+
+| Method                  | Median Runtime (ms) | MAD Runtime (ms) |
+|:------------------------|--------------------:|-----------------:|
+| `$push_running_tasks()` |                0.39 |             0.07 |
+| `$push_results()`       |                0.31 |             0.07 |
 
 Runtime of the core functions of rush.
 The runtime is reported as median and median absolute deviation (MAD) over 1000 replicates.
 :::
 
 The runtime of the core functions of `rush` is summarized in Table @tbl-runtime-results.
-Pushing a running task to the database takes a median of 0.5 ms (MAD 0.25 ms), and pushing a result takes approximately the same time.
+Pushing a running task to the database takes a median of 0.4 ms (MAD 0.25 ms), and pushing a result takes approximately the same time.
 For fetching, `rush` provides a built-in caching mechanism.
 The difference between fetching with and without caching is negligible for a small number of tasks.
 However, as the archive grows beyond 1,000 tasks, caching yields a substantial speedup, as shown in Figure @fig-fetch-finished-tasks.
-At 10,000 tasks, fetching without cache takes approximately 84 ms compared to 13 ms with caching.
-In both cases, only one new task is retrieved from the database; the remainder is served from the local cache.
-The residual increase in runtime with cache enabled is attributable to the cost of binding a new row to the cached `data.table`, which grows with the total number of rows.
-In practice, the sub-millisecond overhead of push operations and the low-millisecond overhead of cached fetching are negligible relative to typical task runtimes, which range from seconds to minutes in the BO benchmarks (Table @tbl-benchmarks).
+At 10,000 tasks, fetching without cache takes approximately 350 ms compared to 2 ms with caching.
 
-```{r}
-#| echo: false
-#| fig-cap: |
-#|   Runtime of fetching finished tasks with (red) and without (blue) caching as a function of the total number of tasks in the database.
-#|   Without caching, all tasks are retrieved from the database on each call.
-#|   With caching, only one new task is retrieved from the database; all previously fetched tasks are served from the local cache.
-#| label: fig-fetch-finished-tasks
-library(data.table)
-library(ggplot2)
 
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+::: {#fig-fetch-finished-tasks}
 
-data = fread(here("vignettes/rush_fetch_finished_tasks.csv"))
-data_cache = fread(here("vignettes/rush_fetch_cached_tasks.csv"))
-
-data = rbindlist(list(
-  data[, list(n_tasks = n_tasks, runtime = median_runtime, benchmark = "fetch_tasks")],
-  data_cache[, list(n_tasks = cache_size, runtime = median_runtime, benchmark = "fetch_cached_tasks")]
-))
-
-ggplot(data, aes(x = n_tasks, y = runtime, color = benchmark)) +
-  scale_x_continuous(trans='log10') +
-  #scale_y_continuous(trans='log10') +
-  geom_line() +
-  geom_point() +
-  scale_color_manual(values = gg_color_hue(2), labels = c("with cache", "without cache")) +
-  labs(x = "Number of Tasks", y = "Runtime (ms)", color = "Fetching") +
-  theme_minimal()
-```
-
+![Fetch finished tasks](figures/fetch_finished_tasks.png){#fig-fetch-finished-tasks}
+Runtime of fetching finished tasks with (red) and without (blue) caching as a function of the total number of tasks in the database.
+Without caching, all tasks are retrieved from the database on each call.
+With caching, only one new task is retrieved from the database; all previously fetched tasks are served from the local cache.
+:::
 
 # Discussion and Conclusion
 
@@ -698,7 +673,7 @@ The table shows the OpenML task ID, name, number of instances, number of feature
 
 ## Performance of the BO algorithms
 
-![Performance of the three algorithms](performance.png){#fig-performance-algorithms}
+![Performance of the three algorithms](figures/performance.png){#fig-performance-algorithms}
 
 ## Runtime of the BO algorithms
 
