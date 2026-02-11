@@ -1,33 +1,36 @@
-#' @title Rush Controller
+#' @title Rush Manager
 #'
 #' @description
-#' The `Rush` controller manages workers in a rush network.
+#' The `Rush` manager is responsible for starting, observing, and stopping workers within a rush network.
+#' It is initialized using the [rsh()] function, which requires a network ID and a config argument.
+#' The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
+#'
+#' @section Tasks:
+#' Tasks are the unit in which workers exchange information.
+#' The main components of a task are the key, computational state, input (`xs`), and result (`ys`).
+#' The key is a unique identifier for the task in the Redis database.
+#' The four possible computational states are `"running"`, `"finished"`, `"failed"`, and `"queued"`.
+#' The input `xs` and result `ys` are lists that can contain arbitrary data.
+#' Usually the methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and results.
+#'
+#' @section Queues:
+#' Tasks can be pushed to a queue with the `$push_tasks()` method which sets the state to `"queued"`.
+#' Workers pop tasks from the queue with the `$pop_task()` method of the [RushWorker].
+#' Additionally, tasks can be pushed to a priority queue of a specific worker with the `$push_priority_tasks()` method.
+#' A worker evaluates the tasks in the priority queue before the shared queue.
 #'
 #' @section Local Workers:
-#' A local worker runs on the same machine as the controller.
-#' Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
+#' A local worker runs on the same machine as the manager.
+#' Local workers are spawned with the `$start_local_workers()` method via the \CRANpkg{processx} package.
 #'
 #' @section Remote Workers:
-#' A remote worker runs on a different machine than the controller.
-#' Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
+#' A remote worker runs on a different machine than the manager.
+#' Remote workers are spawned with the `$start_remote_workers()` method via the \CRANpkg{mirai} package.
 #'
 #' @section Script Workers:
 #' Workers can be started with a script anywhere.
 #' The only requirement is that the worker can connect to the Redis database.
 #' The script is created with the `$worker_script()` method.
-#'
-#' @template param_network_id
-#' @template param_config
-#' @template param_worker_loop
-#' @template param_packages
-#' @template param_remote
-#' @template param_lgr_thresholds
-#' @template param_lgr_buffer_size
-#' @template param_heartbeat_period
-#' @template param_heartbeat_expire
-#' @template param_seed
-#' @template param_message_log
-#' @template param_output_log
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
@@ -63,6 +66,10 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
+    #'
+    #' @template param_network_id
+    #' @template param_config
+    #' @template param_seed
     initialize = function(network_id = NULL, config = NULL, seed = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
@@ -131,14 +138,20 @@ Rush = R6::R6Class("Rush",
     #' Alternatively, use `$start_remote_workers()` to start workers on remote machines with `mirai`.
     #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
     #' If `rush_plan()` is not called, the default is `1`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
+    #' @template param_message_log
+    #' @template param_output_log
     start_local_workers = function(
       worker_loop,
       ...,
@@ -193,12 +206,18 @@ Rush = R6::R6Class("Rush",
     #' The [mirai::mirai] are stored in `$processes_mirai`.
     #' Parameters set by [rush_plan()] have precedence over the parameters set here.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     #' Default is `NULL`, which means the number of workers is set by [rush_plan()].
     #' If `rush_plan()` is not called, the default is `1`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
+    #' @template param_message_log
+    #' @template param_output_log
     start_remote_workers = function(
       worker_loop,
       ...,
@@ -258,8 +277,16 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Generate a script to start workers.
     #'
+    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
+    #' @template param_packages
+    #' @template param_lgr_thresholds
+    #' @template param_lgr_buffer_size
+    #' @template param_heartbeat_period
+    #' @template param_heartbeat_expire
+    #' @template param_message_log
+    #' @template param_output_log
     worker_script = function(
       worker_loop,
       ...,

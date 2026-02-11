@@ -2,23 +2,43 @@
 % Please edit documentation in R/Rush.R
 \name{Rush}
 \alias{Rush}
-\title{Rush Controller}
+\title{Rush Manager}
 \value{
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush} with controller methods.
 }
 \description{
-The \code{Rush} controller manages workers in a rush network.
+The \code{Rush} manager is responsible for starting, observing, and stopping workers within a rush network.
+It is initialized using the \code{\link[=rsh]{rsh()}} function, which requires a network ID and a config argument.
+The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
 }
+\section{Tasks}{
+
+Tasks are the unit in which workers exchange information.
+The main components of a task are the key, computational state, input (\code{xs}), and result (\code{ys}).
+The key is a unique identifier for the task in the Redis database.
+The four possible computational states are \code{"running"}, \code{"finished"}, \code{"failed"}, and \code{"queued"}.
+The input \code{xs} and result \code{ys} are lists that can contain arbitrary data.
+Usually the methods work on multiple tasks at once, so \code{xss} and \code{yss} are lists of inputs and results.
+}
+
+\section{Queues}{
+
+Tasks can be pushed to a queue with the \verb{$push_tasks()} method which sets the state to \code{"queued"}.
+Workers pop tasks from the queue with the \verb{$pop_task()} method of the \link{RushWorker}.
+Additionally, tasks can be pushed to a priority queue of a specific worker with the \verb{$push_priority_tasks()} method.
+A worker evaluates the tasks in the priority queue before the shared queue.
+}
+
 \section{Local Workers}{
 
-A local worker runs on the same machine as the controller.
-Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
+A local worker runs on the same machine as the manager.
+Local workers are spawned with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
 }
 
 \section{Remote Workers}{
 
-A remote worker runs on a different machine than the controller.
-Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
+A remote worker runs on a different machine than the manager.
+Remote workers are spawned with the \verb{$start_remote_workers()} method via the \CRANpkg{mirai} package.
 }
 
 \section{Script Workers}{
@@ -306,6 +326,12 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -317,8 +343,30 @@ If \code{rush_plan()} is not called, the default is \code{1}.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -332,6 +380,26 @@ Whether to kill the workers when the main R process is shut down.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -367,6 +435,12 @@ Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -378,8 +452,30 @@ If \code{rush_plan()} is not called, the default is \code{1}.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -390,6 +486,26 @@ This improves the performance of the logging.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -424,14 +540,42 @@ Generate a script to start workers.
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -450,6 +594,26 @@ The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
