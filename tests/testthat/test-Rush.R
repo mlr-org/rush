@@ -654,26 +654,17 @@ test_that("caching results works", {
   rush$wait_for_tasks(keys)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 10)
-  expect_list(get_private(rush)$.cached_tasks, len = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
   keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 20)
-  expect_list(get_private(rush)$.cached_tasks, len = 20)
-
-  expect_list(rush$fetch_finished_tasks(data_format = "list"), len = 20)
-  expect_list(get_private(rush)$.cached_tasks, len = 20)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 20)
 })
 
 # segfault detection -----------------------------------------------------------

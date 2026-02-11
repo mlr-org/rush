@@ -527,62 +527,6 @@ test_that("moving a queued task to failed works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-test_that("fetching as list works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  # queue tasks
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
-  keys = rush$push_tasks(xss)
-  queued_tasks = rush$fetch_queued_tasks(data_format = "list")
-  expect_list(queued_tasks, len = 4)
-  expect_names(names(queued_tasks), permutation.of = keys)
-
-  # pop task
-  task_1 = rush$pop_task()
-  running_tasks = rush$fetch_running_tasks(data_format = "list")
-  expect_list(running_tasks, len = 1)
-  expect_names(names(running_tasks), identical.to = task_1$key)
-  task_2 = rush$pop_task()
-  running_tasks = rush$fetch_running_tasks(data_format = "list")
-  expect_list(running_tasks, len = 2)
-  expect_names(names(running_tasks), permutation.of = c(task_1$key, task_2$key))
-
-  # push result
-  rush$push_results(task_1$key, list(list(y = 3)))
-  finished_tasks = rush$fetch_finished_tasks(data_format = "list")
-  expect_list(finished_tasks, len = 1)
-  expect_names(names(finished_tasks), permutation.of = task_1$key)
-
-  rush$push_results(task_2$key, list(list(y = 3)))
-  finished_tasks = rush$fetch_finished_tasks(data_format = "list")
-  expect_list(finished_tasks, len = 2)
-  expect_names(names(finished_tasks), permutation.of = c(task_1$key, task_2$key))
-
-  expect_null(rush$wait_for_finished_tasks(timeout = 0.1, data_format = "list"))
-
-  latest_results = rush$fetch_new_tasks(data_format = "list")
-  expect_list(latest_results, len = 2)
-  expect_names(names(latest_results), permutation.of = c(task_1$key, task_2$key))
-
-  task_3 = rush$pop_task()
-  rush$push_results(task_3$key, list(list(y = 3)))
-  latest_results = rush$wait_for_new_tasks(data_format = "list")
-  expect_list(latest_results, len = 1)
-  expect_names(names(latest_results), permutation.of = task_3$key)
-
-  # push failed task
-  task = rush$pop_task()
-  rush$push_failed(task$key, conditions = list(list(message = "error")))
-  failed_tasks = rush$fetch_failed_tasks(data_format = "list")
-  expect_list(failed_tasks, len = 1)
-  expect_names(names(failed_tasks), identical.to = task$key)
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
 test_that("fetch task with states works", {
   skip_on_cran()
 
@@ -599,31 +543,17 @@ test_that("fetch task with states works", {
   expect_data_table(tab, nrows = 1)
   expect_names(names(tab), must.include = "state")
 
-  expect_list(rush$fetch_tasks_with_state(states = "finished", data_format = "list"), len = 1)
-  expect_list(rush$fetch_tasks_with_state(states = c("running", "finished"), data_format = "list"), len = 2)
-  l = rush$fetch_tasks_with_state(states = "queued", data_format = "list")
-  expect_list(l, len = 1)
-  expect_list(l$queued, len = 1)
-
   # running
   task = rush$pop_task(fields = c("xs", "seed"))
   tab = rush$fetch_tasks_with_state()
   expect_data_table(tab, nrows = 1)
   expect_equal(tab$state, "running")
 
-  l = rush$fetch_tasks_with_state(data_format = "list")
-  expect_list(l, len = 4)
-  expect_list(l$running, len = 1)
-
   # finished
   rush$push_results(task$key, list(list(y = 3)))
   tab = rush$fetch_tasks_with_state()
   expect_data_table(tab, nrows = 1)
   expect_equal(tab$state, "finished")
-
-  l = rush$fetch_tasks_with_state(data_format = "list")
-  expect_list(l, len = 4)
-  expect_list(l$finished, len = 1)
 
   # failed
   xss = list(list(x1 = 2, x2 = 2))
@@ -633,11 +563,6 @@ test_that("fetch task with states works", {
   tab = rush$fetch_tasks_with_state()
   expect_data_table(tab, nrows = 2)
   expect_equal(tab$state, c("finished", "failed"))
-
-  l = rush$fetch_tasks_with_state(data_format = "list")
-  expect_list(l, len = 4)
-  expect_list(l$finished, len = 1)
-  expect_list(l$failed, len = 1)
 })
 
 test_that("latest results are fetched", {
