@@ -25,157 +25,202 @@ options(datatable.prettyprint.char = 10L)
 
 # Abstract {#sec-abstract}
 
-Optimizing modern machine learning algorithms often requires substantial computational resources.
-Distributing evaluations across many workers is a common strategy to address this challenge.
+Tuning modern machine learning algorithms often requires substantial computational resources.
+Distributing evaluations across a large number of workers is a common strategy to address this challenge.
 However, scaling optimization algorithms to hundreds of workers exposes a fundamental limitation: the central controller becomes a bottleneck.
-We present `rush`, an R package for asynchronous and decentralized optimization that removes this single coordination point.
-`rush` uses a database-centric architecture in which workers communicate through a shared Redis database and independently run optimization loops.
-To support high-throughput workloads, `rush` combines low per-task overhead with caching strategies that reduce database operations.
+We present `rush`, an R package for asynchronous and decentralized optimization that removes this single point of coordination.
+`rush` uses a database-centric architecture in which workers communicate through a shared Redis database, each independently executing its own optimization loop
+To support high-throughput workloads, `rush` combines low per-task runtime overhead with caching strategies that reduce database operations.
 `rush` integrates with the `mlr3` ecosystem and serves as the backend for asynchronous optimization algorithms in `bbotk` and `mlr3tuning`.
-We demonstrate the usability of `rush` by implementing asynchronous decentralized Bayesian optimization.
-Further we benchmark the core functionality of `rush` and show that it scales efficiently to over 448 workers while achieving substantially higher CPU utilization than controller-centric approaches.
+We demonstrate the practical utility of `rush` by implementing asynchronous decentralized Bayesian optimization.
+Our experiments show that it scales efficiently to over 448 workers while achieving substantially higher CPU utilization than controller-centric approaches.
 
 # Introduction {#sec-introduction}
 
 <!--context-->
 Black-box optimization addresses problems where the objective is accessible only through function evaluations and derivatives are unavailable or unreliable.
 In machine learning, this setting arises naturally in hyperparameter optimization, where each evaluation corresponds to training and validating a model.
-As datasets and model complexity continue to grow, the resulting computational cost often necessitates distributing evaluations across many machines.
-But scaling optimization algorithms to hundreds of workers exposes a fundamental limitation: the central controller becomes a bottleneck.
-When the central controller cannot generate new tasks fast enough to keep up with the workers, the scalability of the optimization algorithm is limited.
+As datasets and model complexity continue to grow, the resulting computational cost often necessitates distributing evaluations across a large number of machines.
+However, scaling optimization algorithms to hundreds of workers exposes a practical limitation: when the central controller cannot generate new tasks fast enough to keep up with the workers, it becomes a bottleneck that limits overall scalability.
 
 Traditional approaches to parallel computing in R, such as the `parallel` and `future` [@bengtsson2021] packages, follow a controller-worker model where a central process
-proposes tasks, dispatches them to workers, and collects results (Figure @fig-rush-network left).
-Packages like `batchtools` [@lang2017] and `crew` [@landau2023] address distributed computing on high-performance clusters but follow the same controller-worker model.
-The `rrq` package reduces overhead per task by using Redis as a task queue, but still relies on central controller to propose tasks and collect results.
-The `mirai` package [@gao2025] emphasizes asynchronous evaluation at scale, but it does not by itself remove controller-centric coordination in optimization workflows.
+proposes tasks, dispatches them to workers, and collects results (Figure @fig-centralized-network).
+Packages such as `batchtools` [@lang2017] and `crew` [@landau2023] extend this model to high-performance clusters but retain the same centralized coordination.
+While `rrq` reduces per-task overhead by using Redis as a task queue, and `mirai` [@gao2025] emphasizes asynchronous evaluation at scale, neither eliminates the controller as the single point of coordination in optimization workflows.
 
 <!-- research question -->
-A decentralized alternative is to let each worker run an optimization loop while exchanging information through shared state, thereby avoiding a single point of coordination (Figure @fig-rush-network right).
-Algorithms like Bayesian optimization [@egele2023] and asynchronous hyperband [@li2020] are examples for this.
-Software frameworks for decentralized optimization like `Ray Tune` [@liaw2018], `DeepHyper` [@egele2025], `Optuna` [@akiba2019] are available in Python.
+These limitations motivate an alternative architectural approach.
+A decentralized alternative is to let each worker run an optimization loop while exchanging information through shared state, thereby avoiding a single point of coordination (Figure @fig-decentralized-network).
+Algorithms like asynchronous and decentralized Bayesian optimization (ADBO) [@egele2023], asynchronous hyperband (AHB)[@li2020], and Bayesian optimization and hyperband (BOHB) [@falkner2018] are examples for this approach.
+Software frameworks for decentralized optimization such as `Ray Tune` [@liaw2018], `DeepHyper` [@egele2025], and `Optuna` [@akiba2019], are available in Python.
 In contrast, R lacks a comparable framework for asynchronous and decentralized optimization.
 
 <!-- solution -->
 To fill this gap, we present `rush`, a package for decentralized optimization in R.
 Unlike existing solutions, `rush`  allows workers to communicate asynchronously over a shared Redis database.
-`rush` provides a rich API for task and results and their states
-It  features low overhead per task, robust error handling with automatic detection of lost workers, and an efficient caching mechanism that minimizes database operations.
-`rush` integrates seamlessly with the mlr3 ecosystem, powering asynchronous optimization in the `bbotk` and `mlr3tuning` packages.
+`rush` provides a rich API for managing tasks, results, and their associated states.
+It features low overhead per task, robust error handling with automatic detection of lost workers, and an efficient caching mechanism that minimizes database operations.
+`rush` integrates with the mlr3 ecosystem, powering asynchronous optimization in the `bbotk` and `mlr3tuning` packages.
 
 <!-- main conclusion -->
-`rush` allows researchers to develop new distributed optimization algorithms and empowers end users to solve large-scale problems with minimal effort.
-We demonstrate the usability of `rush` by implementing asynchronous distributed Bayesian optimization.
+`rush` enables end users to tackle large-scale optimization problems without requiring expertise in distributed systems.
+We demonstrate the applicability of `rush` by implementing asynchronous distributed Bayesian optimization.
 Our benchmarks show that `rush` scales efficiently to over 448 workers while maintaining high CPU utilization.
 
-::: {#fig-rush-network}
+::: {#fig-rush-network layout-ncol=2}
 
-![](network_types.png)
+![Centralized network](centralized_network.png){#fig-centralized-network}
 
-Centralized (left) and decentralized (right) optimization networks.
-Hexagons denote processes, including the main process `M` and workers `W`.
-`O` denotes the optimizer, which proposes tasks and incorporates their results, and `f` denotes the objective function to be optimized.
-In the centralized network, `M` runs `O`, proposes tasks to the workers, and processes the returned evaluations of `f`.
-In the decentralized network, each worker `W` runs its own instance of `O`, evaluates `f`, and exchanges task information via a shared `Redis` database (red rectangle).
+![Decentralized network](decentralized_network.png){#fig-decentralized-network}
+
+Centralized and decentralized optimization networks.
+Octagons denote processes, including the main process `M` and workers `W`.
+$\mathcal{O}$ denotes the optimizer, which proposes tasks and incorporates their results, and $f$ denotes the objective function to be optimized.
+Circular arrows indicate local optimization loop.
+In the centralized network, `M` runs $\mathcal{O}$, proposes tasks to the workers, and processes the returned evaluations of $f$.
+In the decentralized network, each worker $W$ runs its own instance of $\mathcal{O}$, evaluates $f$, and exchanges task information via a shared `Redis` database (red rectangle).
 :::
 
 ## Related Work {#sec-related-work}
 
 <!-- Parallel backends -->
-As multi-core processors became commonplace in the 2000s, there was a growing need to utilize these resources effectively for computational tasks in R.
+The widespread adoption of multi-core processors in the 2000s created a growing need to utilize these resources effectively for computational tasks in R.
 The first packages to address this need were `snow` [@tierney2021] and `multicore`.
 With R version 2.14.0 (released in 2011), parallel computing capabilities were integrated into the base R system through the `parallel` package.
-The functions `parallel::mclapply()` and `parallel::parLapply()` are parallel versions of the `lapply()` function for multicore and cluster computing, respectively.
-Both functions are widely used in R packages but have some limitations.
-The R session is blocked until all tasks are finished and it is not possible to retrieve partial results.
-Moreover, load balancing can be an issue when the tasks have different runtimes.
+The `parallel` package provides `mclapply()` and `parLapply()` as parallel versions of `lapply()` for multicore and cluster computing, respectively.
+Although widely used, both functions block the R session until all tasks complete, preventing retrieval of partial results.
+Moreover, their static task allocation can lead to poor load balancing when tasks have heterogeneous runtimes.
 
-The landscape further evolved with the release of the `future` [@bengtsson2021] package in 2016, which provided a unified and flexible parallel computing interface in R, supporting various backends such as `multisession`, `multicore`, and `callr`.
-The `multisession` and `cluster` backends are limited to 125 workers.
-Since each future is by default evaluated in a new process, the overhead per task can be significant.
-The `future.apply` package implements parallel versions of the `*apply()` family functions, compatible with the `future` backends.
+The `future` package [@bengtsson2021] introduced a unified parallel computing interface in R, supporting various backends such as `multisession`, `multicore`, and `callr`, with the `future.apply` package providing parallel versions of the `*apply()` family of functions.
+However, the `multisession` and `cluster` backends are limited to 125 workers, and since each `future` is by default evaluated in a new process, per-task overhead can be significant,particularly for short-running tasks.
 
 The `mirai` package [@gao2025] evaluates an R expression asynchronously in a parallel process, locally or distributed over the network.
 The package has a strong focus on throughput, low overhead and modern networking, eliminating many drawback of the older approaches.
+`mirai` provides a comprehensive daemon management interface for launching and configuring persistent daemons across local and remote systems (including SSH-based deployment and HPC schedulers).
+`rush` leverages this mechanism to start workers on remote machines.
 
 <!-- Distributed computing and HPC -->
-With the rise of high-performance computing (HPC) clusters, the `batchtools` [@lang2017] package was developed to facilitate the execution of long-running tasks on these systems.
-The communication between the main process and the workers runs completely over the file system.
-A notable feature of the package is the assistance in conducting large-scale computer experiments.
-A more recent development in distributed computing is the `crew` [@landau2023] package.
-The package is designed for long-running tasks in distributed systems, ranging from traditional high-performance clusters to cloud computing platforms.
-A drawback of both systems is the high overhead per task.
+The `batchtools` package [@lang2017] facilitates the execution of long-running tasks and large-scale computer experiments on HPC clusters.
+Because communication between the main process and workers relies entirely on the file system, the package incurs substantial per-task overhead from both job scheduling and file I/O, making it less suitable for high-throughput workloads with many short-running tasks.
+The more recent `crew` package [@landau2023] targets a similar use case, supporting long-running tasks in distributed systems ranging from traditional HPC clusters to cloud computing platforms, but likewise depends on a centralized controller for task coordination.
 
 <!-- Python -->
-The Python ecosystem offers several tools for distributed computing in machine learning.
-DeepHyper [@egele2025] supports massively parallel hyperparameter optimization workflows.
-Ray Tune [@liaw2018] provides distributed hyperparameter optimization and experiment management.
-Dask [@rocklin2015] enables parallel and distributed execution via a dynamic task scheduler that scales from a single machine to multi-node clusters.
+Python has a rich ecosystem for parallel and distributed computing.
+`Dask` [@rocklin2015] enables parallel and distributed execution via a dynamic task scheduler that scales from a single machine to multi-node clusters.
+`Ray` [@moritz2018] is a general-purpose distributed computing framework; built on top of it, `Ray Tune` [@liaw2018] provides distributed hyperparameter optimization with support for decentralized workflows.
+`DeepHyper` [@egele2025] supports decentralized hyperparameter optimization and offers multiple parallel programming backends, including `Asyncio`, threading, processes, `Ray`, and `MPI`.
+`Optuna` [@akiba2019] adopts an ask-and-tell interface designed for decentralized optimization, supporting multi-threaded, multi-process, and multi-node execution.
+While these frameworks demonstrate the viability of decentralized optimization at scale, no comparable solution currently exists in R.
 
 <!-- Database connectivity layers -->
 The parallel and distributed computing ecosystem in R is complemented by database connectivity layers that enable shared state and coordination.
 For relational database management systems, `DBI` [@rsigdb2024] defines a standardized interface that separates a common front end from database-specific back ends.
-For `Redis`, `redux` provides R bindings to the Redis API and exposes the command set through a low-level and a higher-level interface.
+For `Redis`, `redux` provides R bindings to the `Redis` API and exposes the command set through a low-level and a higher-level interface.
 
-The `rrq` package is a task queue system for R using Redis as a coordination backend.
+The `rrq` package is a task queue system for R using `Redis` as a coordination backend.
 It addresses the limitations of other packages by providing a non-blocking interface to parallel computing and keeping the overhead per task low.
-The package allows non-interacting queues with priority levels within a queue and dependencies among tasks.
-`rrq` is implemented on top of `redux`, which provides the underlying Redis connectivity and command interface.
-The package has an advanced error-handling mechanism, heavily influencing the heartbeat mechanism of `rush`.
+The package supports independent task queues, priority levels within queues, and inter-task dependencies.
+`rrq` is implemented on top of `redux`, which provides the underlying `Redis` connectivity and command interface.
+Its error-handling mechanism, particularly its heartbeat approach, directly informed the design of the corresponding mechanism in `rush`.
 
-# General Structure of Rush {#sec-general-structure}
+In summary, the existing R ecosystem for parallel and distributed computing is rich but uniformly follows a controller-worker architecture.
+Packages such as `parallel`, `future`, and `crew` centralize task proposal and result collection in a single process, which becomes a bottleneck at scale.
+While `rrq` and `mirai` reduce per-task overhead, neither supports decentralized optimization loops in which workers independently propose and evaluate tasks.
+The Python ecosystem offers frameworks such as `DeepHyper` and `Ray Tune` that support decentralized workflows, but no comparable solution exists in R.
+`rush` addresses this gap by combining a decentralized architecture with low-overhead `Redis`-based communication.
 
-A Rush network consists of multiple workers that communicate via a shared Redis database.
-Each worker evaluates tasks and pushes the corresponding results back to the database.
+# General Structure of `rush` {#sec-general-structure}
 
-::: {#fig-rush-network}
+This section introduces the architecture and core API of `rush`, illustrated through a running optimization example.
+A `rush` network consists of multiple workers that communicate via a shared `Redis` database.
+Each worker evaluates tasks and pushes the corresponding results back to the database, as illustrated in Figure @fig-worker-communication.
 
-![](rush_network.png){width=100%}
+::: {#fig-worker-communication}
 
-The architecture of a rush network.
-A hexagon represents a worker and the rectangle represent the `Redis` database.
-Each worker `W` runs its own instance of `O`, evaluates `f`, and exchanges task information via a shared `Redis` database.
-The optimizer `O` gathers information about the tasks and their results with `$fetch_finished_tasks()`.
-Creates a new task based on these information and store it in the `Redis` database with `$push_running_tasks()`.
-When the task is evaluated, the results are pushed to the `Redis` database with `$push_results()`.
+![](worker_communication.png){width=100%}
+
+The communication flow between a worker and the `Redis` database in a `rush` network.
+The hexagon represents a worker and the rectangle represents the `Redis` database.
+Each worker `W` runs its own instance of $\mathcal{O}$, evaluates $f$, and exchanges task information via a shared `Redis` database.
+Arrows indicate the flow of information: workers retrieve completed tasks via `$fetch_finished_tasks()`, propose and store new tasks via `$push_running_tasks()`, and report results via `$push_results()`.
+See Figure @fig-decentralized-network for the complete network.
 :::
 
-We illustrate the basic functionality of Rush using an example optimization problem based on the Branin function.
+We illustrate the basic functionality of `rush` using an example optimization problem based on the Branin function $f$:
 
 $$f(x_1,x_2)=\left(x_2-\frac{5.1}{4\pi^2}x_1^2+\frac{5}{\pi}x_1-6\right)^2 +10\left(1-\frac{1}{8\pi}\right)\cos(x_1)+10$$
 
 The function is optimized over the domain $x_1 \in [-5, 10]$ and $x_2 \in [0, 15]$, as shown in Figure @fig-branin.
-The Branin function serves as a toy benchmark for optimization that is fast to evaluate yet sufficiently nontrivial.
+The Branin function is a commonly used benchmark function that is fast to evaluate yet sufficiently nontrivial.
 
 ![Branin function](branin.png){#fig-branin width=100%}
 
-
 ```{r}
-branin <- function(x1, x2) {
+branin = function(x1, x2) {
   (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 +
-  10 * (1 - 1 / (8 * pi)) * cos(x1) +
-  10
+    10 * (1 - 1 / (8 * pi)) * cos(x1) +
+    10
 }
 ```
 
+Next, we define an optimizer that proposes new points for evaluation.
+It takes as input an `archive` of running and completed tasks and returns a new candidate point `xs` for evaluation.
+The archive is represented as a `data.table` object.
+If the `archive` is empty, the optimizer proposes a random point.
+Otherwise, it imputes missing objective values for running tasks using the mean objective value of completed tasks.
+It then fits a surrogate model and proposes a new point by maximizing an upper-confidence-bound acquisition function.
+Fitting the surrogate model becomes increasingly expensive as the number of tasks in the `archive` grows.
+A detailed understanding of this optimizer is not necessary to follow the subsequent examples; two properties are relevant for what follows: it uses previously evaluated points from other workers to inform new proposals, and proposal generation incurs a non-negligible computational cost.
 
+```{r}
+optimizer = function(archive) {
+  if (nrow(archive) == 0) {
+    return(list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)))
+  }
 
-## Worker Loop
+  mean_y = mean(archive$y, na.rm = TRUE)
+  archive["running", y := mean_y, on = "state"]
 
-We define the `worker_loop` function, which is executed on each worker.
-The function repeatedly creates tasks, evaluates them, and sends the results to the Redis database.
-It takes a single argument, a `RushWorker` object, which manages communication with Redis.
-In this example, each worker samples a random point, constructs a task, evaluates it using the Branin function, and submits the result.
-The optimization terminates after 100 tasks have been evaluated.
+  surrogate = ranger::ranger(
+    y ~ x1 + x2,
+    data = archive,
+    num.trees = 100L,
+    keep.inbag = TRUE)
+
+  xdt = data.table::data.table(x1 = runif(1000, -5, 10), x2 = runif(1000, 0, 15))
+  p = predict(surrogate, xdt, type = "se", se.method = "jack")
+  cb = p$predictions - 0.1 * p$se
+
+  xs = as.list(xdt[which.min(cb)])
+}
+```
+
+## Worker Loop {#sec-worker-loop}
+
+We define the `worker_loop` function, which is executed by each worker.
+The function repeatedly generates tasks using the optimizer $\mathcal{O}$, evaluates them with the objective function $f$, and writes the results to the Redis database.
+The function takes all arguments needed to run the worker loop (`branin` and `optimizer`) and a `RushWorker` object, which manages communication with Redis (`rush`).
+The worker loop repeats the following steps until 100 tasks have been evaluated:
+
+1. Fetch the currently running and finished tasks from the database.
+2. Use the optimizer to propose a new task.
+3. Push the new task to the database.
+4. Evaluate the new task using the objective function.
+5. Push the result to the database.
+
+Crucially, each worker executes this loop independently; no central controller is involved in proposing or dispatching tasks.
+
 
 ```{r rush-003}
 library(rush)
 
-wl_random_search = function(rush) {
+wl_mbo = function(rush, branin, optimizer) {
 
   while(rush$n_finished_tasks < 100) {
 
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+    archive = rush$fetch_tasks_with_state(states = c("running", "finished"))
+    xs = optimizer(archive)
+
     key = rush$push_running_tasks(xss = list(xs))
 
     ys = list(y = branin(xs$x1, xs$x2))
@@ -184,38 +229,25 @@ wl_random_search = function(rush) {
 }
 ```
 
-The most important methods of the `RushWorker` class are `$push_running_tasks()` and `$push_results()`.
-The `$push_running_tasks()` method creates a new task in the Redis database.
-Because the task is scheduled for immediate evaluation, it is marked as running.
-The `$push_running_tasks()` method returns a unique key that is used to identify the task.
+The worker loop relies on three principal methods of the RushWorker class.
+The `$fetch_tasks_with_state()` method retrieves all tasks in the specified states from the Redis database, returning a `data.table` containing task states, keys, inputs, and results.
+The `$push_running_tasks()` method creates a new task in the database and returns a unique key identifying it; because the task is scheduled for immediate evaluation by the same worker, it is marked as running rather than queued.
+The `$push_results()` method takes this key along with a list of result values and writes the corresponding results to the database.
+Finally, the `$n_finished_tasks` field tracks the number of completed tasks and serves as the termination criterion for the loop.
 
-The `$push_results()` method pushes the corresponding results back to the Redis database.
-It takes the task key and a list of result values as arguments.
+## Tasks {#sec-tasks}
 
-Marking a task as running is not essential for random search.
-However, it is crucial for more sophisticated algorithms that use information about other workers’ tasks to decide which task to evaluate next.
-For example, Bayesian optimization algorithms select new evaluation points that are farther from previously sampled points in order to explore the search space more effectively.
-The `$n_finished_tasks` field indicates how many tasks have been completed and is used to terminate the worker loop.
+Tasks are the basic units through which workers exchange information. Each task consists of four components: a unique key used to reference the task in the Redis database, a computational state, an input (`xs`), and an output (`ys`).
+The input and output are lists that may contain arbitrary data.
+Tasks pass through one of four computational states: `"running"`, `"finished"`, `"failed"`, and `"queued"`.
+The typical task lifecycle involves two states.
+The `$push_running_tasks()` method creates tasks marked as `"running"` and returns their keys.
+Upon completion, `$push_results()` marks tasks as `"finished"` and stores the associated results.
+Tasks that encounter errors can be marked as `"failed"` using the `$push_failed()` method; error handling must be implemented explicitly in the worker loop (see @sec-error-handling for details).
+The fourth state, `"queued"`, supports a special queue mechanism in which tasks are created centrally and distributed to workers; this feature is described in detail in @sec-queues.
+All methods can operate on multiple tasks simultaneously, with `xss` and `yss` denoting lists of inputs and outputs, respectively.
 
-## Tasks
-
-Tasks are the basic units through which workers exchange information.
-The main components of a task are its key, computational state, input (`xs`), and output (`ys`).
-The key is a unique identifier for the task.
-It is used to reference the task in the Redis database.
-
-The four possible computational states are `"running"`, `"finished"`, `"failed"`, and `"queued"`.
-The `$push_running_tasks()` method marks a task as `"running"` and returns its key.
-The `$push_results()` method marks a task as `"finished"` and stores the associated result.
-Failed tasks can be marked as `"failed"` using the `$push_failed()` method.
-Error handling must be implemented explicitly in the worker loop (see @sec-error-handling for details).
-Tasks can also be pushed to a queue using the `$push_tasks()` method, which sets their state to `"queued"`.
-
-The input `xs` and output `ys` are lists that may contain arbitrary data.
-The methods of the `RushWorker` can operate on multiple tasks simultaneously.
-For this reason, `xxs` and `yss` denote lists of inputs and outputs, respectively.
-
-## Manager
+## Manager {#sec-manager}
 
 The `rush` manager is responsible for starting, monitoring, and stopping workers within the network.
 It is initialized using the `rsh()` function, which requires a network identifier and a `config` argument.
@@ -227,28 +259,31 @@ library(rush)
 config = redux::redis_config()
 
 rush = rsh(
-  network = "test-random-search",
+  network = "mbo-network",
   config = config)
 ```
 
 Workers can be started using the `$start_local_workers()` method, which accepts the worker loop and the number of workers as arguments.
-By default, workers are started locally using the `processx` package.
+Any additional named arguments are forwarded to the worker loop function as named arguments.
+<!-- FIXME: Mention serialization of objects to the worker loop -->
+By default, workers are started as local processes using the `processx` package; distributed deployment is discussed in @sec-remote-workers.
 
 ```{r rush-005}
 rush$start_local_workers(
-  worker_loop = wl_random_search,
+  worker_loop = wl_mbo,
   branin = branin,
+  optimizer = optimizer,
   n_workers = 4)
 
 rush
 ```
 
-The optimization completes quickly and the results can then be retrieved.
+Once the optimization completes, the results can be retrieved from the database.
 The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
-It returns a `data.table()` containing the task key, input, and result.
+It returns a `data.table` containing the task key, input, and result.
 The `pid` and `worker_id` columns store additional information recorded when each task is created.
 The `worker_id` identifies the worker that evaluated the task, and the `pid` corresponds to the process identifier of that worker.
-Further auxiliary information can be passed as `list`s to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
+Further auxiliary information can be passed as lists to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
 
 ```{r rush-006}
 #| include: false
@@ -256,14 +291,14 @@ Sys.sleep(5)
 ```
 
 ```{r rush-007}
-#rush$fetch_finished_tasks()[order(y)]
+rush$fetch_finished_tasks()[order(y)]
 ```
 
-The `rush` controller displays the number of running workers and the number of tasks in each state.
-In this example, 103 tasks are marked as finished and all workers have stopped.
-This number slightly exceeds 100 because workers check the stopping condition independently.
-If several workers evaluate the condition at approximately the same time, for example when 99 tasks are finished, they may all create new tasks before detecting that the limit has been reached.
-Additionally, tasks may continue to be created while the 100th task is still being evaluated.
+::: {.callout-note}
+The total of tasks slightly exceeds 100 because workers check the stopping condition independently: if multiple workers evaluate the condition concurrently — for example, when 99 tasks are finished — each may create a new task before detecting that the limit has been reached.
+:::
+
+Printing the `rush` object displays the number of running workers and the number of tasks in each state.
 
 ```{r rush-008}
 rush
@@ -278,25 +313,29 @@ rush
 ```
 
 
-## Data Storage
+With the basic workflow established, the following sections describe additional features of rush for handling errors, caching, and scaling to distributed systems.
 
-Rush stores all data in a Redis database.
+## Data Storage {#sec-data-storage}
+
+`rush` stores all data in a Redis database.
 Redis is an open-source, in-memory key-value store commonly used as a database, cache, and message broker.
-It is valued for extremely low latency and supports multiple data structures such as strings, hashes, lists and sets.
-Rush uses different data structures of Redis to store the data.
+It offers extremely low latency and supports multiple data structures such as strings, hashes, lists and sets.
+`rush` maps its data model onto three Redis data structures: hashes, sets, and lists.
 
 Redis hashes are a data structure for storing associative field–value pairs under a single key.
 They are optimized for memory efficiency and fast access to structured data.
-This makes them suitable for representing the input, output and meta information of tasks.
-The key of the hash identifies the task in Redis and rush.
+This makes them suitable for representing the input, output and metadata of tasks.
+The key of the hash identifies the task in `Redis` and `rush`.
+A task is stored as a Redis hash with the following structure:
 
 ```
 key : xs | ys | xs_extra
 ```
 
 The field-value pairs are written by different methods, e.g. `$push_running_tasks()` writes `xs` and `$push_results()` writes `ys`.
-The values of the fields are serialized lists or atomic values e.g. unserializing `xs` gives `list(x1 = 1, x2 = 2)`
-This data structure allows quick converting of a hash into a row and joining multiple hashes into a table.
+The values of the fields are serialized lists or atomic values e.g. deserializing the `xs` field gives `list(x1 = 1, x2 = 2)`.
+This structure allows a hash to be efficiently converted into a table row and multiple hashes to be joined into a table.
+When retrieved, multiple hashes are joined into a tabular format:
 
 ```
 | key | x1 | x2 | y | timestamp |
@@ -305,39 +344,41 @@ This data structure allows quick converting of a hash into a row and joining mul
 | 3.. |  1 |  1 | 2 |  12:04:13 |
 ```
 
-Redis sets are an unordered collection of unique elements associated with a single key.
-They enforce uniqueness automatically and support efficient membership tests.
-Sets are used to store the state of tasks.
-For example, all running tasks are stored in the `"running_tasks"` set.
+`Redis` sets are unordered collections of unique elements that support efficient membership tests.
+`rush` uses sets to track task states; for example, the keys of all currently running tasks are stored in the `"running_tasks"` set.
 
-Redis lists are ordered collections of elements stored as linked lists under a single key.
-They support efficient insertion and removal at both the head and the tail, enabling queues and event logs where ordering is significant.
-Finished and queued tasks are stored in a list.
-Using lists for the queue is an obvious choice because it allows to push and pop tasks from the head and the tail.
-Storing the finished tasks in a list gives them an order by time.
-This allows to cheaply get the latest results and cache the finished tasks.
+`Redis` lists are ordered collections stored as linked lists that support efficient insertion and removal at both ends.
+`rush` uses lists for two purposes: managing the task queue and recording finished tasks.
+For the queue, the list structure is a natural choice, as it supports atomic push and pop operations.
+Storing the finished tasks in a list gives them an order by time; enabling workers to cheaply retrieve only the most recent results and to cache previously fetched tasks.
 
-# Advanced Features of Rush
+# Advanced Features of `rush` {#sec-advanced-features}
 
-## Queues
+## Remote Workers {#sec-remote-workers}
 
-Sometimes it is advantageous to create tasks in central process and push them to the workers.
-This avoids to coordinate which worker evaluates which task.
+## Queues {#sec-queues}
 
-The queue system works by pushing and popping tasks from a queue.
-The `$push_task()` method creates new tasks and pushes them to the queue.
-In this example, we create 25 tasks and push them to the queue.
+While the typical task lifecycle in rush is running to finished, the package also supports a queue mechanism for cases in which tasks are created centrally and distributed to workers. This is particularly useful for generating an initial design in Bayesian optimization.
+Structured designs such as Latin hypercube sampling (LHS) or Sobol sequences can outperform random designs, but generating them requires a global view of the design space.
+If each worker were to generate its own initial design independently, they would need to coordinate to avoid redundant evaluations.
+A queue avoids this problem: the initial design is created once in a central process, and workers draw tasks from the shared queue.
+
+```{r}
+lhs_points = lhs::maximinLHS(n = 25, k = 2)
+xss = lapply(1:25, function(i) list(x1 = lhs_points[i, 1] * 15 - 5, x2 = lhs_points[i, 2] * 15))
+```
+
+The `$push_tasks()` method creates new tasks and adds them to the queue.
+Here, we push 25 tasks corresponding to the LHS design:
 
 ```{r rush-016}
-xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
-
 rush$push_tasks(xss = xss)
 
 rush
 ```
 
-We see 25 queued tasks in the database.
-To retrieve the tasks from the queue, we need to implement the `$pop_task()` method in the worker loop.
+To consume tasks from the queue, the worker loop calls the `$pop_task()` method, which retrieves the next queued task, marks it as running, and returns it.
+If the queue is empty, the method returns `NULL`, which serves as the termination signal.
 
 ```{r rush-017}
 wl_queue = function(rush) {
@@ -350,23 +391,21 @@ wl_queue = function(rush) {
 }
 ```
 
-The `$pop_task()` method pops a task from the queue and marks it as running.
-It returns the task or `NULL` if the queue is empty.
-We use this to stop the worker loop when the queue is empty.
+In practice, the queue loop typically precedes the main optimization loop: workers first drain the initial design queue, then transition to the model-based `wl_mbo` loop for the remainder of the optimization.
 
 ## Error Handling {#sec-error-handling}
 
-rush is equipped with an advanced error-handling mechanism designed to manage and mitigate errors encountered during the execution of tasks.
-It adeptly handles a range of error scenarios, from standard R errors to more complex issues such as segmentation faults and network errors.
-
-Within the worker loop, users are responsible for catching errors and marking the corresponding task as `"failed"` using the `$push_failed()` method.
+`rush` provides error-handling mechanisms for two failure modes: standard R errors during task evaluation and unexpected worker failures such as crashes or lost connections.
+For errors that occur during task evaluation, users are responsible for catching them within the worker loop and marking the corresponding task as `"failed"` using the `$push_failed()` method:
 
 ```{r rush-018}
 wl_error = function(rush) {
 
   while(rush$n_finished_tasks < 100) {
 
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
+    archive = rush$fetch_tasks_with_state(states = c("running", "finished"))
+    xs = optimizer(archive)
+
     key = rush$push_running_tasks(xss = list(xs))
 
     tryCatch({
@@ -380,232 +419,165 @@ wl_error = function(rush) {
 }
 ```
 
-The rush package provides mechanisms to address situations in which workers fail due to crashes or lost connections.
-Such failures may result in tasks remaining in the "running" state indefinitely.
-The package offers the `$detect_lost_workers()` method, which is designed to identify and manage these occurrences.
-The controller updates the state of the worker to `"lost"`.
+When a worker fails unexpectedly due to a crash, segmentation fault, or lost network connection its tasks may remain in the "running" state indefinitely.
+The `$detect_lost_workers()` method identifies such workers and updates their status to `"lost"`.
+For workers started with `$start_local_workers()` or `$start_remote_workers()`, lost worker detection works automatically by checking process status.
 
-This method works for workers started with `$start_local_workers()` and `$start_remote_workers()`.
-Workers started with `$worker_script()` must be started with a heartbeat mechanism
-The mechanism consists of a heartbeat key with a set expiration timeout and a dedicated heartbeat process that refreshes the timeout periodically.
-The heartbeat process is started with `callr` and is linked to the main process of the worker.
-In the event of a worker's failure, the associated heartbeat process also ceases to function, thus halting the renewal of the timeout.
-The absence of the heartbeat key acts as an indicator to the controller that the worker is no longer operational.
-Consequently, the controller updates the worker's status to `"lost"`.
-
-Heartbeats are initiated upon worker startup by specifying the `heartbeat_period` and `heartbeat_expire` parameters.
-The `heartbeat_period` defines the frequency at which the heartbeat process will update the timeout.
-The `heartbeat_expire` sets the duration, in seconds, before the heartbeat key expires.
-The expiration time should be set to a value greater than the heartbeat period to ensure that the heartbeat process has sufficient time to refresh the timeout.
+Workers started via `$worker_script()` require an additional heartbeat mechanism: a background process periodically refreshes a `Redis` key with a set expiration timeout, and if the worker fails, the key expires, signaling the controller that the worker is lost.
+The heartbeat is configured at startup:
 
 ```{r controller-054}
 rush$worker_script(
-  worker_loop = wl_random_search,
+  worker_loop = wl_mbo,
   heartbeat_period = 1,
   heartbeat_expire = 3)
 ```
 
-The heartbeat process is also the only way to kill a script worker.
-The `$stop_workers(type = "kill")` method pushes a kill signal to the heartbeat process.
-The heartbeat process terminates the main process of the worker.
+`rush` also supports logging for debugging purposes.
+Workers can record messages generated via the `lgr` package to the database by specifying logging levels through the `lgr_thresholds` argument of `$start_local_workers()` (e.g., `c("mlr3/rush" = "debug")`).
+This introduces minor performance overhead and is therefore disabled by default.
+As a fallback, output and message logs can be written to files via the `message_log` and `output_log` arguments.
 
-Additionally, the Redis database can be saved to disk periodically.
+# Benchmarks Bayesian Optimization {#sec-benchmarks-bo}
 
-## Log Messages
+## Experimental Setup {#sec-benchmarks-bo-experimental-setup}
 
-Workers record all messages generated using the `lgr` package to the database.
-The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging level for each logger, e.g. `c("mlr3/rush" = "debug")`.
-While enabling log message storage introduces a minor performance overhead, it is valuable for debugging purposes.
-By default, log messages are not stored.
+We compare the effective CPU utilization of three parallelization strategies for Bayesian optimization (BO) on hyperparameter optimization tasks, representing increasing degrees of decentralization.
+We optimize nine hyperparameters of the LightGBM learner on four datasets, as summarized in Tables @tbl-lightgbm-hyperparameters and @tbl-datasets.
+The datasets differ in the number of features and observations to induce different training runtimes.
+Each experiment runs for 10 minutes on 448 workers, yielding 12 experiments in total.
 
-## Debugging
+**Synchronous batch BO (CL)** Evaluates $q$ hyperparameter configurations in parallel using the constant liar (CL) approach [@ginsbourger2010].
+The first point is obtained by maximizing the acquisition function.
+A fake value is then imputed, the surrogate model is updated, and the next point is proposed by maximizing the acquisition function again.
+Common imputation choices are the minimum, maximum, or predicted posterior mean of already evaluated points.
+In our setup, CL proposes 44 configurations evaluated with 10-fold cross-validation, resulting in 440 parallel evaluations.
+`mlr3` uses the `mirai` to parallelize over the resampling iterations.
+Batch parallelization requires all workers to finish before the next batch can be proposed.
+We use early stopping to determine the optimal number of boosting iterations, which naturally induces heterogeneous runtimes: some models train for only a few iterations while others run for up to 5000.
+This heterogeneity exposes the synchronization overhead inherent in batch approaches, as fast workers remain idle while waiting for slower ones to complete.
 
-* If all of this fails, the user can manually debug the worker loop.
-* Output and message logs can be written to files by specifying the `message_log` and `output_log` arguments.
+**Asynchronous centralized BO (ACBO)** Eliminates synchronization overhead by evaluating configurations asynchronously.
+When a worker becomes idle, the central controller proposes a new configuration and sends it to the worker without waiting for other evaluations to complete.
+Configurations currently being evaluated are imputed, akin to the CL approach.
+However, surrogate fitting and acquisition function optimization remain centralized and are executed sequentially by the controller.
+With many workers, this sequential bottleneck limits scalability: new configurations cannot be proposed fast enough to keep all workers occupied.
 
+**Asynchronous decentralized BO (ADBO)** Distributes both surrogate updates and acquisition function optimization across the workers.
+Each worker maintains its own surrogate model and independently proposes the next configuration.
+When a worker completes an evaluation, it asynchronously shares the result via the database; other workers incorporate this information into their local models.
+As in CL and ACBO, configurations currently being evaluated are imputed.
+ADBO additionally uses stochastic acquisition functions to promote varying exploration–exploitation trade-offs between workers e.g. by initializing the $\lambda$ parameter of the upper confidence bound acquisition function with different values for each worker.
+ADBO requires an infrastructure that allows workers to exchange information asynchronously without a central controller — the architecture provided by
+rush.
 
-# Tutorial
-
-We implement Asynchronous Distributed Bayesian Optimization (ADBO) [@egele2023] next.
-This example shows how workers use information about running and finished tasks and introduces task queues.
-ADBO runs sequential [Bayesian optimization](https://mlr3book.mlr-org.com/chapters/chapter5/advanced_tuning_methods_and_black_box_optimization.html#sec-bayesian-optimization) on multiple workers in parallel.
-Each worker maintains its own surrogate model (a random forest) and selects the next hyperparameter configuration by maximizing the upper confidence bounds acquisition function.
-To promote a vathe optimization of algorithmsrying exploration-exploitation tradeoff between the workers, the acquisition functions are initialized with different lambda values ranging from 0.1 to 10.
-When a worker completes an evaluation, it asynchronously sends the result to its peers via a Redis data base; each worker then updates its local model with this shared information.
-This decentralized design enables workers to proceed independently; eliminating the need for a central coordinator that could become a bottleneck in large-scale optimization scenarios.
-
-# Benchmarks
-
-## Bayesian Optimization
-
-### Experimental Setup
-
-We compare the effective cpu utilization of BO algorithms on hyperparameter optimization tasks.
-Each algorithm applies a different approach to parallelize the BO loop.
-We optimize nine hyperparameters of the LightGBM learner on four different datasets, as summarized in Tables @tab-hyperparameters and @tab-datasets.
-The datasets differ both in the number of features and the number of observations to induce different runtimes of the training process.
-This setup results in 12 experiments, each running for 10 minutes on 448 workers.
-
-Sequential BO with multi-point batch proposals evaluates $q$ hyperparameter configurations in parallel.
-To obtain a batch of $q$ configurations the constant liar (CL) [@ginsbourger2010] strategy is used.
-Here, the first point is obtained by ordinary maximization of the acquisition function.
-We then preliminarily impute a fake value, update the surrogate model and propose the next point by maximizing the acquisition function again.
-Common choices for the imputed value are the minimum or maximum of the already evaluated points or the predicted posterior mean.
-`mlr3` makes use of the `mirai` package [@gao2025] to parallelize over the resampling iterations.
-In our setup, CL proposes 44 hyperparameter configurations that are evaluated with 10-fold cross-validation, resulting in 440 parallel evaluations.
-
-The batch parallelization requires all workers to finish before the next batch can be proposed.
-If there are strongly heterogeneous runtimes of the training process, the optimizer may end up waiting for the last model to finish while the other workers are idle.
-This is a synchronization overhead.
-We intentionally introduce heterogeneous runtimes by using early stopping to find the optimal number of boosting iterations.
-Some models may train only for a few iterations while others may train for up to 5000 iterations.
-
-Asynchronous Centralized Bayesian Optimization (ACBO) eliminates the synchronization overhead by evaluating the points asynchronously.
-When a worker becomes idle, the main process proposes a new configuration.
-The configuration is send to the worker without waiting for other evaluations to complete.
-To ensure diversity among proposals, configurations currently being evaluated are imputed, akin to the constant liar approach.
-
-However, the fitting of the surrogate model and the optimization of the acquisition function remain centralized.
-These steps are executed sequentially by the main process.
-With many workers, the main process becomes a bottleneck.
-New points cannot be proposed fast enough to keep up with the workers.
-
-Asynchronous Decentralized Bayesian Optimization (ADBO) [@egele2023] distributes the surrogate updates and the acquisition function optimization across the workers.
-Each worker maintains its own surrogate model and proposes the next hyperparameter configuration by maximizing the acquisition function.
-When a worker completes an evaluation, it asynchronously sends the result to its peers; each worker then updates its local model with this shared information.
-Like CL and ACBO, configurations currently being evaluated are imputed.
-ADBO also uses stochastic acquisition functions to promote a varying exploration-exploitation tradeoff between the workers.
-For example, the lambda values of the upper confidence bounds acquisition function are initialized with different values for each worker.
-For algorithms like ADBO, a system like rush is necessary, allowing the workers to asynchronously exchange information.
-With rush, the the main process can be avoided completely.
-
-The benchmarks are focused on the effective CPU utilization of the algorithms following the recommendations of @egele2023.
-The effective CPU utilization is an important metric because more utilization implies more evaluated points per time unit.
-Increased evaluation throughput might lead to a higher final performance.
-Let $n_{workers}$ denote the number of workers, where each worker corresponds to a single CPU core
-Let $T_{walltime}$ be the elapsed real time from the start to the end of the optimization.
-The total consumed CPU time is $T_{CPU} = T_{walltime} \cdot n_{workers}$.
+We measure effective CPU utilization following @egele2023.
+Let $n_{workers}$ denote the number of workers, where each worker corresponds to a single CPU core, and $T_{walltime}$ ​be the elapsed wall-clock time.
+The total available CPU time is $T_{CPU} = T_{walltime} \cdot n_{workers}$.
 Let $T_{optimization}$ denote the cumulative time spent on surrogate fitting, acquisition optimization, and model training.
-The effective CPU utilization is defined as $U = \frac{T_{optimization}}{T_{CPU}}$.
+The effective CPU utilization is then $U = \frac{T_{optimization}}{T_{CPU}}$.
+Higher evaluation throughput directly translates to more evaluated configurations per time unit, potentially improving final optimization performance
 
-The benchmark was conducted on linux cluster at the Leibniz Supercomputing Centre (LRZ).
-Each node has 112 Intel Xeon Sapphire Rapids cores and 488 GiB of memory.
-The cluster runs the operating system SUSE Linux Enterprise Server 15 SP6.
+The benchmarks are conducted on a linux cluster at the Leibniz Supercomputing Centre (LRZ).
+Each node has 112 Intel Xeon Sapphire Rapids cores and 488 GiB of memory, running SUSE Linux Enterprise Server 15 SP6.
 All code is available on GitHub at https://github.com/slds-lmu/paper_2026_rush.
 
-
-### Results
+## Results
 
 ::: {#tbl-benchmarks}
 
-| Task               | Algorithm | Mean Runtime CV [s] | Evaluations | Utilization [%] |
-|:-------------------|:----------|--------------------:|------------:|----------------:|
-| german-credit      | CL        |                   1 |         396 |            0.33 |
-|                    | ACBO      |                   0 |         461 |            0.31 |
-|                    | ADBO      |                   1 |      15,451 |           95.00 |
-| kddcup09-appetency | CL        |                  27 |         132 |            1.10 |
-|                    | ACBO      |                  23 |         473 |            4.50 |
-|                    | ADBO      |                  30 |       6,702 |           94.00 |
-| adult              | CL        |                  11 |         308 |            1.60 |
-|                    | ACBO      |                  12 |         463 |            2.30 |
-|                    | ADBO      |                  14 |      10,169 |           96.00 |
-| airlines           | CL        |                 313 |          88 |            9.70 |
-|                    | ACBO      |                 183 |         435 |           31.00 |
-|                    | ADBO      |                 261 |         993 |          100.00 |
+| Task               | Algorithm | Mean 10-fold CV Runtime [s] | Evaluations | Utilization [%] |
+|:-------------------|:----------|----------------------------:|------------:|----------------:|
+| german-credit      | CL        |                           1 |         396 |            0.33 |
+|                    | ACBO      |                           1 |         461 |            0.31 |
+|                    | ADBO      |                           1 |      15,451 |           95.00 |
+| kddcup09-appetency | CL        |                          27 |         132 |            1.10 |
+|                    | ACBO      |                          23 |         473 |            4.50 |
+|                    | ADBO      |                          30 |       6,702 |           94.00 |
+| adult              | CL        |                          11 |         308 |            1.60 |
+|                    | ACBO      |                          12 |         463 |            2.30 |
+|                    | ADBO      |                          14 |      10,169 |           96.00 |
+| airlines           | CL        |                         313 |          88 |            9.70 |
+|                    | ACBO      |                         183 |         435 |           31.00 |
+|                    | ADBO      |                         261 |         993 |          100.00 |
 
 Effective CPU utilization and the number of completed evaluations for CL, ACBO, and ADBO across four benchmark tasks.
 For each task–algorithm combination, the table reports the mean runtime of the 10-fold cross-validation in seconds, the total number of completed evaluations, and the resulting effective CPU utilization in percent.
-The CPU utilization increases with the mean runtime of the 10-fold cross-validation for all algorithms.
 :::
 
 The effective CPU utilization and the number of completed evaluations are summarized in Table @tbl-benchmarks.
-Across all tasks, ADBO achieves substantially higher utilization than the alternative algorithms.
-The improvement is consistent across datasets with both short and long training runtimes.
-Higher utilization directly translates into a larger number of completed evaluations.
-As a consequence, ADBO explores the search space far more extensively within the same wall-clock budget.
+Across all tasks, ADBO achieves substantially higher utilization than both CL and ACBO, and this improvement is consistent across datasets with both short and long training runtimes. Higher utilization translates directly into more configurations explored within the same wall-clock budget.
 
-On tasks with very short learner runtimes, centralized methods leave most compute resources idle.
-This effect is particularly visible on the german-credit task.
-Here, CL and ACBO complete only a few hundred evaluations.
-In contrast, ADBO completes more than an order of magnitude additional evaluations.
-The utilization gap exceeds two orders of magnitude in this regime.
+On tasks with very short training runtimes, centralized methods leave most compute resources idle.
+This effect is most pronounced on the german-credit task, where CL and ACBO complete only a few hundred evaluations while ADBO completes over 15,000 which corresponds to roughly 300 times higher utilization.
 
 On medium-cost tasks such as adult and kddcup09-appetency, the same pattern persists.
-ACBO improves utilization relative to CL by reducing synchronization overhead.
-Nevertheless, the centralized update step remains a limiting factor.
+ACBO improves utilization relative to CL by eliminating synchronization overhead, but the centralized surrogate update remains a limiting factor: on adult, for instance, ACBO achieves only 2.3% utilization compared to 96% for ADBO.
 
-The airlines task has the longest learner training time.
-Longer evaluations reduce the relative overhead of model updates.
-As a result, utilization increases for all algorithms.
-Even in this favorable regime, ADBO maintains a substantial advantage.
-Its utilization remains at least three times higher than that of ACBO.
-The decentralized design therefore scales robustly across workload regimes.
-See Figure @fig-cl-cpu-utilization for an illustration of the CPU utilization of CL under short-running and long-running learner runtimes.
+The airlines task has the longest training times, which reduces the relative overhead of surrogate updates and consequently increases utilization for all algorithms.
+Even in this favorable regime, ADBO maintains a substantial advantage, achieving at least three times the utilization of ACBO.
+The decentralized architecture therefore scales robustly across workload regimes.
 
-The wall-clock runtime of CL frequently exceeds the nominal 10-minute budget.
-This effect is documented in Table @tbl-benchmarks-extra.
-CL checks the termination criterion only after an entire batch finishes.
-If a batch starts shortly before the time limit, the experiment continues until all evaluations complete.
-This behavior introduces systematic budget overruns.
-ACBO and ADBO apply termination checks after every completed evaluation.
-This finer-grained control enforces the wall-clock constraint more accurately.
+Beyond utilization, the parallelization strategy also affects budget adherence.
+The wall-clock runtime of CL frequently exceeds the nominal 10-minute budget (see Table @tbl-benchmarks-extra and Figure @fig-cl-cpu-utilization), because CL checks the termination criterion only after an entire batch finishes.
+If a batch starts shortly before the time limit, the experiment continues until all evaluations complete, introducing significant budget overruns.
+In contrast, ACBO and ADBO check for termination after every completed evaluation, enforcing the wall-clock constraint more accurately.
 Asynchronous scheduling therefore improves both utilization and budget adherence.
 
 ::: {#fig-cl-cpu-utilization}
 
+<!-- Split figure and remove legend -->
+
 ![](cl_cpu_utilization.png)
 
-CPU utilization over time for CL under short-running (left) and long-running (right) objective functions.
-Red rectangles denote the proposal phase, and blue rectangles denote the evaluation phase.
-Rectangle height indicates CPU utilization relative to the 10-core machine.
-During proposal, CL uses a single core (≈10% utilization), whereas during evaluation it uses all 10 cores (≈100% utilization).
-The proposal phase becomes longer over iterations because fitting the surrogate model becomes more expensive as the training set grows.
+Short-running and long-running objective functions.
+Each bar represents one BO iteration, with the proposal phase (red) and evaluation phase (blue) shown as stacked components.
+Bar height indicates CPU utilization relative to a 10-core machine: during proposal, CL uses a single core (≈10% utilization), whereas during evaluation it uses all 10 cores (≈100% utilization).
+The proposal phase grows over iterations as surrogate fitting becomes more expensive with an increasing number of observations.
 For long-running objectives, evaluation dominates wall-clock time, yielding higher average CPU utilization than for short-running objectives.
+The same pattern applies at the 448-worker scale used in our benchmarks.
+
 :::
 
-## Rush
+# Benchmarks Core Functions
 
 ## Experimental Setup
 
-The evaluation of short-running tasks is sensible to the overhead introduced by rush.
-Therefore, we measure the runtime of the core functions in a synthetic benchmark.
-This includes `$push_running_tasks()`, `$push_results()`, and `$fetch_finished_tasks()`.
-The fetching operation is done with and without caching.
-Runtime is reported as median and median absolute deviation (MAD) over 1000 replicates.
-The runtime is measured with the `microbenchmark` R package.
+The evaluation of short-running tasks is sensitive to the overhead introduced by `rush`.
+To quantify this overhead, we benchmark the core functions: `$push_running_tasks()`, `$push_results()`, and `$fetch_finished_tasks()`.
+We benchmark `$fetch_finished_tasks()` both with and without caching to measure the effect of the caching mechanism.
+When caching is enabled, the cache holds all previously fetched tasks except the most recent one, so that each call retrieves only a single new result from the database.
+Runtime is reported as median and median absolute deviation (MAD) over 1000 replicates, measured with the `microbenchmark` R package.
 
 ## Results
 
 ::: {#tbl-runtime-results}
 
-| Operation                              | Mean Runtime [ms] | MAD [ms] |
-|:---------------------------------------|:------------------|:---------|
-| `$push_running_tasks()`                | 0.5               | 0.25     |
-| `$push_results()`                      | 0.5               | 0.25     |
+| Operation               | Median Runtime [ms] | MAD [ms] |
+|:------------------------|:--------------------|:---------|
+| `$push_running_tasks()` | 0.5                 | 0.25     |
+| `$push_results()`       | 0.5                 | 0.25     |
 
 Runtime of the core functions of rush.
 The runtime is reported as median and median absolute deviation (MAD) over 1000 replicates.
 :::
 
-The runtime of the core functions of rush is summarized in Table @tbl-runtime-results.
-Pushing a running task to the database is the most frequent operation in rush.
-This operation takes 0.5 ms (MAD 0.25 ms) on average.
-Pushing a result to the database takes around the same time.
-The workers usually fetch new results frequently, so fetching has a build in caching mechanism.
+The runtime of the core functions of `rush` is summarized in Table @tbl-runtime-results.
+Pushing a running task to the database takes a median of 0.5 ms (MAD 0.25 ms), and pushing a result takes approximately the same time.
+For fetching, `rush` provides a built-in caching mechanism.
 The difference between fetching with and without caching is negligible for a small number of tasks.
-However, fetching with caching is much faster when caching more than 1000 tasks, as shown in Figure @fig-fetch-finished-tasks.
-The difference grows with the number of tasks fetched.
-We fetch one new tasks from the database and the rest from the cache.
-Still the runtime increases with the number of tasks fetched.
-This is because binding a new row to a `data.table` gets slower with the total number of rows.
+However, as the archive grows beyond 1,000 tasks, caching yields a substantial speedup, as shown in Figure @fig-fetch-finished-tasks.
+At 10,000 tasks, fetching without cache takes approximately 84 ms compared to 13 ms with caching.
+In both cases, only one new task is retrieved from the database; the remainder is served from the local cache.
+The residual increase in runtime with cache enabled is attributable to the cost of binding a new row to the cached `data.table`, which grows with the total number of rows.
+In practice, the sub-millisecond overhead of push operations and the low-millisecond overhead of cached fetching are negligible relative to typical task runtimes, which range from seconds to minutes in the BO benchmarks (Table @tbl-benchmarks).
 
 ```{r}
 #| echo: false
 #| fig-cap: |
-#|   Runtime of fetching finished tasks with (red lines) and without (blue lines) caching.
-#|   The x-axis shows the number of tasks fetched from the database.
-#|   The fetching with caching gets one new task from the database and the rest from the cache.
-#|   The fetching without caching gets all tasks from the database.
+#|   Runtime of fetching finished tasks with (red) and without (blue) caching as a function of the total number of tasks in the database.
+#|   Without caching, all tasks are retrieved from the database on each call.
+#|   With caching, only one new task is retrieved from the database; all previously fetched tasks are served from the local cache.
 #| label: fig-fetch-finished-tasks
 library(data.table)
 library(ggplot2)
@@ -636,7 +608,30 @@ ggplot(data, aes(x = n_tasks, y = runtime, color = benchmark)) +
 
 # Discussion and Conclusion
 
-We presented rush, a novel package for distributed computing in R.
+<!-- Contributions and Key Findings -->
+
+We presented `rush`, a package for asynchronous and decentralized optimization in R.
+Its database-centric architecture eliminates the central controller bottleneck by allowing workers to communicate through a shared `Redis` database and independently execute their own optimization loops.
+The package combines sub-millisecond per-task overhead with an efficient caching mechanism and integrates with the `mlr3` ecosystem as the backend for asynchronous optimization in `bbotk` and `mlr3tuning`.
+Our benchmarks demonstrate that ADBO on rush achieves 94–100% CPU utilization on 448 workers, compared to single-digit utilization for centralized approaches on short-running tasks.
+
+<!-- Limitations -->
+
+Despite these results, several limitations should be noted.
+The caching mechanism reduces fetch overhead substantially, but the cost of binding new rows to the cached `data.table` grows with archive size, which may become relevant for optimization runs with very large numbers of evaluations.
+We do not provide a direct comparison with Python frameworks such as `DeepHyper` or `Optuna`, which would help position `rush` in the broader cross-language landscape.
+
+<!-- Future Work -->
+
+Several directions for future work emerge from these limitations.
+Adaptive caching strategies, such as pre-allocation, could mitigate the growing cost of row binding for very large archives.
+The queue mechanism could be extended to support more complex task dependency graphs, enabling workflows in which tasks have prerequisites or conditional branching.
+
+<!-- Conclusion -->
+
+By providing a framework for decentralized optimization in R, `rush` enables a class of algorithms that were previously available only in the Python ecosystem.
+As computational budgets and model complexity continue to grow, the ability to scale optimization efficiently across large numbers of workers becomes increasingly important.
+We hope that `rush` will serve as a foundation for the development and application of new distributed optimization algorithms in R.
 
 # Acknowledgments
 
@@ -644,14 +639,62 @@ The authors gratefully acknowledge the computational and data resources provided
 
 # Appendix
 
-## Glossary
+<!-- ## Glossary
 
 * Parallel computing: The use of multiple processing elements simultaneously for solving a computational problem.
 * Distributed computing: Utilizing multiple computers in a network to solve a computational problem.
+* Asynchronous computing: A computing paradigm where tasks are executed independently without waiting for other tasks to complete, allowing workers to proceed without synchronization barriers.
+* Decentralized computing: A computing architecture where coordination and decision-making are distributed across multiple workers rather than centralized in a single controller process.
+* Controller-worker model: A parallel computing architecture where a central controller process proposes tasks, dispatches them to workers, and collects results.
 * Worker: A process that performs tasks as part of a larger computation.
-* Computing task: A discrete portion of a larger computational problem, designed to be executed by a worker.
-* Redis: An open-source, in-memory data store, used as a database and for inter-process communication.
+* Worker loop: The main execution loop running on each worker that repeatedly fetches task information, proposes new tasks, evaluates them, and pushes results back to the shared database.
+* Computing task: A discrete portion of a larger computational problem, designed to be executed by a worker. Each task has a unique key, a computational state, input parameters, and output results.
+* Task state: The current status of a task, which can be "running", "finished", "failed", or "queued".
+* Task key: A unique identifier for a task used to reference it in the Redis database.
+* Bayesian optimization: A sequential optimization strategy that uses a probabilistic surrogate model to guide the search for optimal hyperparameter configurations, balancing exploration and exploitation.
+* Surrogate model: A probabilistic model that approximates the objective function and is used to predict function values and quantify uncertainty at unexplored points.
+* Acquisition function: A function that quantifies the utility of evaluating a candidate point, used to select the next point to evaluate in Bayesian optimization.
+* Redis: An open-source, in-memory data store, used as a database and for inter-process communication. Rush uses Redis hashes, sets, and lists to store task data.
 * Inter-process communication: Set of mechanisms that allow separate processes to exchange data and coordinate their execution.
+* Heartbeat mechanism: A monitoring system where workers periodically update a timestamp in the database. If the heartbeat expires, the controller detects that the worker has failed. -->
+
+## LightGBM Hyperparameters
+
+::: {#tbl-lightgbm-hyperparameters}
+
+| Hyperparameter          | Lower | Upper | Properties                |
+|-------------------------|-------|-------|---------------------------|
+| `early_stopping_rounds` | 100   | 100   |                           |
+| `learning_rate`         | 1e-3  | 1     | Logscale                  |
+| `feature_fraction`      | 0.1   | 1     |                           |
+| `min_data_in_leaf`      | 1     | 200   |                           |
+| `num_leaves`            | 10    | 255   |                           |
+| `extra_trees`           | -     | -     | Logical value             |
+| `lambda_l1`             | 1e-3  | 1e3   | Logscale                  |
+| `lambda_l2`             | 1e-3  | 1e3   | Logscale                  |
+| `min_gain_to_split`     | 1e-3  | 0.1   | Logscale                  |
+| `num_iterations`        | 1     | 5000  | Internal tuning parameter |
+
+Hyperparameters of the LightGBM learner optimized in the benchmark experiments.
+The table shows the lower and upper bounds of the search space for each hyperparameter, along with any special properties such as logscale transformations.
+:::
+
+
+## Datasets
+
+::: {#tbl-datasets}
+
+| Task ID|Name               | Instances| Features| Classes|
+|-------:|:------------------|---------:|--------:|-------:|
+|      31|credit-g           |      1000|       20|       2|
+|    3945|KDDCup09_appetency |     50000|      230|       2|
+|    7592|adult              |     48842|       14|       2|
+|  189354|airlines           |    539383|        7|       2|
+
+
+Datasets used in the benchmark experiments.
+The table shows the OpenML task ID, name, number of instances, number of features, and number of classes for each dataset.
+:::
 
 ## Performance of the BO algorithms
 
@@ -661,18 +704,18 @@ The authors gratefully acknowledge the computational and data resources provided
 
 ::: {#tbl-benchmarks-extra}
 
-|Task               |Algorithm | Runtime Learners| Runtime Surrogate| Runtime Optimizer| Mean Runtime Learners [s]| Walltime [s]| CPU Hours| Performance|
-|:------------------|:---------|----------------:|-----------------:|-----------------:|-------------------------:|------------:|---------:|-----------:|
-|german-credit      |CL      |              298|               164|               365|                         1|          563|        70|       0.200|
-|                   |acbo      |              227|               209|               386|                         0|          595|        74|       0.190|
-|                   |adbo      |           11,077|           214,301|            27,884|                         1|          596|        74|       0.180|
-|kddcup09-appetency |CL      |            3,625|                27|               100|                        27|          752|        94|       0.018|
-|                   |acbo      |           11,088|               205|               374|                        23|          580|        72|       0.018|
-|                   |adbo      |          198,362|            37,236|             8,804|                        30|          582|        72|       0.017|
-|adult              |CL      |            3,512|               106|               267|                        11|          554|        69|       0.120|
-|                   |acbo      |            5,474|               214|               381|                        12|          593|        74|       0.120|
-|                   |adbo      |          139,828|           101,105|            14,214|                        14|          596|        74|       0.120|
-|airlines           |CL      |           27,517|                18|                74|                       313|          637|        79|       0.320|
-|                   |acbo      |           79,643|               196|               385|                       183|          580|        72|       0.320|
-|                   |adbo      |          259,320|               384|               648|                       261|          584|        73|       0.320|
+| Task               | Algorithm | Runtime Learners | Runtime Surrogate | Runtime Optimizer | Mean Runtime Learners [s] | Walltime [s] | CPU Hours | Performance |
+|:-------------------|:----------|-----------------:|------------------:|------------------:|--------------------------:|-------------:|----------:|------------:|
+| german-credit      | CL        |              298 |               164 |               365 |                         1 |          563 |        70 |       0.200 |
+|                    | acbo      |              227 |               209 |               386 |                         0 |          595 |        74 |       0.190 |
+|                    | adbo      |           11,077 |           214,301 |            27,884 |                         1 |          596 |        74 |       0.180 |
+| kddcup09-appetency | CL        |            3,625 |                27 |               100 |                        27 |          752 |        94 |       0.018 |
+|                    | acbo      |           11,088 |               205 |               374 |                        23 |          580 |        72 |       0.018 |
+|                    | adbo      |          198,362 |            37,236 |             8,804 |                        30 |          582 |        72 |       0.017 |
+| adult              | CL        |            3,512 |               106 |               267 |                        11 |          554 |        69 |       0.120 |
+|                    | acbo      |            5,474 |               214 |               381 |                        12 |          593 |        74 |       0.120 |
+|                    | adbo      |          139,828 |           101,105 |            14,214 |                        14 |          596 |        74 |       0.120 |
+| airlines           | CL        |           27,517 |                18 |                74 |                       313 |          637 |        79 |       0.320 |
+|                    | acbo      |           79,643 |               196 |               385 |                       183 |          580 |        72 |       0.320 |
+|                    | adbo      |          259,320 |               384 |               648 |                       261 |          584 |        73 |       0.320 |
 :::
