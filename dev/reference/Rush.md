@@ -173,12 +173,12 @@ with the `$worker_script()` method.
 
 - `worker_info`:
 
-  ([`data.table::data.table()`](https://rdatatable.gitlab.io/data.table/reference/data.table.html))  
+  ([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))  
   Contains information about the workers.
 
 - `worker_states`:
 
-  ([`data.table::data.table()`](https://rdatatable.gitlab.io/data.table/reference/data.table.html))  
+  ([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))  
   Contains the states of the workers.
 
 - `all_workers_terminated`:
@@ -194,7 +194,7 @@ with the `$worker_script()` method.
 
 - `priority_info`:
 
-  ([data.table::data.table](https://rdatatable.gitlab.io/data.table/reference/data.table.html))  
+  ([data.table::data.table](https://rdrr.io/pkg/data.table/man/data.table.html))  
   Contains the number of tasks in the priority queues.
 
 - `snapshot_schedule`:
@@ -764,7 +764,7 @@ Read log messages written with the `lgr` package from a worker.
 
 #### Returns
 
-([`data.table::data.table()`](https://rdatatable.gitlab.io/data.table/reference/data.table.html))
+([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))
 with level, timestamp, logger, caller and message, and optionally time
 difference.
 
@@ -931,10 +931,7 @@ Fetch queued tasks from the data base.
 
 #### Usage
 
-    Rush$fetch_queued_tasks(
-      fields = c("xs", "xs_extra"),
-      data_format = "data.table"
-    )
+    Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))
 
 #### Arguments
 
@@ -942,12 +939,6 @@ Fetch queued tasks from the data base.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to `c("xs", "xs_extra")`.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -962,10 +953,7 @@ Fetch queued priority tasks from the data base.
 
 #### Usage
 
-    Rush$fetch_priority_tasks(
-      fields = c("xs", "xs_extra"),
-      data_format = "data.table"
-    )
+    Rush$fetch_priority_tasks(fields = c("xs", "xs_extra"))
 
 #### Arguments
 
@@ -973,12 +961,6 @@ Fetch queued priority tasks from the data base.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to `c("xs", "xs_extra")`.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -993,10 +975,7 @@ Fetch running tasks from the data base.
 
 #### Usage
 
-    Rush$fetch_running_tasks(
-      fields = c("xs", "xs_extra", "worker_extra"),
-      data_format = "data.table"
-    )
+    Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra"))
 
 #### Arguments
 
@@ -1005,12 +984,6 @@ Fetch running tasks from the data base.
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
   `c("xs", "xs_extra", "worker_extra")`.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1027,8 +1000,7 @@ Fetch finished tasks from the data base. Finished tasks are cached.
 
     Rush$fetch_finished_tasks(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      reset_cache = FALSE,
-      data_format = "data.table"
+      reset_cache = FALSE
     )
 
 #### Arguments
@@ -1043,12 +1015,6 @@ Fetch finished tasks from the data base. Finished tasks are cached.
 
   (`logical(1)`)  
   Whether to reset the cache.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1067,8 +1033,7 @@ seconds.
 
     Rush$wait_for_finished_tasks(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
-      timeout = Inf,
-      data_format = "data.table"
+      timeout = Inf
     )
 
 #### Arguments
@@ -1083,12 +1048,6 @@ seconds.
 
   (`numeric(1)`)  
   Time to wait for a result in seconds.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1105,8 +1064,7 @@ fetch. Updates the cache of the finished tasks.
 #### Usage
 
     Rush$fetch_new_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      data_format = "data.table"
+      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
     )
 
 #### Arguments
@@ -1115,12 +1073,6 @@ fetch. Updates the cache of the finished tasks.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1138,8 +1090,7 @@ or `NULL` if no new task is available after `timeout` seconds.
 
     Rush$wait_for_new_tasks(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      timeout = Inf,
-      data_format = "data.table"
+      timeout = Inf
     )
 
 #### Arguments
@@ -1155,15 +1106,9 @@ or `NULL` if no new task is available after `timeout` seconds.
   (`numeric(1)`)  
   Time to wait for new result in seconds.
 
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
-
 #### Returns
 
-`data.table() | list()`.
+`data.table()`.
 
 ------------------------------------------------------------------------
 
@@ -1173,10 +1118,7 @@ Fetch failed tasks from the data base.
 
 #### Usage
 
-    Rush$fetch_failed_tasks(
-      fields = c("xs", "worker_extra", "condition"),
-      data_format = "data.table"
-    )
+    Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition"))
 
 #### Arguments
 
@@ -1185,12 +1127,6 @@ Fetch failed tasks from the data base.
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
   `c("xs", "xs_extra", "worker_extra", "condition"`.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1206,8 +1142,7 @@ Fetch all tasks from the data base.
 #### Usage
 
     Rush$fetch_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      data_format = "data.table"
+      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
     )
 
 #### Arguments
@@ -1217,12 +1152,6 @@ Fetch all tasks from the data base.
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
   `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")`.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 #### Returns
 
@@ -1244,8 +1173,7 @@ tasks are cached.
     Rush$fetch_tasks_with_state(
       fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
       states = c("queued", "running", "finished", "failed"),
-      reset_cache = FALSE,
-      data_format = "data.table"
+      reset_cache = FALSE
     )
 
 #### Arguments
@@ -1266,12 +1194,6 @@ tasks are cached.
 
   (`logical(1)`)  
   Whether to reset the cache of the finished tasks.
-
-- `data_format`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Returned data format. Choose `"data.table"` or "list". The default is
-  `"data.table"` but `"list"` is easier when list columns are present.
 
 ------------------------------------------------------------------------
 

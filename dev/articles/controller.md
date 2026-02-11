@@ -69,8 +69,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: loopy_quin... 10010  FALSE runnervmmt...     FALSE running
-    2: entertaini... 10021  FALSE runnervmmt...     FALSE running
+    1: unschooled... 13782  FALSE runnervmwf...     FALSE running
+    2: northernmo... 13793  FALSE runnervmwf...     FALSE running
 
 Additional workers may be added to the network at any time.
 
@@ -87,10 +87,10 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: loopy_quin... 10010  FALSE runnervmmt...     FALSE running
-    2: entertaini... 10021  FALSE runnervmmt...     FALSE running
-    3: selfevolve... 10084  FALSE runnervmmt...     FALSE running
-    4: unpronounc... 10086  FALSE runnervmmt...     FALSE running
+    1: unschooled... 13782  FALSE runnervmwf...     FALSE running
+    2: northernmo... 13793  FALSE runnervmwf...     FALSE running
+    3: curricular... 13856  FALSE runnervmwf...     FALSE running
+    4: unimpoveri... 13859  FALSE runnervmwf...     FALSE running
 
 ### Rush Plan
 
@@ -142,10 +142,10 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: entertaini... 10021  FALSE runnervmmt...     FALSE running
-    2: selfevolve... 10084  FALSE runnervmmt...     FALSE running
-    3: unpronounc... 10086  FALSE runnervmmt...     FALSE running
-    4: loopy_quin... 10010  FALSE runnervmmt...     FALSE  killed
+    1: northernmo... 13793  FALSE runnervmwf...     FALSE running
+    2: curricular... 13856  FALSE runnervmwf...     FALSE running
+    3: unimpoveri... 13859  FALSE runnervmwf...     FALSE running
+    4: unschooled... 13782  FALSE runnervmwf...     FALSE  killed
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -188,19 +188,32 @@ The random search proceeds as usual.
 rush$fetch_finished_tasks()
 ```
 
-                 x1          x2          y   pid     worker_id          keys
-              <num>       <num>      <num> <int>        <char>        <char>
-      1:  7.0888916  0.07065129  17.947437 10159 exilable_v... 4dd3f8df-a...
-      2: -0.6849254  2.77981585  36.541105 10159 exilable_v... bde40e60-e...
-      3:  7.5997890 12.31104774 132.212092 10159 exilable_v... 52e30de7-a...
-      4:  8.8313747  0.45771748   4.479984 10159 exilable_v... 17ede0b4-a...
-      5: -0.4790338  0.73898474  55.160909 10159 exilable_v... 94763e07-1...
+                 x1         x2         y   pid     worker_id
+              <num>      <num>     <num> <int>        <char>
+      1:  2.5425614  0.9841962  5.325358 13929 mammoth_rh...
+      2:  3.6171565  7.3695229 31.015433 13929 mammoth_rh...
+      3: -0.1585679  1.8347101 39.026065 13929 mammoth_rh...
+      4:  8.4304266  7.5556805 38.310277 13929 mammoth_rh...
+      5: -2.9591239  3.0239240 78.294334 13929 mammoth_rh...
      ---
-    578:  4.8946469 10.31117015  92.853754 10159 exilable_v... 9a8bca88-1...
-    579:  3.7721624 14.69661569 167.675632 10157 mad_montan... d3d7b914-e...
-    580:  0.6445911  9.16144724  34.762633 10159 exilable_v... f0a027f5-c...
-    581:  8.5444915  6.51198198  25.781063 10157 mad_montan... 376a8120-4...
-    582:  3.4271851  9.43639706  55.156537 10159 exilable_v... 67cdb02d-0...
+    610:  0.3247531  4.0812445 21.103900 13929 mammoth_rh...
+    611:  0.5919602 12.5221340 73.009851 13931 victimized...
+    612:  9.4351865  8.1914543 32.975796 13931 victimized...
+    613: -1.3719129 13.8197050 40.982597 13929 mammoth_rh...
+    614:  0.6717498  3.1925133 20.743878 13931 victimized...
+                                         keys
+                                       <list>
+      1: 5c31ba7d-b9c9-458a-ab63-304174f944a0
+      2: 462120e7-f926-4d2f-91fc-77eef95b54df
+      3: 0904e9ed-254b-46c8-b9a0-94d31590831c
+      4: dfe0cd6f-f922-44e5-9da2-cdf5a8dd2824
+      5: c1a4e76d-c2f3-479a-9da1-3e5816e4b8e7
+     ---
+    610: e84587ce-4646-4f93-b6a5-83f0c472c523
+    611: 60aaef5a-df74-4058-aa99-5655c0a70233
+    612: f7a512ae-5539-4b7e-b64c-707dfa4f08dd
+    613: 5cd4addc-c5c6-492c-8fca-0f3bd1971383
+    614: 36b2dd7c-daf7-41b2-9b8f-f2e38a6853bc
 
 To terminate the optimization, the following command is used.
 
@@ -216,8 +229,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat      state
               <char> <int> <lgcl>        <char>    <lgcl>     <char>
-    1: mad_montan... 10157  FALSE runnervmmt...     FALSE terminated
-    2: exilable_v... 10159  FALSE runnervmmt...     FALSE terminated
+    1: victimized... 13931  FALSE runnervmwf...     FALSE terminated
+    2: mammoth_rh... 13929  FALSE runnervmwf...     FALSE terminated
 
 ### Failed Workers
 
@@ -249,8 +262,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat  state
               <char> <int> <lgcl>        <char>    <lgcl> <char>
-    1: bacteriolo... 10235  FALSE runnervmmt...     FALSE   lost
-    2: light_grea... 10233  FALSE runnervmmt...     FALSE   lost
+    1: retouchabl... 14006  FALSE runnervmwf...     FALSE   lost
+    2: weakwilled... 14008  FALSE runnervmwf...     FALSE   lost
 
 ### Restart Workers
 
@@ -270,8 +283,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: light_grea... 10305  FALSE runnervmmt...     FALSE running
-    2: bacteriolo... 10235  FALSE runnervmmt...     FALSE    lost
+    1: retouchabl... 14078  FALSE runnervmwf...     FALSE running
+    2: weakwilled... 14008  FALSE runnervmwf...     FALSE    lost
 
 ### Log Messages
 
@@ -407,8 +420,8 @@ rush$worker_info
 
            worker_id   pid remote      hostname heartbeat   state
               <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: carnivales... 10455   TRUE runnervmmt...     FALSE running
-    2: symbiotic_... 10457   TRUE runnervmmt...     FALSE running
+    1: limivorous... 14228   TRUE runnervmwf...     FALSE running
+    2: wizardly_b... 14230   TRUE runnervmwf...     FALSE running
 
 We stop the daemons.
 
