@@ -187,7 +187,9 @@ optimizer = function(archive) {
     num.trees = 100L,
     keep.inbag = TRUE)
 
-  xdt = data.table::data.table(x1 = runif(1000, -5, 10), x2 = runif(1000, 0, 15))
+  xdt = data.table::data.table(
+    x1 = runif(1000, -5, 10),
+    x2 = runif(1000, 0, 15))
   p = predict(surrogate, xdt, type = "se", se.method = "jack")
   cb = p$predictions - 0.1 * p$se
 
@@ -199,7 +201,7 @@ optimizer = function(archive) {
 
 We define the `worker_loop` function, which is executed by each worker.
 The function repeatedly generates tasks using the optimizer $\mathcal{O}$, evaluates them with the objective function $f$, and writes the results to the Redis database.
-The function takes all arguments needed to run the worker loop (`branin` and `optimizer`) and a `RushWorker` object, which manages communication with Redis (`rush`).
+The function takes all arguments needed to run the worker loop (`branin` and `optimizer`) and a `RushWorker` object (`rush`), which manages communication with Redis.
 The worker loop repeats the following steps until 100 tasks have been evaluated:
 
 1. Fetch the currently running and finished tasks from the database.
@@ -454,7 +456,7 @@ The first point is obtained by maximizing the acquisition function.
 A fake value is then imputed, the surrogate model is updated, and the next point is proposed by maximizing the acquisition function again.
 Common imputation choices are the minimum, maximum, or predicted posterior mean of already evaluated points.
 In our setup, CL proposes 44 configurations evaluated with 10-fold cross-validation, resulting in 440 parallel evaluations.
-`mlr3` uses the `mirai` to parallelize over the resampling iterations.
+`mlr3` uses `mirai` to parallelize over the resampling iterations.
 Batch parallelization requires all workers to finish before the next batch can be proposed.
 We use early stopping to determine the optimal number of boosting iterations, which naturally induces heterogeneous runtimes: some models train for only a few iterations while others run for up to 5000.
 This heterogeneity exposes the synchronization overhead inherent in batch approaches, as fast workers remain idle while waiting for slower ones to complete.
