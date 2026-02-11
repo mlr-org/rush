@@ -756,10 +756,7 @@ List of lists of conditions.}
 \subsection{Method \code{fetch_queued_tasks()}}{
 Fetch queued tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(
-  fields = c("xs", "xs_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -768,11 +765,6 @@ Fetch queued tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -787,10 +779,7 @@ Table of queued tasks.
 \subsection{Method \code{fetch_priority_tasks()}}{
 Fetch queued priority tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(
-  fields = c("xs", "xs_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_priority_tasks(fields = c("xs", "xs_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -799,11 +788,6 @@ Fetch queued priority tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -818,10 +802,7 @@ Table of queued priority tasks.
 \subsection{Method \code{fetch_running_tasks()}}{
 Fetch running tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(
-  fields = c("xs", "xs_extra", "worker_extra"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -830,11 +811,6 @@ Fetch running tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -852,8 +828,7 @@ Finished tasks are cached.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  reset_cache = FALSE,
-  data_format = "data.table"
+  reset_cache = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -866,11 +841,6 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -888,8 +858,7 @@ Returns all finished tasks or \code{NULL} if no new task is available after \cod
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_finished_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
-  timeout = Inf,
-  data_format = "data.table"
+  timeout = Inf
 )}\if{html}{\out{</div>}}
 }
 
@@ -902,11 +871,6 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for a result in seconds.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -923,8 +887,7 @@ Fetch finished tasks from the data base that finished after the last fetch.
 Updates the cache of the finished tasks.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table"
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
 )}\if{html}{\out{</div>}}
 }
 
@@ -933,11 +896,6 @@ Updates the cache of the finished tasks.
 \describe{
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -955,8 +913,7 @@ Returns new tasks or \code{NULL} if no new task is available after \code{timeout
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_new_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  timeout = Inf,
-  data_format = "data.table"
+  timeout = Inf
 )}\if{html}{\out{</div>}}
 }
 
@@ -969,16 +926,11 @@ Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")}.}
 
 \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for new result in seconds.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-\code{data.table() | list()}.
+\code{data.table()}.
 }
 }
 \if{html}{\out{<hr>}}
@@ -987,10 +939,7 @@ The default is \code{"data.table"} but \code{"list"} is easier when list columns
 \subsection{Method \code{fetch_failed_tasks()}}{
 Fetch failed tasks from the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(
-  fields = c("xs", "worker_extra", "condition"),
-  data_format = "data.table"
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -999,11 +948,6 @@ Fetch failed tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \verb{c("xs", "xs_extra", "worker_extra", "condition"}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -1019,8 +963,7 @@ Table of failed tasks.
 Fetch all tasks from the data base.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-  data_format = "data.table"
+  fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
 )}\if{html}{\out{</div>}}
 }
 
@@ -1030,11 +973,6 @@ Fetch all tasks from the data base.
 \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")}.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
@@ -1055,8 +993,7 @@ Finished tasks are cached.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks_with_state(
   fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
   states = c("queued", "running", "finished", "failed"),
-  reset_cache = FALSE,
-  data_format = "data.table"
+  reset_cache = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -1073,11 +1010,6 @@ Defaults to \code{c("queued", "running", "finished", "failed")}.}
 
 \item{\code{reset_cache}}{(\code{logical(1)})\cr
 Whether to reset the cache of the finished tasks.}
-
-\item{\code{data_format}}{(\code{character()})\cr
-Returned data format.
-Choose \code{"data.table"} or "list".
-The default is \code{"data.table"} but \code{"list"} is easier when list columns are present.}
 }
 \if{html}{\out{</div>}}
 }
