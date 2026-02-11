@@ -13,24 +13,11 @@
 #' The input `xs` and result `ys` are lists that can contain arbitrary data.
 #' Usually the methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and results.
 #'
-#' @section Queues:
-#' Tasks can be pushed to a queue with the `$push_tasks()` method which sets the state to `"queued"`.
-#' Workers pop tasks from the queue with the `$pop_task()` method of the [RushWorker].
-#' Additionally, tasks can be pushed to a priority queue of a specific worker with the `$push_priority_tasks()` method.
-#' A worker evaluates the tasks in the priority queue before the shared queue.
-#'
-#' @section Local Workers:
-#' A local worker runs on the same machine as the manager.
-#' Local workers are spawned with the `$start_local_workers()` method via the \CRANpkg{processx} package.
-#'
-#' @section Remote Workers:
-#' A remote worker runs on a different machine than the manager.
-#' Remote workers are spawned with the `$start_remote_workers()` method via the \CRANpkg{mirai} package.
-#'
-#' @section Script Workers:
-#' Workers can be started with a script anywhere.
+#' @section Workers:
+#' Local workers run on the same machine as the controller and are spawned with the `$start_local_workers()` method via the \CRANpkg{processx} package.
+#' Remote workers run on a different machine and are spawned with the `$start_remote_workers()` method via the \CRANpkg{mirai} package.
+#' Workers can also be started with a script anywhere using the `$worker_script()` method.
 #' The only requirement is that the worker can connect to the Redis database.
-#' The script is created with the `$worker_script()` method.
 #'
 #' @return Object of class [R6::R6Class] and `Rush` with controller methods.
 #' @export
