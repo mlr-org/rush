@@ -885,6 +885,37 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
+    #' Pushes finished tasks to the data base.
+    #' Tasks are moved from running to finished.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param yss (list of named `list()`)\cr
+    #' Lists of results for the function e.g. `list(list(y1, y2), list(y1, y2)))`.
+    #' @param xss_extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' @param yss_extra (`list`)\cr
+    #' List of additional information stored along with the results e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_finished_tasks = function(xss, yss, xss_extra = NULL, yss_extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(yss, types = "list")
+      assert_list(xss_extra, types = "list", null.ok = TRUE)
+      assert_list(yss_extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      keys = self$write_hashes(xs = xss, ys = yss, xs_extra = xss_extra, ys_extra = yss_extra)
+      cmds = list(
+        c("RPUSH", private$.get_key("all_tasks"), keys),
+        c("RPUSH", private$.get_key("finished_tasks"), keys))
+      r$pipeline(.commands = cmds)
+
+      return(invisible(keys))
+    },
+
+    #' @description
     #' Empty the queue of tasks.
     #' Moves tasks from queued to failed.
     #'
