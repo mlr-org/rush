@@ -569,13 +569,14 @@ The runtime of the core functions of `rush` is summarized in Table @tbl-runtime-
 Pushing a running task to the database takes a median of 0.4 ms (MAD 0.25 ms), and pushing a result takes approximately the same time.
 For fetching, `rush` provides a built-in caching mechanism.
 The difference between fetching with and without caching is negligible for a small number of tasks.
-However, as the archive grows beyond 1,000 tasks, caching yields a substantial speedup, as shown in Figure @fig-fetch-finished-tasks.
+However, as the archive grows beyond 1,000 tasks, caching yields a substantial speedup, as shown in Figure @fig-fetch-tasks.
 At 10,000 tasks, fetching without cache takes approximately 350 ms compared to 2 ms with caching.
 
 
 ::: {#fig-fetch-finished-tasks}
 
-![Fetch finished tasks](figures/fetch_finished_tasks.png){#fig-fetch-finished-tasks}
+![Fetch tasks](figures/fetch_tasks.png){#fig-fetch-tasks}
+
 Runtime of fetching finished tasks with (red) and without (blue) caching as a function of the total number of tasks in the database.
 Without caching, all tasks are retrieved from the database on each call.
 With caching, only one new task is retrieved from the database; all previously fetched tasks are served from the local cache.
