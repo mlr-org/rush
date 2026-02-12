@@ -1,84 +1,3 @@
-
-test_that("evaluating a task works", {
-  skip_on_cran()
-  skip_if(TRUE) # takes too long
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush, large_vector) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs"))
-      if (!is.null(task)) {
-        tryCatch({
-          fun = function(x1, x2, large_vector, ...) list(y = length(large_vector))
-          ys = mlr3misc::invoke(fun, .args = c(task$xs, list(large_vector = large_vector)))
-          rush$push_results(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
-        })
-      }
-    }
-
-    return(NULL)
-  }
-
-  large_vector = runif(1e8)
-
-  expect_error(rush$start_local_workers(
-    worker_loop = worker_loop,
-    large_vector = large_vector,
-    n_workers = 2,
-    lgr_thresholds = c(rush = "info")),
-    "Worker configuration is larger than 512 MiB.")
-
-  rush_plan(n_workers = 2, large_objects_path = tempdir())
-
-  rush$start_local_workers(
-    worker_loop = worker_loop,
-    large_vector = large_vector,
-    lgr_thresholds = c(rush = "info"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
-
-  expect_equal(rush$fetch_finished_tasks()$y, 1e8)
-
-  expect_rush_reset(rush)
-})
-
-test_that("workers are started with script", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  expect_data_table(rush$worker_info, nrows = 0)
-
-  rush$worker_script(
-    worker_loop = test_worker_loop,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-
-  px = processx::process$new("Rscript",
-    args = c("-e", sprintf("rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0)")),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
-
-  on.exit({
-    px$kill()
-  }, add = TRUE)
-
-  Sys.sleep(5)
-
-  expect_true(px$is_alive())
-  expect_equal(rush$n_running_workers, 1)
-  expect_true(all(rush$worker_info$remote))
-
-  px$kill()
-  start_flush_redis()
-})
-
 test_that("simple errors are pushed as failed tasks", {
   skip_on_cran()
 
@@ -86,19 +5,19 @@ test_that("simple errors are pushed as failed tasks", {
   rush = rsh(network_id = "test-rush", config = config)
 
   worker_loop_fail = function(rush) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
+    while(!rush$terminated) {
       task = rush$pop_task(fields = c("xs"))
 
       if (!is.null(task)) {
         if (task$xs$x1 < 1) {
           condition = list(message = "Test error")
-          rush$push_failed(task$key, conditions = list(condition))
+          rush$fail_tasks(task$key, conditions = list(condition))
         } else {
           fun = function(x1, x2, ...) {
             list(y = x1 + x2)
           }
           ys = mlr3misc::invoke(fun, .args = task$xs)
-          rush$push_results(task$key, yss = list(ys))
+          rush$finish_tasks(task$key, yss = list(ys))
         }
       }
     }
@@ -164,7 +83,7 @@ test_that("printing logs with redis appender works", {
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   worker_loop = function(rush) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
+    while(!rush$terminated) {
       task = rush$pop_task(fields = c("xs"))
       if (!is.null(task)) {
         tryCatch({
@@ -176,10 +95,10 @@ test_that("printing logs with redis appender works", {
             list(y = x1 + x2)
           }
           ys = mlr3misc::invoke(fun, .args = task$xs)
-          rush$push_results(task$key, yss = list(ys))
+          rush$finish_tasks(task$key, yss = list(ys))
         }, error = function(e) {
           condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
+          rush$fail_tasks(task$key, conditions = list(condition))
         })
       }
     }
@@ -208,5 +127,5 @@ test_that("printing logs with redis appender works", {
 
   expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
 
-  expect_rush_reset(rush, type = "terminate")
+  expect_rush_reset(rush)
 })

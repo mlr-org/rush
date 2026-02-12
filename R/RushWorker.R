@@ -4,9 +4,6 @@
 #' [RushWorker] evaluates tasks and writes results to the data base.
 #' The worker inherits from [Rush].
 #'
-#' @note
-#' The worker registers itself in the data base of the rush network.
-#'
 #' @template param_network_id
 #' @template param_config
 #' @template param_remote
@@ -109,7 +106,7 @@ RushWorker = R6::R6Class("RushWorker",
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)))
+      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
@@ -130,7 +127,7 @@ RushWorker = R6::R6Class("RushWorker",
       key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
       if (is.null(key)) return(NULL)
-      self$write_hashes(worker_extra = list(list(pid = Sys.getpid(), worker_id = self$worker_id)), keys = key)
+      self$write_hashes(worker_id = list(self$worker_id), keys = key)
 
       # move key from queued to running
       r$command(c("SADD", private$.get_key("running_tasks"), key))
@@ -149,7 +146,7 @@ RushWorker = R6::R6Class("RushWorker",
     #' List of lists of named results.
     #' @param extra (named `list()`)\cr
     #' List of lists of additional information stored along with the results.
-    push_results = function(keys, yss, extra = NULL) {
+    finish_tasks = function(keys, yss, extra = NULL) {
       assert_character(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
@@ -194,14 +191,6 @@ RushWorker = R6::R6Class("RushWorker",
     terminated = function() {
       r = self$connector
       as.logical(r$EXISTS(private$.get_worker_key("terminate")))
-    },
-
-    #' @field terminated_on_idle (`logical(1)`)\cr
-    #' Whether to shutdown the worker if no tasks are queued.
-    #' Used in the worker loop to determine whether to continue.
-    terminated_on_idle = function() {
-      r = self$connector
-      as.logical(r$EXISTS(private$.get_key("terminate_on_idle"))) && !as.logical(self$n_queued_tasks)
     }
   )
 )

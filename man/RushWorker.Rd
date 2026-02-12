@@ -10,9 +10,6 @@ Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker} with worker
 \link{RushWorker} evaluates tasks and writes results to the data base.
 The worker inherits from \link{Rush}.
 }
-\note{
-The worker registers itself in the data base of the rush network.
-}
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
 }
@@ -36,10 +33,6 @@ Background process for the heartbeat.}
 \item{\code{terminated}}{(\code{logical(1)})\cr
 Whether to shutdown the worker.
 Used in the worker loop to determine whether to continue.}
-
-\item{\code{terminated_on_idle}}{(\code{logical(1)})\cr
-Whether to shutdown the worker if no tasks are queued.
-Used in the worker loop to determine whether to continue.}
 }
 \if{html}{\out{</div>}}
 }
@@ -49,7 +42,7 @@ Used in the worker loop to determine whether to continue.}
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
 \item \href{#method-RushWorker-push_running_tasks}{\code{RushWorker$push_running_tasks()}}
 \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
-\item \href{#method-RushWorker-push_results}{\code{RushWorker$push_results()}}
+\item \href{#method-RushWorker-finish_tasks}{\code{RushWorker$finish_tasks()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
@@ -59,10 +52,10 @@ Used in the worker loop to determine whether to continue.}
 <ul>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href='../../rush/html/Rush.html#method-Rush-empty_queue'><code>rush::Rush$empty_queue()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fail_tasks"><a href='../../rush/html/Rush.html#method-Rush-fail_tasks'><code>rush::Rush$fail_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_new_tasks'><code>rush::Rush$fetch_new_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_priority_tasks'><code>rush::Rush$fetch_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_queued_tasks'><code>rush::Rush$fetch_queued_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>rush::Rush$fetch_tasks()</code></a></span></li>
@@ -72,17 +65,15 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>rush::Rush$is_running_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>rush::Rush$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>rush::Rush$print_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>rush::Rush$push_failed()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>rush::Rush$push_finished_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_priority_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_priority_tasks'><code>rush::Rush$push_priority_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_cache"><a href='../../rush/html/Rush.html#method-Rush-reset_cache'><code>rush::Rush$reset_cache()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_data"><a href='../../rush/html/Rush.html#method-Rush-reset_data'><code>rush::Rush$reset_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="restart_workers"><a href='../../rush/html/Rush.html#method-Rush-restart_workers'><code>rush::Rush$restart_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
@@ -194,12 +185,12 @@ Fields to be returned.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-push_results"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-push_results}{}}}
-\subsection{Method \code{push_results()}}{
+\if{html}{\out{<a id="method-RushWorker-finish_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-finish_tasks}{}}}
+\subsection{Method \code{finish_tasks()}}{
 Pushes results to the data base.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_results(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RushWorker$finish_tasks(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
