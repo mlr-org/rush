@@ -29,12 +29,11 @@ expect_rush_reset = function(rush, type = "kill") {
 
 test_worker_loop = function(rush) {
   while(!rush$terminated && !rush$terminated_on_idle) {
-    task = rush$pop_task(fields = c("xs", "seed"))
+    task = rush$pop_task(fields = c("xs"))
     if (!is.null(task)) {
       tryCatch({
-        # evaluate task with seed
         fun = function(x1, x2) list(y = x1 + x2)
-        ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+        ys = mlr3misc::invoke(fun, .args = task$xs)
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)
@@ -48,12 +47,12 @@ test_worker_loop = function(rush) {
 
 segfault_worker_loop = function(rush) {
   while(!rush$terminated && !rush$terminated_on_idle) {
-    task = rush$pop_task(fields = c("xs", "seed"))
+    task = rush$pop_task(fields = c("xs"))
     if (!is.null(task)) {
       tryCatch({
-        # evaluate task with seed
         get("attach")(structure(list(), class = "UserDefinedDatabase"))
-        ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+        fun = function(x1, x2) list(y = x1 + x2)
+        ys = mlr3misc::invoke(fun, .args = task$xs)
         rush$push_results(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)

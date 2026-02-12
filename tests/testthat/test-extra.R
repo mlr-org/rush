@@ -7,12 +7,11 @@ test_that("evaluating a task works", {
   rush = rsh(network_id = "test-rush", config = config)
   worker_loop = function(rush, large_vector) {
     while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
+      task = rush$pop_task(fields = c("xs"))
       if (!is.null(task)) {
         tryCatch({
-          # evaluate task with seed
           fun = function(x1, x2, large_vector, ...) list(y = length(large_vector))
-          ys = with_rng_state(fun, args = c(task$xs, list(large_vector = large_vector)), seed = task$seed)
+          ys = mlr3misc::invoke(fun, .args = c(task$xs, list(large_vector = large_vector)))
           rush$push_results(task$key, yss = list(ys))
         }, error = function(e) {
           condition = list(message = e$message)
@@ -88,7 +87,7 @@ test_that("simple errors are pushed as failed tasks", {
 
   worker_loop_fail = function(rush) {
     while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
+      task = rush$pop_task(fields = c("xs"))
 
       if (!is.null(task)) {
         if (task$xs$x1 < 1) {
@@ -98,7 +97,7 @@ test_that("simple errors are pushed as failed tasks", {
           fun = function(x1, x2, ...) {
             list(y = x1 + x2)
           }
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+          ys = mlr3misc::invoke(fun, .args = task$xs)
           rush$push_results(task$key, yss = list(ys))
         }
       }
@@ -163,13 +162,12 @@ test_that("printing logs with redis appender works", {
   lg_rush$set_threshold("info")
 
   config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = 123)
+  rush = rsh(network_id = "test-rush", config = config)
   worker_loop = function(rush) {
     while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
+      task = rush$pop_task(fields = c("xs"))
       if (!is.null(task)) {
         tryCatch({
-          # evaluate task with seed
           fun = function(x1, x2, ...) {
             lg = lgr::get_logger("mlr3/rush")
             lg$info("test-1-info")
@@ -177,7 +175,7 @@ test_that("printing logs with redis appender works", {
             lg$error("test-1-error")
             list(y = x1 + x2)
           }
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+          ys = mlr3misc::invoke(fun, .args = task$xs)
           rush$push_results(task$key, yss = list(ys))
         }, error = function(e) {
           condition = list(message = e$message)

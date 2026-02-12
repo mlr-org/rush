@@ -284,20 +284,18 @@ test_that("popping a task from the queue works", {
   expect_rush_reset(rush, type = "terminate")
 })
 
-test_that("popping a task with seed, max_retries and timeout works", {
+test_that("popping a task with max_retries and timeout works", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
-  seed = 123456
   max_retries = 2
   timeout = 1
-  rush$push_tasks(xss, seeds = list(seed), max_retries = max_retries, timeouts = timeout)
+  rush$push_tasks(xss, max_retries = max_retries, timeouts = timeout)
 
   # check task
-  task = rush$pop_task(fields = c("xs", "seed", "max_retries", "timeout"))
-  expect_equal(task$seed, seed)
+  task = rush$pop_task(fields = c("xs", "max_retries", "timeout"))
   expect_equal(task$max_retries, max_retries)
   expect_equal(task$timeout, timeout)
   expect_rush_task(task)
@@ -531,7 +529,7 @@ test_that("fetch task with states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
@@ -544,7 +542,7 @@ test_that("fetch task with states works", {
   expect_names(names(tab), must.include = "state")
 
   # running
-  task = rush$pop_task(fields = c("xs", "seed"))
+  task = rush$pop_task(fields = c("xs"))
   tab = rush$fetch_tasks_with_state()
   expect_data_table(tab, nrows = 1)
   expect_equal(tab$state, "running")
@@ -748,30 +746,13 @@ test_that("terminate on idle works", {
 })
 
 
-# seed -------------------------------------------------------------------------
-
-test_that("popping a task with seed from the queue works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
-  xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss)
-
-  # check task seed
-  task = rush$pop_task(fields = c("xs", "seed"))
-  expect_true(is_lecyer_cmrg_seed(task$seed))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
 # atomic operations -----------------------------------------------------------
 
 test_that("task in states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, seed = 123)
+  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 

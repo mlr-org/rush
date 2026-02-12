@@ -11,7 +11,6 @@
 #' @template param_config
 #' @template param_remote
 #' @template param_worker_id
-#' @template param_seed
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #'
@@ -41,10 +40,9 @@ RushWorker = R6::R6Class("RushWorker",
       remote,
       worker_id = NULL,
       heartbeat_period = NULL,
-      heartbeat_expire = NULL,
-      seed = NULL
+      heartbeat_expire = NULL
       ) {
-      super$initialize(network_id = network_id, config = config, seed = seed)
+      super$initialize(network_id = network_id, config = config)
 
       self$remote = assert_flag(remote)
       self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))

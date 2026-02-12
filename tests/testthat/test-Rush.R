@@ -247,12 +247,11 @@ test_that("a worker is terminated", {
   rush = rsh(network_id = "test-rush", config = config)
   worker_loop = function(rush) {
     while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
+      task = rush$pop_task(fields = c("xs"))
       if (!is.null(task)) {
         tryCatch({
-          # evaluate task with seed
           fun = function(x1, x2) list(y = x1 + x2)
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+          ys = mlr3misc::invoke(fun, .args = task$xs)
           rush$push_results(task$key, yss = list(ys))
         }, error = function(e) {
           condition = list(message = e$message)
@@ -980,15 +979,14 @@ test_that("restarting a remote worker works", {
 #   rush = rsh(network_id = "test-rush", config = config)
 #   worker_loop = function(rush) {
 #     while(!rush$terminated && !rush$terminated_on_idle) {
-#       task = rush$pop_task(fields = c("xs", "seed"))
+#       task = rush$pop_task(fields = c("xs"))
 #       if (!is.null(task)) {
 #         tryCatch({
-#           # evaluate task with seed
 #           fun = function(x1, x2, ...) {
 #             Sys.sleep(5)
 #             list(y = x1 + x2)
 #           }
-#           ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
+#           ys = mlr3misc::invoke(fun, .args = task$xs)
 #           rush$push_results(task$key, yss = list(ys))
 #         }, error = function(e) {
 #           condition = list(message = e$message)
@@ -1169,84 +1167,6 @@ test_that("empty queue works", {
   expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
 
   expect_rush_reset(rush)
-})
-
-
-# seed -------------------------------------------------------------------------
-
-test_that("seeds are generated from regular rng seed", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = 123)
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
-
-  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
-  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
-})
-
-test_that("seed are generated from L'Ecuyer-CMRG seed", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = c(10407L, 1801422725L, -2057975723L, 1156894209L, 1595475487L, 210384600L, -1655729657L))
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
-
-  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
-  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
-})
-
-test_that("seed is set correctly on two workers", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = 123)
-  worker_loop = function(rush) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
-      if (!is.null(task)) {
-        tryCatch({
-          # evaluate task with seed
-          fun = function(x1, x2, ...) list(y = sample(10000, 1))
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-          rush$push_results(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
-        })
-      }
-    }
-
-    return(NULL)
-  }
-
-  worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  .keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 2, x2 = 3), list(x1 = 2, x2 = 4)))
-  rush$wait_for_tasks(.keys)
-
-  finished_tasks = rush$fetch_finished_tasks()
-  expect_set_equal(finished_tasks$y, c(5971L, 4090L, 1754L, 9794L))
-
-  .keys = rush$push_tasks(list(list(x1 = 5, x2 = 3), list(x1 = 5, x2 = 4)))
-  rush$wait_for_tasks(.keys)
-
-  finished_tasks = rush$fetch_finished_tasks()
-  expect_set_equal(finished_tasks$y, c(1754L, 9794L, 4090L, 5971L, 8213L, 3865L))
-
-  expect_rush_reset(rush, type = "terminate")
 })
 
 test_that("redis info works", {

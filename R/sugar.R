@@ -5,7 +5,6 @@
 #'
 #' @template param_network_id
 #' @template param_config
-#' @template param_seed
 #' @param ... (ignored).
 #'
 #' @return [Rush] controller.
@@ -17,6 +16,6 @@
 #'    rush = rsh(network_id = "test_network", config = config_local)
 #'    rush
 #' }
-rsh = function(network_id = NULL, config = NULL, seed = NULL, ...) {
-  Rush$new(network_id, config, seed)
+rsh = function(network_id = NULL, config = NULL, ...) {
+  Rush$new(network_id, config)
 }

@@ -7,12 +7,17 @@
 #' A local worker runs on the same machine as the controller.
 #' Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
 #'
-#' @section Remote Workers:
-#' A remote worker runs on a different machine than the controller.
-#' Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
+#' @section Worker Loop:
+#' The worker loop is a function that runs on each worker.
+#' It takes a [RushWorker] object as its first argument which handles communication with Redis.
+#' The most important methods are `$push_running_tasks()` to create a new task marked as running and `$push_results()` to push results back to the database.
+#' Workers can also pop tasks from a queue with the `$pop_task()` method.
+#' Additional arguments are passed to the worker loop via `$start_local_workers()` or `$start_remote_workers()`.
 #'
-#' @section Script Workers:
-#' Workers can be started with a script anywhere.
+#' @section Workers:
+#' Local workers run on the same machine as the controller and are spawned with the `$start_local_workers()` method via the \CRANpkg{processx} package.
+#' Remote workers run on a different machine and are spawned with the `$start_remote_workers()` method via the \CRANpkg{mirai} package.
+#' Workers can also be started with a script anywhere using the `$worker_script()` method.
 #' The only requirement is that the worker can connect to the Redis database.
 #' The script is created with the `$worker_script()` method.
 #'
@@ -34,9 +39,9 @@
 #' @examples
 #' # This example is not executed since Redis must be installed
 #' \donttest{
-#'    config_local = redux::redis_config()
-#'    rush = rsh(network_id = "test_network", config = config_local)
-#'    rush
+#' config_local = redux::redis_config()
+#' rush = rsh(network_id = "test_network", config = config_local)
+#' rush
 #' }
 Rush = R6::R6Class("Rush",
   public = list(
@@ -63,7 +68,10 @@ Rush = R6::R6Class("Rush",
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function(network_id = NULL, config = NULL, seed = NULL) {
+    #'
+    #' @template param_network_id
+    #' @template param_config
+    initialize = function(network_id = NULL, config = NULL) {
       self$network_id = assert_string(network_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
       self$config = assert_class(config, "redis_config", null.ok = TRUE) %??% rush_env$config
       if (is.null(self$config)) self$config = redux::redis_config()
@@ -71,26 +79,6 @@ Rush = R6::R6Class("Rush",
         stop("Can't connect to Redis. Check the configuration.")
       }
       self$connector = redux::hiredis(self$config)
-
-      if (!is.null(seed)) {
-        if (is_lecyer_cmrg_seed(seed)) {
-          # use supplied L'Ecuyer-CMRG seed
-          private$.seed = seed
-        } else {
-          # generate new L'Ecuyer-CMRG seed
-          assert_count(seed)
-
-          # save old rng state and kind and switch to L'Ecuyer-CMRG
-          oseed = get_random_seed()
-          okind = RNGkind("L'Ecuyer-CMRG")[1]
-
-          # restore old rng state and kind
-          on.exit(set_random_seed(oseed, kind = okind), add = TRUE)
-
-          set.seed(seed)
-          private$.seed = get_random_seed()
-        }
-      }
     },
 
     #' @description
@@ -751,10 +739,6 @@ Rush = R6::R6Class("Rush",
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
     #' @param extra (`list()`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
-    #' @param seeds (`list()`)\cr
-    #' List of L'Ecuyer-CMRG seeds for each task e.g `list(list(c(104071, 490840688, 1690070564, -495119766, 503491950, 1801530932, -1629447803)))`.
-    #' If `NULL` but an initial seed is set, L'Ecuyer-CMRG seeds are generated from the initial seed.
-    #' If `NULL` and no initial seed is set, no seeds are used for the random number generator.
     #' @param timeouts (`integer()`)\cr
     #' Timeouts for each task in seconds e.g. `c(10, 15)`.
     #' A single number is used as the timeout for all tasks.
@@ -768,10 +752,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, extra = NULL, seeds = NULL, timeouts = NULL, max_retries = NULL, terminate_workers = FALSE) {
+    push_tasks = function(xss, extra = NULL, timeouts = NULL, max_retries = NULL, terminate_workers = FALSE) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      assert_list(seeds, types = "numeric", null.ok = TRUE)
       assert_numeric(timeouts, null.ok = TRUE)
       assert_numeric(max_retries, null.ok = TRUE)
       assert_flag(terminate_workers)
@@ -779,20 +762,10 @@ Rush = R6::R6Class("Rush",
 
       lg$debug("Pushing %i task(s) to the shared queue", length(xss))
 
-      if (!is.null(private$.seed) && is.null(seeds)) {
-
-        lg$debug("Creating %i L'Ecuyer-CMRG seeds", length(xss))
-
-        seeds = make_rng_seeds(length(xss), private$.seed)
-        # store last seed for next push
-        private$.seed = seeds[[length(seeds)]]
-      }
-
       # write tasks to hashes
       keys = self$write_hashes(
         xs = xss,
         xs_extra = extra,
-        seed = seeds,
         timeout = timeouts,
         max_retries = max_retries)
 
@@ -1623,8 +1596,6 @@ Rush = R6::R6Class("Rush",
     .n_seen_results = 0,
 
     .snapshot_schedule = NULL,
-
-    .seed = NULL,
 
     # counter for printed logs
     # zero based
