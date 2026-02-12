@@ -386,7 +386,7 @@ Rush = R6::R6Class("Rush",
 
             # kill with processx
             killed = self$processes_processx[[id]]$kill()
-            if (!killed) lg$error("Failed to kill worker '%s'", id)ids to be read.
+            if (!killed) lg$error("Failed to kill worker '%s'", id)
           }), recursive = FALSE)
 
           r$pipeline(.commands = cmds)

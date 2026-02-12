@@ -3,6 +3,7 @@
 * feat: Add `$push_finished_tasks()` method.
 * feat: Combine `$wait_for_finished_tasks()` and `$fetch_new_tasks()` into `$fetch_new_tasks()` with timeout argument.
 * refactor: The `$wait_for_finished_tasks()` method is removed.
+* refactor: Remove obsolete seed mechanism.
 
 # rush 0.4.1
 
