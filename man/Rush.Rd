@@ -174,19 +174,18 @@ Contains information about the workers.}
 \item \href{#method-Rush-reset_data}{\code{Rush$reset_data()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
 \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
-\item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
+\item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
 \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
+\item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
 \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
-\item \href{#method-Rush-wait_for_finished_tasks}{\code{Rush$wait_for_finished_tasks()}}
-\item \href{#method-Rush-fetch_new_tasks}{\code{Rush$fetch_new_tasks()}}
-\item \href{#method-Rush-wait_for_new_tasks}{\code{Rush$wait_for_new_tasks()}}
 \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
 \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
 \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
 \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
 \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
 \item \href{#method-Rush-fetch_tasks_with_state}{\code{Rush$fetch_tasks_with_state()}}
+\item \href{#method-Rush-fetch_new_tasks}{\code{Rush$fetch_new_tasks()}}
 \item \href{#method-Rush-reset_cache}{\code{Rush$reset_cache()}}
 \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
 \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
@@ -195,6 +194,7 @@ Contains information about the workers.}
 \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
 \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
 \item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
+\item \href{#method-Rush-push_results}{\code{Rush$push_results()}}
 \item \href{#method-Rush-clone}{\code{Rush$clone()}}
 }
 }
@@ -542,7 +542,7 @@ This is useful to remove all tasks but keep the workers.
 \if{html}{\out{<a id="method-Rush-read_log"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_log}{}}}
 \subsection{Method \code{read_log()}}{
-Read log messages written with the \code{lgr} package from a worker.
+Read log messages written with the \code{lgr} package by the workers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_ids = NULL, time_difference = FALSE)}\if{html}{\out{</div>}}
 }
@@ -550,9 +550,9 @@ Read log messages written with the \code{lgr} package from a worker.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_ids}}{(\code{character(1)})\cr
-Worker ids.
-If \code{NULL} all worker ids are used.}
+\item{\code{worker_ids}}{(\code{character()})\cr
+Worker ids to be read log messages from.
+Defaults to all worker ids.}
 
 \item{\code{time_difference}}{(\code{logical(1)})\cr
 Whether to calculate the time difference between log messages.}
@@ -560,25 +560,57 @@ Whether to calculate the time difference between log messages.}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-(\code{\link[data.table:data.table]{data.table::data.table()}}) with level, timestamp, logger, caller and message, and optionally time difference.
+\code{data.table()}\cr
+Table with level, timestamp, logger, caller and message, and optionally time difference.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-print_log"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-print_log}{}}}
 \subsection{Method \code{print_log()}}{
-Print log messages written with the \code{lgr} package from a worker.
+Print log messages written with the \code{lgr} package by the workers.
+Log messages are printed with the original logger.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$print_log()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+(\code{Rush})\cr
+Invisible self.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
+\subsection{Method \code{fail_tasks()}}{
+Move tasks from queued and running to the failed and optionally save the condition.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fail_tasks(keys, conditions = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks to be moved.
+Defaults to all queued tasks.}
+
+\item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.
+Defaults to \code{list(message = "Failed")}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{Rush})\cr
+Invisible self.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{Method \code{push_tasks()}}{
-Pushes a task to the queue.
-Task is added to queued tasks.
+Creates a task and adds it to the queue.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
 }
@@ -600,37 +632,11 @@ Keys of the tasks.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
-\subsection{Method \code{fail_tasks()}}{
-Pushes failed tasks to the data base.
-Tasks are moved from queued and running to failed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fail_tasks(keys, conditions)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character(1)})\cr
-Keys of the associated tasks.}
-
-\item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
-Invisible self.
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_finished_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_finished_tasks}{}}}
 \subsection{Method \code{push_finished_tasks()}}{
-Pushes finished tasks to the data base.
-Tasks are moved from running to finished.
+Creates a task and marks it as finished.
+See \verb{$finish_tasks()} for moving existing tasks from running to finished.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}\if{html}{\out{</div>}}
 }
@@ -658,11 +664,40 @@ Keys of the tasks.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_failed_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_failed_tasks}{}}}
+\subsection{Method \code{push_failed_tasks()}}{
+Creates a task and marks it as failed.
+See \verb{$fail_tasks()} for moving existing tasks from queued and running to failed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed_tasks(xss, xss_extra, conditions)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+
+\item{\code{xss_extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+
+\item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Keys of the tasks.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-empty_queue"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-empty_queue}{}}}
 \subsection{Method \code{empty_queue()}}{
-Empty the queue of tasks.
-Moves tasks from queued to failed.
+Remove all tasks from the queue.
+The state of the tasks is set to failed.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}\if{html}{\out{</div>}}
 }
@@ -679,89 +714,9 @@ List of lists of conditions.}
 }
 \if{html}{\out{</div>}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-wait_for_finished_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-wait_for_finished_tasks}{}}}
-\subsection{Method \code{wait_for_finished_tasks()}}{
-Block process until a new finished task is available.
-Returns all finished tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_finished_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra"),
-  timeout = Inf
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Time to wait for a result in seconds.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-\code{data.table()}\cr
-Table of finished tasks.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fetch_new_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fetch_new_tasks}{}}}
-\subsection{Method \code{fetch_new_tasks()}}{
-Fetch finished tasks from the data base that finished after the last fetch.
-Updates the cache of the finished tasks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
-Latest results.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-wait_for_new_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-wait_for_new_tasks}{}}}
-\subsection{Method \code{wait_for_new_tasks()}}{
-Block process until a new finished task is available.
-Returns new tasks or \code{NULL} if no new task is available after \code{timeout} seconds.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_new_tasks(
-  fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition"),
-  timeout = Inf
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Time to wait for new result in seconds.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}.
+(\code{Rush})\cr
+Invisible self.
 }
 }
 \if{html}{\out{<hr>}}
@@ -911,6 +866,37 @@ States of the tasks to be fetched.
 Defaults to \code{c("queued", "running", "finished", "failed")}.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fetch_new_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fetch_new_tasks}{}}}
+\subsection{Method \code{fetch_new_tasks()}}{
+Fetch new tasks that finished after the last call of this function.
+Updates the cache of the finished tasks.
+If \code{timeout} is set, blocks until new tasks are available or the timeout is reached.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
+  fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition"),
+  timeout = 0
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be read from the hashes.}
+
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Time to wait for new results in seconds.
+Defaults to \code{0} (no waiting).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{data.table()}\cr
+Table of latest results.
 }
 }
 \if{html}{\out{<hr>}}
@@ -1104,6 +1090,35 @@ States of the tasks.}
 }
 \subsection{Returns}{
 (Named list of \code{character()}).
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_results"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_results}{}}}
+\subsection{Method \code{push_results()}}{
+Deprecated method.
+Use \verb{$finish_tasks()} instead.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_results(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character()})\cr
+Keys of the associated tasks.}
+
+\item{\code{yss}}{(named \code{list()})\cr
+List of lists of named results.}
+
+\item{\code{extra}}{(named \code{list()})\cr
+List of lists of additional information stored along with the results.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{Rush})\cr
+Invisible self.
 }
 }
 \if{html}{\out{<hr>}}
