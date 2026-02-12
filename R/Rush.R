@@ -777,9 +777,9 @@ Rush = R6::R6Class("Rush",
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_failed_tasks = function(xss, xss_extra, conditions) {
+    push_failed_tasks = function(xss, xss_extra = NULL, conditions) {
       assert_list(xss, types = "list")
-      assert_list(xss_extra, types = "list")
+      assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(conditions, types = "list")
       r = private$.connector
 
