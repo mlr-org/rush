@@ -3,7 +3,12 @@
 * feat: Add `$push_finished_tasks()` method.
 * feat: Combine `$wait_for_finished_tasks()` and `$fetch_new_tasks()` into `$fetch_new_tasks()` with timeout argument.
 * refactor: The `$wait_for_finished_tasks()` method is removed.
-* refactor: Remove obsolete seed mechanism.
+*
+* refactor: Seed mechanism is removed. Includes `with_rng_state()`, `is_lecyer_cmrg_seed()`, `get_random_seed()`, `set_random_seed()`, `make_rng_seeds()` helper functions.
+* refactor: PID is no longer stored with tasks by `$push_tasks()` and `$push_running_tasks()` methods.
+* refactor: `worker_extra` field is renamed to `worker_id`.
+* refactor: `$push_results()` is renamed to `$finish_tasks()`.
+* fix: Heartbeat process moves worker to terminated.
 
 # rush 0.4.1
 

@@ -387,6 +387,36 @@ Rush = R6::R6Class("Rush",
             # kill with processx
             killed = self$processes_processx[[id]]$kill()
             if (!killed) lg$error("Failed to kill worker '%s'", id)
+
+            # move worker to terminated
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          })
+        }
+
+        worker_ids_mirai = intersect(worker_ids, names(self$processes_mirai))
+        if (length(worker_ids_mirai)) {
+          lg$debug("Killing %i remote worker(s)", length(worker_ids_mirai))
+
+          walk(worker_ids_mirai, function(id) {
+            lg$info("Kill worker '%s'", id)
+
+            # kill with mirai
+            killed = stop_mirai(self$processes_mirai[[id]])
+            if (!killed) lg$error("Failed to kill worker '%s'", id)
+
+            # move worker to terminated
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          })
+        }
+
+        worker_ids_heartbeat = self$worker_info[heartbeat == TRUE, worker_id]
+        if (length(worker_ids_heartbeat)) {
+          lg$debug("Killing %i worker(s) with heartbeat", length(worker_ids_heartbeat))
+
+          cmds = unlist(map(worker_ids_heartbeat, function(worker_id) {
+            list(
+              c("LPUSH", private$.get_worker_key("kill", worker_id), "TRUE"),
+              c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), worker_id))
           }), recursive = FALSE)
 
           r$pipeline(.commands = cmds)
@@ -898,9 +928,9 @@ Rush = R6::R6Class("Rush",
     },
 
     #' @description
-    #' Fetch new tasks that finished after the last call of this method.
+    #' Fetch new tasks that finished after the last call of this function.
     #' Updates the cache of the finished tasks.
-    #' If `timeout` is greater than 0, blocks until new tasks are available or the timeout is reached.
+    #' If `timeout` is set, blocks until new tasks are available or the timeout is reached.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
