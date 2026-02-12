@@ -34,25 +34,32 @@ safe_bin_to_object = function(bin) {
 }
 
 
+#' @title Give a Warning about a Deprecated Function, Argument, or Active Binding
+#'
+#' @description
+#' Generates a warning when a deprecated function, argument, or active binding
+#' is used or accessed. A warning will only be given once per session, and all
+#' deprecation warnings can be suppressed by setting the option
+#' `mlr3.warn_deprecated = FALSE`.
+#'
+#' The warning is of the format
+#' "what is deprecated and will be removed in the future."
+#'
+#' Use the `deprecated_binding()` helper function to create an active binding
+#' that generates a warning when accessed.
+#' @param what (`character(1)`)\cr
+#'   A description of the deprecated entity. This should be somewhat descriptive,
+#'   e.g. `"Class$method()"` or `"Argument 'foo' of Class$method()"`.\cr
+#'   The `what` is used to determine if the warning has already been given, so
+#'   it should be unique for each deprecated entity.
+#' @keywords internal
 #' @export
-deprecated_binding = function(what, value) {
+warn_deprecated = function(what) {
   assert_string(what)
-  # build the function-expression that should be evaluated in the parent frame.
-  fnq = substitute(function(rhs) {
-      # don't throw a warning if we are converting the R6-object to a list, e.g.
-      # when all.equals()-ing it.
-      if (!identical(sys.call(-1)[[1]], quote(as.list.environment))) {
-        warn_deprecated(what)
-      }
-      ## 'value' could be an expression that gets substituted here, which we only want to evaluate once
-      x = value
-      if (!missing(rhs) && !identical(rhs, x)) {
-        error_mlr3(sprintf("%s read-only.", what))
-      }
-      x
-    },
-    # we substitute the 'what' constant directly, but the 'value' as expression.
-    env = list(what = what, value = substitute(value))
-  )
-  eval.parent(fnq)
+  if (getOption("mlr3.warn_deprecated", TRUE) && !exists(what, envir = deprecated_warning_given_db)) {
+    warning_mlr3(paste0(what, " is deprecated and will be removed in the future."), class = "Mlr3WarningDeprecated")
+    assign(what, TRUE, envir = deprecated_warning_given_db)
+  }
 }
+
+deprecated_warning_given_db = new.env(parent = emptyenv())
