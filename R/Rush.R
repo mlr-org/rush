@@ -634,7 +634,6 @@ Rush = R6::R6Class("Rush",
       r$DEL(private$.get_key("terminated_worker_ids"))
       r$DEL(private$.get_key("killed_worker_ids"))
       r$DEL(private$.get_key("lost_worker_ids"))
-      r$DEL(private$.get_key("pre_worker_ids"))
       r$DEL(private$.get_key("start_args"))
       r$DEL(private$.get_key("terminate_on_idle"))
       r$DEL(private$.get_key("local_workers"))
@@ -1360,14 +1359,6 @@ Rush = R6::R6Class("Rush",
       as.integer(r$SCARD(private$.get_key("lost_worker_ids"))) %??% 0
     },
 
-    #' @field n_pre_workers (`integer(1)`)\cr
-    #' Number of workers that are not yet completely started.
-    n_pre_workers = function(rhs) {
-      assert_ro_binding(rhs)
-      r = self$connector
-      as.integer(r$SCARD(private$.get_key("pre_worker_ids"))) %??% 0
-    },
-
     #' @field worker_ids (`character()`)\cr
     #' Ids of workers.
     worker_ids = function() {
@@ -1401,13 +1392,6 @@ Rush = R6::R6Class("Rush",
     lost_worker_ids = function() {
       r = self$connector
       unlist(r$SMEMBERS(private$.get_key("lost_worker_ids")))
-    },
-
-    #' @field pre_worker_ids (`character()`)\cr
-    #' Ids of workers that are not yet completely started.
-    pre_worker_ids = function() {
-      r = self$connector
-      unlist(r$SMEMBERS(private$.get_key("pre_worker_ids")))
     },
 
     #' @field tasks (`character()`)\cr
@@ -1450,14 +1434,6 @@ Rush = R6::R6Class("Rush",
     n_queued_tasks = function() {
       r = self$connector
       as.integer(r$LLEN(private$.get_key("queued_tasks"))) %??% 0
-    },
-
-    #' @field n_queued_priority_tasks (`integer(1)`)\cr
-    #' Number of queued priority tasks.
-    n_queued_priority_tasks = function() {
-      r = self$connector
-      cmds = map(self$worker_ids, function(worker_id)  c("LLEN", private$.get_worker_key("queued_tasks", worker_id)))
-      sum(unlist(r$pipeline(.commands = cmds))) %??% 0
     },
 
     #' @field n_running_tasks (`integer(1)`)\cr
@@ -1505,84 +1481,23 @@ Rush = R6::R6Class("Rush",
       worker_info[, heartbeat := heartbeat != "NA"][]
       worker_info[, pid := as.integer(pid)][]
 
-      # worker states
+      # get worker states as atomic operation
+      r$MULTI()
+      r$SMEMBERS(private$.get_key("running_worker_ids"))
+      r$SMEMBERS(private$.get_key("terminated_worker_ids"))
+      r$SMEMBERS(private$.get_key("killed_worker_ids"))
+      r$SMEMBERS(private$.get_key("lost_worker_ids"))
+      res = r$EXEC()
       worker_ids = list(
-        running = data.table(worker_id = self$running_worker_ids),
-        terminated =  data.table(worker_id = self$terminated_worker_ids),
-        killed =  data.table(worker_id = self$killed_worker_ids),
-        lost =  data.table(worker_id = self$lost_worker_ids)
+        running = data.table(worker_id = unlist(res[[1]])),
+        terminated = data.table(worker_id = unlist(res[[2]])),
+        killed = data.table(worker_id = unlist(res[[3]])),
+        lost = data.table(worker_id = unlist(res[[4]]))
       )
 
       worker_states = rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
 
       worker_info[worker_states, , on = "worker_id"]
-    },
-
-    #' @field worker_states ([data.table::data.table()])\cr
-    #' Contains the states of the workers.
-    worker_states = function(rhs) {
-      assert_ro_binding(rhs)
-      r = self$connector
-
-      worker_ids = list(
-        running = data.table(worker_id = self$running_worker_ids),
-        terminated =  data.table(worker_id = self$terminated_worker_ids),
-        killed =  data.table(worker_id = self$killed_worker_ids),
-        lost =  data.table(worker_id = self$lost_worker_ids)
-      )
-
-      rbindlist(worker_ids, idcol = "state", use.names = TRUE, fill = TRUE)
-    },
-
-    #' @field all_workers_terminated (`logical(1)`)\cr
-    #' Whether all workers are terminated.
-    all_workers_terminated = function(rhs) {
-      assert_ro_binding(rhs)
-      # return FALSE if no workers were started yet
-      if (!self$n_workers) return(FALSE)
-      self$n_workers == self$n_terminated_workers
-    },
-
-    #' @field all_workers_lost (`logical(1)`)\cr
-    #' Whether all workers are lost.
-    #' Runs `$detect_lost_workers()` to detect lost workers.
-    all_workers_lost = function(rhs) {
-      assert_ro_binding(rhs)
-      # return FALSE if no workers were started yet
-      if (!self$n_workers) return(FALSE)
-      self$detect_lost_workers()
-      self$n_workers == self$n_lost_workers
-    },
-
-    #' @field priority_info ([data.table::data.table])\cr
-    #' Contains the number of tasks in the priority queues.
-    priority_info = function(rhs) {
-      assert_ro_binding(rhs)
-      r = self$connector
-      map_dtr(self$worker_ids, function(worker_id) {
-        list(worker_id = worker_id, n_tasks =  as.integer(r$LLEN(private$.get_worker_key("queued_tasks", worker_id))))
-      })
-    },
-
-    #' @field snapshot_schedule (`character()`)\cr
-    #' Set a snapshot schedule to periodically save the data base on disk.
-    #' For example, `c(60, 1000)` saves the data base every 60 seconds if there are at least 1000 changes.
-    #' Overwrites the redis configuration file.
-    #' Set to `NULL` to disable snapshots.
-    #' For more details see [redis.io](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/).
-    snapshot_schedule = function(rhs) {
-      if (missing(rhs)) return(private$.snapshot_schedule)
-      assert_integerish(rhs, min.len = 2, null.ok = TRUE)
-      if (is.null(rhs)) rhs = ""
-      r = self$connector
-      r$command(c("CONFIG", "SET", "save", str_collapse(rhs, sep = " ")))
-      private$.snapshot_schedule = rhs
-    },
-
-    #' @field redis_info (`list()`)\cr
-    #' Information about the Redis server.
-    redis_info = function() {
-      redux::redis_info(self$connector)
     }
   ),
 
@@ -1593,8 +1508,6 @@ Rush = R6::R6Class("Rush",
 
     # counter of the seen results for the latest results methods
     .n_seen_results = 0,
-
-    .snapshot_schedule = NULL,
 
     # counter for printed logs
     # zero based

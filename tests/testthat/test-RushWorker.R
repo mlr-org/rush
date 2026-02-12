@@ -59,7 +59,7 @@ test_that("a worker is registered", {
   expect_false(worker_info$remote)
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
-  expect_equal(rush$worker_states$state, "running")
+  expect_equal(rush$worker_info$state, "running")
 
   expect_rush_reset(rush, type = "terminate")
 })

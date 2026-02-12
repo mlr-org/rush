@@ -98,9 +98,6 @@ Ids of killed workers.}
 \item{\code{lost_worker_ids}}{(\code{character()})\cr
 Ids of lost workers.}
 
-\item{\code{pre_worker_ids}}{(\code{character()})\cr
-Ids of workers that are not yet completely started.}
-
 \item{\code{tasks}}{(\code{character()})\cr
 Keys of all tasks.}
 
@@ -136,9 +133,6 @@ Number of all tasks.}
 
 \item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
 Contains information about the workers.}
-
-\item{\code{worker_states}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
-Contains the states of the workers.}
 
 \item{\code{all_workers_terminated}}{(\code{logical(1)})\cr
 Whether all workers are terminated.}

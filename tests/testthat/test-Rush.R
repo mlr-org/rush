@@ -34,7 +34,7 @@ test_that("local workers are started", {
   expect_false(any(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
+  expect_set_equal(rush$worker_info$state, "running")
 
   expect_rush_reset(rush)
 })
@@ -72,7 +72,7 @@ test_that("local workers are started with Redis on unix socket", {
   expect_false(any(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
+  expect_set_equal(rush$worker_info$state, "running")
 })
 
 test_that("additional workers are started", {
@@ -101,7 +101,7 @@ test_that("additional workers are started", {
   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
   expect_integer(worker_info$pid, unique = TRUE)
   expect_false(any(worker_info$remote))
-  expect_set_equal(rush$worker_states$state, "running")
+  expect_set_equal(rush$worker_info$state, "running")
 
   expect_rush_reset(rush)
 })
@@ -156,7 +156,7 @@ test_that("mirai workers are started", {
   expect_true(all(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
+  expect_set_equal(rush$worker_info$state, "running")
 
   expect_rush_reset(rush)
   daemons(0)
@@ -401,7 +401,7 @@ test_that("worker is killed with a heartbeat process", {
   Sys.sleep(1)
 
   expect_false(tools::pskill(worker_info$pid, signal = 0L))
-  expect_true(rush$worker_states$state == "killed")
+  expect_true(rush$worker_info$state == "killed")
   expect_equal(rush$killed_worker_ids, worker_info$worker_id)
 
   expect_rush_reset(rush)
@@ -1112,7 +1112,7 @@ test_that("terminating workers on idle works", {
   rush$wait_for_tasks(keys)
   Sys.sleep(5)
 
-  expect_set_equal(rush$worker_states$state, "terminated")
+  expect_set_equal(rush$worker_info$state, "terminated")
 
   expect_rush_reset(rush)
 })
