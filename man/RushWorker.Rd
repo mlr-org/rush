@@ -108,8 +108,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   remote,
   worker_id = NULL,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL,
-  seed = NULL
+  heartbeat_expire = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -143,12 +142,6 @@ The heartbeat is updated every \code{heartbeat_period} seconds.}
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
-
-\item{\code{seed}}{(\code{integer()})\cr
-Initial seed for the random number generator.
-Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
-The later is converted to a L'Ecuyer-CMRG seed.
-If \code{NULL}, no seed is used for the random number generator.}
 }
 \if{html}{\out{</div>}}
 }

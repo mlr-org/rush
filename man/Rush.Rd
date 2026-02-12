@@ -15,15 +15,20 @@ A local worker runs on the same machine as the controller.
 Local workers are spawned with the `$start_local_workers() method via the \CRANpkg{processx} package.
 }
 
-\section{Remote Workers}{
+\section{Worker Loop}{
 
-A remote worker runs on a different machine than the controller.
-Remote workers are spawned with the `$start_remote_workers() method via the \CRANpkg{mirai} package.
+The worker loop is a function that runs on each worker.
+It takes a \link{RushWorker} object as its first argument which handles communication with Redis.
+The most important methods are \verb{$push_running_tasks()} to create a new task marked as running and \verb{$push_results()} to push results back to the database.
+Workers can also pop tasks from a queue with the \verb{$pop_task()} method.
+Additional arguments are passed to the worker loop via \verb{$start_local_workers()} or \verb{$start_remote_workers()}.
 }
 
-\section{Script Workers}{
+\section{Workers}{
 
-Workers can be started with a script anywhere.
+Local workers run on the same machine as the controller and are spawned with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
+Remote workers run on a different machine and are spawned with the \verb{$start_remote_workers()} method via the \CRANpkg{mirai} package.
+Workers can also be started with a script anywhere using the \verb{$worker_script()} method.
 The only requirement is that the worker can connect to the Redis database.
 The script is created with the \verb{$worker_script()} method.
 }
@@ -31,9 +36,9 @@ The script is created with the \verb{$worker_script()} method.
 \examples{
 # This example is not executed since Redis must be installed
 \donttest{
-   config_local = redux::redis_config()
-   rush = rsh(network_id = "test_network", config = config_local)
-   rush
+config_local = redux::redis_config()
+rush = rsh(network_id = "test_network", config = config_local)
+rush
 }
 }
 \section{Public fields}{
@@ -206,12 +211,17 @@ Information about the Redis server.}
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL, seed = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{network_id}}{(\code{character(1)})\cr
+Identifier of the rush network.
+Controller and workers must have the same instance id.
+Keys in Redis are prefixed with the instance id.}
+
 \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Controller and workers must have the same instance id.
@@ -224,11 +234,12 @@ If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment vari
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
 
-\item{\code{seed}}{(\code{integer()})\cr
-Initial seed for the random number generator.
-Either a L'Ecuyer-CMRG seed (\code{integer(7)}) or a regular RNG seed (\code{integer(1)}).
-The later is converted to a L'Ecuyer-CMRG seed.
-If \code{NULL}, no seed is used for the random number generator.}
+\item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
+Redis configuration options.
+If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is used.
+If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
+If \code{REDIS_URL} is not set, a default configuration is used.
+See \link[redux:redis_config]{redux::redis_config} for details.}
 }
 \if{html}{\out{</div>}}
 }
@@ -633,7 +644,6 @@ Task is added to queued tasks.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(
   xss,
   extra = NULL,
-  seeds = NULL,
   timeouts = NULL,
   max_retries = NULL,
   terminate_workers = FALSE
@@ -648,11 +658,6 @@ Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))
 
 \item{\code{extra}}{(\code{list()})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-
-\item{\code{seeds}}{(\code{list()})\cr
-List of L'Ecuyer-CMRG seeds for each task e.g \code{list(list(c(104071, 490840688, 1690070564, -495119766, 503491950, 1801530932, -1629447803)))}.
-If \code{NULL} but an initial seed is set, L'Ecuyer-CMRG seeds are generated from the initial seed.
-If \code{NULL} and no initial seed is set, no seeds are used for the random number generator.}
 
 \item{\code{timeouts}}{(\code{integer()})\cr
 Timeouts for each task in seconds e.g. \code{c(10, 15)}.
