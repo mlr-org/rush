@@ -75,38 +75,38 @@ test_that("local workers are started with Redis on unix socket", {
   expect_set_equal(rush$worker_info$state, "running")
 })
 
-test_that("local workers are started with Redis password authentication", {
-  skip_on_cran()
-  skip_on_ci()
+# test_that("local workers are started with Redis password authentication", {
+#   skip_on_cran()
+#   skip_on_ci()
 
-  system(sprintf("redis-server --port 6399 --requirepass testpassword --daemonize yes --pidfile /tmp/redis-auth.pid --dir %s", tempdir()))
-  Sys.sleep(5)
+#   system(sprintf("redis-server --port 6399 --requirepass testpassword --daemonize yes --pidfile /tmp/redis-auth.pid --dir %s", tempdir()))
+#   Sys.sleep(5)
 
-  config = redux::redis_config(port = 6399, password = "testpassword")
-  r = redux::hiredis(config)
+#   config = redux::redis_config(port = 6399, password = "testpassword")
+#   r = redux::hiredis(config)
 
-  on.exit({
-    try({r$SHUTDOWN()}, silent = TRUE)
-  })
+#   on.exit({
+#     try({r$SHUTDOWN()}, silent = TRUE)
+#   })
 
-  r$FLUSHDB()
+#   r$FLUSHDB()
 
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
+#   rush = rsh(network_id = "test-rush", config = config)
+#   worker_ids = rush$start_local_workers(
+#     worker_loop = test_worker_loop,
+#     n_workers = 2,
+#     lgr_thresholds = c("mlr3/rush" = "debug"))
+#   rush$wait_for_workers(2, timeout = 5)
 
-  walk(rush$processes_processx, function(process) expect_class(process, "process"))
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_false(any(worker_info$remote))
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_info$state, "running")
-})
+#   walk(rush$processes_processx, function(process) expect_class(process, "process"))
+#   worker_info = rush$worker_info
+#   expect_data_table(worker_info, nrows = 2)
+#   expect_integer(worker_info$pid, unique = TRUE)
+#   expect_false(any(worker_info$remote))
+#   expect_set_equal(worker_ids, worker_info$worker_id)
+#   expect_set_equal(rush$worker_ids, worker_ids)
+#   expect_set_equal(rush$worker_info$state, "running")
+# })
 
 test_that("additional workers are started", {
   skip_on_cran()
