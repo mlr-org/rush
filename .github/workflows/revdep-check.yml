@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - mlr-org/bbotk
+          - mlr-org/bbotk@rush_v1
 
     steps:
       - uses: actions/checkout@v3
