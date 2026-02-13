@@ -1,13 +1,13 @@
-#' @title Synctatic Sugar for Rush Controller Construction
+#' @title Synctatic Sugar for Rush Manager Construction
 #'
 #' @description
-#' Function to construct a [Rush] controller.
+#' Function to construct a [Rush] manager.
 #'
 #' @template param_network_id
 #' @template param_config
 #' @param ... (ignored).
 #'
-#' @return [Rush] controller.
+#' @return [Rush] manager.
 #' @export
 #' @examples
 #' # This example is not executed since Redis must be installed

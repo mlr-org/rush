@@ -102,7 +102,6 @@ test_that("R6 classes can be filtered", {
 
   appender$add_filter(filter_custom_fields)
 
-
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
 

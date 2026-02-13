@@ -7,8 +7,8 @@
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker} with worker methods.
 }
 \description{
-\link{RushWorker} evaluates tasks and writes results to the data base.
-The worker inherits from \link{Rush}.
+\link{RushWorker} inherits all methods from \link{Rush}.
+Upon initialization, the worker registers itself in the Redis database.
 }
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
@@ -18,9 +18,6 @@ The worker inherits from \link{Rush}.
 \describe{
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
-
-\item{\code{remote}}{(\code{logical(1)})\cr
-Whether the worker is on a remote machine.}
 
 \item{\code{heartbeat}}{(\code{callr::r_bg})\cr
 Background process for the heartbeat.}
@@ -40,9 +37,6 @@ Used in the worker loop to determine whether to continue.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
-\item \href{#method-RushWorker-push_running_tasks}{\code{RushWorker$push_running_tasks()}}
-\item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
-\item \href{#method-RushWorker-finish_tasks}{\code{RushWorker$finish_tasks()}}
 \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
 \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
 }
@@ -60,14 +54,17 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>rush::Rush$fetch_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks_with_state'><code>rush::Rush$fetch_tasks_with_state()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="finish_tasks"><a href='../../rush/html/Rush.html#method-Rush-finish_tasks'><code>rush::Rush$finish_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>rush::Rush$format()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>rush::Rush$is_failed_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>rush::Rush$is_running_task()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="pop_task"><a href='../../rush/html/Rush.html#method-Rush-pop_task'><code>rush::Rush$pop_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>rush::Rush$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>rush::Rush$print_log()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_failed_tasks'><code>rush::Rush$push_failed_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>rush::Rush$push_finished_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_results"><a href='../../rush/html/Rush.html#method-Rush-push_results'><code>rush::Rush$push_results()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_running_tasks'><code>rush::Rush$push_running_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
@@ -75,9 +72,9 @@ Used in the worker loop to determine whether to continue.}
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_cache"><a href='../../rush/html/Rush.html#method-Rush-reset_cache'><code>rush::Rush$reset_cache()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_data"><a href='../../rush/html/Rush.html#method-Rush-reset_data'><code>rush::Rush$reset_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>rush::Rush$start_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-tasks_with_state'><code>rush::Rush$tasks_with_state()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>rush::Rush$wait_for_tasks()</code></a></span></li>
@@ -96,7 +93,6 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
   network_id,
   config = NULL,
-  remote,
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL
@@ -108,7 +104,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \describe{
 \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
@@ -117,10 +113,6 @@ If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is us
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
-
-\item{\code{remote}}{(\code{logical(1)})\cr
-Whether the worker is started on a remote machine.
-See \link{Rush} for details.}
 
 \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
@@ -138,77 +130,6 @@ The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-push_running_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-push_running_tasks}{}}}
-\subsection{Method \code{push_running_tasks()}}{
-Push a task to running tasks without queue.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$push_running_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-
-\item{\code{extra}}{(\code{list})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
-Keys of the tasks.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-pop_task"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-pop_task}{}}}
-\subsection{Method \code{pop_task()}}{
-Pop a task from the queue.
-Task is moved to the running tasks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{timeout}}{(\code{numeric(1)})\cr
-Time to wait for task in seconds.}
-
-\item{\code{fields}}{(\code{character()})\cr
-Fields to be returned.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-finish_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-finish_tasks}{}}}
-\subsection{Method \code{finish_tasks()}}{
-Pushes results to the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$finish_tasks(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character(1)})\cr
-Keys of the associated tasks.}
-
-\item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
-
-\item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-set_terminated"></a>}}
 \if{latex}{\out{\hypertarget{method-RushWorker-set_terminated}{}}}
 \subsection{Method \code{set_terminated()}}{
@@ -218,6 +139,10 @@ Last step in the worker loop before the worker terminates.
 \if{html}{\out{<div class="r">}}\preformatted{RushWorker$set_terminated()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+(\code{RushWorker})\cr
+Invisible self.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-clone"></a>}}

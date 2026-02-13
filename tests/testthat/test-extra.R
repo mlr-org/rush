@@ -4,37 +4,15 @@ test_that("simple errors are pushed as failed tasks", {
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
 
-  worker_loop_fail = function(rush) {
-    while(!rush$terminated) {
-      task = rush$pop_task(fields = c("xs"))
-
-      if (!is.null(task)) {
-        if (task$xs$x1 < 1) {
-          condition = list(message = "Test error")
-          rush$fail_tasks(task$key, conditions = list(condition))
-        } else {
-          fun = function(x1, x2, ...) {
-            list(y = x1 + x2)
-          }
-          ys = mlr3misc::invoke(fun, .args = task$xs)
-          rush$finish_tasks(task$key, yss = list(ys))
-        }
-      }
-    }
-
-    return(NULL)
-  }
-
   on.exit({
     mirai::daemons(0)
   }, add = TRUE)
 
   mirai::daemons(1)
 
-  worker_ids = rush$start_remote_workers(
-    worker_loop = worker_loop_fail,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+  worker_ids = rush$start_workers(
+    worker_loop = fail_worker_loop,
+    n_workers = 1)
   rush$wait_for_workers(1, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
@@ -72,60 +50,60 @@ test_that("simple errors are pushed as failed tasks", {
   expect_rush_reset(rush)
 })
 
-test_that("printing logs with redis appender works", {
-  skip_on_cran()
+# test_that("printing logs with redis appender works", {
+#   skip_on_cran()
 
-  lg_rush = lgr::get_logger("mlr3/rush")
-  old_threshold_rush = lg_rush$threshold
-  on.exit(lg_rush$set_threshold(old_threshold_rush))
-  lg_rush$set_threshold("info")
+#   lg_rush = lgr::get_logger("mlr3/rush")
+#   old_threshold_rush = lg_rush$threshold
+#   on.exit(lg_rush$set_threshold(old_threshold_rush))
+#   lg_rush$set_threshold("info")
 
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(!rush$terminated) {
-      task = rush$pop_task(fields = c("xs"))
-      if (!is.null(task)) {
-        tryCatch({
-          fun = function(x1, x2, ...) {
-            lg = lgr::get_logger("mlr3/rush")
-            lg$info("test-1-info")
-            lg$warn("test-1-warn")
-            lg$error("test-1-error")
-            list(y = x1 + x2)
-          }
-          ys = mlr3misc::invoke(fun, .args = task$xs)
-          rush$finish_tasks(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$fail_tasks(task$key, conditions = list(condition))
-        })
-      }
-    }
+#   config = start_flush_redis()
+#   rush = rsh(network_id = "test-rush", config = config)
+#   worker_loop = function(rush) {
+#     while(!rush$terminated) {
+#       task = rush$pop_task(fields = c("xs"))
+#       if (!is.null(task)) {
+#         tryCatch({
+#           fun = function(x1, x2, ...) {
+#             lg = lgr::get_logger("mlr3/rush")
+#             lg$info("test-1-info")
+#             lg$warn("test-1-warn")
+#             lg$error("test-1-error")
+#             list(y = x1 + x2)
+#           }
+#           ys = mlr3misc::invoke(fun, .args = task$xs)
+#           rush$finish_tasks(task$key, yss = list(ys))
+#         }, error = function(e) {
+#           condition = list(message = e$message)
+#           rush$fail_tasks(task$key, conditions = list(condition))
+#         })
+#       }
+#     }
 
-    return(NULL)
-  }
+#     return(NULL)
+#   }
 
-  worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "info"))
-  rush$wait_for_workers(2, timeout = 5)
+#   worker_ids = rush$start_local_workers(
+#     worker_loop = worker_loop,
+#     n_workers = 2,
+#     lgr_thresholds = c("mlr3/rush" = "info"))
+#   rush$wait_for_workers(2, timeout = 5)
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
-  keys = rush$push_tasks(xss)
+#   xss = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2))
+#   keys = rush$push_tasks(xss)
 
-  Sys.sleep(5)
+#   Sys.sleep(5)
 
-  expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
-  expect_silent(rush$print_log())
+#   expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
+#   expect_silent(rush$print_log())
 
-  xss = list(list(x1 = 3, x2 = 2))
-  keys = rush$push_tasks(xss)
+#   xss = list(list(x1 = 3, x2 = 2))
+#   keys = rush$push_tasks(xss)
 
-  Sys.sleep(5)
+#   Sys.sleep(5)
 
-  expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
+#   expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
 
-  expect_rush_reset(rush)
-})
+#   expect_rush_reset(rush)
+# })

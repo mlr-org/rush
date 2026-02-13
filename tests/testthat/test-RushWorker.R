@@ -1,12 +1,13 @@
+# starting worker and terminating ----------------------------------------------
+
 test_that("constructing a rush worker works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   expect_class(rush, "Rush")
   expect_equal(rush$network_id, "test-rush")
   expect_string(rush$worker_id)
-  expect_false(rush$remote)
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$running_worker_ids, rush$worker_id)
 
@@ -15,7 +16,7 @@ test_that("constructing a rush worker works", {
   # pass worker id
   config = start_flush_redis()
   worker_id = uuid::UUIDgenerate()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE, worker_id = worker_id)
+  rush = RushWorker$new(network_id = "test-rush", config = config, worker_id = worker_id)
   expect_equal(rush$worker_id, worker_id)
 
   expect_rush_reset(rush)
@@ -25,7 +26,7 @@ test_that("active bindings work after construction", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
   expect_equal(rush$n_workers, 1)
 
@@ -48,14 +49,13 @@ test_that("a worker is registered", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
   # check meta data from redis
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
-  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "remote", "hostname", "heartbeat", "state"))
+  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "hostname", "heartbeat", "state"))
   expect_equal(worker_info$worker_id, rush$worker_id)
-  expect_false(worker_info$remote)
   expect_equal(worker_info$pid, Sys.getpid())
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_info$state, "running")
@@ -67,7 +67,7 @@ test_that("a worker is terminated", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   expect_equal(rush$running_worker_ids, rush$worker_id)
 
   rush$set_terminated()
@@ -77,181 +77,167 @@ test_that("a worker is terminated", {
   expect_rush_reset(rush)
 })
 
-test_that("pushing a task to the queue works", {
+# low level read and write -----------------------------------------------------
+
+test_that("reading and writing a hash works with flatten", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
+  # one field with list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
+  expect_equal(rush$read_hashes(key, "xs"), list(list(x1 = 1, x2 = 2)))
 
-  # check task count
-  expect_equal(rush$n_tasks, 1)
-  expect_equal(rush$n_queued_tasks, 1)
-  expect_equal(rush$n_running_tasks, 0)
-  expect_equal(rush$n_finished_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 0)
+  # one field with atomic
+  key = rush$write_hashes(timeout = 1)
+  expect_equal(rush$read_hashes(key, "timeout"), list(list(timeout = 1)))
 
-  # check keys in sets
-  expect_string(rush$tasks)
-  expect_set_equal(rush$queued_tasks, keys)
-  expect_null(rush$running_tasks)
-  expect_null(rush$finished_tasks)
-  expect_null(rush$failed_tasks)
+  # two fields with lists
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3)))
 
-  # check fetching
-  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
-  data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "keys"))
-  expect_data_table(data, nrows = 1)
-  expect_data_table(rush$fetch_tasks(), nrows = 1)
+  # two fields with list and empty list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
+  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2)))
 
-  # status checks
-  expect_false(rush$is_running_task(keys))
-  expect_false(rush$is_failed_task(keys))
-
-  expect_rush_reset(rush)
+  # two fields with list and atomic
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
+  expect_equal(rush$read_hashes(key, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1)))
 })
 
-test_that("pushing a task with extras to the queue works", {
+test_that("reading and writing a hash works without flatten", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = rsh(network_id = "test-rush", config = config)
 
-  xss = list(list(x1 = 1, x2 = 2))
-  timestamp = Sys.time()
-  extra = list(list(timestamp = timestamp))
-  keys = rush$push_tasks(xss, extra)
+  # one field with list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
+  expect_equal(rush$read_hashes(key, "xs", flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2))))
 
-  # check task count
-  expect_equal(rush$n_tasks, 1)
-  expect_equal(rush$n_queued_tasks, 1)
-  expect_equal(rush$n_running_tasks, 0)
-  expect_equal(rush$n_finished_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 0)
+  # one field with atomic
+  key = rush$write_hashes(timeout = 1)
+  expect_equal(rush$read_hashes(key, "timeout", flatten = FALSE), list(list(timeout = 1)))
 
-  # check keys in sets
-  expect_string(rush$tasks)
-  expect_set_equal(rush$queued_tasks, keys)
-  expect_null(rush$running_tasks)
-  expect_null(rush$finished_tasks)
-  expect_null(rush$failed_tasks)
+  # two fields with lists
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))))
 
-  # check fetching
-  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
-  data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
-  expect_data_table(data, nrows = 1)
-  expect_equal(data$timestamp, timestamp)
-  expect_data_table(rush$fetch_tasks(), nrows = 1)
+  # two fields with list and empty list
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
+  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = NULL)))
 
-  # status checks
-  expect_false(rush$is_running_task(keys))
-  expect_false(rush$is_failed_task(keys))
-
-  expect_rush_reset(rush)
+  # two fields with list and atomic
+  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
+  expect_equal(rush$read_hashes(key, c("xs", "timeout"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), timeout = 1)))
 })
 
-test_that("pushing tasks to the queue works", {
+test_that("reading and writing hashes works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
-  keys = rush$push_tasks(xss)
+  # one field with list
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
 
-  # check task count
-  expect_equal(rush$n_tasks, 2)
-  expect_equal(rush$n_queued_tasks, 2)
-  expect_equal(rush$n_running_tasks, 0)
-  expect_equal(rush$n_finished_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 0)
+  # one field atomic
+  keys = rush$write_hashes(timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, "timeout"), list(list(timeout = 1), list(timeout = 1)))
 
-  # check keys in sets
-  expect_character(rush$tasks, len = 2)
-  expect_set_equal(rush$queued_tasks, keys)
-  expect_null(rush$running_tasks)
-  expect_null(rush$finished_tasks)
-  expect_null(rush$failed_tasks)
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
 
-  # check fetching
-  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
-  data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "keys"))
-  expect_data_table(data, nrows = 2)
-  expect_character(data$keys, unique = TRUE, len = 2)
-  expect_data_table(rush$fetch_tasks(), nrows = 2)
+  # two fields
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3), list(y = 4)))
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 4)))
 
-  # status checks
-  expect_false(any(rush$is_running_task(keys)))
-  expect_false(any(rush$is_failed_task(keys)))
+  # two fields with list and atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = c(1, 1))
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
 
-  expect_rush_reset(rush)
+  # two fields with list and recycled atomic
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
+  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+
+  # two fields, one empty
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list())
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
+
+  # recycle
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3)))
+  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 3)))
 })
 
-test_that("pushing tasks with extras to the queue works", {
+test_that("writing hashes to specific keys works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
-  timestamp = Sys.time()
-  extra = list(list(timestamp = timestamp), list(timestamp = timestamp))
-  keys = rush$push_tasks(xss, extra)
+  # one element
+  keys = uuid::UUIDgenerate()
+  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), keys = keys)
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2)))
 
-  # check task count
-  expect_equal(rush$n_tasks, 2)
-  expect_equal(rush$n_queued_tasks, 2)
-  expect_equal(rush$n_running_tasks, 0)
-  expect_equal(rush$n_finished_tasks, 0)
-  expect_equal(rush$n_failed_tasks, 0)
+  # two elements
+  keys = uuid::UUIDgenerate(n = 2)
+  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys)
+  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
 
-  # check keys in sets
-  expect_character(rush$tasks, len = 2)
-  expect_set_equal(rush$queued_tasks, keys)
-  expect_null(rush$running_tasks)
-  expect_null(rush$finished_tasks)
-  expect_null(rush$failed_tasks)
-
-  # check fetching
-  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
-  data = rush$fetch_queued_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
-  expect_data_table(data, nrows = 2)
-  expect_character(data$keys, unique = TRUE, len = 2)
-  expect_equal(data$timestamp, c(timestamp, timestamp))
-  expect_data_table(rush$fetch_tasks(), nrows = 2)
-
-  # status checks
-  expect_false(any(rush$is_running_task(keys)))
-  expect_false(any(rush$is_failed_task(keys)))
-
-  expect_rush_reset(rush)
+  # wrong number of keys
+  keys = uuid::UUIDgenerate()
+  expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
 })
 
-test_that("popping a task from the queue works", {
+test_that("writing list columns works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config)
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config)
+
+  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
+  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
+  rush$read_hashes(keys, c("xs", "xs_extra"))
+
+  expect_list(rush$fetch_finished_tasks()$extra, len = 2)
+})
+
+
+# moving tasks between states --------------------------------------------------
+
+test_that("popping a task works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
 
   # check task
   task = rush$pop_task()
-  expect_rush_task(task)
+  expect_list(task)
+  expect_names(names(task), must.include = c("key", "xs"))
+  expect_list(task, names = "unique")
 
   # check task count
   expect_equal(rush$n_tasks, 1)
@@ -287,7 +273,7 @@ test_that("finishing a task works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
   task = rush$pop_task()
@@ -328,7 +314,7 @@ test_that("failing a tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
   task = rush$pop_task()
@@ -369,7 +355,7 @@ test_that("moving and fetching tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
   # queue tasks
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
@@ -394,7 +380,7 @@ test_that("moving and fetching tasks works", {
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
 
-  # push result
+  # finish task
   rush$pop_task()
   rush$finish_tasks(task$key, list(list(y = 3)))
   queued_tasks = rush$fetch_queued_tasks()
@@ -413,7 +399,7 @@ test_that("moving and fetching tasks works", {
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
 
-  # push failed task
+  # fail task
   task = rush$pop_task()
   rush$fail_tasks(task$key, conditions = list(list(message = "error")))
   queued_tasks = rush$fetch_queued_tasks()
@@ -444,7 +430,7 @@ test_that("moving a queued task to failed works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   rush$push_tasks(xss)
   queued_tasks = rush$queued_tasks
@@ -482,7 +468,7 @@ test_that("fetch task with states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
@@ -520,7 +506,7 @@ test_that("latest results are fetched", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
   # add 1 task
   rush$push_tasks(list(list(x1 = 1, x2 = 2)))
@@ -562,7 +548,7 @@ test_that("pushing finished tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
 
   rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xss_extra = list(list(extra_input = "A")), yss_extra = list(list(extra_output = "B")))
   expect_equal(rush$n_finished_tasks, 1)
@@ -575,7 +561,7 @@ test_that("pushing failed tasks works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   rush$push_failed_tasks(list(list(x1 = 1, x2 = 2)), conditions = list(list(message = "error")))
   expect_equal(rush$n_failed_tasks, 1)
   expect_equal(rush$n_tasks, 1)
@@ -587,7 +573,7 @@ test_that("task in states works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  rush = RushWorker$new(network_id = "test-rush", config = config)
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 

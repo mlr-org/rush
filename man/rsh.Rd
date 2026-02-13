@@ -2,14 +2,14 @@
 % Please edit documentation in R/sugar.R
 \name{rsh}
 \alias{rsh}
-\title{Synctatic Sugar for Rush Controller Construction}
+\title{Synctatic Sugar for Rush Manager Construction}
 \usage{
 rsh(network_id = NULL, config = NULL, ...)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
@@ -22,10 +22,10 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 \item{...}{(ignored).}
 }
 \value{
-\link{Rush} controller.
+\link{Rush} manager.
 }
 \description{
-Function to construct a \link{Rush} controller.
+Function to construct a \link{Rush} manager.
 }
 \examples{
 # This example is not executed since Redis must be installed

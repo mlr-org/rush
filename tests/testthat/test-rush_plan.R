@@ -13,7 +13,7 @@ test_that("rush_plan family works", {
 
 test_that("rush_plan throws and error if redis is not available", {
   config = redux::redis_config(url = "redis://localhost:1234")
-  expect_error(rush_plan(n_workers = 2, config), "Can't connect to Redis")
+  expect_error(rush_plan(n_workers = 2, config), class = "Mlr3ErrorConfig")
 })
 
 test_that("start workers", {
@@ -21,14 +21,14 @@ test_that("start workers", {
 
   config = start_flush_redis()
   rush_plan(n_workers = 2, config)
+  mirai::daemons(2)
 
   expect_equal(rush_env$n_workers, 2)
 
   rush = rsh("test-rush")
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
   expect_equal(rush$n_running_workers, 2)
@@ -52,7 +52,7 @@ test_that("set threshold", {
 
   rush = rsh("test-rush")
   expect_output(rush$start_local_workers(
-    worker_loop = test_worker_loop,
+    worker_loop = queue_worker_loop,
     n_workers = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"),
     wait_for_workers = TRUE),

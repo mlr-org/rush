@@ -43,6 +43,7 @@ The following methods are used to fetch tasks:
 \item \verb{$fetch_finished_tasks()}: Fetch finished tasks.
 \item \verb{$fetch_failed_tasks()}: Fetch failed tasks.
 \item \verb{$fetch_tasks_with_state()}: Fetch tasks with different states at once.
+\item \verb{$fetch_new_tasks()}: Fetch new tasks and optionally block until new tasks are available.
 }
 
 The methods return a \code{data.table()} with the tasks.
@@ -60,17 +61,31 @@ Tasks have the following fields:
 
 \section{Workers}{
 
-Local workers run on the same machine as the manager and are spawned with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
-Remote workers run on a different machine and are spawned with the \verb{$start_remote_workers()} method via the \CRANpkg{mirai} package.
-Workers can also be started with a script anywhere using the \verb{$worker_script()} method.
+Workers are spawned with the \verb{$start_workers()} method on \code{mirai} daemons.
+Use \code{\link[mirai:daemons]{mirai::daemons()}} to start daemons.
+Workers can be started on the
+\itemize{
+\item \href{https://mirai.r-lib.org/articles/mirai.html#local-daemons}{local machine},
+\item \href{https://mirai.r-lib.org/articles/mirai.html#remote-daemons---ssh-direct}{remote machine}
+\item or \href{https://mirai.r-lib.org/articles/mirai.html#hpc-clusters}{HPC cluster}
+using the \CRANpkg{mirai} package.
+}
+
+Alternatively, workers can be started locally with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
+Or a help script can be generated with the \verb{$worker_script()} method that can be run anywhere.
 The only requirement is that the worker can connect to the Redis database.
 }
 
 \section{Worker Loop}{
 
 The worker loop is the main function that is run on the workers.
-It is defined by the user and is passed to the \verb{$start_local_workers()} and \verb{$start_remote_workers()} methods.
-The worker loop is a function that takes the input of a task and returns the output of the task.
+It is defined by the user and is passed to the \verb{$start_workers()} method.
+}
+
+\section{Debugging}{
+
+The \code{mirai::mirai} objects started with \verb{$start_workers()} are stored in \verb{$processes_mirai}.
+Standard output and error of the workers ca be written to log files with the \code{message_log} and \code{output_log} arguments of \verb{$start_workers()}.
 }
 
 \examples{
@@ -164,6 +179,7 @@ Contains information about the workers.}
 \item \href{#method-Rush-format}{\code{Rush$format()}}
 \item \href{#method-Rush-print}{\code{Rush$print()}}
 \item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
+\item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
 \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
 \item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
 \item \href{#method-Rush-worker_script}{\code{Rush$worker_script()}}
@@ -171,11 +187,13 @@ Contains information about the workers.}
 \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
 \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
 \item \href{#method-Rush-reset}{\code{Rush$reset()}}
-\item \href{#method-Rush-reset_data}{\code{Rush$reset_data()}}
 \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
 \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
+\item \href{#method-Rush-pop_task}{\code{Rush$pop_task()}}
+\item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
 \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
 \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
+\item \href{#method-Rush-push_running_tasks}{\code{Rush$push_running_tasks()}}
 \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
 \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
 \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
@@ -212,7 +230,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \describe{
 \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
@@ -271,13 +289,67 @@ Call this method to reconnect after loading the object.
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-start_workers"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-start_workers}{}}}
+\subsection{Method \code{start_workers()}}{
+Start workers to run the worker loop in \code{mirai::daemons()}.
+Initializes a \link{RushWorker} in each process and starts the worker loop.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
+  worker_loop,
+  ...,
+  n_workers = NULL,
+  packages = NULL,
+  lgr_thresholds = NULL,
+  lgr_buffer_size = NULL,
+  message_log = NULL,
+  output_log = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{worker_loop}}{(\code{function})\cr
+Loop run on the workers.}
+
+\item{\code{...}}{(\code{any})\cr
+Arguments passed to \code{worker_loop}.}
+
+\item{\code{n_workers}}{(\code{integer(1)})\cr
+Number of workers to be started.}
+
+\item{\code{packages}}{(\code{character()})\cr
+Packages to be loaded by the workers.}
+
+\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
+
+\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
+If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
+This improves the performance of the logging.}
+
+\item{\code{message_log}}{(\code{character(1)})\cr
+Path to the message log files e.g. \verb{/tmp/message_logs/}
+The message log files are named \verb{message_<worker_id>.log}.
+If \code{NULL}, no messages, warnings or errors are stored.}
+
+\item{\code{output_log}}{(\code{character(1)})\cr
+Path to the output log files e.g. \verb{/tmp/output_logs/}
+The output log files are named \verb{output_<worker_id>.log}.
+If \code{NULL}, no output is stored.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-start_local_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_local_workers}{}}}
 \subsection{Method \code{start_local_workers()}}{
 Start workers locally with \code{processx}.
-The \link[processx:process]{processx::process} are stored in \verb{$processes_processx}.
-Alternatively, use \verb{$start_remote_workers()} to start workers on remote machines with \code{mirai}.
-Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the parameters set here.
+Initializes a \link{RushWorker} in each process and starts the worker loop.
+Use \verb{$wait_for_workers()} to wait until the workers are registered in the network.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
   worker_loop,
@@ -302,9 +374,7 @@ Loop run on the workers.}
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.
-Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
-If \code{rush_plan()} is not called, the default is \code{1}.}
+Number of workers to be started.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
@@ -337,9 +407,8 @@ If \code{NULL}, no output is stored.}
 \if{html}{\out{<a id="method-Rush-start_remote_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
 \subsection{Method \code{start_remote_workers()}}{
-Start workers on remote machines with \code{mirai}.
-The \link[mirai:mirai]{mirai::mirai} are stored in \verb{$processes_mirai}.
-Parameters set by \code{\link[=rush_plan]{rush_plan()}} have precedence over the parameters set here.
+Start workers to run the worker loop in \code{mirai::daemons()}.
+Initializes a \link{RushWorker} in each process and starts the worker loop.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
   worker_loop,
@@ -363,9 +432,7 @@ Loop run on the workers.}
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{n_workers}}{(\code{integer(1)})\cr
-Number of workers to be started.
-Default is \code{NULL}, which means the number of workers is set by \code{\link[=rush_plan]{rush_plan()}}.
-If \code{rush_plan()} is not called, the default is \code{1}.}
+Number of workers to be started.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
@@ -396,6 +463,7 @@ If \code{NULL}, no output is stored.}
 \if{latex}{\out{\hypertarget{method-Rush-worker_script}{}}}
 \subsection{Method \code{worker_script()}}{
 Generate a script to start workers.
+Run this script \code{n} times to start \code{n} workers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$worker_script(
   worker_loop,
@@ -500,7 +568,6 @@ The \code{"terminate"} option must be implemented in the worker loop.}
 
 \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
-Remote workers must all be killed together.
 If \code{NULL} all workers are stopped.}
 }
 \if{html}{\out{</div>}}
@@ -523,20 +590,18 @@ The state of the worker is changed to \code{"terminated"}.
 \subsection{Method \code{reset()}}{
 Stop workers and delete data stored in redis.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reset()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$reset(workers = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{workers}}{(\code{logical(1)})\cr
+Whether to stop the workers or only delete the data.
+Default is \code{TRUE}.}
 }
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-reset_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-reset_data}{}}}
-\subsection{Method \code{reset_data()}}{
-Reset the data stored in the Redis database.
-This is useful to remove all tasks but keep the workers.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reset_data()}\if{html}{\out{</div>}}
+\if{html}{\out{</div>}}
 }
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_log"></a>}}
@@ -580,10 +645,59 @@ Invisible self.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-pop_task"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-pop_task}{}}}
+\subsection{Method \code{pop_task()}}{
+Pop a task from the queue and mark it as running.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$pop_task(timeout = 1, fields = "xs")}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{timeout}}{(\code{numeric(1)})\cr
+Time to wait for task in seconds.}
+
+\item{\code{fields}}{(\code{character()})\cr
+Fields to be returned.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-finish_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-finish_tasks}{}}}
+\subsection{Method \code{finish_tasks()}}{
+Save output of tasks and mark them as finished.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$finish_tasks(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{keys}}{(\code{character(1)})\cr
+Keys of the associated tasks.}
+
+\item{\code{yss}}{(named \code{list()})\cr
+List of lists of named results.}
+
+\item{\code{extra}}{(named \code{list()})\cr
+List of lists of additional information stored along with the results.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{Rush})\cr
+Invisible self.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
 \subsection{Method \code{fail_tasks()}}{
-Move tasks from queued and running to the failed and optionally save the condition.
+Mark tasks as failed and optionally save the condition objects
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$fail_tasks(keys, conditions = NULL)}\if{html}{\out{</div>}}
 }
@@ -610,7 +724,7 @@ Invisible self.
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{Method \code{push_tasks()}}{
-Creates a task and adds it to the queue.
+Create queued tasks and add them to the queue.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
 }
@@ -632,10 +746,35 @@ Keys of the tasks.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-push_running_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-push_running_tasks}{}}}
+\subsection{Method \code{push_running_tasks()}}{
+Create running tasks.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_running_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+
+\item{\code{extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+(\code{character()})\cr
+Keys of the tasks.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_finished_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_finished_tasks}{}}}
 \subsection{Method \code{push_finished_tasks()}}{
-Creates a task and marks it as finished.
+Create finished tasks.
 See \verb{$finish_tasks()} for moving existing tasks from running to finished.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}\if{html}{\out{</div>}}
@@ -667,10 +806,10 @@ Keys of the tasks.
 \if{html}{\out{<a id="method-Rush-push_failed_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_failed_tasks}{}}}
 \subsection{Method \code{push_failed_tasks()}}{
-Creates a task and marks it as failed.
+Create failed tasks.
 See \verb{$fail_tasks()} for moving existing tasks from queued and running to failed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed_tasks(xss, xss_extra, conditions)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -909,8 +1048,8 @@ Reset the cache of the finished tasks.
 }
 
 \subsection{Returns}{
-\code{invisible(self)}\cr
-The Rush object.
+(\code{Rush})\cr
+Invisible self.
 }
 }
 \if{html}{\out{<hr>}}
@@ -943,7 +1082,8 @@ Comes with an overhead.}
 Writes R objects to Redis hashes.
 The function takes the vectors in \code{...} as input and writes each element as a field-value pair to a new hash.
 The name of the argument defines the field into which the serialized element is written.
-For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes \code{serialize(list(x1 = 1, x2 = 2))} at field \code{xs} into a hash and \code{serialize(list(x1 = 3, x2 = 4))} at field \code{xs} into another hash.
+For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes \code{serialize(list(x1 = 1, x2 = 2))} at field \code{xs} into a hash
+and \code{serialize(list(x1 = 3, x2 = 4))} at field \code{xs} into another hash.
 The function can iterate over multiple vectors simultaneously.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} creates two hashes with the fields \code{xs} and \code{ys}.
 The vectors are recycled to the length of the longest vector.

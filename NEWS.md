@@ -23,6 +23,7 @@
 * refactor: Removed `$all_workers_terminated` and `all_workers_lost` active bindings.
 * refactor: Moved `$worker_states` to `$worker_info`.
 * feat: Add `"rush.max_object_size"` option to limit the size of objects stored in Redis.
+* refactor: Renamed `$start_remote_workers()` to `$start_workers()`.
 
 # rush 0.4.1
 
