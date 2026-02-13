@@ -56,10 +56,10 @@ test_that("set threshold", {
     n_workers = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"),
     wait_for_workers = TRUE),
-    "Pushing.*")
+  "Pushing.*")
 
   Sys.sleep(2)
 
-  expect_rush_reset(rush)
+  x = capture.output(expect_rush_reset(rush))
 })
 
