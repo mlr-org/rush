@@ -761,7 +761,7 @@ test_that("a segfault on a mirai daemon is detected", {
   rush = rsh(network_id = "test-rush", config = config)
 
   mirai::daemons(1)
-  worker_ids = rush$start_remote_workers(
+  worker_ids = rush$start_workers(
     worker_loop = segfault_worker_loop,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
