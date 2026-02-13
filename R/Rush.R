@@ -288,7 +288,7 @@ Rush = R6::R6Class("Rush",
       message_log = NULL,
       output_log = NULL
       ) { # nolint
-      warn_deprecated("$start_remote_workers() is deprecated. Use $start_workers() instead.")
+      warn_deprecated("$start_remote_workers()")
       self$start_workers(
         worker_loop = worker_loop,
         ...,
@@ -602,7 +602,6 @@ Rush = R6::R6Class("Rush",
             c("DEL", private$.get_key(worker_id)),
             c("DEL", private$.get_worker_key("terminate", worker_id)),
             c("DEL", private$.get_worker_key("kill", worker_id)),
-            c("DEL", private$.get_worker_key("queued_tasks", worker_id)),
             c("DEL", private$.get_worker_key("events", worker_id)))
         }), recursive = FALSE)
       }
@@ -700,7 +699,7 @@ Rush = R6::R6Class("Rush",
     pop_task = function(timeout = 1, fields = "xs") {
       r = self$connector
 
-      key = r$command(c("BLMPOP", timeout, 2, private$.get_worker_key("queued_tasks"), private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
+      key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
       if (is.null(key)) return(NULL)
       self$write_hashes(worker_id = list(self$worker_id), keys = key)
@@ -1308,6 +1307,21 @@ Rush = R6::R6Class("Rush",
     push_results = function(keys, yss, extra = NULL) {
       warn_deprecated("$push_results() is deprecated. Use $finish_tasks() instead.")
       self$finish_tasks(keys, yss, extra = extra)
+    },
+
+    #' @description
+    #' Deprecated method.
+    #' Use `$fail_tasks()` instead.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the associated tasks.
+    #' @param conditions (`list()`)\cr
+    #' List of conditions.
+    #' @return (`Rush`)\cr
+    #' Invisible self.
+    push_failed = function(keys, conditions) {
+      warn_deprecated("$push_failed() is deprecated. Use $fail_tasks() instead.")
+      self$fail_tasks(keys, conditions = conditions)
     }
   ),
 
