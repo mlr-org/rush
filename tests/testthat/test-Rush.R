@@ -1053,7 +1053,7 @@ test_that("large objects limit works", {
       }
     }
 
-    return(NULL)
+    NULL
   }
 
   large_vector = runif(1e6)
