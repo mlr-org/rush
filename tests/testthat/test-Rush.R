@@ -1,107 +1,39 @@
-# start workers with processx --------------------------------------------------
+# start workers ----------------------------------------------------------------
 
-test_that("constructing a rush controller works", {
+test_that("constructing a rush manager works", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   expect_class(rush, "Rush")
   expect_equal(rush$network_id, "test-rush")
+  expect_class(rush$config, "redis_config")
+  expect_class(rush$connector, "redis_api")
 
   expect_rush_reset(rush)
 })
 
-test_that("local workers are started", {
+test_that("workers are started", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+  mirai::daemons(2)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
-  # check fields
-  walk(rush$processes_processx, function(process) expect_class(process, "process"))
-
-  # check meta data from redis
+  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 2)
   expect_integer(worker_info$pid, unique = TRUE)
-  expect_false(any(worker_info$remote))
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
-
-  expect_rush_reset(rush)
-})
-
-test_that("local workers are started with Redis on unix socket", {
-  skip_on_cran()
-  skip_on_ci() # does not work on github actions runner
-
-  system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()))
-  Sys.sleep(5)
-
-  config = redux::redis_config(path = "/tmp/redis.sock")
-  r = redux::hiredis(config)
-
-  on.exit({
-    try({r$SHUTDOWN()}, silent = TRUE)
-  })
-
-  r$FLUSHDB()
-
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  # check fields
-  walk(rush$processes_processx, function(process) expect_class(process, "process"))
-
-  # check meta data from redis
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_false(any(worker_info$remote))
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
-})
-
-test_that("additional workers are started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  expect_equal(rush$n_workers, 2)
-
-  worker_ids_2 = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(4, timeout = 5)
-
-  expect_length(rush$processes_processx, 4)
-  walk(rush$processes_processx, function(process) expect_class(process, "process"))
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 4)
-  expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_false(any(worker_info$remote))
-  expect_set_equal(rush$worker_states$state, "running")
+  expect_set_equal(rush$worker_info$state, "running")
 
   expect_rush_reset(rush)
 })
@@ -111,13 +43,15 @@ test_that("packages are available on the worker", {
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    packages = "uuid",
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-  expect_equal(rush$n_workers, 2)
+
+  mirai::daemons(1)
+
+  rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1,
+    packages = "uuid")
+  rush$wait_for_workers(1, timeout = 5)
+  expect_equal(rush$n_workers, 1)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
@@ -128,41 +62,7 @@ test_that("packages are available on the worker", {
   expect_rush_reset(rush)
 })
 
-
-# start workers with mirai -----------------------------------------------------
-
-test_that("mirai workers are started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  expect_data_table(rush$worker_info, nrows = 0)
-
-  mirai::daemons(2)
-
-  worker_ids = rush$start_remote_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  # check fields
-  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
-
-  # check meta data from redis
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_true(all(worker_info$remote))
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_states$state, "running")
-
-  expect_rush_reset(rush)
-  daemons(0)
-})
-
-test_that("new mirai workers can be started on used daemons", {
+test_that("new workers can be started on used daemons", {
   skip_on_cran()
 
   config = start_flush_redis()
@@ -175,40 +75,220 @@ test_that("new mirai workers can be started on used daemons", {
     xs = list(x1 = 1, x2 = 2)
     key = rush$push_running_tasks(list(xs))
     ys = list(y = xs$x1 + xs$x2)
-    rush$push_results(key, yss = list(ys))
+    rush$finish_tasks(key, yss = list(ys))
   }
 
-  worker_ids = rush$start_remote_workers(
+  worker_ids = rush$start_workers(
     worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+    n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
-  Sys.sleep(1)
+  rush$reset()
 
-  # check fields
+  Sys.sleep(2)
+
   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
-
   expect_equal(mirai::status()$mirai["completed"], c(completed = 2))
 
   rush = rsh(network_id = "test-rush-2", config = config)
-  worker_ids = rush$start_remote_workers(
+  worker_ids = rush$start_workers(
     worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+    n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
   expect_data_table(rush$fetch_finished_tasks(), nrows = 2)
 
   expect_equal(mirai::status()$mirai["completed"], c(completed = 4))
 
-  r = redux::hiredis()
-  r$FLUSHDB()
   expect_rush_reset(rush)
-  daemons(0)
 })
 
-# start workers with script -----------------------------------------------------
+test_that("wait for workers works with worker ids", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  mirai::daemons(1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1)
+
+  expect_error(rush$wait_for_workers(timeout = 1), class = "Mlr3ErrorConfig", regexp = "Either")
+
+  rush$wait_for_workers(worker_ids = worker_ids, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  # worker id does not exist so we expect a timeout
+  expect_error(rush$wait_for_workers(worker_ids = "x", timeout = 1), class = "Mlr3ErrorTimeout")
+
+  expect_rush_reset(rush)
+})
+
+test_that("wait for workers works with n", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  mirai::daemons(1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1)
+  rush$wait_for_workers(n = 1, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_error(rush$wait_for_workers(n = 2, timeout = 1), class = "Mlr3ErrorTimeout")
+
+  expect_rush_reset(rush)
+})
+
+test_that("wait for workers works with both n and worker ids", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  mirai::daemons(1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1)
+  rush$wait_for_workers(n = 1, worker_ids = worker_ids, timeout = 5)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_error(rush$wait_for_workers(n = 2, worker_ids = worker_ids, timeout = 1), class = "Mlr3ErrorConfig", regexp = "Number of workers to wait for")
+
+  expect_error(rush$wait_for_workers(n = 1, worker_ids = "x", timeout = 1), class = "Mlr3ErrorTimeout")
+
+  rush$wait_for_workers(n = 1, worker_ids = c(worker_ids, "x"), timeout = 1)
+  expect_equal(rush$n_running_workers, 1)
+
+  expect_rush_reset(rush)
+})
+
+# special redis configurations -------------------------------------------------
+
+test_that("Redis on unix socket works", {
+  skip_on_cran()
+  skip_on_ci() # does not work on github actions runner
+
+  system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()), intern = TRUE)
+  Sys.sleep(5)
+
+  config = redux::redis_config(path = "/tmp/redis.sock")
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  on.exit({
+    try({r$SHUTDOWN()}, silent = TRUE)
+  })
+
+  mirai::daemons(2)
+
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+
+  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_info$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+test_that("Redis password authentication works", {
+  skip_on_cran()
+  skip_on_ci() # does not work on github actions runner
+
+  system(sprintf("redis-server --port 6398 --requirepass testpassword --daemonize yes --pidfile /tmp/redis-auth.pid --dir %s", tempdir()), intern = TRUE)
+  Sys.sleep(5)
+
+  config = redux::redis_config(port = 6398, password = "testpassword")
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  on.exit({
+    try({r$SHUTDOWN()}, silent = TRUE)
+  })
+
+  mirai::daemons(2)
+
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+
+  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_integer(worker_info$pid, unique = TRUE)
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_info$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+# local workers ----------------------------------------------------------------
+
+test_that("local workers are started", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  expect_data_table(rush$worker_info, nrows = 0)
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+
+  walk(rush$processes_processx, function(process) expect_class(process, "process"))
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_names(names(worker_info), must.include = c("worker_id", "pid", "hostname", "heartbeat", "state"))
+  expect_integer(worker_info$pid, unique = TRUE)
+
+  expect_set_equal(worker_ids, worker_info$worker_id)
+  expect_set_equal(rush$worker_ids, worker_ids)
+  expect_set_equal(rush$worker_info$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+test_that("additional local workers are started", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+
+  expect_equal(rush$n_workers, 2)
+
+  worker_ids_2 = rush$start_local_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(4, timeout = 5)
+
+  expect_length(rush$processes_processx, 4)
+  walk(rush$processes_processx, function(process) expect_class(process, "process"))
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 4)
+  expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
+  expect_integer(worker_info$pid, unique = TRUE)
+
+  expect_set_equal(rush$worker_info$state, "running")
+
+  expect_rush_reset(rush)
+})
+
+# start workers with script ----------------------------------------------------
 
 test_that("heartbeat process is started", {
   skip_on_cran()
@@ -217,16 +297,12 @@ test_that("heartbeat process is started", {
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  rush$worker_script(
-    worker_loop = test_worker_loop,
+  script = rush$worker_script(
+    worker_loop = queue_worker_loop,
     heartbeat_period = 3,
-    heartbeat_expire = 9,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+    heartbeat_expire = 9)
 
-  px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
+  px = start_script_worker(script)
 
   on.exit({
     px$kill()
@@ -245,30 +321,13 @@ test_that("a worker is terminated", {
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
-      if (!is.null(task)) {
-        tryCatch({
-          # evaluate task with seed
-          fun = function(x1, x2) list(y = x1 + x2)
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-          rush$push_results(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
-        })
-      }
-    }
 
-    return(NULL)
-  }
+  mirai::daemons(2)
 
-  worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-    rush$wait_for_workers(2, timeout = 5)
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
 
   worker_id_1 = rush$running_worker_ids[1]
   worker_id_2 = rush$running_worker_ids[2]
@@ -276,56 +335,55 @@ test_that("a worker is terminated", {
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "terminate")
   Sys.sleep(3)
-  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
+  expect_false(unresolved(rush$processes_mirai[[worker_id_1]]))
+  expect_true(unresolved(rush$processes_mirai[[worker_id_2]]))
   expect_equal(rush$running_worker_ids, worker_id_2)
   expect_equal(worker_id_1, rush$terminated_worker_ids)
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "terminate")
   Sys.sleep(3)
-  expect_false(rush$processes_processx[[worker_id_2]]$is_alive())
+  expect_false(unresolved(rush$processes_mirai[[worker_id_2]]))
+  expect_false(unresolved(rush$processes_mirai[[worker_id_1]]))
   expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
   expect_null(rush$running_worker_ids)
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-# kill workers -----------------------------------------------------------------
-
-test_that("a local worker is killed", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-      worker_loop = test_worker_loop,
-      n_workers = 2,
-      lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  worker_id_1 = rush$running_worker_ids[1]
-  worker_id_2 = rush$running_worker_ids[2]
-
-  rush$worker_info
-
-  # worker 1
-  rush$stop_workers(worker_ids = worker_id_1, type = "kill")
-  Sys.sleep(1)
-  expect_equal(worker_id_1, rush$killed_worker_ids)
-  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
-  expect_true(rush$processes_processx[[worker_id_2]]$is_alive())
-
-  # worker 2
-  rush$stop_workers(worker_ids = worker_id_2, type = "kill")
-  Sys.sleep(1)
-  expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
-  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
-  expect_false(rush$processes_processx[[worker_id_2]]$is_alive())
 
   expect_rush_reset(rush)
 })
 
-test_that("a mirai worker is killed", {
+test_that("reset data works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+
+  mirai::daemons(1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"))
+  rush$wait_for_workers(1, timeout = 5)
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+
+  Sys.sleep(1)
+
+  expect_string(rush$tasks)
+  expect_string(rush$finished_tasks)
+
+  rush$reset(workers = FALSE)
+
+  expect_null(rush$tasks)
+  expect_null(rush$finished_tasks)
+
+  expect_rush_reset(rush)
+})
+
+
+# kill workers -----------------------------------------------------------------
+
+test_that("a worker is killed", {
   skip_on_cran()
 
   config = start_flush_redis()
@@ -336,8 +394,8 @@ test_that("a mirai worker is killed", {
 
   mirai::daemons(2)
   rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_remote_workers(
-      worker_loop = test_worker_loop,
+  worker_ids = rush$start_workers(
+      worker_loop = queue_worker_loop,
       n_workers = 2,
       lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
@@ -350,7 +408,7 @@ test_that("a mirai worker is killed", {
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
   Sys.sleep(1)
-  expect_equal(worker_id_1, rush$killed_worker_ids)
+  expect_equal(worker_id_1, rush$terminated_worker_ids)
   expect_equal(rush$running_worker_ids, worker_id_2)
 
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
@@ -359,10 +417,43 @@ test_that("a mirai worker is killed", {
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
   Sys.sleep(1)
-  expect_set_equal(c(worker_id_1, worker_id_2), rush$killed_worker_ids)
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
 
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
+
+  expect_rush_reset(rush)
+})
+
+test_that("a local worker is killed", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker_ids = rush$start_local_workers(
+      worker_loop = queue_worker_loop,
+      n_workers = 2,
+      lgr_thresholds = c("mlr3/rush" = "debug"))
+  rush$wait_for_workers(2, timeout = 5)
+
+  worker_id_1 = rush$running_worker_ids[1]
+  worker_id_2 = rush$running_worker_ids[2]
+
+  rush$worker_info
+
+  # worker 1
+  rush$stop_workers(worker_ids = worker_id_1, type = "kill")
+  Sys.sleep(1)
+  expect_equal(worker_id_1, rush$terminated_worker_ids)
+  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
+  expect_true(rush$processes_processx[[worker_id_2]]$is_alive())
+
+  # worker 2
+  rush$stop_workers(worker_ids = worker_id_2, type = "kill")
+  Sys.sleep(1)
+  expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
+  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
+  expect_false(rush$processes_processx[[worker_id_2]]$is_alive())
 
   expect_rush_reset(rush)
 })
@@ -374,16 +465,11 @@ test_that("worker is killed with a heartbeat process", {
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  rush$worker_script(
-    worker_loop = test_worker_loop,
+  script = rush$worker_script(
+    worker_loop = queue_worker_loop,
     heartbeat_period = 3,
-    heartbeat_expire = 9,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-
-  px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 3, heartbeat_expire = 9)"),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
+    heartbeat_expire = 9)
+  px = start_script_worker(script)
 
   on.exit({
     px$kill()
@@ -402,173 +488,31 @@ test_that("worker is killed with a heartbeat process", {
   Sys.sleep(1)
 
   expect_false(tools::pskill(worker_info$pid, signal = 0L))
-  expect_true(rush$worker_states$state == "killed")
-  expect_equal(rush$killed_worker_ids, worker_info$worker_id)
+  expect_true(rush$worker_info$state == "terminated")
+  expect_equal(rush$terminated_worker_ids, worker_info$worker_id)
 
   expect_rush_reset(rush)
 })
 
-# low level read and write -----------------------------------------------------
+# pushing tasks to the queue ---------------------------------------------------
 
-test_that("reading and writing a hash works with flatten", {
+test_that("pushing a task to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
+  mirai::daemons(2)
 
-  # one field with list
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
-  expect_equal(rush$read_hashes(key, "xs"), list(list(x1 = 1, x2 = 2)))
-
-  # one field with atomic
-  key = rush$write_hashes(timeout = 1)
-  expect_equal(rush$read_hashes(key, "timeout"), list(list(timeout = 1)))
-
-  # two fields with lists
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
-  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3)))
-
-  # two fields with list and empty list
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
-  expect_equal(rush$read_hashes(key, c("xs", "ys")), list(list(x1 = 1, x2 = 2)))
-
-  # two fields with list and atomic
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
-  expect_equal(rush$read_hashes(key, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1)))
-})
-
-test_that("reading and writing a hash works without flatten", {
-  skip_on_cran()
-
-  config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-
-  # one field with list
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)))
-  expect_equal(rush$read_hashes(key, "xs", flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2))))
-
-  # one field with atomic
-  key = rush$write_hashes(timeout = 1)
-  expect_equal(rush$read_hashes(key, "timeout", flatten = FALSE), list(list(timeout = 1)))
-
-  # two fields with lists
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
-  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))))
-
-  # two fields with list and empty list
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
-  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = NULL)))
-
-  # two fields with list and atomic
-  key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
-  expect_equal(rush$read_hashes(key, c("xs", "timeout"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), timeout = 1)))
-})
-
-test_that("reading and writing hashes works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  # one field with list
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
-  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
-
-  # one field atomic
-  keys = rush$write_hashes(timeout = c(1, 1))
-  expect_equal(rush$read_hashes(keys, "timeout"), list(list(timeout = 1), list(timeout = 1)))
-
-  # two fields with list and recycled atomic
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
-
-  # two fields
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3), list(y = 4)))
-  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 4)))
-
-  # two fields with list and atomic
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = c(1, 1))
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
-
-  # two fields with list and recycled atomic
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
-
-  # two fields, one empty
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list())
-  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
-
-  # recycle
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3)))
-  expect_equal(rush$read_hashes(keys, c("xs", "ys")), list(list(x1 = 1, x2 = 2, y = 3), list(x1 = 1, x2 = 3, y = 3)))
-})
-
-test_that("writing hashes to specific keys works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  # one element
-  keys = uuid::UUIDgenerate()
-  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), keys = keys)
-  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2)))
-
-  # two elements
-  keys = uuid::UUIDgenerate(n = 2)
-  rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys)
-  expect_equal(rush$read_hashes(keys, "xs"), list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)))
-
-  # wrong number of keys
-  keys = uuid::UUIDgenerate()
-  expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
-})
-
-
-test_that("writing list columns works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
-  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
-
-  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
-  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
-
-  expect_list(rush$fetch_finished_tasks()$extra, len = 1)
-
-  config = start_flush_redis()
-  rush = RushWorker$new(network_id = "test-rush", config = config, remote = FALSE)
-
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
-  rush$connector$command(c("LPUSH", "test-rush:finished_tasks", keys))
-  rush$read_hashes(keys, c("xs", "xs_extra"))
-
-  expect_list(rush$fetch_finished_tasks()$extra, len = 2)
-})
-
-# task evaluation --------------------------------------------------------------
-
-test_that("evaluating a task works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 4,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
 
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
+
+  expect_equal(rush$n_queued_tasks, 1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
 
   # check task count
@@ -597,19 +541,24 @@ test_that("evaluating a task works", {
   expect_rush_reset(rush)
 })
 
-test_that("evaluating tasks works", {
+test_that("pushing multiple tasks to the queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
+  mirai::daemons(2)
+
   rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 4,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
 
   xss = replicate(10, list(list(x1 = 1, x2 = 2)))
   keys = rush$push_tasks(xss)
+
+  expect_equal(rush$n_queued_tasks, 10)
+
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
 
   # check task count
@@ -638,33 +587,146 @@ test_that("evaluating tasks works", {
   expect_rush_reset(rush)
 })
 
-test_that("caching results works", {
+test_that("pushing a task with extras to the queue works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  mirai::daemons(2)
+
+  rush = rsh(network_id = "test-rush", config = config)
+
+  xss = list(list(x1 = 1, x2 = 2))
+  timestamp = Sys.time()
+  extra = list(list(timestamp = timestamp))
+  keys = rush$push_tasks(xss, extra)
+
+  expect_equal(rush$n_queued_tasks, 1)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+  rush$wait_for_tasks(keys)
+
+  # check task count
+  expect_equal(rush$n_tasks, 1)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 0)
+
+  # check keys in sets
+  expect_string(rush$tasks)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_set_equal(rush$finished_tasks, keys)
+  expect_null(rush$failed_tasks)
+
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
+  data = rush$fetch_finished_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
+  expect_data_table(data, nrows = 1)
+  expect_equal(data$timestamp, timestamp[[1]])
+  expect_data_table(rush$fetch_tasks(), nrows = 1)
+
+  # status checks
+  expect_false(rush$is_running_task(keys))
+  expect_false(rush$is_failed_task(keys))
+
+  expect_rush_reset(rush)
+})
+
+test_that("pushing multiple tasks with extras to the queue works", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  mirai::daemons(2)
+  rush = rsh(network_id = "test-rush", config = config)
+
+  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  timestamp = Sys.time()
+  extra = list(list(timestamp = timestamp))
+  keys = rush$push_tasks(xss, extra)
+
+  expect_equal(rush$n_queued_tasks, 10)
+
+  worker_ids = rush$start_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 2)
+  rush$wait_for_workers(2, timeout = 5)
+  rush$wait_for_tasks(keys)
+
+  # check task count
+  expect_equal(rush$n_tasks, 10)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 10)
+  expect_equal(rush$n_failed_tasks, 0)
+
+  # check keys in sets
+  expect_character(rush$tasks, len = 10)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_set_equal(rush$finished_tasks, keys)
+  expect_null(rush$failed_tasks)
+
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
+  data = rush$fetch_finished_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
+  expect_data_table(data, nrows = 10)
+  expect_equal(data$timestamp[[1]], timestamp[[1]])
+  expect_data_table(rush$fetch_tasks(), nrows = 10)
+
+  # status checks
+  expect_false(any(rush$is_running_task(keys)))
+  expect_false(any(rush$is_failed_task(keys)))
+
+  expect_rush_reset(rush)
+})
+
+
+test_that("empty queue works", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 4,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
+  mirai::daemons(1)
 
-  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  worker_loop_sleep = function(rush) {
+    while (TRUE) {
+      Sys.sleep(1)
+    }
+  }
+
+  worker_ids = rush$start_workers(
+    worker_loop = worker_loop_sleep,
+    n_workers = 1)
+
+  xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
 
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
+  Sys.sleep(1)
 
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
-  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
+  rush$empty_queue()
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
 
-  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  xss = list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))
   keys = rush$push_tasks(xss)
-  rush$wait_for_tasks(keys)
 
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 20)
-  expect_data_table(get_private(rush)$.cached_tasks, nrows = 20)
+  Sys.sleep(1)
+
+  rush$empty_queue()
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
+
+  expect_rush_reset(rush)
 })
 
 # segfault detection -----------------------------------------------------------
@@ -673,89 +735,62 @@ test_that("a segfault on a local worker is detected", {
   skip_on_cran()
 
   config = start_flush_redis()
+  mirai::daemons(2)
   rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
 
   worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
+    worker_loop = segfault_worker_loop,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(3)
 
-  expect_null(rush$lost_worker_ids)
+  expect_null(rush$terminated_worker_ids)
   rush$detect_lost_workers()
-  expect_equal(rush$lost_worker_ids, worker_ids)
+  expect_equal(rush$terminated_worker_ids, worker_ids)
   rush$fetch_failed_tasks()
 
   expect_rush_reset(rush)
 })
 
-test_that("a segfault on a mirai worker", {
+test_that("a segfault on a mirai daemon is detected", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
 
   mirai::daemons(1)
-  worker_ids = rush$start_remote_workers(
-    worker_loop = worker_loop,
+  worker_ids = rush$start_workers(
+    worker_loop = segfault_worker_loop,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(3)
 
-  expect_null(rush$lost_worker_ids)
+  expect_null(rush$terminated_worker_ids)
   rush$detect_lost_workers()
-  expect_equal(rush$lost_worker_ids, worker_ids)
+  expect_equal(rush$terminated_worker_ids, worker_ids)
   rush$fetch_failed_tasks()
 
   expect_rush_reset(rush)
 })
 
-test_that("a segfault on a worker is detected via the heartbeat", {
+test_that("a segfault on a single worker is detected via heartbeat", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
-
-  rush$worker_script(
-    worker_loop = worker_loop,
+  script = rush$worker_script(
+    worker_loop = segfault_worker_loop,
     heartbeat_period = 1,
     heartbeat_expire = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
 
-  px = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
+  px = start_script_worker(script)
 
   on.exit({
     px$kill()
@@ -763,44 +798,29 @@ test_that("a segfault on a worker is detected via the heartbeat", {
 
   Sys.sleep(10)
 
-  expect_null(rush$lost_worker_ids)
+  expect_null(rush$terminated_worker_ids)
   rush$detect_lost_workers()
-  expect_string(rush$lost_worker_ids)
+  expect_string(rush$terminated_worker_ids)
 
   expect_rush_reset(rush)
 })
 
-test_that("segfaults on workers are detected via the heartbeat", {
+test_that("segfaults on multiple workers are detected via the heartbeat", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   expect_data_table(rush$worker_info, nrows = 0)
 
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
-
-  rush$worker_script(
-    worker_loop = worker_loop,
+  script = rush$worker_script(
+    worker_loop = segfault_worker_loop,
     heartbeat_period = 1,
     heartbeat_expire = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
 
-  px_1 = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
+  px_1 = start_script_worker(script)
 
-  px_2 = processx::process$new("Rscript",
-    args = c("-e", "rush::start_worker(network_id = 'test-rush', config = list(url = 'redis://127.0.0.1:6379', scheme = 'redis', host = '127.0.0.1', port = '6379'), remote = TRUE, lgr_thresholds = c('mlr3/rush' = 'debug'), lgr_buffer_size = 0, heartbeat_period = 1, heartbeat_expire = 2)"),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
+  px_2 = start_script_worker(script)
 
   on.exit({
     px_1$kill()
@@ -809,32 +829,21 @@ test_that("segfaults on workers are detected via the heartbeat", {
 
   Sys.sleep(10)
 
-  expect_null(rush$lost_worker_ids)
+  expect_null(rush$terminated_worker_ids)
   rush$detect_lost_workers()
-  expect_character(rush$lost_worker_ids, len = 2)
+  expect_character(rush$terminated_worker_ids, len = 2)
 
   expect_rush_reset(rush)
 })
-
-
-# fault detection --------------------------------------------------------------
 
 test_that("a lost task is detected", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
 
   worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
+    worker_loop = segfault_worker_loop,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -872,150 +881,6 @@ test_that("a lost task is detected", {
   expect_rush_reset(rush)
 })
 
-# restart workers --------------------------------------------------------------
-
-test_that("restarting a local worker works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 4,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  worker_id_1 = rush$running_worker_ids[1]
-  worker_id_2 = rush$running_worker_ids[2]
-
-  tools::pskill(rush$worker_info[worker_id == worker_id_1, pid])
-  Sys.sleep(1)
-  expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
-
-  rush$detect_lost_workers(restart_local_workers = TRUE)
-  expect_true(rush$processes_processx[[worker_id_1]]$is_alive())
-
-  expect_rush_reset(rush)
-})
-
-test_that("restarting a worker kills the local worker", {
-  skip_on_cran()
-  skip_on_os("windows")
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(1, timeout = 5)
-
-  pid = rush$worker_info$pid
-  worker_id = rush$running_worker_ids
-  expect_true(tools::pskill(pid, signal = 0))
-
-  rush$restart_workers(worker_ids = worker_id)
-
-  Sys.sleep(1)
-
-  expect_false(pid == rush$worker_info$pid)
-  expect_false(tools::pskill(pid, signal = 0))
-
-  expect_rush_reset(rush)
-})
-
-
-test_that("restarting a remote worker works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-      xs = list(x1 = 1, x2 = 2)
-      key = rush$push_running_tasks(list(xs))
-      get("attach")(structure(list(), class = "UserDefinedDatabase"))
-    }
-  }
-
-  on.exit({
-    mirai::daemons(0)
-  }, add = TRUE)
-
-  mirai::daemons(1)
-  worker_ids = rush$start_remote_workers(
-    worker_loop = worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(1, timeout = 5)
-
-  Sys.sleep(3)
-
-  expect_null(rush$lost_worker_ids)
-  rush$detect_lost_workers()
-  expect_equal(rush$lost_worker_ids, worker_ids)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
-
-  mirai::daemons(0)
-  mirai::daemons(1)
-
-  rush$restart_workers(worker_ids = worker_ids)
-
-  Sys.sleep(3)
-
-  rush$detect_lost_workers()
-  expect_equal(rush$lost_worker_ids, worker_ids)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
-
-  expect_rush_reset(rush)
-})
-
-# receiving results ------------------------------------------------------------
-
-# test_that("blocking on new results works", {
-#   skip_on_cran()
-
-#   config = start_flush_redis()
-#   rush = rsh(network_id = "test-rush", config = config)
-#   worker_loop = function(rush) {
-#     while(!rush$terminated && !rush$terminated_on_idle) {
-#       task = rush$pop_task(fields = c("xs", "seed"))
-#       if (!is.null(task)) {
-#         tryCatch({
-#           # evaluate task with seed
-#           fun = function(x1, x2, ...) {
-#             Sys.sleep(5)
-#             list(y = x1 + x2)
-#           }
-#           ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-#           rush$push_results(task$key, yss = list(ys))
-#         }, error = function(e) {
-#           condition = list(message = e$message)
-#           rush$push_failed(task$key, conditions = list(condition))
-#         })
-#       }
-#     }
-
-#     return(NULL)
-#   }
-
-#   worker_ids = rush$start_local_workers(
-#     worker_loop = worker_loop,
-#     n_workers = 1,
-#     lgr_thresholds = c("mlr3/rush" = "debug"))
-#   rush$wait_for_workers(1, timeout = 5)
-
-#   xss = list(list(x1 = 1, x2 = 2))
-#   keys = rush$push_tasks(xss)
-
-#   expect_data_table(rush$wait_for_new_tasks(timeout = 1), nrows = 0)
-#   expect_data_table(rush$wait_for_new_tasks(timeout = 10), nrows = 1)
-#   expect_data_table(rush$wait_for_new_tasks(timeout = 1), nrows = 0)
-
-#   expect_rush_reset(rush)
-# })
-
 test_that("wait for tasks works when a task gets lost", {
   skip_on_cran()
 
@@ -1035,7 +900,7 @@ test_that("wait for tasks works when a task gets lost", {
   expect_rush_reset(rush)
 })
 
-# misc--------------------------------------------------------------------------
+# logging ----------------------------------------------------------------------
 
 test_that("saving lgr logs works", {
   skip_on_cran()
@@ -1043,7 +908,7 @@ test_that("saving lgr logs works", {
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
+    worker_loop = queue_worker_loop,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -1076,48 +941,83 @@ test_that("saving lgr logs works", {
   expect_rush_reset(rush)
 })
 
-test_that("snapshot option works", {
+test_that("saving logs with redis appender works", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
+
   worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
+      worker_loop = queue_worker_loop,
+      n_workers = 1,
+      lgr_thresholds = c("mlr3/rush" = "debug"),
+      lgr_buffer_size = 1)
   rush$wait_for_workers(1, timeout = 5)
 
-  rush$snapshot_schedule = c(1, 1)
-  expect_equal(rush$connector$CONFIG_GET("save")[[2]], "1 1")
-  expect_equal(rush$snapshot_schedule, c(1, 1))
-
-  rush$snapshot_schedule = NULL
-  expect_equal(rush$connector$CONFIG_GET("save")[[2]], "")
-  expect_equal(rush$snapshot_schedule, "")
+  log = rush$read_log()
+  expect_data_table(log, min.rows = 1)
+  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
 
   expect_rush_reset(rush)
 })
 
-test_that("terminating workers on idle works", {
+test_that("error and output logs work", {
+  skip_on_cran()
+
+  config = start_flush_redis()
+  rush = rsh(network_id = "test-rush", config = config)
+
+  message_log = tempdir()
+  output_log = tempdir()
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = queue_worker_loop,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"),
+    lgr_buffer_size = 1,
+    message_log = message_log,
+    output_log = output_log)
+  rush$wait_for_workers(1)
+
+  expect_match(readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))[1], "Debug message logging on worker")
+  expect_match(readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))[1], "Debug output logging on worker")
+
+  expect_rush_reset(rush)
+})
+
+# misc--------------------------------------------------------------------------
+
+test_that("caching results works", {
   skip_on_cran()
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 2,
+    worker_loop = queue_worker_loop,
+    n_workers = 4,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
 
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss, terminate_workers = TRUE)
+  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys)
-  Sys.sleep(5)
 
-  expect_set_equal(rush$worker_states$state, "terminated")
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
 
-  expect_rush_reset(rush)
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 10)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 10)
+
+  xss = replicate(10, list(list(x1 = 1, x2 = 2)))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys)
+
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 20)
+  expect_data_table(get_private(rush)$.cached_tasks, nrows = 20)
 })
+
+
+
 
 test_that("reconnecting rush instance works", {
   skip_on_cran()
@@ -1140,270 +1040,46 @@ test_that("reconnecting rush instance works", {
   expect_rush_reset(rush)
 })
 
-test_that("empty queue works", {
+
+
+
+
+
+
+test_that("large objects limit works", {
   skip_on_cran()
+
+  old_max_object_size = getOption("rush.max_object_size")
+  on.exit(options(rush.max_object_size = old_max_object_size))
+  options(rush.max_object_size = 1)
 
   config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
-
-  worker_loop = function(rush) {
-    while(TRUE) {
-      Sys.sleep(1)
-    }
-  }
-
-  worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
-    n_workers = 1)
-
-  xss = list(list(x1 = 1, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$empty_queue()
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
-
-  xss = list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))
-  keys = rush$push_tasks(xss)
-  rush$empty_queue()
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
-
-  expect_rush_reset(rush)
-})
-
-
-# seed -------------------------------------------------------------------------
-
-test_that("seeds are generated from regular rng seed", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = 123)
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
-
-  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
-  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
-})
-
-test_that("seed are generated from L'Ecuyer-CMRG seed", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = c(10407L, 1801422725L, -2057975723L, 1156894209L, 1595475487L, 210384600L, -1655729657L))
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(is_lecyer_cmrg_seed(tab$seed[[1]]))
-
-  rush$push_tasks(list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2)))
-  tab = rush$fetch_tasks(fields = c("xs", "seed"))
-  expect_true(tab$seed[[1]][2] != tab$seed[[2]][2])
-  expect_true(tab$seed[[2]][2] != tab$seed[[3]][2])
-})
-
-test_that("seed is set correctly on two workers", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config, seed = 123)
-  worker_loop = function(rush) {
-    while(!rush$terminated && !rush$terminated_on_idle) {
-      task = rush$pop_task(fields = c("xs", "seed"))
-      if (!is.null(task)) {
-        tryCatch({
-          # evaluate task with seed
-          fun = function(x1, x2, ...) list(y = sample(10000, 1))
-          ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-          rush$push_results(task$key, yss = list(ys))
-        }, error = function(e) {
-          condition = list(message = e$message)
-          rush$push_failed(task$key, conditions = list(condition))
-        })
-      }
-    }
-
-    return(NULL)
-  }
-
-  worker_ids = rush$start_local_workers(
-    worker_loop = worker_loop,
-    n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(2, timeout = 5)
-
-  .keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2), list(x1 = 2, x2 = 3), list(x1 = 2, x2 = 4)))
-  rush$wait_for_tasks(.keys)
-
-  finished_tasks = rush$fetch_finished_tasks()
-  expect_set_equal(finished_tasks$y, c(5971L, 4090L, 1754L, 9794L))
-
-  .keys = rush$push_tasks(list(list(x1 = 5, x2 = 3), list(x1 = 5, x2 = 4)))
-  rush$wait_for_tasks(.keys)
-
-  finished_tasks = rush$fetch_finished_tasks()
-  expect_set_equal(finished_tasks$y, c(1754L, 9794L, 4090L, 5971L, 8213L, 3865L))
-
-  expect_rush_reset(rush, type = "terminate")
-})
-
-test_that("redis info works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  expect_list(rush$redis_info)
-})
-
-test_that("saving logs with redis appender works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(
-    network_id = "test-rush",
-    config = config,
-    remote = FALSE)
-
-  worker_ids = rush$start_local_workers(
-      worker_loop = test_worker_loop,
-      n_workers = 1,
-      lgr_thresholds = c("mlr3/rush" = "debug"),
-      lgr_buffer_size = 1)
-  rush$wait_for_workers(1, timeout = 5)
-
-  log = rush$read_log()
-  expect_data_table(log, min.rows = 1)
-  expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
-
-  expect_rush_reset(rush)
-})
-
-test_that("error and output logs work", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(
-    network_id = "test-rush",
-    config = config,
-    remote = FALSE)
-
-  message_log = tempdir()
-  output_log = tempdir()
-
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"),
-    lgr_buffer_size = 1,
-    message_log = message_log,
-    output_log = output_log)
-  rush$wait_for_workers(1)
-
-  expect_match(readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))[1], "Debug message logging on worker")
-  expect_match(readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))[1], "Debug output logging on worker")
-
-  expect_rush_reset(rush)
-})
-
-test_that("wait for workers works with worker ids", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-
-  rush$wait_for_workers(worker_ids = worker_ids, timeout = 5)
-  expect_equal(rush$n_running_workers, 1)
-
-  expect_error(rush$wait_for_workers(worker_ids = "x", timeout = 1), "Timeout waiting for 1 worker")
-
-  expect_rush_reset(rush)
-})
-
-test_that("wait for workers works with n", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(n = 1, timeout = 5)
-  expect_equal(rush$n_running_workers, 1)
-
-  expect_error(rush$wait_for_workers(n = 2, timeout = 1), "Timeout waiting for 2 worker")
-
-  expect_rush_reset(rush)
-})
-
-test_that("wait for workers works with both n and worker ids", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(n = 1, worker_ids = worker_ids, timeout = 5)
-  expect_equal(rush$n_running_workers, 1)
-
-  expect_error(rush$wait_for_workers(n = 2, worker_ids = worker_ids, timeout = 1), "Number of workers to wait for")
-
-  expect_error(rush$wait_for_workers(n = 1, worker_ids = "x", timeout = 1), "Timeout waiting for 1 worker")
-
-  rush$wait_for_workers(n = 1, worker_ids = c(worker_ids, "x"), timeout = 1)
-  expect_equal(rush$n_running_workers, 1)
-
-  expect_rush_reset(rush)
-})
-
-test_that("reset data works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-
   mirai::daemons(1)
 
-  worker_ids = rush$start_remote_workers(
-    worker_loop = test_worker_loop,
-    n_workers = 1,
-    lgr_thresholds = c("mlr3/rush" = "debug"))
-  rush$wait_for_workers(1, timeout = 5)
+  large_vector = runif(1e6)
 
-  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  worker_loop = function(rush, large_vector) {
+    rush$push_running_tasks(list(list(x1 = 1, x2 = length(large_vector))))
+  }
+
+  expect_error(rush$start_workers(
+    worker_loop = worker_loop,
+    large_vector = large_vector,
+    n_workers = 1),
+  class = "Mlr3ErrorConfig")
+
+  rush_plan(n_workers = 1, large_objects_path = tempdir())
+
+  rush$start_workers(
+    worker_loop = worker_loop,
+    large_vector = large_vector,
+    n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
 
   Sys.sleep(1)
 
-  expect_string(rush$tasks)
-  expect_string(rush$finished_tasks)
-
-  rush$reset_data()
-
-  expect_null(rush$tasks)
-  expect_null(rush$finished_tasks)
+  expect_equal(rush$fetch_tasks()$x2, 1e6)
 
   expect_rush_reset(rush)
-})
-
-# push finished tasks ------------------------------------------------------------
-
-test_that("pushing finished tasks works", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
-
-  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xss_extra = list(list(extra_input = "A")), yss_extra = list(list(extra_output = "B")))
-  expect_equal(rush$n_finished_tasks, 1)
-  expect_equal(rush$n_tasks, 1)
-  expect_equal(rush$fetch_finished_tasks()$extra_input, "A")
-  expect_equal(rush$fetch_finished_tasks()$extra_output, "B")
 })

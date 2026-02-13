@@ -24,7 +24,6 @@ Imports:
     lgr (>= 0.5.0),
     mirai (>= 2.5.0),
     mlr3misc,
-    parallel,
     processx,
     R6,
     redux,

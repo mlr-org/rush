@@ -46,7 +46,7 @@ rush_plan = function(
   assert_choice(worker_type, c("local", "remote", "script"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
-    stop("Can't connect to Redis. Check the configuration.")
+    error_config("Can't connect to Redis. Check the configuration.")
   }
   assign("n_workers", n_workers, rush_env)
   assign("config", config, rush_env)

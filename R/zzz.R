@@ -8,7 +8,6 @@
 #' @importFrom uuid UUIDgenerate
 #' @importFrom utils str object.size
 #' @importFrom jsonlite fromJSON
-#' @importFrom parallel nextRNGStream nextRNGSubStream
 #' @importFrom ids adjective_animal
 "_PACKAGE"
 
