@@ -27,8 +27,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package:
-          - mlr-org/bbotk@rush_v1
+        include:
+          - {package: mlr-org/bbotk, ref: rush_v1}
 
     steps:
       - uses: actions/checkout@v3
@@ -38,6 +38,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: ${{ matrix.package }}
+          ref: ${{ matrix.ref }}
           path: revdep-pkg
 
       - uses: r-lib/actions/setup-pandoc@v2
