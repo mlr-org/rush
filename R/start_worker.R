@@ -10,8 +10,6 @@
 #' It loads the packages required by the worker loop.
 #' The function initialize the [RushWorker] instance and starts the worker loop.
 #'
-#' @param remote (`logical(1)`)\cr
-#' Whether the worker is on a remote machine.
 #' @param config (`list()`)\cr
 #' Configuration for the Redis connection.
 #'
@@ -31,7 +29,6 @@
 #' \dontrun{
 #'   rush::start_worker(
 #'    network_id = 'test-rush',
-#'    remote = TRUE,
 #'    url = 'redis://127.0.0.1:6379',
 #'    scheme = 'redis',
 #'    host = '127.0.0.1',
@@ -41,7 +38,6 @@ start_worker = function(
   worker_id = NULL,
   network_id,
   config = NULL,
-  remote = TRUE,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -69,8 +65,6 @@ start_worker = function(
   }
 
   checkmate::assert_string(network_id)
-  checkmate::assert_flag(remote)
-
   # connect to redis
   if (!is.null(config$port)) config$port = as.integer(config$port)
   if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
@@ -129,7 +123,6 @@ start_worker = function(
     network_id = network_id,
     worker_id = worker_id,
     config = config,
-    remote = remote,
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire)
 

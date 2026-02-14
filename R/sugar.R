@@ -1,14 +1,13 @@
-#' @title Synctatic Sugar for Rush Controller Construction
+#' @title Synctatic Sugar for Rush Manager Construction
 #'
 #' @description
-#' Function to construct a [Rush] controller.
+#' Function to construct a [Rush] manager.
 #'
 #' @template param_network_id
 #' @template param_config
-#' @template param_seed
 #' @param ... (ignored).
 #'
-#' @return [Rush] controller.
+#' @return [Rush] manager.
 #' @export
 #' @examples
 #' # This example is not executed since Redis must be installed
@@ -17,6 +16,6 @@
 #'    rush = rsh(network_id = "test_network", config = config_local)
 #'    rush
 #' }
-rsh = function(network_id = NULL, config = NULL, seed = NULL, ...) {
-  Rush$new(network_id, config, seed)
+rsh = function(network_id = NULL, config = NULL, ...) {
+  Rush$new(network_id, config)
 }

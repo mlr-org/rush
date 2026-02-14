@@ -5,41 +5,59 @@ start_flush_redis = function() {
   config
 }
 
-expect_rush_task = function(task) {
-  expect_list(task)
-  expect_names(names(task), must.include = c("key", "xs"))
-  expect_list(task, names = "unique")
-}
-
-expect_rush_reset = function(rush, type = "kill") {
+expect_rush_reset = function(rush) {
   remove_rush_plan()
   processes_processx = rush$processes_processx
-  processes_mirai = rush$processes_mirai
-  rush$reset(type = type)
+  rush$reset()
   Sys.sleep(1)
-  remaining_keys = rush$connector$command(c("KEYS", "*"))
-  if (length(remaining_keys)) {
-    print(remaining_keys)
-  }
-  expect_list(rush$connector$command(c("KEYS", "*")), len = 0)
   walk(processes_processx, function(p) p$kill())
-  walk(processes_mirai, function(p) stop_mirai(p))
   mirai::daemons(0)
 }
 
-test_worker_loop = function(rush) {
-  while(!rush$terminated && !rush$terminated_on_idle) {
-    task = rush$pop_task(fields = c("xs", "seed"))
+# parses the string returned by rush$worker_script() and starts a processx process
+start_script_worker = function(script) {
+  script = sub('^Rscript\\s+-e\\s+\\"(.*)\\"$', '\\1', script, perl = TRUE)
+
+  px = processx::process$new("Rscript",
+    args = c("-e", script),
+    supervise = TRUE,
+    stderr = "|", stdout = "|")
+  px
+}
+
+queue_worker_loop = function(rush) {
+  while(!rush$terminated) {
+    task = rush$pop_task(fields = c("xs"))
     if (!is.null(task)) {
       tryCatch({
-        # evaluate task with seed
         fun = function(x1, x2) list(y = x1 + x2)
-        ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-        rush$push_results(task$key, yss = list(ys))
+        ys = mlr3misc::invoke(fun, .args = task$xs)
+        rush$finish_tasks(task$key, yss = list(ys))
       }, error = function(e) {
         condition = list(message = e$message)
-        rush$push_failed(task$key, conditions = list(condition))
+        rush$fail_tasks(task$key, conditions = list(condition))
       })
+    }
+  }
+
+  NULL
+}
+
+fail_worker_loop = function(rush) {
+  while(!rush$terminated) {
+    task = rush$pop_task(fields = c("xs"))
+
+    if (!is.null(task)) {
+      if (task$xs$x1 < 1) {
+        condition = list(message = "Test error")
+        rush$fail_tasks(task$key, conditions = list(condition))
+      } else {
+        fun = function(x1, x2, ...) {
+          list(y = x1 + x2)
+        }
+        ys = mlr3misc::invoke(fun, .args = task$xs)
+        rush$finish_tasks(task$key, yss = list(ys))
+      }
     }
   }
 
@@ -47,21 +65,8 @@ test_worker_loop = function(rush) {
 }
 
 segfault_worker_loop = function(rush) {
-  while(!rush$terminated && !rush$terminated_on_idle) {
-    task = rush$pop_task(fields = c("xs", "seed"))
-    if (!is.null(task)) {
-      tryCatch({
-        # evaluate task with seed
-        get("attach")(structure(list(), class = "UserDefinedDatabase"))
-        ys = with_rng_state(fun, args = c(task$xs), seed = task$seed)
-        rush$push_results(task$key, yss = list(ys))
-      }, error = function(e) {
-        condition = list(message = e$message)
-        rush$push_failed(task$key, conditions = list(condition))
-      })
-    }
-  }
-
-  return(NULL)
+  xs = list(x1 = 1, x2 = 2)
+  rush$push_running_tasks(list(xs))
+  Sys.sleep(1)
+  get("attach")(structure(list(), class = "UserDefinedDatabase"))
 }
-

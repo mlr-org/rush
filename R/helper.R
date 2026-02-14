@@ -27,65 +27,39 @@ get_hostname = function() {
   host[1]
 }
 
-#' @title Set RNG Sate before Running a Function
-#'
-#' @description
-#' This function sets the rng state before running a function.
-#' Use with caution.
-#' The global environment is changed.
-#'
-#' @param fun (`function`)\cr
-#' Function to run.
-#' @param args (`list`)\cr
-#' Arguments to pass to `fun`.
-#' @param seed (`integer`)\cr
-#' RNG state to set before running `fun`.
-#'
-#' @return `any`
-#' @keywords internal
-#' @export
-#' @examples
-#' with_rng_state(runif, list(n = 1), .Random.seed)
-with_rng_state = function(fun, args, seed) {
-  if (!is.null(seed)) assign(".Random.seed", seed, envir = globalenv())
-  mlr3misc::invoke(fun, .args = args)
-}
-
-# checks if a seed is a valid L'Ecuyer-CMRG seed
-is_lecyer_cmrg_seed = function(seed) {
-  is.numeric(seed) && length(seed) == 7L && all(is.finite(seed)) && (seed[1] %% 10000L == 407L)
-}
-
-# get the current RNG state
-get_random_seed = function() {
-  env = globalenv()
-  env$.Random.seed
-}
-
-# set the RNG state
-set_random_seed = function(seed, kind = NULL) {
-  env = globalenv()
-  old_seed = env$.Random.seed
-  if (is.null(seed)) {
-    if (!is.null(kind)) RNGkind(kind)
-    rm(list = ".Random.seed", envir = env, inherits = FALSE)
-  } else {
-    env$.Random.seed = seed
-  }
-  invisible(old_seed)
-}
-
-# creates n L'Ecuyer-CMRG streams
-make_rng_seeds = function(n, seed) {
-  seeds = vector("list", length = n)
-  for (ii in seq_len(n)) {
-    seeds[[ii]] = seed = parallel::nextRNGStream(seed)
-  }
-  seeds
-}
-
 # skips serialization of NULL
 safe_bin_to_object = function(bin) {
   if (is.null(bin)) return(NULL)
   redux::bin_to_object(bin)
 }
+
+
+#' @title Give a Warning about a Deprecated Function, Argument, or Active Binding
+#'
+#' @description
+#' Generates a warning when a deprecated function, argument, or active binding
+#' is used or accessed. A warning will only be given once per session, and all
+#' deprecation warnings can be suppressed by setting the option
+#' `mlr3.warn_deprecated = FALSE`.
+#'
+#' The warning is of the format
+#' "what is deprecated and will be removed in the future."
+#'
+#' Use the `deprecated_binding()` helper function to create an active binding
+#' that generates a warning when accessed.
+#' @param what (`character(1)`)\cr
+#'   A description of the deprecated entity. This should be somewhat descriptive,
+#'   e.g. `"Class$method()"` or `"Argument 'foo' of Class$method()"`.\cr
+#'   The `what` is used to determine if the warning has already been given, so
+#'   it should be unique for each deprecated entity.
+#' @keywords internal
+#' @export
+warn_deprecated = function(what) {
+  assert_string(what)
+  if (getOption("mlr3.warn_deprecated", TRUE) && !exists(what, envir = deprecated_warning_given_db)) {
+    warning_mlr3(paste0(what, " is deprecated and will be removed in the future."), class = "Mlr3WarningDeprecated")
+    assign(what, TRUE, envir = deprecated_warning_given_db)
+  }
+}
+
+deprecated_warning_given_db = new.env(parent = emptyenv())

@@ -17,7 +17,7 @@ heartbeat(
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\link[redux:redis_config]{redux::redis_config})\cr
