@@ -29,6 +29,7 @@ jobs:
       matrix:
         include:
           - {package: mlr-org/bbotk, ref: rush_v1}
+          - {package: mlr-org/mlr3tuning, ref: rush_v1}
 
     steps:
       - uses: actions/checkout@v3
