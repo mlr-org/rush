@@ -2,7 +2,7 @@ test_that("simple errors are pushed as failed tasks", {
   skip_on_cran()
 
   config = start_flush_redis()
-  rush = rsh(network_id = "test-rush", config = config)
+  rush = rsh(config = config)
 
   on.exit({
     mirai::daemons(0)

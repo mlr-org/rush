@@ -46,15 +46,15 @@ test_that("set threshold", {
 
   config = start_flush_redis()
   rush_plan(n_workers = 2, config, lgr_thresholds = c("mlr3/rush" = "debug"))
+  mirai::daemons(2)
 
   expect_equal(rush_env$n_workers, 2)
   expect_equal(rush_env$lgr_thresholds, c("mlr3/rush" = "debug"))
 
   rush = rsh("test-rush")
-  expect_output(rush$start_local_workers(
+  expect_output(rush$start_workers(
     worker_loop = queue_worker_loop,
     n_workers = 2,
-    lgr_thresholds = c("mlr3/rush" = "debug"),
     wait_for_workers = TRUE),
   "Pushing.*")
 
