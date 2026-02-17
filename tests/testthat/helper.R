@@ -8,45 +8,29 @@ skip_if_no_redis = function() {
   testthat::skip("Redis is not available")
 }
 
-start_rush = function(n_workers = 2, worker_type = "mirai") {
-  config = redux::redis_config()
-  r = redux::hiredis(config)
-  r$FLUSHDB()
-
-  rush_plan(n_workers = n_workers, worker_type = worker_type)
-  rush = rsh(config = config)
-
-  if (worker_type == "mirai") {
-    mirai::daemons(n_workers)
-  }
-
-  rush
-}
-
-start_rush_worker = function(n_workers = 2) {
-  config = redux::redis_config()
-  r = redux::hiredis(config)
-  r$FLUSHDB()
-
-  network_id = uuid::UUIDgenerate()
-  rush::RushWorker$new(network_id = network_id, config = config)
-}
-
-
-start_flush_redis = function() {
+redis_configuration = function() {
   config = redux::redis_config()
   r = redux::hiredis(config)
   r$FLUSHDB()
   config
 }
 
-expect_rush_reset = function(rush) {
-  remove_rush_plan()
-  processes_processx = rush$processes_processx
-  rush$reset()
-  Sys.sleep(1)
-  walk(processes_processx, function(p) p$kill())
-  mirai::daemons(0)
+start_rush = function(n_workers = 2) {
+  config = redis_configuration()
+
+  rush_plan(n_workers = n_workers)
+  rush = rsh(config = config)
+
+  mirai::daemons(n_workers)
+
+  rush
+}
+
+start_rush_worker = function(n_workers = 2) {
+  config = redis_configuration()
+
+  network_id = uuid::UUIDgenerate()
+  rush::RushWorker$new(network_id = network_id, config = config)
 }
 
 # parses the string returned by rush$worker_script() and starts a processx process

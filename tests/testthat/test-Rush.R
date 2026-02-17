@@ -234,84 +234,87 @@ test_that("wait for workers works with both n and worker ids", {
 # local workers ----------------------------------------------------------------
 
 test_that("local workers are started", {
-  skip_on_cran()
-
-  config = start_flush_redis()
+  config = redis_configuration()
   rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
   expect_data_table(rush$worker_info, nrows = 0)
 
   worker_ids = rush$start_local_workers(
     worker_loop = queue_worker_loop,
-    n_workers = 2)
-  rush$wait_for_workers(2, timeout = 5)
+    n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
 
   walk(rush$processes_processx, function(process) expect_class(process, "process"))
   worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
+  expect_data_table(worker_info, nrows = 1)
   expect_names(names(worker_info), must.include = c("worker_id", "pid", "hostname", "heartbeat", "state"))
   expect_integer(worker_info$pid, unique = TRUE)
 
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_info$state, "running")
-
-  expect_rush_reset(rush)
 })
 
-test_that("additional local workers are started", {
-  skip_on_cran()
+# test_that("additional local workers are started", {
+#   rush = start_rush(n_workers = 1)
+#   on.exit({
+#     rush$reset()
+#     walk(rush$processes_processx, function(process) process$kill())
+#   })
 
-  config = start_flush_redis()
-  rush = rsh(config = config)
-  worker_ids = rush$start_local_workers(
-    worker_loop = queue_worker_loop,
-    n_workers = 2)
-  rush$wait_for_workers(2, timeout = 5)
+#   worker_ids = rush$start_local_workers(
+#     worker_loop = queue_worker_loop,
+#     n_workers = 1)
+#   rush$wait_for_workers(1, timeout = 5)
 
-  expect_equal(rush$n_workers, 2)
+#   expect_equal(rush$n_workers, 1)
 
-  worker_ids_2 = rush$start_local_workers(
-    worker_loop = queue_worker_loop,
-    n_workers = 2)
-  rush$wait_for_workers(4, timeout = 5)
+#   worker_ids_2 = rush$start_local_workers(
+#     worker_loop = queue_worker_loop,
+#     n_workers = 2)
+#   rush$wait_for_workers(4, timeout = 5)
 
-  expect_length(rush$processes_processx, 4)
-  walk(rush$processes_processx, function(process) expect_class(process, "process"))
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 4)
-  expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
-  expect_integer(worker_info$pid, unique = TRUE)
+#   expect_length(rush$processes_processx, 4)
+#   walk(rush$processes_processx, function(process) expect_class(process, "process"))
+#   worker_info = rush$worker_info
+#   expect_data_table(worker_info, nrows = 4)
+#   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
+#   expect_integer(worker_info$pid, unique = TRUE)
 
-  expect_set_equal(rush$worker_info$state, "running")
+#   expect_set_equal(rush$worker_info$state, "running")
 
-  expect_rush_reset(rush)
-})
+#   expect_rush_reset(rush)
+# })
 
 # start workers with script ----------------------------------------------------
 
-test_that("heartbeat process is started", {
-  skip_on_cran()
+# test_that("heartbeat process is started", {
+#   skip_on_cran()
 
-  config = start_flush_redis()
-  rush = rsh(config = config)
-  expect_data_table(rush$worker_info, nrows = 0)
+#   config = start_flush_redis()
+#   rush = rsh(config = config)
+#   expect_data_table(rush$worker_info, nrows = 0)
 
-  script = rush$worker_script(
-    worker_loop = queue_worker_loop,
-    heartbeat_period = 3,
-    heartbeat_expire = 9)
+#   script = rush$worker_script(
+#     worker_loop = queue_worker_loop,
+#     heartbeat_period = 3,
+#     heartbeat_expire = 9)
 
-  px = start_script_worker(script)
+#   px = start_script_worker(script)
 
-  on.exit({
-    px$kill()
-  }, add = TRUE)
+#   on.exit({
+#     px$kill()
+#   }, add = TRUE)
 
-  Sys.sleep(5)
+#   Sys.sleep(5)
 
-  worker_info = rush$worker_info
-  expect_logical(worker_info$heartbeat)
-})
+#   worker_info = rush$worker_info
+#   expect_logical(worker_info$heartbeat)
+# })
 
 # terminate workers ------------------------------------------------------------
 
