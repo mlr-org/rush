@@ -1,3 +1,5 @@
+skip_if_no_redis()
+
 test_that("saving logs with redis appender works", {
   skip_on_cran()
 

@@ -1,3 +1,5 @@
+skip_if_no_redis()
+
 test_that("rush_plan family works", {
   skip_on_cran()
 

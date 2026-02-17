@@ -1,3 +1,38 @@
+skip_if_no_redis = function() {
+  testthat::skip_on_cran()
+
+  if (identical(Sys.getenv("RUSH_TEST_USE_REDIS"), "true") && redux::redis_available()) {
+    return(invisible())
+  }
+
+  testthat::skip("Redis is not available")
+}
+
+start_rush = function(n_workers = 2, worker_type = "mirai") {
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  rush_plan(n_workers = n_workers, worker_type = worker_type)
+  rush = rsh(config = config)
+
+  if (worker_type == "mirai") {
+    mirai::daemons(n_workers)
+  }
+
+  rush
+}
+
+start_rush_worker = function(n_workers = 2) {
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  network_id = uuid::UUIDgenerate()
+  rush::RushWorker$new(network_id = network_id, config = config)
+}
+
+
 start_flush_redis = function() {
   config = redux::redis_config()
   r = redux::hiredis(config)

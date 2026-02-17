@@ -1,3 +1,5 @@
+skip_if_no_redis()
+
 test_that("simple errors are pushed as failed tasks", {
   skip_on_cran()
 

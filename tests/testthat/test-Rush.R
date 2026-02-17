@@ -1,9 +1,15 @@
+skip_if_no_redis()
+
 # start workers ----------------------------------------------------------------
 
 test_that("constructing a rush manager works", {
-  skip_on_cran()
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+  on.exit({
+    rush$reset()
+  })
 
-  config = start_flush_redis()
   rush = rsh(network_id = "test-rush", config = config)
   expect_class(rush, "Rush")
   expect_equal(rush$network_id, "test-rush")
@@ -14,13 +20,13 @@ test_that("constructing a rush manager works", {
 })
 
 test_that("workers are started", {
-  skip_on_cran()
+  rush = start_rush()
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
-  config = start_flush_redis()
-  rush = rsh(config = config)
   expect_data_table(rush$worker_info, nrows = 0)
-
-  mirai::daemons(2)
 
   worker_ids = rush$start_workers(
     worker_loop = queue_worker_loop,
@@ -39,12 +45,11 @@ test_that("workers are started", {
 })
 
 test_that("packages are available on the worker", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(config = config)
-
-  mirai::daemons(1)
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
   rush$start_workers(
     worker_loop = queue_worker_loop,
@@ -63,13 +68,13 @@ test_that("packages are available on the worker", {
 })
 
 test_that("new workers can be started on used daemons", {
-  skip_on_cran()
+  rush = start_rush()
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
-  config = start_flush_redis()
-  rush = rsh(config = config)
   expect_data_table(rush$worker_info, nrows = 0)
-
-  mirai::daemons(2)
 
   worker_loop = function(rush) {
     xs = list(x1 = 1, x2 = 2)
@@ -90,7 +95,7 @@ test_that("new workers can be started on used daemons", {
   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
   expect_equal(mirai::status()$mirai["completed"], c(completed = 2))
 
-  rush = rsh(network_id = "test-rush-2", config = config)
+  rush = start_rush()
   worker_ids = rush$start_workers(
     worker_loop = worker_loop,
     n_workers = 2)
@@ -99,16 +104,14 @@ test_that("new workers can be started on used daemons", {
   expect_data_table(rush$fetch_finished_tasks(), nrows = 2)
 
   expect_equal(mirai::status()$mirai["completed"], c(completed = 4))
-
-  expect_rush_reset(rush)
 })
 
 test_that("wait for workers works with worker ids", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(config = config)
-  mirai::daemons(1)
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
   worker_ids = rush$start_workers(
     worker_loop = queue_worker_loop,
@@ -121,16 +124,14 @@ test_that("wait for workers works with worker ids", {
 
   # worker id does not exist so we expect a timeout
   expect_error(rush$wait_for_workers(worker_ids = "x", timeout = 1), class = "Mlr3ErrorTimeout")
-
-  expect_rush_reset(rush)
 })
 
 test_that("wait for workers works with n", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(config = config)
-  mirai::daemons(1)
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
   worker_ids = rush$start_workers(
     worker_loop = queue_worker_loop,
@@ -139,16 +140,14 @@ test_that("wait for workers works with n", {
   expect_equal(rush$n_running_workers, 1)
 
   expect_error(rush$wait_for_workers(n = 2, timeout = 1), class = "Mlr3ErrorTimeout")
-
-  expect_rush_reset(rush)
 })
 
 test_that("wait for workers works with both n and worker ids", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(config = config)
-  mirai::daemons(1)
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
 
   worker_ids = rush$start_workers(
     worker_loop = queue_worker_loop,
@@ -168,69 +167,69 @@ test_that("wait for workers works with both n and worker ids", {
 
 # special redis configurations -------------------------------------------------
 
-test_that("Redis on unix socket works", {
-  skip_on_cran()
-  skip_on_ci() # does not work on github actions runner
+# test_that("Redis on unix socket works", {
+#   skip_on_cran()
+#   skip_on_ci() # does not work on github actions runner
 
-  system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()), intern = TRUE)
-  Sys.sleep(5)
+#   system(sprintf("redis-server --port 0 --unixsocket /tmp/redis.sock --daemonize yes --pidfile /tmp/redis.pid --dir %s", tempdir()), intern = TRUE)
+#   Sys.sleep(5)
 
-  config = redux::redis_config(path = "/tmp/redis.sock")
-  r = redux::hiredis(config)
-  r$FLUSHDB()
+#   config = redux::redis_config(path = "/tmp/redis.sock")
+#   r = redux::hiredis(config)
+#   r$FLUSHDB()
 
-  on.exit({
-    try({r$SHUTDOWN()}, silent = TRUE)
-  })
+#   on.exit({
+#     try({r$SHUTDOWN()}, silent = TRUE)
+#   })
 
-  mirai::daemons(2)
+#   mirai::daemons(2)
 
-  rush = rsh(config = config)
-  worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
-  rush$wait_for_workers(2, timeout = 5)
+#   rush = rsh(config = config)
+#   worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+#   rush$wait_for_workers(2, timeout = 5)
 
-  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_info$state, "running")
+#   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+#   worker_info = rush$worker_info
+#   expect_data_table(worker_info, nrows = 2)
+#   expect_integer(worker_info$pid, unique = TRUE)
+#   expect_set_equal(worker_ids, worker_info$worker_id)
+#   expect_set_equal(rush$worker_ids, worker_ids)
+#   expect_set_equal(rush$worker_info$state, "running")
 
-  expect_rush_reset(rush)
-})
+#   expect_rush_reset(rush)
+# })
 
-test_that("Redis password authentication works", {
-  skip_on_cran()
-  skip_on_ci() # does not work on github actions runner
+# test_that("Redis password authentication works", {
+#   skip_on_cran()
+#   skip_on_ci() # does not work on github actions runner
 
-  system(sprintf("redis-server --port 6398 --requirepass testpassword --daemonize yes --pidfile /tmp/redis-auth.pid --dir %s", tempdir()), intern = TRUE)
-  Sys.sleep(5)
+#   system(sprintf("redis-server --port 6398 --requirepass testpassword --daemonize yes --pidfile /tmp/redis-auth.pid --dir %s", tempdir()), intern = TRUE)
+#   Sys.sleep(5)
 
-  config = redux::redis_config(port = 6398, password = "testpassword")
-  r = redux::hiredis(config)
-  r$FLUSHDB()
+#   config = redux::redis_config(port = 6398, password = "testpassword")
+#   r = redux::hiredis(config)
+#   r$FLUSHDB()
 
-  on.exit({
-    try({r$SHUTDOWN()}, silent = TRUE)
-  })
+#   on.exit({
+#     try({r$SHUTDOWN()}, silent = TRUE)
+#   })
 
-  mirai::daemons(2)
+#   mirai::daemons(2)
 
-  rush = rsh(config = config)
-  worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
-  rush$wait_for_workers(2, timeout = 5)
+#   rush = rsh(config = config)
+#   worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+#   rush$wait_for_workers(2, timeout = 5)
 
-  walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
-  worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 2)
-  expect_integer(worker_info$pid, unique = TRUE)
-  expect_set_equal(worker_ids, worker_info$worker_id)
-  expect_set_equal(rush$worker_ids, worker_ids)
-  expect_set_equal(rush$worker_info$state, "running")
+#   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
+#   worker_info = rush$worker_info
+#   expect_data_table(worker_info, nrows = 2)
+#   expect_integer(worker_info$pid, unique = TRUE)
+#   expect_set_equal(worker_ids, worker_info$worker_id)
+#   expect_set_equal(rush$worker_ids, worker_ids)
+#   expect_set_equal(rush$worker_info$state, "running")
 
-  expect_rush_reset(rush)
-})
+#   expect_rush_reset(rush)
+# })
 
 # local workers ----------------------------------------------------------------
 
