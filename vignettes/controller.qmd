@@ -238,26 +238,6 @@ rush$detect_lost_workers()
 rush$worker_info
 ```
 
-## Restart Workers {#sec-local-restart-workers}
-
-Workers that have failed can be restarted using the `$restart_workers()` method.
-This method accepts the `worker_ids` of the workers to be restarted.
-
-```{r controller-024}
-rush$restart_workers(worker_ids = worker_ids[1])
-```
-
-```{r controller-025}
-#| include: false
-Sys.sleep(1)
-```
-
-The first worker is restarted and its state is updated to `"running"`.
-
-```{r controller-026}
-rush$worker_info
-```
-
 ## Log Messages {#sec-local-log-messages}
 
 Workers record all messages generated using the `lgr` package to the database.
@@ -452,12 +432,6 @@ daemons(2)
 ```{r controller-051}
 #| include: false
 Sys.sleep(1)
-```
-
-Workers can then be restarted using the `$restart_workers()` method.
-
-```{r controller-052}
-rush$restart_workers(worker_ids)
 ```
 
 # Script Workers {#sec-script-workers}
