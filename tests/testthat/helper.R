@@ -1,69 +1,22 @@
-skip_if_no_redis = function() {
-  testthat::skip_on_cran()
+mlr3misc::walk(list.files(system.file("testthat", package = "rush"), pattern = "^helper.*\\.[rR]", full.names = TRUE), source)
 
-  if (identical(Sys.getenv("RUSH_TEST_USE_REDIS"), "true") && redux::redis_available()) {
-    return(invisible())
-  }
-
-  testthat::skip("Redis is not available")
-}
-
-redis_configuration = function() {
-  config = redux::redis_config()
-  r = redux::hiredis(config)
-  r$FLUSHDB()
-  config
-}
-
-start_rush = function(n_workers = 2) {
-  config = redis_configuration()
-
-  rush_plan(n_workers = n_workers)
-  rush = rsh(config = config)
-
-  mirai::daemons(n_workers)
-
-  rush
-}
-
-start_rush_worker = function(n_workers = 2) {
-  config = redis_configuration()
-
-  network_id = uuid::UUIDgenerate()
-  rush::RushWorker$new(network_id = network_id, config = config)
-}
-
-# parses the string returned by rush$worker_script() and starts a processx process
-start_script_worker = function(script) {
-  script = sub('^Rscript\\s+-e\\s+\\"(.*)\\"$', '\\1', script, perl = TRUE)
-
-  px = processx::process$new("Rscript",
-    args = c("-e", script),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
-  px
-}
-
-queue_worker_loop = function(rush) {
-  while(!rush$terminated) {
+# pops tasks from the queue and finishes them
+wl_queue = function(rush) {
+  while (!rush$terminated) {
     task = rush$pop_task(fields = c("xs"))
     if (!is.null(task)) {
-      tryCatch({
-        fun = function(x1, x2) list(y = x1 + x2)
-        ys = mlr3misc::invoke(fun, .args = task$xs)
-        rush$finish_tasks(task$key, yss = list(ys))
-      }, error = function(e) {
-        condition = list(message = e$message)
-        rush$fail_tasks(task$key, conditions = list(condition))
-      })
+      fun = function(x1, x2) list(y = x1 + x2)
+      ys = mlr3misc::invoke(fun, .args = task$xs)
+      rush$finish_tasks(task$key, yss = list(ys))
     }
   }
 
   NULL
 }
 
-fail_worker_loop = function(rush) {
-  while(!rush$terminated) {
+# fails a task with an R error if x1 < 1
+wl_fail = function(rush) {
+  while (!rush$terminated) {
     task = rush$pop_task(fields = c("xs"))
 
     if (!is.null(task)) {
@@ -80,10 +33,11 @@ fail_worker_loop = function(rush) {
     }
   }
 
-  return(NULL)
+  NULL
 }
 
-segfault_worker_loop = function(rush) {
+# simulates a segfault by killing the worker process after adding a running task
+wl_segfault = function(rush) {
   xs = list(x1 = 1, x2 = 2)
   rush$push_running_tasks(list(xs))
   Sys.sleep(1)

@@ -8,7 +8,7 @@ test_that("simple errors are pushed as failed tasks", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = fail_worker_loop,
+    worker_loop = wl_fail,
     n_workers = 1)
   rush$wait_for_workers(1, timeout = 5)
 

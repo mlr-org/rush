@@ -37,7 +37,7 @@ test_that("start workers", {
 
   rush = rsh("test-rush")
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1)
   rush$wait_for_workers(1, timeout = 5)
 
@@ -65,7 +65,7 @@ test_that("set threshold", {
 
   rush = rsh("test-rush")
   expect_output(rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2,
     wait_for_workers = TRUE),
   "Pushing.*")

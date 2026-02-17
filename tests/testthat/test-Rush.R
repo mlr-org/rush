@@ -29,7 +29,7 @@ test_that("workers are started", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
@@ -52,7 +52,7 @@ test_that("packages are available on the worker", {
   })
 
   rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1,
     packages = "uuid")
   rush$wait_for_workers(1, timeout = 5)
@@ -115,7 +115,7 @@ test_that("wait for workers works with worker ids", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1)
 
   expect_error(rush$wait_for_workers(timeout = 1), class = "Mlr3ErrorConfig", regexp = "Either")
@@ -135,7 +135,7 @@ test_that("wait for workers works with n", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1)
   rush$wait_for_workers(n = 1, timeout = 5)
   expect_equal(rush$n_running_workers, 1)
@@ -151,7 +151,7 @@ test_that("wait for workers works with both n and worker ids", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1)
   rush$wait_for_workers(n = 1, worker_ids = worker_ids, timeout = 5)
   expect_equal(rush$n_running_workers, 1)
@@ -186,7 +186,7 @@ test_that("wait for workers works with both n and worker ids", {
 #   mirai::daemons(2)
 
 #   rush = rsh(config = config)
-#   worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+#   worker_ids = rush$start_workers(worker_loop = wl_queue, n_workers = 2)
 #   rush$wait_for_workers(2, timeout = 5)
 
 #   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
@@ -218,7 +218,7 @@ test_that("wait for workers works with both n and worker ids", {
 #   mirai::daemons(2)
 
 #   rush = rsh(config = config)
-#   worker_ids = rush$start_workers(worker_loop = queue_worker_loop, n_workers = 2)
+#   worker_ids = rush$start_workers(worker_loop = wl_queue, n_workers = 2)
 #   rush$wait_for_workers(2, timeout = 5)
 
 #   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
@@ -235,10 +235,6 @@ test_that("wait for workers works with both n and worker ids", {
 # local workers ----------------------------------------------------------------
 
 test_that("local workers are started", {
-  # when checking as CRAN we cannot start local workers
-  local_on_cran()
-  skip_on_cran()
-
   config = redis_configuration()
   rush = rsh(config = config)
   on.exit({
@@ -249,7 +245,7 @@ test_that("local workers are started", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   worker_ids = rush$start_local_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1)
   rush$wait_for_workers(1, timeout = 5)
 
@@ -272,14 +268,14 @@ test_that("local workers are started", {
 #   })
 
 #   worker_ids = rush$start_local_workers(
-#     worker_loop = queue_worker_loop,
+#     worker_loop = wl_queue,
 #     n_workers = 1)
 #   rush$wait_for_workers(1, timeout = 5)
 
 #   expect_equal(rush$n_workers, 1)
 
 #   worker_ids_2 = rush$start_local_workers(
-#     worker_loop = queue_worker_loop,
+#     worker_loop = wl_queue,
 #     n_workers = 2)
 #   rush$wait_for_workers(4, timeout = 5)
 
@@ -305,7 +301,7 @@ test_that("local workers are started", {
 #   expect_data_table(rush$worker_info, nrows = 0)
 
 #   script = rush$worker_script(
-#     worker_loop = queue_worker_loop,
+#     worker_loop = wl_queue,
 #     heartbeat_period = 3,
 #     heartbeat_expire = 9)
 
@@ -331,7 +327,7 @@ test_that("a worker is terminated", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
 
@@ -365,7 +361,7 @@ test_that("reset data works", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -395,7 +391,7 @@ test_that("a worker is killed", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
@@ -434,7 +430,7 @@ test_that("a local worker is killed", {
   })
 
   worker_ids = rush$start_local_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
@@ -471,7 +467,7 @@ test_that("worker is killed with a heartbeat process", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   script = rush$worker_script(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     heartbeat_period = 3,
     heartbeat_expire = 9)
   px = start_script_worker(script)
@@ -514,7 +510,7 @@ test_that("pushing a task to the queue works", {
   expect_equal(rush$n_queued_tasks, 1)
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
@@ -559,7 +555,7 @@ test_that("pushing multiple tasks to the queue works", {
 
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
@@ -605,7 +601,7 @@ test_that("pushing a task with extras to the queue works", {
   expect_equal(rush$n_queued_tasks, 1)
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
@@ -656,7 +652,7 @@ test_that("pushing multiple tasks with extras to the queue works", {
   expect_equal(rush$n_queued_tasks, 10)
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
   rush$wait_for_tasks(keys)
@@ -741,7 +737,7 @@ test_that("a segfault on a local worker is detected", {
   })
 
   worker_ids = rush$start_local_workers(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -764,7 +760,7 @@ test_that("a segfault on a mirai daemon is detected", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -788,7 +784,7 @@ test_that("a segfault on a single worker is detected via heartbeat", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   script = rush$worker_script(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     heartbeat_period = 1,
     heartbeat_expire = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
@@ -818,7 +814,7 @@ test_that("segfaults on multiple workers are detected via the heartbeat", {
   expect_data_table(rush$worker_info, nrows = 0)
 
   script = rush$worker_script(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     heartbeat_period = 1,
     heartbeat_expire = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
@@ -849,7 +845,7 @@ test_that("a lost task is detected", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -893,7 +889,7 @@ test_that("wait for tasks works when a task gets lost", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = segfault_worker_loop,
+    worker_loop = wl_segfault,
     n_workers = 1)
   rush$wait_for_workers(1, timeout = 5)
 
@@ -913,7 +909,7 @@ test_that("saving lgr logs works", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(1, timeout = 5)
@@ -954,7 +950,7 @@ test_that("saving logs with redis appender works", {
   })
 
   worker_ids = rush$start_workers(
-      worker_loop = queue_worker_loop,
+      worker_loop = wl_queue,
       n_workers = 1,
       lgr_thresholds = c("mlr3/rush" = "debug"),
       lgr_buffer_size = 1)
@@ -978,7 +974,7 @@ test_that("error and output logs work", {
   output_log = tempdir()
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 1,
     lgr_thresholds = c("mlr3/rush" = "debug"),
     lgr_buffer_size = 1,
@@ -1002,7 +998,7 @@ test_that("caching results works", {
   })
 
   worker_ids = rush$start_workers(
-    worker_loop = queue_worker_loop,
+    worker_loop = wl_queue,
     n_workers = 2,
     lgr_thresholds = c("mlr3/rush" = "debug"))
   rush$wait_for_workers(2, timeout = 5)
