@@ -1,5 +1,25 @@
 mlr3misc::walk(list.files(system.file("testthat", package = "rush"), pattern = "^helper.*\\.[rR]", full.names = TRUE), source)
 
+
+wl_default = function(rush) {
+  while (TRUE) {
+    xss = list(list(x1 = runif(1, 0, 10), x2 = runif(1, 0, 10)))
+    keys = rush$push_running_tasks(xss)
+    ys = list(list(y = xss$x1 + xss$x2))
+    rush$finish_tasks(keys, yss = ys)
+    Sys.sleep(1)
+  }
+
+  NULL
+}
+
+wl_finished = function(rush) {
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_running_tasks(xss)
+  rush$finish_tasks(keys, yss = list(list(y = 3)))
+  NULL
+}
+
 # pops tasks from the queue and finishes them
 wl_queue = function(rush) {
   while (!rush$terminated) {

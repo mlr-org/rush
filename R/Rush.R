@@ -481,14 +481,18 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Detect lost workers.
     #' The state of the worker is changed to `"terminated"`.
+    #'
+    #' @return (`character()`)\cr
+    #' Worker ids of detected lost workers.
     detect_lost_workers = function() {
       r = private$.connector
-
+      running_worker_ids = self$running_worker_ids
+      heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
       running_tasks = self$fetch_running_tasks(fields = "worker_id")
 
       # check mirai workers
       if (length(self$processes_mirai)) {
-        iwalk(self$processes_mirai[intersect(self$running_worker_ids, names(self$processes_mirai))], function(m, id) {
+        iwalk(self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))], function(m, id) {
           if (is_mirai_error(m$data) || is_error_value(m$data)) {
             lg$error("Lost worker '%s'", id)
 
@@ -516,7 +520,7 @@ Rush = R6::R6Class("Rush",
 
       # check processx workers
       if (length(self$processes_processx)) {
-        iwalk(self$processes_processx[intersect(self$running_worker_ids, names(self$processes_processx))], function(m, id) {
+        iwalk(self$processes_processx[intersect(running_worker_ids, names(self$processes_processx))], function(m, id) {
           if (!self$processes_processx[[id]]$is_alive()) {
             lg$error("Lost worker '%s'", id)
             # print error messages
@@ -539,43 +543,41 @@ Rush = R6::R6Class("Rush",
       }
 
       # check heartbeat of workers
-      heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
       if (length(heartbeat_keys)) {
         running = as.logical(r$pipeline(.commands = map(heartbeat_keys, function(heartbeat_key) c("EXISTS", heartbeat_key))))
-        if (all(running)) return(invisible(self))
+        if (!all(running)) {
+          # search for associated worker ids
+          expired_heartbeat_keys = heartbeat_keys[!running]
+          cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
+          all_heartbeat_keys = unlist(r$pipeline(.commands = cmds))
+          lost_workers = running_worker_ids[all_heartbeat_keys %in% expired_heartbeat_keys]
 
-        # search for associated worker ids
-        running_worker_ids = self$running_worker_ids
-        expired_heartbeat_keys = heartbeat_keys[!running]
-        cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
-        all_heartbeat_keys = unlist(r$pipeline(.commands = cmds))
-        lost_workers = running_worker_ids[all_heartbeat_keys %in% expired_heartbeat_keys]
-
-        # set worker state
-        cmds = map(lost_workers, function(worker_id) {
-          lg$error("Lost worker '%s'", worker_id)
-          c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), worker_id)
-        })
-
-        # remove heartbeat keys
-        cmds = c(cmds, list(c("SREM", private$.get_key("heartbeat_keys"), expired_heartbeat_keys)))
-
-        r$pipeline(.commands =  cmds)
-
-        # identify and fail lost tasks
-        if (nrow(running_tasks) && length(lost_workers)) {
-          walk(lost_workers, function(worker_id) {
-            keys = running_tasks[list(worker_id), keys, on = "worker_id"]
-            if (length(keys)) {
-              lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-              conditions = list(list(message = "Worker has crashed or was killed"))
-              self$fail_tasks(keys, conditions = conditions)
-            }
+          # set worker state
+          cmds = map(lost_workers, function(worker_id) {
+            lg$error("Lost worker '%s'", worker_id)
+            c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), worker_id)
           })
+
+          # remove heartbeat keys
+          cmds = c(cmds, list(c("SREM", private$.get_key("heartbeat_keys"), expired_heartbeat_keys)))
+
+          r$pipeline(.commands =  cmds)
+
+          # identify and fail lost tasks
+          if (nrow(running_tasks) && length(lost_workers)) {
+            walk(lost_workers, function(worker_id) {
+              keys = running_tasks[list(worker_id), keys, on = "worker_id"]
+              if (length(keys)) {
+                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+                conditions = list(list(message = "Worker has crashed or was killed"))
+                self$fail_tasks(keys, conditions = conditions)
+              }
+            })
+          }
         }
       }
 
-      invisible(self)
+      self$terminated_worker_ids[self$terminated_worker_ids %in% running_worker_ids]
     },
 
     #' @description
@@ -602,7 +604,15 @@ Rush = R6::R6Class("Rush",
             c("DEL", private$.get_key(worker_id)),
             c("DEL", private$.get_worker_key("terminate", worker_id)),
             c("DEL", private$.get_worker_key("kill", worker_id)),
-            c("DEL", private$.get_worker_key("events", worker_id)))
+            c("DEL", private$.get_worker_key("events", worker_id)),
+            c("DEL", private$.get_key("terminate")),
+            c("DEL", private$.get_key("worker_ids")),
+            c("DEL", private$.get_key("running_worker_ids")),
+            c("DEL", private$.get_key("terminated_worker_ids")),
+            c("DEL", private$.get_key("start_args")),
+            c("DEL", private$.get_key("terminate_on_idle")),
+            c("DEL", private$.get_key("local_workers")),
+            c("DEL", private$.get_key("heartbeat_keys")))
         }), recursive = FALSE)
       }
 
@@ -613,15 +623,7 @@ Rush = R6::R6Class("Rush",
         c("DEL", private$.get_key("running_tasks")),
         c("DEL", private$.get_key("finished_tasks")),
         c("DEL", private$.get_key("failed_tasks")),
-        c("DEL", private$.get_key("all_tasks")),
-        c("DEL", private$.get_key("terminate")),
-        c("DEL", private$.get_key("worker_ids")),
-        c("DEL", private$.get_key("running_worker_ids")),
-        c("DEL", private$.get_key("terminated_worker_ids")),
-        c("DEL", private$.get_key("start_args")),
-        c("DEL", private$.get_key("terminate_on_idle")),
-        c("DEL", private$.get_key("local_workers")),
-        c("DEL", private$.get_key("heartbeat_keys"))))
+        c("DEL", private$.get_key("all_tasks"))))
       r$pipeline(.commands = cmds)
 
       # reset counters and caches
