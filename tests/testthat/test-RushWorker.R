@@ -476,8 +476,6 @@ test_that("latest results are fetched", {
   expect_data_table(latest_results, nrows = 2)
   expect_set_equal(latest_results$y, c(5, 6))
   expect_data_table(rush$fetch_new_tasks(), nrows = 0)
-
-
 })
 
 test_that("pushing finished tasks works", {

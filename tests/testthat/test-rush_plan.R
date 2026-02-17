@@ -1,6 +1,7 @@
 skip_if_no_redis()
 
 test_that("rush_plan family works", {
+  remove_rush_plan()
   on.exit(remove_rush_plan())
 
   expect_false(rush_available())
