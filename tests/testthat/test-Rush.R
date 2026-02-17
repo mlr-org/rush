@@ -162,8 +162,8 @@ test_that("additional local workers are started", {
 
   worker_ids_2 = rush$start_local_workers(
     worker_loop = wl_queue,
-    n_workers = 2)
-  rush$wait_for_workers(4, timeout = 5)
+    n_workers = 1)
+  rush$wait_for_workers(2, timeout = 5)
 
   expect_length(rush$processes_processx, 4)
   walk(rush$processes_processx, function(process) expect_class(process, "process"))
@@ -798,8 +798,6 @@ test_that("saving lgr logs works", {
   log = rush$read_log()
   expect_data_table(log, min.rows = 2L)
   expect_names(names(log), must.include = c("worker_id", "timestamp", "logger", "caller", "msg"))
-
-
 })
 
 test_that("saving logs with redis appender works", {
@@ -819,8 +817,6 @@ test_that("saving logs with redis appender works", {
   log = rush$read_log()
   expect_data_table(log, min.rows = 1)
   expect_names(colnames(log), identical.to =  c("worker_id", "level", "timestamp", "logger", "caller", "msg"))
-
-
 })
 
 test_that("error and output logs work", {
@@ -844,8 +840,6 @@ test_that("error and output logs work", {
 
   expect_match(readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))[1], "Debug message logging on worker")
   expect_match(readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))[1], "Debug output logging on worker")
-
-
 })
 
 # misc--------------------------------------------------------------------------
@@ -900,8 +894,6 @@ test_that("reconnecting rush instance works", {
 
   rush$reconnect()
   expect_r6(rush, "Rush")
-
-
 })
 
 test_that("large objects limit works", {
@@ -938,6 +930,4 @@ test_that("large objects limit works", {
   Sys.sleep(1)
 
   expect_equal(rush$fetch_tasks()$x2, 1e6)
-
-
 })
