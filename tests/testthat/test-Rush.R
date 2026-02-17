@@ -165,10 +165,10 @@ test_that("additional local workers are started", {
     n_workers = 1)
   rush$wait_for_workers(2, timeout = 5)
 
-  expect_length(rush$processes_processx, 4)
+  expect_length(rush$processes_processx, 2)
   walk(rush$processes_processx, function(process) expect_class(process, "process"))
   worker_info = rush$worker_info
-  expect_data_table(worker_info, nrows = 4)
+  expect_data_table(worker_info, nrows = 2)
   expect_set_equal(c(worker_ids, worker_ids_2), worker_info$worker_id)
   expect_integer(worker_info$pid, unique = TRUE)
 
@@ -930,4 +930,49 @@ test_that("large objects limit works", {
   Sys.sleep(1)
 
   expect_equal(rush$fetch_tasks()$x2, 1e6)
+})
+
+test_that("simple errors are pushed as failed tasks", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  worker_ids = rush$start_workers(
+    worker_loop = wl_fail,
+    n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
+  keys = rush$push_tasks(xss)
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
+  Sys.sleep(2)
+
+  # check task count
+  expect_equal(rush$n_tasks, 2)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 1)
+
+  # check keys in sets
+  expect_character(rush$tasks, len = 2)
+  expect_null(rush$queued_tasks)
+  expect_null(rush$running_tasks)
+  expect_string(rush$finished_tasks)
+  expect_string(rush$failed_tasks)
+
+  # check fetching
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_tasks(), nrows = 2)
+
+  data = rush$fetch_finished_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "y", "keys"))
+  expect_data_table(data, nrows = 1)
+
+  data = rush$fetch_failed_tasks()
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
+  expect_data_table(data, nrows = 1)
 })

@@ -1,19 +1,17 @@
 skip_if_no_redis()
 
-# test_that("rush_plan family works", {
-#   skip_on_cran()
+test_that("rush_plan family works", {
+  on.exit(remove_rush_plan())
 
-#   on.exit(remove_rush_plan())
-
-#   expect_false(rush_available())
-#   config = redux::redis_config()
-#   rush_plan(n_workers = 2, config)
-#   expect_identical(config, rush_env$config)
-#   expect_identical(rush_config()$config, config)
-#   expect_equal(rush_env$n_workers, 2)
-#   expect_equal(rush_config()$n_workers, 2)
-#   expect_true(rush_available())
-# })
+  expect_false(rush_available())
+  config = redux::redis_config()
+  rush_plan(n_workers = 2, config)
+  expect_identical(config, rush_env$config)
+  expect_identical(rush_config()$config, config)
+  expect_equal(rush_env$n_workers, 2)
+  expect_equal(rush_config()$n_workers, 2)
+  expect_true(rush_available())
+})
 
 test_that("rush_plan throws and error if redis is not available", {
   on.exit(remove_rush_plan())
@@ -72,4 +70,3 @@ test_that("set threshold", {
 
   Sys.sleep(2)
 })
-
