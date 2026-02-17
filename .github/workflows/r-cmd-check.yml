@@ -20,6 +20,8 @@ name: r-cmd-check
 jobs:
   r-cmd-check:
     runs-on: ${{ matrix.config.os }}
+    env:
+      RUSH_TEST_USE_REDIS: true
     services:
       redis:
         image: redis
