@@ -235,7 +235,9 @@ test_that("wait for workers works with both n and worker ids", {
 # local workers ----------------------------------------------------------------
 
 test_that("local workers are started", {
+  # when checking as CRAN we cannot start local workers
   local_on_cran()
+  skip_on_cran()
 
   config = redis_configuration()
   rush = rsh(config = config)
