@@ -126,13 +126,12 @@ rush$start_local_workers(
 rush
 ```
 
-    <Rush>
-    * Running Workers: 0
-    * Queued Tasks: 0
-    * Queued Priority Tasks: 0
-    * Running Tasks: 0
-    * Finished Tasks: 0
-    * Failed Tasks: 0
+    ── <Rush> ──────────────────────────────────────────────────────────────────────
+    • Running Workers: 0
+    • Queued Tasks: 0
+    • Running Tasks: 0
+    • Finished Tasks: 0
+    • Failed Tasks: 0
 
 The optimization is quickly finished and we retrieve the results. The
 `$fetch_finished_tasks()` method fetches all finished tasks from the
@@ -148,32 +147,32 @@ argument.
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-                x1        x2           y   pid     worker_id
-             <num>     <num>       <num> <int>        <char>
-      1:  3.153603  2.904517   0.8067279  9797 soughtafte...
-      2:  3.516976  2.082306   1.0732096  9786 terrifying...
-      3: -3.515788 12.685481   1.3192678  9812 piratic_ar...
-      4:  3.439115  1.074607   1.7797620  9797 soughtafte...
-      5:  8.767042  2.262972   2.4834088  9806 supersecur...
+             worker_id        x1          x2           y
+                <char>     <num>       <num>       <num>
+      1: florid_leo...  9.280327  2.92918468   0.8266084
+      2: florid_leo... -2.571671  9.77902534   3.2804369
+      3: florid_leo... -2.945215 13.52660173   3.5359028
+      4: florid_leo... -2.290901  9.43949745   4.4502298
+      5: florid_leo...  3.180755  0.01444782   5.3790839
      ---
-     98: -4.372013  2.644863 170.1920617  9812 piratic_ar...
-     99: -4.177795  1.895691 174.3226359  9786 terrifying...
-    100:  5.355293 14.224464 185.8706299  9797 soughtafte...
-    101:  6.410488 14.630052 202.4204485  9786 terrifying...
-    102: -4.600388  1.254886 227.9923925  9797 soughtafte...
+     99: florid_leo... -4.448061  2.65730583 175.9185314
+    100: selfconcei...  6.915296 14.03218583 183.1379223
+    101: florid_leo...  6.266561 14.14862571 189.8802974
+    102: surefooted...  5.166459 14.97115530 203.1532192
+    103: surefooted... -4.193035  0.79606108 205.4178377
                                          keys
                                        <list>
-      1: 4218c9fa-908c-4604-9369-156d37e7a446
-      2: 77310d17-0095-4de7-8e51-ab718e8502de
-      3: 513ede2d-20d3-44ed-920e-3993ccf20bc4
-      4: 51a92730-3724-4592-8915-6954fb765db3
-      5: 16965343-e324-4492-a471-380702921922
+      1: 88743de4-2f4c-4816-9e7d-3f3738e7da1a
+      2: a4222043-dabc-460f-a3a0-b66bac38760a
+      3: cccd719c-d586-48c9-97ee-cebbeea3f390
+      4: 7532f411-be8a-4d37-8bc6-8593ac57bc22
+      5: ee79f0eb-46c5-4664-8c24-9480a115eabf
      ---
-     98: 7ff81aa0-313b-4f63-8aae-db522044f346
-     99: e81b6e04-108e-4526-8988-7a72dadf49c4
-    100: 19b873ea-7915-4ed1-a101-60f4aad9fe78
-    101: 18e63908-5620-4285-b6ac-a45b71654161
-    102: c6a9c441-fe9d-41e6-b3cf-c02b8f288626
+     99: 670b41af-8195-453e-8e83-4b2d4a3c48a5
+    100: a1a3ba3e-a186-4761-9b16-d86d1a029ca3
+    101: fe6b4b3c-1c1c-4917-993a-4926f6d5cf26
+    102: 5dce0499-34d3-4538-80eb-67206848195c
+    103: 5ae8d14e-ed21-48c0-a6c4-d3f615c04d2d
 
 The rush controller displays how many workers are running and how many
 tasks exist in each state. In this case, 103 tasks are marked as
@@ -188,13 +187,12 @@ created while the 100th task is still being evaluated.
 rush
 ```
 
-    <Rush>
-    * Running Workers: 0
-    * Queued Tasks: 0
-    * Queued Priority Tasks: 0
-    * Running Tasks: 0
-    * Finished Tasks: 102
-    * Failed Tasks: 0
+    ── <Rush> ──────────────────────────────────────────────────────────────────────
+    • Running Workers: 0
+    • Queued Tasks: 0
+    • Running Tasks: 0
+    • Finished Tasks: 103
+    • Failed Tasks: 0
 
 We can stop the workers and reset the database with the `$reset()`
 method.
@@ -205,13 +203,12 @@ rush$reset()
 rush
 ```
 
-    <Rush>
-    * Running Workers: 0
-    * Queued Tasks: 0
-    * Queued Priority Tasks: 0
-    * Running Tasks: 0
-    * Finished Tasks: 0
-    * Failed Tasks: 0
+    ── <Rush> ──────────────────────────────────────────────────────────────────────
+    • Running Workers: 0
+    • Queued Tasks: 0
+    • Running Tasks: 0
+    • Finished Tasks: 0
+    • Failed Tasks: 0
 
 To learn more about starting, stopping and observing workers, see the
 [Rush
@@ -377,13 +374,12 @@ rush$push_tasks(xss = xss)
 rush
 ```
 
-    <Rush>
-    * Running Workers: 0
-    * Queued Tasks: 25
-    * Queued Priority Tasks: 0
-    * Running Tasks: 0
-    * Finished Tasks: 0
-    * Failed Tasks: 0
+    ── <Rush> ──────────────────────────────────────────────────────────────────────
+    • Running Workers: 0
+    • Queued Tasks: 25
+    • Running Tasks: 0
+    • Finished Tasks: 0
+    • Failed Tasks: 0
 
 We see 25 queued tasks in the database. To retrieve the tasks from the
 queue, we need to implement the `$pop_task()` method in the worker loop.

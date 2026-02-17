@@ -3,11 +3,11 @@
 ## Controller and Worker
 
 - [`Rush`](https://rush.mlr-org.com/dev/reference/Rush.md) : Rush
-  Controller
+  Manager
 - [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
   Rush Worker
 - [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) : Synctatic
-  Sugar for Rush Controller Construction
+  Sugar for Rush Manager Construction
 
 ## Plan
 
@@ -34,9 +34,10 @@
 - [`rush`](https://rush.mlr-org.com/dev/reference/rush-package.md)
   [`rush-package`](https://rush.mlr-org.com/dev/reference/rush-package.md)
   : rush: Rapid Asynchronous and Distributed Computing
-- [`with_rng_state()`](https://rush.mlr-org.com/dev/reference/with_rng_state.md)
-  : Set RNG Sate before Running a Function
 - [`store_large_object()`](https://rush.mlr-org.com/dev/reference/store_large_object.md)
   : Store Large Objects
 - [`filter_custom_fields()`](https://rush.mlr-org.com/dev/reference/filter_custom_fields.md)
   : Filter Custom Fields
+- [`warn_deprecated()`](https://rush.mlr-org.com/dev/reference/warn_deprecated.md)
+  : Give a Warning about a Deprecated Function, Argument, or Active
+  Binding

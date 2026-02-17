@@ -16,7 +16,7 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "local"
+  worker_type = "mirai"
 )
 ```
 
@@ -58,10 +58,10 @@ rush_plan(
 - worker_type:
 
   (`character(1)`)  
-  The type of worker to use. Options are `"local"` to start with
-  [processx](https://CRAN.R-project.org/package=processx), `"remote"` to
-  use [mirai](https://CRAN.R-project.org/package=mirai) or `"script"` to
-  get a script to run.
+  The type of worker to use. Options are `"mirai"` to start with
+  [mirai](https://CRAN.R-project.org/package=mirai), `"processx"` to use
+  [processx](https://CRAN.R-project.org/package=processx) or `"script"`
+  to get a script to run.
 
 ## Value
 
@@ -73,17 +73,17 @@ configuration.
 ``` r
 # This example is not executed since Redis must be installed
 # \donttest{
-   config_local = redux::redis_config()
-   rush_plan(config = config_local, n_workers = 2)
+config_local = redux::redis_config()
+rush_plan(config = config_local, n_workers = 2)
 
-   rush = rsh(network_id = "test_network")
-   rush
-#> <Rush>
-#> * Running Workers: 0
-#> * Queued Tasks: 0
-#> * Queued Priority Tasks: 0
-#> * Running Tasks: 0
-#> * Finished Tasks: 0
-#> * Failed Tasks: 0
+rush = rsh(network_id = "test_network")
+rush
+#> 
+#> ── <Rush> ──────────────────────────────────────────────────────────────────────
+#> • Running Workers: 0
+#> • Queued Tasks: 0
+#> • Running Tasks: 0
+#> • Finished Tasks: 0
+#> • Failed Tasks: 0
 # }
 ```

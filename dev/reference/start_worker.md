@@ -13,7 +13,6 @@ start_worker(
   worker_id = NULL,
   network_id,
   config = NULL,
-  remote = TRUE,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -34,18 +33,13 @@ start_worker(
 - network_id:
 
   (`character(1)`)  
-  Identifier of the rush network. Controller and workers must have the
-  same instance id. Keys in Redis are prefixed with the instance id.
+  Identifier of the rush network. Manager and workers must have the same
+  id. Keys in Redis are prefixed with the instance id.
 
 - config:
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
   Configuration for the Redis connection.
-
-- remote:
-
-  (`logical(1)`)  
-  Whether the worker is on a remote machine.
 
 - lgr_thresholds:
 
@@ -105,7 +99,6 @@ instance and starts the worker loop.
 if (FALSE) { # \dontrun{
   rush::start_worker(
    network_id = 'test-rush',
-   remote = TRUE,
    url = 'redis://127.0.0.1:6379',
    scheme = 'redis',
    host = '127.0.0.1',

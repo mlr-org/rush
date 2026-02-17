@@ -57,6 +57,29 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
 <ul><li>feat: Add <code>$push_finished_tasks()</code> method.</li>
+<li>feat: Combine <code>$wait_for_new_tasks()</code> and <code>$fetch_new_tasks()</code> into <code>$fetch_new_tasks()</code> with timeout argument.</li>
+<li>refactor: The <code>$wait_for_finished_tasks()</code> method is removed.</li>
+<li>perf: Cache is now a <code>data.table()</code> instead of a list. <code>data_format</code> argument is removed.</li>
+<li>refactor: Seed mechanism is removed. Includes <code>with_rng_state()</code>, <code>is_lecyer_cmrg_seed()</code>, <code>get_random_seed()</code>, <code>set_random_seed()</code>, <code>make_rng_seeds()</code> helper functions.</li>
+<li>refactor: PID is no longer stored with tasks by <code>$push_tasks()</code> and <code>$push_running_tasks()</code> methods.</li>
+<li>refactor: <code>worker_extra</code> field is renamed to <code>worker_id</code>.</li>
+<li>refactor: <code>$push_results()</code> is renamed to <code>$finish_tasks()</code>.</li>
+<li>fix: Heartbeat process moves worker to terminated.</li>
+<li>refactor: <code>$push_results()</code> is deprecated. Use <code>$finish_tasks()</code> instead.</li>
+<li>refactor: <code>$push_failed()</code> is deprecated. Use <code>$fail_tasks()</code> instead.</li>
+<li>refactor: <code>$terminated_on_idle</code> is removed.</li>
+<li>refactor: Removed <code>$push_priority_tasks()</code>, <code>$n_queued_priority_tasks</code>, <code>$priority_info</code>, and <code>$fetch_priority_tasks()</code>.</li>
+<li>fix: Redis with password is supported now.</li>
+<li>refactor: Remove <code>$restart_workers()</code> method.</li>
+<li>refactor: Squashed <code>"terminated"</code>, <code>"killed"</code> and <code>"lost"</code> worker states into <code>"terminated"</code>.</li>
+<li>feat: Added <code>push_failed_tasks()</code> for creating failed tasks.</li>
+<li>refactor: Remove <code>reset_cache</code> arguments in favor of <code>$reset_cache()</code> method.</li>
+<li>refactor: <code>network_id</code>, <code>config</code> and <code>connector</code> are now active bindings with validation.</li>
+<li>refactor: Removed <code>$snapshot_schedule()</code> and <code>$redis_info()</code> methods.</li>
+<li>refactor: Removed <code>$all_workers_terminated</code> and <code>all_workers_lost</code> active bindings.</li>
+<li>refactor: Moved <code>$worker_states</code> to <code>$worker_info</code>.</li>
+<li>feat: Add <code>"rush.max_object_size"</code> option to limit the size of objects stored in Redis.</li>
+<li>refactor: Renamed <code>$start_remote_workers()</code> to <code>$start_workers()</code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="rush-041">rush 0.4.1<a class="anchor" aria-label="anchor" href="#rush-041"></a></h2><p class="text-muted">CRAN release: 2025-11-06</p>

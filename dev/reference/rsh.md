@@ -1,12 +1,12 @@
-# Synctatic Sugar for Rush Controller Construction
+# Synctatic Sugar for Rush Manager Construction
 
 Function to construct a
-[Rush](https://rush.mlr-org.com/dev/reference/Rush.md) controller.
+[Rush](https://rush.mlr-org.com/dev/reference/Rush.md) manager.
 
 ## Usage
 
 ``` r
-rsh(network_id = NULL, config = NULL, seed = NULL, ...)
+rsh(network_id = NULL, config = NULL, ...)
 ```
 
 ## Arguments
@@ -14,8 +14,8 @@ rsh(network_id = NULL, config = NULL, seed = NULL, ...)
 - network_id:
 
   (`character(1)`)  
-  Identifier of the rush network. Controller and workers must have the
-  same instance id. Keys in Redis are prefixed with the instance id.
+  Identifier of the rush network. Manager and workers must have the same
+  id. Keys in Redis are prefixed with the instance id.
 
 - config:
 
@@ -29,21 +29,13 @@ rsh(network_id = NULL, config = NULL, seed = NULL, ...)
   [redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html)
   for details.
 
-- seed:
-
-  ([`integer()`](https://rdrr.io/r/base/integer.html))  
-  Initial seed for the random number generator. Either a L'Ecuyer-CMRG
-  seed (`integer(7)`) or a regular RNG seed (`integer(1)`). The later is
-  converted to a L'Ecuyer-CMRG seed. If `NULL`, no seed is used for the
-  random number generator.
-
 - ...:
 
   (ignored).
 
 ## Value
 
-[Rush](https://rush.mlr-org.com/dev/reference/Rush.md) controller.
+[Rush](https://rush.mlr-org.com/dev/reference/Rush.md) manager.
 
 ## Examples
 
@@ -53,12 +45,12 @@ rsh(network_id = NULL, config = NULL, seed = NULL, ...)
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)
    rush
-#> <Rush>
-#> * Running Workers: 0
-#> * Queued Tasks: 0
-#> * Queued Priority Tasks: 0
-#> * Running Tasks: 0
-#> * Finished Tasks: 0
-#> * Failed Tasks: 0
+#> 
+#> ── <Rush> ──────────────────────────────────────────────────────────────────────
+#> • Running Workers: 0
+#> • Queued Tasks: 0
+#> • Running Tasks: 0
+#> • Finished Tasks: 0
+#> • Failed Tasks: 0
 # }
 ```

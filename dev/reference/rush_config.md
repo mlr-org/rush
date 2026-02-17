@@ -49,7 +49,7 @@ configuration.
 #> NULL
 #> 
 #> $worker_type
-#> [1] "local"
+#> [1] "mirai"
 #> 
 # }
 ```

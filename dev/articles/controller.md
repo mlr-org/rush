@@ -67,10 +67,10 @@ Handling](#error-handling) section.
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: roomy_clea...  8623  FALSE runnervmwf...     FALSE running
-    2: presentien...  8634  FALSE runnervmwf...     FALSE running
+           worker_id   pid      hostname heartbeat   state
+              <char> <int>        <char>    <lgcl>  <char>
+    1: subpentago...  9570 runnervmjd...     FALSE running
+    2: antidemocr...  9581 runnervmjd...     FALSE running
 
 Additional workers may be added to the network at any time.
 
@@ -85,12 +85,12 @@ rush$start_local_workers(
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: roomy_clea...  8623  FALSE runnervmwf...     FALSE running
-    2: presentien...  8634  FALSE runnervmwf...     FALSE running
-    3: endangered...  8697  FALSE runnervmwf...     FALSE running
-    4: incredulou...  8699  FALSE runnervmwf...     FALSE running
+           worker_id   pid      hostname heartbeat   state
+              <char> <int>        <char>    <lgcl>  <char>
+    1: subpentago...  9570 runnervmjd...     FALSE running
+    2: antidemocr...  9581 runnervmjd...     FALSE running
+    3: shadowed_w...  9643 runnervmjd...     FALSE running
+    4: dietetic_s...  9647 runnervmjd...     FALSE running
 
 ### Rush Plan
 
@@ -140,12 +140,12 @@ This command terminates the selected worker process.
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: presentien...  8634  FALSE runnervmwf...     FALSE running
-    2: endangered...  8697  FALSE runnervmwf...     FALSE running
-    3: incredulou...  8699  FALSE runnervmwf...     FALSE running
-    4: roomy_clea...  8623  FALSE runnervmwf...     FALSE  killed
+           worker_id   pid      hostname heartbeat      state
+              <char> <int>        <char>    <lgcl>     <char>
+    1: antidemocr...  9581 runnervmjd...     FALSE    running
+    2: shadowed_w...  9643 runnervmjd...     FALSE    running
+    3: dietetic_s...  9647 runnervmjd...     FALSE    running
+    4: subpentago...  9570 runnervmjd...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -188,32 +188,32 @@ The random search proceeds as usual.
 rush$fetch_finished_tasks()
 ```
 
-                x1        x2          y   pid     worker_id
-             <num>     <num>      <num> <int>        <char>
-      1:  3.889869  5.782428  19.112482  8772 fetid_rabb...
-      2:  7.262342  4.223675  24.168217  8770 idiosyncra...
-      3:  6.586416  7.091787  54.807999  8772 fetid_rabb...
-      4: -2.972467  8.454350  12.216892  8772 fetid_rabb...
-      5:  2.597244  8.898633  39.741652  8772 fetid_rabb...
+             worker_id        x1        x2          y
+                <char>     <num>     <num>      <num>
+      1: cainophobi... -1.446759  4.967859  24.184908
+      2: lax_mosasa... -3.082537  8.358510  14.665363
+      3: cainophobi... -4.970583  2.671470 220.710724
+      4: cainophobi...  8.596596  1.126222   4.052714
+      5: cainophobi...  6.643052  7.162193  55.396287
      ---
-    626:  5.006908 12.160945 131.404313  8770 idiosyncra...
-    627: -2.803401 11.438668   0.943257  8772 fetid_rabb...
-    628: -2.621570  8.371478   8.896414  8770 idiosyncra...
-    629:  8.090129  2.114706   8.040149  8772 fetid_rabb...
-    630: -1.851024 10.466015   8.505084  8770 idiosyncra...
+    508: cainophobi...  4.197123  8.353770  50.939042
+    509: cainophobi... -2.249488 14.485438  22.047853
+    510: lax_mosasa... -1.980607 12.993052  17.290090
+    511: cainophobi... -1.163884 10.543580  20.131560
+    512: lax_mosasa...  8.501033  6.753192  28.685855
                                          keys
                                        <list>
-      1: 523c019c-351d-416a-b54f-6d285cc92d92
-      2: 7bc9ea0e-ac87-492c-b34e-ec47b1f1ee99
-      3: 8bfe6274-4f7c-4d2a-bcff-2101731fc4b1
-      4: 4f542dd9-1651-467b-8de7-81552381e678
-      5: 51ff82b5-e58d-4b1f-9a26-ea2d8978088a
+      1: 1895409c-a3dd-47a5-b6ed-434f17a57d76
+      2: 72a53e0a-ad60-45f5-ae0d-393180c86b75
+      3: 79ab329d-2af7-4199-82e2-06cf7dfa5aad
+      4: a7f63f9e-20c7-45e7-a44a-35ebd031c5d0
+      5: b4c47818-7ed1-436d-9d60-ab7c9d65d6d7
      ---
-    626: b2b0558c-979f-4c9a-8e41-f0b95aaed964
-    627: 49022e9d-0239-4be4-9f90-30efa9e0c177
-    628: a592fea1-ae70-42ff-8945-ea0091ca4e90
-    629: 525e06db-d631-43ed-b873-d88e738c206d
-    630: a7c60855-b68d-4aae-8255-871fb3dd01c2
+    508: 4e3c5d1a-15c3-4bba-bda1-2f34f231302e
+    509: 51a867c6-f47d-4dea-9800-6f7d79bd93cd
+    510: 7a0953e8-1539-4b74-8fbf-e88964031eb8
+    511: 16190303-66aa-4343-a440-0676453eb45c
+    512: 34e11e35-16bd-4e17-80e9-3e17e61fae2b
 
 To terminate the optimization, the following command is used.
 
@@ -227,10 +227,10 @@ The workers are terminated.
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat      state
-              <char> <int> <lgcl>        <char>    <lgcl>     <char>
-    1: idiosyncra...  8770  FALSE runnervmwf...     FALSE terminated
-    2: fetid_rabb...  8772  FALSE runnervmwf...     FALSE terminated
+           worker_id   pid      hostname heartbeat      state
+              <char> <int>        <char>    <lgcl>     <char>
+    1: lax_mosasa...  9718 runnervmjd...     FALSE terminated
+    2: cainophobi...  9721 runnervmjd...     FALSE terminated
 
 ### Failed Workers
 
@@ -257,34 +257,18 @@ When a worker is detected, its state is updated to `"lost"`.
 
 ``` r
 rush$detect_lost_workers()
-rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat  state
-              <char> <int> <lgcl>        <char>    <lgcl> <char>
-    1: underprivi...  8846  FALSE runnervmwf...     FALSE   lost
-    2: paleologic...  8848  FALSE runnervmwf...     FALSE   lost
-
-### Restart Workers
-
-Workers that have failed can be restarted using the `$restart_workers()`
-method. This method accepts the `worker_ids` of the workers to be
-restarted.
-
-``` r
-rush$restart_workers(worker_ids = worker_ids[1])
-```
-
-The first worker is restarted and its state is updated to `"running"`.
+    [1] "green_goose"      "contusioned_oryx"
 
 ``` r
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: underprivi...  8918  FALSE runnervmwf...     FALSE running
-    2: paleologic...  8848  FALSE runnervmwf...     FALSE    lost
+           worker_id   pid      hostname heartbeat      state
+              <char> <int>        <char>    <lgcl>     <char>
+    1: green_goos...  9794 runnervmjd...     FALSE terminated
+    2: contusione...  9797 runnervmjd...     FALSE terminated
 
 ### Log Messages
 
@@ -414,14 +398,18 @@ worker_ids = rush$start_remote_workers(
   branin = branin)
 ```
 
+    Warning:
+    ✖ $start_remote_workers() is deprecated and will be removed in the future.
+    → Class: Mlr3WarningDeprecated
+
 ``` r
 rush$worker_info
 ```
 
-           worker_id   pid remote      hostname heartbeat   state
-              <char> <int> <lgcl>        <char>    <lgcl>  <char>
-    1: microphysi...  9070   TRUE runnervmwf...     FALSE running
-    2: craven_hoo...  9072   TRUE runnervmwf...     FALSE running
+           worker_id   pid      hostname heartbeat   state
+              <char> <int>        <char>    <lgcl>  <char>
+    1: bellicose_...  9982 runnervmjd...     FALSE running
+    2: unpretenti...  9984 runnervmjd...     FALSE running
 
 We stop the daemons.
 
@@ -460,18 +448,14 @@ worker_ids = rush$start_remote_workers(
 rush$detect_lost_workers()
 ```
 
+    [1] "expert_americancreamdraft" "phantasmagorial_morayeel" 
+
 A segmentation fault also terminates the associated `mirai` daemon.
 Therefore, it is necessary to restart the daemon before restarting the
 workers.
 
 ``` r
 daemons(2)
-```
-
-Workers can then be restarted using the `$restart_workers()` method.
-
-``` r
-rush$restart_workers(worker_ids)
 ```
 
 ## Script Workers

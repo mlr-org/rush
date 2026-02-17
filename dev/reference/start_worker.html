@@ -71,7 +71,6 @@ This function is called by <code>$start_local_workers()</code> or by the user af
 <span>  worker_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">network_id</span>,</span>
 <span>  config <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  remote <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -94,18 +93,13 @@ Keys in redis specific to the worker are prefixed with the worker id.</p></dd>
 <dt id="arg-network-id">network_id<a class="anchor" aria-label="anchor" href="#arg-network-id"></a></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.</p></dd>
 
 
 <dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Configuration for the Redis connection.</p></dd>
-
-
-<dt id="arg-remote">remote<a class="anchor" aria-label="anchor" href="#arg-remote"></a></dt>
-<dd><p>(<code>logical(1)</code>)<br>
-Whether the worker is on a remote machine.</p></dd>
 
 
 <dt id="arg-lgr-thresholds">lgr_thresholds<a class="anchor" aria-label="anchor" href="#arg-lgr-thresholds"></a></dt>
@@ -163,7 +157,6 @@ The function initialize the <a href="RushWorker.html">RushWorker</a> instance an
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span>  <span class="fu">rush</span><span class="fu">::</span><span class="fu">start_worker</span><span class="op">(</span></span></span>
 <span class="r-in"><span>   network_id <span class="op">=</span> <span class="st">'test-rush'</span>,</span></span>
-<span class="r-in"><span>   remote <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>   url <span class="op">=</span> <span class="st">'redis://127.0.0.1:6379'</span>,</span></span>
 <span class="r-in"><span>   scheme <span class="op">=</span> <span class="st">'redis'</span>,</span></span>
 <span class="r-in"><span>   host <span class="op">=</span> <span class="st">'127.0.0.1'</span>,</span></span>

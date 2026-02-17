@@ -1,32 +1,130 @@
-# Rush Controller
+# Rush Manager
 
-The `Rush` controller manages workers in a rush network.
+The `Rush` manager is responsible for starting, observing, and stopping
+workers within a rush network. It is initialized using the
+[`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) function, which
+requires a network ID and a config argument. The config argument is a
+configuration used to connect to the Redis database via the
+[redux](https://CRAN.R-project.org/package=redux) package.
 
 ## Value
 
 Object of class
-[R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) and `Rush`
-with controller methods.
+[R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) and `Rush`.
 
-## Local Workers
+## Tasks
 
-A local worker runs on the same machine as the controller. Local workers
-are spawned with the \`\$start_local_workers() method via the
-[processx](https://CRAN.R-project.org/package=processx) package.
+Tasks are the unit in which workers exchange information. The main
+components of a task are the key, computational state, input (`xs`), and
+output (`ys`). The key is a unique identifier for the task in the Redis
+database. The four possible computational states are `"running"`,
+`"finished"`, `"failed"`, and `"queued"`. The input `xs` and output `ys`
+are lists that can contain arbitrary data.
 
-## Remote Workers
+Methods to create a task:
 
-A remote worker runs on a different machine than the controller. Remote
-workers are spawned with the \`\$start_remote_workers() method via the
-[mirai](https://CRAN.R-project.org/package=mirai) package.
+- `$push_running_tasks(xss)`: Create running tasks
 
-## Script Workers
+- `$push_finished_tasks(xss, yss)`: Create finished tasks.
 
-Workers can be started with a script anywhere. The only requirement is
-that the worker can connect to the Redis database. The script is created
-with the `$worker_script()` method.
+- `$push_failed_tasks(xss, conditions)`: Create failed tasks.
+
+- `$push_tasks(xss)`: Create queued tasks.
+
+These methods return the key of the created tasks. The methods work on
+multiple tasks at once, so `xss` and `yss` are lists of inputs and
+outputs.
+
+Methods to change the state of an existing task:
+
+- `$finish_tasks(keys, yss)`: Save the output of tasks and mark them as
+  finished.
+
+- `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
+  save the condition objects.
+
+- `$pop_task()`: Pop a task from the queue and mark it as running.
+
+The following methods are used to fetch tasks:
+
+- `$fetch_tasks()`: Fetch all tasks.
+
+- `$fetch_finished_tasks()`: Fetch finished tasks.
+
+- `$fetch_failed_tasks()`: Fetch failed tasks.
+
+- `$fetch_tasks_with_state()`: Fetch tasks with different states at
+  once.
+
+- `$fetch_new_tasks()`: Fetch new tasks and optionally block until new
+  tasks are available.
+
+The methods return a `data.table()` with the tasks.
+
+Tasks have the following fields:
+
+- `xs`: The input of the task.
+
+- `ys`: The output of the task.
+
+- `xs_extra`: Metadata created when creating the task.
+
+- `ys_extra`: Metadata created when finishing the task.
+
+- `condition`: Condition object when the task failed.
+
+- `worker_id`: The id of the worker that created the task.
+
+## Workers
+
+Workers are spawned with the `$start_workers()` method on `mirai`
+daemons. Use
+[`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html) to
+start daemons. Workers can be started on the
+
+- [local
+  machine](https://mirai.r-lib.org/articles/mirai.html#local-daemons),
+
+- [remote
+  machine](https://mirai.r-lib.org/articles/mirai.html#remote-daemons---ssh-direct)
+
+- or [HPC
+  cluster](https://mirai.r-lib.org/articles/mirai.html#hpc-clusters)
+  using the [mirai](https://CRAN.R-project.org/package=mirai) package.
+
+Alternatively, workers can be started locally with the
+`$start_local_workers()` method via the
+[processx](https://CRAN.R-project.org/package=processx) package. Or a
+help script can be generated with the `$worker_script()` method that can
+be run anywhere. The only requirement is that the worker can connect to
+the Redis database.
+
+## Worker Loop
+
+The worker loop is the main function that is run on the workers. It is
+defined by the user and is passed to the `$start_workers()` method.
+
+## Debugging
+
+The [`mirai::mirai`](https://mirai.r-lib.org/reference/mirai.html)
+objects started with `$start_workers()` are stored in
+`$processes_mirai`. Standard output and error of the workers ca be
+written to log files with the `message_log` and `output_log` arguments
+of `$start_workers()`.
 
 ## Public fields
+
+- `processes_processx`:
+
+  ([processx::process](http://processx.r-lib.org/reference/process.md))  
+  List of processes started with `$start_local_workers()`.
+
+- `processes_mirai`:
+
+  ([mirai::mirai](https://mirai.r-lib.org/reference/mirai.html))  
+  List of mirai processes started with `$start_remote_workers()`.
+
+## Active bindings
 
 - `network_id`:
 
@@ -43,18 +141,6 @@ with the `$worker_script()` method.
   ([redux::redis_api](https://richfitz.github.io/redux/reference/redis_api.html))  
   Returns a connection to Redis.
 
-- `processes_processx`:
-
-  ([processx::process](http://processx.r-lib.org/reference/process.md))  
-  List of processes started with `$start_local_workers()`.
-
-- `processes_mirai`:
-
-  ([mirai::mirai](https://mirai.r-lib.org/reference/mirai.html))  
-  List of mirai processes started with `$start_remote_workers()`.
-
-## Active bindings
-
 - `n_workers`:
 
   (`integer(1)`)  
@@ -70,22 +156,6 @@ with the `$worker_script()` method.
   (`integer(1)`)  
   Number of terminated workers.
 
-- `n_killed_workers`:
-
-  (`integer(1)`)  
-  Number of killed workers.
-
-- `n_lost_workers`:
-
-  (`integer(1)`)  
-  Number of lost workers. Run `$detect_lost_workers()` to update the
-  number of lost workers.
-
-- `n_pre_workers`:
-
-  (`integer(1)`)  
-  Number of workers that are not yet completely started.
-
 - `worker_ids`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
@@ -100,21 +170,6 @@ with the `$worker_script()` method.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Ids of terminated workers.
-
-- `killed_worker_ids`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Ids of killed workers.
-
-- `lost_worker_ids`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Ids of lost workers.
-
-- `pre_worker_ids`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Ids of workers that are not yet completely started.
 
 - `tasks`:
 
@@ -146,11 +201,6 @@ with the `$worker_script()` method.
   (`integer(1)`)  
   Number of queued tasks.
 
-- `n_queued_priority_tasks`:
-
-  (`integer(1)`)  
-  Number of queued priority tasks.
-
 - `n_running_tasks`:
 
   (`integer(1)`)  
@@ -176,41 +226,6 @@ with the `$worker_script()` method.
   ([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))  
   Contains information about the workers.
 
-- `worker_states`:
-
-  ([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))  
-  Contains the states of the workers.
-
-- `all_workers_terminated`:
-
-  (`logical(1)`)  
-  Whether all workers are terminated.
-
-- `all_workers_lost`:
-
-  (`logical(1)`)  
-  Whether all workers are lost. Runs `$detect_lost_workers()` to detect
-  lost workers.
-
-- `priority_info`:
-
-  ([data.table::data.table](https://rdrr.io/pkg/data.table/man/data.table.html))  
-  Contains the number of tasks in the priority queues.
-
-- `snapshot_schedule`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Set a snapshot schedule to periodically save the data base on disk.
-  For example, `c(60, 1000)` saves the data base every 60 seconds if
-  there are at least 1000 changes. Overwrites the redis configuration
-  file. Set to `NULL` to disable snapshots. For more details see
-  [redis.io](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/).
-
-- `redis_info`:
-
-  ([`list()`](https://rdrr.io/r/base/list.html))  
-  Information about the Redis server.
-
 ## Methods
 
 ### Public methods
@@ -223,13 +238,13 @@ with the `$worker_script()` method.
 
 - [`Rush$reconnect()`](#method-Rush-reconnect)
 
+- [`Rush$start_workers()`](#method-Rush-start_workers)
+
 - [`Rush$start_local_workers()`](#method-Rush-start_local_workers)
 
 - [`Rush$start_remote_workers()`](#method-Rush-start_remote_workers)
 
 - [`Rush$worker_script()`](#method-Rush-worker_script)
-
-- [`Rush$restart_workers()`](#method-Rush-restart_workers)
 
 - [`Rush$wait_for_workers()`](#method-Rush-wait_for_workers)
 
@@ -239,41 +254,41 @@ with the `$worker_script()` method.
 
 - [`Rush$reset()`](#method-Rush-reset)
 
-- [`Rush$reset_data()`](#method-Rush-reset_data)
-
 - [`Rush$read_log()`](#method-Rush-read_log)
 
 - [`Rush$print_log()`](#method-Rush-print_log)
 
+- [`Rush$pop_task()`](#method-Rush-pop_task)
+
+- [`Rush$finish_tasks()`](#method-Rush-finish_tasks)
+
+- [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
+
 - [`Rush$push_tasks()`](#method-Rush-push_tasks)
 
-- [`Rush$push_priority_tasks()`](#method-Rush-push_priority_tasks)
-
-- [`Rush$push_failed()`](#method-Rush-push_failed)
+- [`Rush$push_running_tasks()`](#method-Rush-push_running_tasks)
 
 - [`Rush$push_finished_tasks()`](#method-Rush-push_finished_tasks)
 
+- [`Rush$push_failed_tasks()`](#method-Rush-push_failed_tasks)
+
 - [`Rush$empty_queue()`](#method-Rush-empty_queue)
-
-- [`Rush$fetch_queued_tasks()`](#method-Rush-fetch_queued_tasks)
-
-- [`Rush$fetch_priority_tasks()`](#method-Rush-fetch_priority_tasks)
-
-- [`Rush$fetch_running_tasks()`](#method-Rush-fetch_running_tasks)
-
-- [`Rush$fetch_finished_tasks()`](#method-Rush-fetch_finished_tasks)
-
-- [`Rush$wait_for_finished_tasks()`](#method-Rush-wait_for_finished_tasks)
-
-- [`Rush$fetch_new_tasks()`](#method-Rush-fetch_new_tasks)
-
-- [`Rush$wait_for_new_tasks()`](#method-Rush-wait_for_new_tasks)
-
-- [`Rush$fetch_failed_tasks()`](#method-Rush-fetch_failed_tasks)
 
 - [`Rush$fetch_tasks()`](#method-Rush-fetch_tasks)
 
+- [`Rush$fetch_queued_tasks()`](#method-Rush-fetch_queued_tasks)
+
+- [`Rush$fetch_running_tasks()`](#method-Rush-fetch_running_tasks)
+
+- [`Rush$fetch_failed_tasks()`](#method-Rush-fetch_failed_tasks)
+
+- [`Rush$fetch_finished_tasks()`](#method-Rush-fetch_finished_tasks)
+
 - [`Rush$fetch_tasks_with_state()`](#method-Rush-fetch_tasks_with_state)
+
+- [`Rush$fetch_new_tasks()`](#method-Rush-fetch_new_tasks)
+
+- [`Rush$reset_cache()`](#method-Rush-reset_cache)
 
 - [`Rush$wait_for_tasks()`](#method-Rush-wait_for_tasks)
 
@@ -289,6 +304,10 @@ with the `$worker_script()` method.
 
 - [`Rush$tasks_with_state()`](#method-Rush-tasks_with_state)
 
+- [`Rush$push_results()`](#method-Rush-push_results)
+
+- [`Rush$push_failed()`](#method-Rush-push_failed)
+
 - [`Rush$clone()`](#method-Rush-clone)
 
 ------------------------------------------------------------------------
@@ -300,15 +319,15 @@ Creates a new instance of this
 
 #### Usage
 
-    Rush$new(network_id = NULL, config = NULL, seed = NULL)
+    Rush$new(network_id = NULL, config = NULL)
 
 #### Arguments
 
 - `network_id`:
 
   (`character(1)`)  
-  Identifier of the rush network. Controller and workers must have the
-  same instance id. Keys in Redis are prefixed with the instance id.
+  Identifier of the rush network. Manager and workers must have the same
+  id. Keys in Redis are prefixed with the instance id.
 
 - `config`:
 
@@ -321,14 +340,6 @@ Creates a new instance of this
   If `REDIS_URL` is not set, a default configuration is used. See
   [redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html)
   for details.
-
-- `seed`:
-
-  ([`integer()`](https://rdrr.io/r/base/integer.html))  
-  Initial seed for the random number generator. Either a L'Ecuyer-CMRG
-  seed (`integer(7)`) or a regular RNG seed (`integer(1)`). The later is
-  converted to a L'Ecuyer-CMRG seed. If `NULL`, no seed is used for the
-  random number generator.
 
 ------------------------------------------------------------------------
 
@@ -377,15 +388,85 @@ to disk. Call this method to reconnect after loading the object.
 
 ------------------------------------------------------------------------
 
+### Method `start_workers()`
+
+Start workers to run the worker loop in
+[`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
+Initializes a
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) in
+each process and starts the worker loop.
+
+#### Usage
+
+    Rush$start_workers(
+      worker_loop,
+      ...,
+      n_workers = NULL,
+      packages = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = NULL,
+      message_log = NULL,
+      output_log = NULL
+    )
+
+#### Arguments
+
+- `worker_loop`:
+
+  (`function`)  
+  Loop run on the workers.
+
+- `...`:
+
+  (`any`)  
+  Arguments passed to `worker_loop`.
+
+- `n_workers`:
+
+  (`integer(1)`)  
+  Number of workers to be started.
+
+- `packages`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Packages to be loaded by the workers.
+
+- `lgr_thresholds`:
+
+  (named [`character()`](https://rdrr.io/r/base/character.html) \| named
+  [`numeric()`](https://rdrr.io/r/base/numeric.html))  
+  Logger threshold on the workers e.g. `c("mlr3/rush" = "debug")`.
+
+- `lgr_buffer_size`:
+
+  (`integer(1)`)  
+  By default (`lgr_buffer_size = 0`), the log messages are directly
+  saved in the Redis data store. If `lgr_buffer_size > 0`, the log
+  messages are buffered and saved in the Redis data store when the
+  buffer is full. This improves the performance of the logging.
+
+- `message_log`:
+
+  (`character(1)`)  
+  Path to the message log files e.g. `/tmp/message_logs/` The message
+  log files are named `message_<worker_id>.log`. If `NULL`, no messages,
+  warnings or errors are stored.
+
+- `output_log`:
+
+  (`character(1)`)  
+  Path to the output log files e.g. `/tmp/output_logs/` The output log
+  files are named `output_<worker_id>.log`. If `NULL`, no output is
+  stored.
+
+------------------------------------------------------------------------
+
 ### Method `start_local_workers()`
 
-Start workers locally with `processx`. The
-[processx::process](http://processx.r-lib.org/reference/process.md) are
-stored in `$processes_processx`. Alternatively, use
-`$start_remote_workers()` to start workers on remote machines with
-`mirai`. Parameters set by
-[`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
-have precedence over the parameters set here.
+Start workers locally with `processx`. Initializes a
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) in
+each process and starts the worker loop. Use `$wait_for_workers()` to
+wait until the workers are registered in the network.
 
 #### Usage
 
@@ -416,12 +497,7 @@ have precedence over the parameters set here.
 - `n_workers`:
 
   (`integer(1)`)  
-  Number of workers to be started. Default is `NULL`, which means the
-  number of workers is set by
-  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md).
-  If
-  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
-  is not called, the default is `1`.
+  Number of workers to be started.
 
 - `packages`:
 
@@ -465,11 +541,11 @@ have precedence over the parameters set here.
 
 ### Method `start_remote_workers()`
 
-Start workers on remote machines with `mirai`. The
-[mirai::mirai](https://mirai.r-lib.org/reference/mirai.html) are stored
-in `$processes_mirai`. Parameters set by
-[`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
-have precedence over the parameters set here.
+Start workers to run the worker loop in
+[`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
+Initializes a
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) in
+each process and starts the worker loop.
 
 #### Usage
 
@@ -499,12 +575,7 @@ have precedence over the parameters set here.
 - `n_workers`:
 
   (`integer(1)`)  
-  Number of workers to be started. Default is `NULL`, which means the
-  number of workers is set by
-  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md).
-  If
-  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
-  is not called, the default is `1`.
+  Number of workers to be started.
 
 - `packages`:
 
@@ -543,7 +614,8 @@ have precedence over the parameters set here.
 
 ### Method `worker_script()`
 
-Generate a script to start workers.
+Generate a script to start workers. Run this script `n` times to start
+`n` workers.
 
 #### Usage
 
@@ -618,29 +690,6 @@ Generate a script to start workers.
 
 ------------------------------------------------------------------------
 
-### Method `restart_workers()`
-
-Restart workers. If the worker is is still running, it is killed and
-restarted.
-
-#### Usage
-
-    Rush$restart_workers(worker_ids, supervise = TRUE)
-
-#### Arguments
-
-- `worker_ids`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Worker ids to be restarted.
-
-- `supervise`:
-
-  (`logical(1)`)  
-  Whether to kill the workers when the main R process is shut down.
-
-------------------------------------------------------------------------
-
 ### Method `wait_for_workers()`
 
 Wait until workers are registered in the network. Either `n`,
@@ -692,25 +741,23 @@ Stop workers.
 - `worker_ids`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Worker ids to be stopped. Remote workers must all be killed together.
-  If `NULL` all workers are stopped.
+  Worker ids to be stopped. If `NULL` all workers are stopped.
 
 ------------------------------------------------------------------------
 
 ### Method `detect_lost_workers()`
 
-Detect lost workers. The state of the worker is changed to `"lost"`.
+Detect lost workers. The state of the worker is changed to
+`"terminated"`.
 
 #### Usage
 
-    Rush$detect_lost_workers(restart_local_workers = FALSE)
+    Rush$detect_lost_workers()
 
-#### Arguments
+#### Returns
 
-- `restart_local_workers`:
-
-  (`logical(1)`)  
-  Whether to restart lost workers. Ignored for remote workers.
+([`character()`](https://rdrr.io/r/base/character.html))  
+Worker ids of detected lost workers.
 
 ------------------------------------------------------------------------
 
@@ -720,33 +767,21 @@ Stop workers and delete data stored in redis.
 
 #### Usage
 
-    Rush$reset(type = "kill")
+    Rush$reset(workers = TRUE)
 
 #### Arguments
 
-- `type`:
+- `workers`:
 
-  (`character(1)`)  
-  Type of stopping. Either `"terminate"` or `"kill"`. If `"terminate"`
-  the workers evaluate the currently running task and then terminate. If
-  `"kill"` the workers are stopped immediately.
-
-------------------------------------------------------------------------
-
-### Method `reset_data()`
-
-Reset the data stored in the Redis database. This is useful to remove
-all tasks but keep the workers.
-
-#### Usage
-
-    Rush$reset_data()
+  (`logical(1)`)  
+  Whether to stop the workers or only delete the data. Default is
+  `TRUE`.
 
 ------------------------------------------------------------------------
 
 ### Method `read_log()`
 
-Read log messages written with the `lgr` package from a worker.
+Read log messages written with the `lgr` package by the workers.
 
 #### Usage
 
@@ -756,8 +791,8 @@ Read log messages written with the `lgr` package from a worker.
 
 - `worker_ids`:
 
-  (`character(1)`)  
-  Worker ids. If `NULL` all worker ids are used.
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Worker ids to be read log messages from. Defaults to all worker ids.
 
 - `time_difference`:
 
@@ -766,36 +801,116 @@ Read log messages written with the `lgr` package from a worker.
 
 #### Returns
 
-([`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html))
-with level, timestamp, logger, caller and message, and optionally time
-difference.
+`data.table()`  
+Table with level, timestamp, logger, caller and message, and optionally
+time difference.
 
 ------------------------------------------------------------------------
 
 ### Method `print_log()`
 
-Print log messages written with the `lgr` package from a worker.
+Print log messages written with the `lgr` package by the workers. Log
+messages are printed with the original logger.
 
 #### Usage
 
     Rush$print_log()
 
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### Method `pop_task()`
+
+Pop a task from the queue and mark it as running.
+
+#### Usage
+
+    Rush$pop_task(timeout = 1, fields = "xs")
+
+#### Arguments
+
+- `timeout`:
+
+  (`numeric(1)`)  
+  Time to wait for task in seconds.
+
+- `fields`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Fields to be returned.
+
+------------------------------------------------------------------------
+
+### Method `finish_tasks()`
+
+Save output of tasks and mark them as finished.
+
+#### Usage
+
+    Rush$finish_tasks(keys, yss, extra = NULL)
+
+#### Arguments
+
+- `keys`:
+
+  (`character(1)`)  
+  Keys of the associated tasks.
+
+- `yss`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of named results.
+
+- `extra`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of additional information stored along with the results.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### Method `fail_tasks()`
+
+Mark tasks as failed and optionally save the condition objects
+
+#### Usage
+
+    Rush$fail_tasks(keys, conditions = NULL)
+
+#### Arguments
+
+- `keys`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Keys of the tasks to be moved. Defaults to all queued tasks.
+
+- `conditions`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of conditions. Defaults to `list(message = "Failed")`.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
 ------------------------------------------------------------------------
 
 ### Method `push_tasks()`
 
-Pushes a task to the queue. Task is added to queued tasks.
+Create queued tasks and add them to the queue.
 
 #### Usage
 
-    Rush$push_tasks(
-      xss,
-      extra = NULL,
-      seeds = NULL,
-      timeouts = NULL,
-      max_retries = NULL,
-      terminate_workers = FALSE
-    )
+    Rush$push_tasks(xss, extra = NULL)
 
 #### Arguments
 
@@ -811,32 +926,6 @@ Pushes a task to the queue. Task is added to queued tasks.
   List of additional information stored along with the task e.g.
   `list(list(timestamp), list(timestamp)))`.
 
-- `seeds`:
-
-  ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of L'Ecuyer-CMRG seeds for each task e.g
-  `list(list(c(104071, 490840688, 1690070564, -495119766, 503491950, 1801530932, -1629447803)))`.
-  If `NULL` but an initial seed is set, L'Ecuyer-CMRG seeds are
-  generated from the initial seed. If `NULL` and no initial seed is set,
-  no seeds are used for the random number generator.
-
-- `timeouts`:
-
-  ([`integer()`](https://rdrr.io/r/base/integer.html))  
-  Timeouts for each task in seconds e.g. `c(10, 15)`. A single number is
-  used as the timeout for all tasks. If `NULL` no timeout is set.
-
-- `max_retries`:
-
-  ([`integer()`](https://rdrr.io/r/base/integer.html))  
-  Number of retries for each task. A single number is used as the number
-  of retries for all tasks. If `NULL` tasks are not retried.
-
-- `terminate_workers`:
-
-  (`logical(1)`)  
-  Whether to stop the workers after evaluating the tasks.
-
 #### Returns
 
 ([`character()`](https://rdrr.io/r/base/character.html))  
@@ -844,17 +933,13 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_priority_tasks()`
+### Method `push_running_tasks()`
 
-Pushes a task to the queue of a specific worker. Task is added to queued
-priority tasks. A worker evaluates the tasks in the priority queue
-before the shared queue. If `priority` is `NA` the task is added to the
-shared queue. If the worker is lost or worker id is not known, the task
-is added to the shared queue.
+Create running tasks.
 
 #### Usage
 
-    Rush$push_priority_tasks(xss, extra = NULL, priority = NULL)
+    Rush$push_running_tasks(xss, extra = NULL)
 
 #### Arguments
 
@@ -870,11 +955,6 @@ is added to the shared queue.
   List of additional information stored along with the task e.g.
   `list(list(timestamp), list(timestamp)))`.
 
-- `priority`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Worker ids to which the tasks should be pushed.
-
 #### Returns
 
 ([`character()`](https://rdrr.io/r/base/character.html))  
@@ -882,33 +962,10 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_failed()`
-
-Pushes failed tasks to the data base. Tasks are moved from queued and
-running to failed.
-
-#### Usage
-
-    Rush$push_failed(keys, conditions)
-
-#### Arguments
-
-- `keys`:
-
-  (`character(1)`)  
-  Keys of the associated tasks.
-
-- `conditions`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions.
-
-------------------------------------------------------------------------
-
 ### Method `push_finished_tasks()`
 
-Pushes finished tasks to the data base. Tasks are moved from running to
-finished.
+Create finished tasks. See `$finish_tasks()` for moving existing tasks
+from running to finished.
 
 #### Usage
 
@@ -947,9 +1004,45 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
+### Method `push_failed_tasks()`
+
+Create failed tasks. See `$fail_tasks()` for moving existing tasks from
+queued and running to failed.
+
+#### Usage
+
+    Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)
+
+#### Arguments
+
+- `xss`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  Lists of arguments for the function e.g.
+  `list(list(x1, x2), list(x1, x2)))`.
+
+- `xss_extra`:
+
+  (`list`)  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp), list(timestamp)))`.
+
+- `conditions`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of conditions.
+
+#### Returns
+
+([`character()`](https://rdrr.io/r/base/character.html))  
+Keys of the tasks.
+
+------------------------------------------------------------------------
+
 ### Method `empty_queue()`
 
-Empty the queue of tasks. Moves tasks from queued to failed.
+Remove all tasks from the queue. The state of the tasks is set to
+failed.
 
 #### Usage
 
@@ -966,6 +1059,36 @@ Empty the queue of tasks. Moves tasks from queued to failed.
 
   (named [`list()`](https://rdrr.io/r/base/list.html))  
   List of lists of conditions.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### Method `fetch_tasks()`
+
+Fetch all tasks from the data base.
+
+#### Usage
+
+    Rush$fetch_tasks(
+      fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")
+    )
+
+#### Arguments
+
+- `fields`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Fields to be read from the hashes. Defaults to
+  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")`.
+
+#### Returns
+
+`data.table()`  
+Table of all tasks.
 
 ------------------------------------------------------------------------
 
@@ -991,35 +1114,13 @@ Table of queued tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_priority_tasks()`
-
-Fetch queued priority tasks from the data base.
-
-#### Usage
-
-    Rush$fetch_priority_tasks(fields = c("xs", "xs_extra"))
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to `c("xs", "xs_extra")`.
-
-#### Returns
-
-`data.table()`  
-Table of queued priority tasks.
-
-------------------------------------------------------------------------
-
 ### Method `fetch_running_tasks()`
 
 Fetch running tasks from the data base.
 
 #### Usage
 
-    Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_extra"))
+    Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_id"))
 
 #### Arguments
 
@@ -1027,12 +1128,35 @@ Fetch running tasks from the data base.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra")`.
+  `c("xs", "xs_extra", "worker_id")`.
 
 #### Returns
 
 `data.table()`  
 Table of running tasks.
+
+------------------------------------------------------------------------
+
+### Method `fetch_failed_tasks()`
+
+Fetch failed tasks from the data base.
+
+#### Usage
+
+    Rush$fetch_failed_tasks(fields = c("xs", "xs_extra", "worker_id", "condition"))
+
+#### Arguments
+
+- `fields`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Fields to be read from the hashes. Defaults to
+  `c("xs", "xs_extra", "worker_id", "condition"`.
+
+#### Returns
+
+`data.table()`  
+Table of failed tasks.
 
 ------------------------------------------------------------------------
 
@@ -1043,8 +1167,7 @@ Fetch finished tasks from the data base. Finished tasks are cached.
 #### Usage
 
     Rush$fetch_finished_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      reset_cache = FALSE
+      fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")
     )
 
 #### Arguments
@@ -1053,154 +1176,12 @@ Fetch finished tasks from the data base. Finished tasks are cached.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
-
-- `reset_cache`:
-
-  (`logical(1)`)  
-  Whether to reset the cache.
+  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra")`.
 
 #### Returns
 
 `data.table()`  
 Table of finished tasks.
-
-------------------------------------------------------------------------
-
-### Method `wait_for_finished_tasks()`
-
-Block process until a new finished task is available. Returns all
-finished tasks or `NULL` if no new task is available after `timeout`
-seconds.
-
-#### Usage
-
-    Rush$wait_for_finished_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra"),
-      timeout = Inf
-    )
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
-
-- `timeout`:
-
-  (`numeric(1)`)  
-  Time to wait for a result in seconds.
-
-#### Returns
-
-`data.table()`  
-Table of finished tasks.
-
-------------------------------------------------------------------------
-
-### Method `fetch_new_tasks()`
-
-Fetch finished tasks from the data base that finished after the last
-fetch. Updates the cache of the finished tasks.
-
-#### Usage
-
-    Rush$fetch_new_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
-    )
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes.
-
-#### Returns
-
-`data.table()`  
-Latest results.
-
-------------------------------------------------------------------------
-
-### Method `wait_for_new_tasks()`
-
-Block process until a new finished task is available. Returns new tasks
-or `NULL` if no new task is available after `timeout` seconds.
-
-#### Usage
-
-    Rush$wait_for_new_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      timeout = Inf
-    )
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra")`.
-
-- `timeout`:
-
-  (`numeric(1)`)  
-  Time to wait for new result in seconds.
-
-#### Returns
-
-`data.table()`.
-
-------------------------------------------------------------------------
-
-### Method `fetch_failed_tasks()`
-
-Fetch failed tasks from the data base.
-
-#### Usage
-
-    Rush$fetch_failed_tasks(fields = c("xs", "worker_extra", "condition"))
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra", "condition"`.
-
-#### Returns
-
-`data.table()`  
-Table of failed tasks.
-
-------------------------------------------------------------------------
-
-### Method `fetch_tasks()`
-
-Fetch all tasks from the data base.
-
-#### Usage
-
-    Rush$fetch_tasks(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition")
-    )
-
-#### Arguments
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_extra", "ys", "ys_extra", "condition", "state")`.
-
-#### Returns
-
-`data.table()`  
-Table of all tasks.
 
 ------------------------------------------------------------------------
 
@@ -1215,9 +1196,8 @@ tasks are cached.
 #### Usage
 
     Rush$fetch_tasks_with_state(
-      fields = c("xs", "ys", "xs_extra", "worker_extra", "ys_extra", "condition"),
-      states = c("queued", "running", "finished", "failed"),
-      reset_cache = FALSE
+      fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition"),
+      states = c("queued", "running", "finished", "failed")
     )
 
 #### Arguments
@@ -1226,7 +1206,7 @@ tasks are cached.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "ys", "xs_extra", "worker_extra", "ys_extra")`.
+  `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`.
 
 - `states`:
 
@@ -1234,10 +1214,52 @@ tasks are cached.
   States of the tasks to be fetched. Defaults to
   `c("queued", "running", "finished", "failed")`.
 
-- `reset_cache`:
+------------------------------------------------------------------------
 
-  (`logical(1)`)  
-  Whether to reset the cache of the finished tasks.
+### Method `fetch_new_tasks()`
+
+Fetch new tasks that finished after the last call of this function.
+Updates the cache of the finished tasks. If `timeout` is set, blocks
+until new tasks are available or the timeout is reached.
+
+#### Usage
+
+    Rush$fetch_new_tasks(
+      fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition"),
+      timeout = 0
+    )
+
+#### Arguments
+
+- `fields`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Fields to be read from the hashes.
+
+- `timeout`:
+
+  (`numeric(1)`)  
+  Time to wait for new results in seconds. Defaults to `0` (no waiting).
+
+#### Returns
+
+`data.table()`  
+Table of latest results.
+
+------------------------------------------------------------------------
+
+### Method `reset_cache()`
+
+Reset the cache of the finished tasks.
+
+#### Usage
+
+    Rush$reset_cache()
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
 
 ------------------------------------------------------------------------
 
@@ -1434,6 +1456,65 @@ Returns keys of requested states.
 
 ------------------------------------------------------------------------
 
+### Method `push_results()`
+
+Deprecated method. Use `$finish_tasks()` instead.
+
+#### Usage
+
+    Rush$push_results(keys, yss, extra = NULL)
+
+#### Arguments
+
+- `keys`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Keys of the associated tasks.
+
+- `yss`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of named results.
+
+- `extra`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of additional information stored along with the results.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### Method `push_failed()`
+
+Deprecated method. Use `$fail_tasks()` instead.
+
+#### Usage
+
+    Rush$push_failed(keys, conditions)
+
+#### Arguments
+
+- `keys`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Keys of the associated tasks.
+
+- `conditions`:
+
+  ([`list()`](https://rdrr.io/r/base/list.html))  
+  List of conditions.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
 ### Method `clone()`
 
 The objects of this class are cloneable with this method.
@@ -1453,15 +1534,15 @@ The objects of this class are cloneable with this method.
 ``` r
 # This example is not executed since Redis must be installed
 # \donttest{
-   config_local = redux::redis_config()
-   rush = rsh(network_id = "test_network", config = config_local)
-   rush
-#> <Rush>
-#> * Running Workers: 0
-#> * Queued Tasks: 0
-#> * Queued Priority Tasks: 0
-#> * Running Tasks: 0
-#> * Finished Tasks: 0
-#> * Failed Tasks: 0
+config_local = redux::redis_config()
+rush = rsh(network_id = "test_network", config = config_local)
+rush
+#> 
+#> ── <Rush> ──────────────────────────────────────────────────────────────────────
+#> • Running Workers: 0
+#> • Queued Tasks: 0
+#> • Running Tasks: 0
+#> • Finished Tasks: 0
+#> • Failed Tasks: 0
 # }
 ```

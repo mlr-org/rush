@@ -51,6 +51,16 @@ pak::pak("mlr-org/rush")
 And install
 [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/).
 
+## Test with Redis
+
+To test the package, set the `RUSH_TEST_USE_REDIS` environment variable
+to `true`. The test suite deletes the Redis database before execution,
+so never run it against a production server.
+
+``` r
+Sys.setenv(RUSH_TEST_USE_REDIS = "true")
+```
+
 # Related Work
 
 - The [rrq](https://github.com/mrc-ide/rrq) package is a task queue
