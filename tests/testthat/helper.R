@@ -87,5 +87,5 @@ segfault_worker_loop = function(rush) {
   xs = list(x1 = 1, x2 = 2)
   rush$push_running_tasks(list(xs))
   Sys.sleep(1)
-  get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  tools::pskill(Sys.getpid(), tools::SIGKILL)
 }

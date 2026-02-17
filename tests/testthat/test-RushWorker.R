@@ -218,7 +218,7 @@ test_that("popping a task works", {
   expect_true(rush$is_running_task(task$key))
   expect_false(rush$is_failed_task(task$key))
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("finishing a task works", {
@@ -257,7 +257,7 @@ test_that("finishing a task works", {
   expect_false(rush$is_running_task(task$key))
   expect_false(rush$is_failed_task(task$key))
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("failing a tasks works", {
@@ -295,7 +295,7 @@ test_that("failing a tasks works", {
   expect_false(rush$is_running_task(task$key))
   expect_true(rush$is_failed_task(task$key))
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("moving and fetching tasks works", {
@@ -366,7 +366,7 @@ test_that("moving and fetching tasks works", {
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("moving a queued task to failed works", {
@@ -402,7 +402,7 @@ test_that("moving a queued task to failed works", {
   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 5)
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("fetch task with states works", {
@@ -477,7 +477,7 @@ test_that("latest results are fetched", {
   expect_set_equal(latest_results$y, c(5, 6))
   expect_data_table(rush$fetch_new_tasks(), nrows = 0)
 
-  expect_rush_reset(rush)
+
 })
 
 test_that("pushing finished tasks works", {

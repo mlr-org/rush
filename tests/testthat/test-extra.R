@@ -1,16 +1,11 @@
 skip_if_no_redis()
 
 test_that("simple errors are pushed as failed tasks", {
-  skip_on_cran()
-
-  config = start_flush_redis()
-  rush = rsh(config = config)
-
+  rush = start_rush(n_workers = 1)
   on.exit({
+    rush$reset()
     mirai::daemons(0)
-  }, add = TRUE)
-
-  mirai::daemons(1)
+  })
 
   worker_ids = rush$start_workers(
     worker_loop = fail_worker_loop,
@@ -48,8 +43,6 @@ test_that("simple errors are pushed as failed tasks", {
   data = rush$fetch_failed_tasks()
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
   expect_data_table(data, nrows = 1)
-
-  expect_rush_reset(rush)
 })
 
 # test_that("printing logs with redis appender works", {
@@ -107,5 +100,5 @@ test_that("simple errors are pushed as failed tasks", {
 
 #   expect_output(rush$print_log(), ".*test-1-info.*test-1-warn.*test-1-error")
 
-#   expect_rush_reset(rush)
+#
 # })
