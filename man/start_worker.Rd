@@ -8,7 +8,6 @@ start_worker(
   worker_id = NULL,
   network_id,
   config = NULL,
-  remote = TRUE,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -24,14 +23,11 @@ Keys in redis specific to the worker are prefixed with the worker id.}
 
 \item{network_id}{(\code{character(1)})\cr
 Identifier of the rush network.
-Controller and workers must have the same instance id.
+Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\code{list()})\cr
 Configuration for the Redis connection.}
-
-\item{remote}{(\code{logical(1)})\cr
-Whether the worker is on a remote machine.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
@@ -77,7 +73,6 @@ The function initialize the \link{RushWorker} instance and starts the worker loo
 \dontrun{
   rush::start_worker(
    network_id = 'test-rush',
-   remote = TRUE,
    url = 'redis://127.0.0.1:6379',
    scheme = 'redis',
    host = '127.0.0.1',

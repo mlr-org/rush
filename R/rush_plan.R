@@ -12,7 +12,7 @@
 #' See [redux::redis_config] for details.
 #' @param worker_type (`character(1)`)\cr
 #' The type of worker to use.
-#' Options are `"local"` to start with \CRANpkg{processx}, `"remote"` to use \CRANpkg{mirai} or `"script"` to get a script to run.
+#' Options are `"mirai"` to start with \CRANpkg{mirai}, `"processx"` to use \CRANpkg{processx} or `"script"` to get a script to run.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
@@ -24,11 +24,11 @@
 #' @examples
 #' # This example is not executed since Redis must be installed
 #' \donttest{
-#'    config_local = redux::redis_config()
-#'    rush_plan(config = config_local, n_workers = 2)
+#' config_local = redux::redis_config()
+#' rush_plan(config = config_local, n_workers = 2)
 #'
-#'    rush = rsh(network_id = "test_network")
-#'    rush
+#' rush = rsh(network_id = "test_network")
+#' rush
 #' }
 rush_plan = function(
   n_workers = NULL,
@@ -36,17 +36,26 @@ rush_plan = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "local"
+  worker_type = "mirai"
   ) {
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
-  assert_choice(worker_type, c("local", "remote", "script"))
+
+  if (worker_type == "local") {
+    warn_deprecated("local")
+    worker_type = "processx"
+  } else if (worker_type == "remote") {
+    warn_deprecated("remote")
+    worker_type = "mirai"
+  }
+
+  assert_choice(worker_type, c("mirai", "processx"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
-    stop("Can't connect to Redis. Check the configuration.")
+    error_config("Can't connect to Redis. Check the configuration.")
   }
   assign("n_workers", n_workers, rush_env)
   assign("config", config, rush_env)

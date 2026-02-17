@@ -1,13 +1,13 @@
-test_that("saving logs with redis appender works", {
-  skip_on_cran()
+skip_if_no_redis()
 
+test_that("saving logs with redis appender works", {
   appenders = lgr::get_logger("root")$appenders
 
   on.exit({
     lgr::get_logger("root")$set_appenders(appenders)
   })
 
-  config = start_flush_redis()
+  config = redis_configuration()
 
   key = sprintf("%s:%s:%s", "test", "worker_1", "events")
 
@@ -39,19 +39,16 @@ test_that("saving logs with redis appender works", {
   expect_data_table(tab, nrows = 2)
   expect_names(colnames(tab), identical.to =  c("level", "timestamp", "logger", "caller", "msg"))
   expect_equal(tab$msg, c("test-1", "test-2"))
-  config = start_flush_redis()
 })
 
 test_that("settings the buffer size in redis appender works", {
-  skip_on_cran()
-
   appenders = lgr::get_logger("root")$appenders
 
   on.exit({
     lgr::get_logger("root")$set_appenders(appenders)
   })
 
-  config = start_flush_redis()
+  config = redis_configuration()
 
   key = sprintf("%s:%s:%s", "test", "worker_1", "events")
 
@@ -82,15 +79,13 @@ test_that("settings the buffer size in redis appender works", {
 })
 
 test_that("R6 classes can be filtered", {
-  skip_on_cran()
-
   appenders = lgr::get_logger("root")$appenders
 
   on.exit({
     lgr::get_logger("root")$set_appenders(appenders)
   })
 
-  config = start_flush_redis()
+  config = redis_configuration()
 
   key = sprintf("%s:%s:%s", "test", "worker_1", "events")
 
@@ -101,7 +96,6 @@ test_that("R6 classes can be filtered", {
   )
 
   appender$add_filter(filter_custom_fields)
-
 
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
