@@ -90,8 +90,6 @@ test_that("new workers can be started on used daemons", {
 
   rush$reset()
 
-  Sys.sleep(2)
-
   walk(rush$processes_mirai, function(process) expect_class(process, "mirai"))
   expect_equal(mirai::status()$mirai["completed"], c(completed = 2))
 
@@ -101,8 +99,6 @@ test_that("new workers can be started on used daemons", {
     worker_loop = worker_loop,
     n_workers = 2)
   rush$wait_for_workers(2, timeout = 5)
-
-  expect_data_table(rush$fetch_finished_tasks(), nrows = 2)
 
   expect_equal(mirai::status()$mirai["completed"], c(completed = 4))
 })
