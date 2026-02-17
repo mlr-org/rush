@@ -584,6 +584,10 @@ The state of the worker is changed to \code{"terminated"}.
 \if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+(\code{character()})\cr
+Worker ids of detected lost workers.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-reset"></a>}}

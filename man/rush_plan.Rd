@@ -10,7 +10,7 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "local"
+  worker_type = "mirai"
 )
 }
 \arguments{
@@ -36,7 +36,7 @@ The path to the directory where large objects are stored.}
 
 \item{worker_type}{(\code{character(1)})\cr
 The type of worker to use.
-Options are \code{"local"} to start with \CRANpkg{processx}, \code{"remote"} to use \CRANpkg{mirai} or \code{"script"} to get a script to run.}
+Options are \code{"mirai"} to start with \CRANpkg{mirai}, \code{"processx"} to use \CRANpkg{processx} or \code{"script"} to get a script to run.}
 }
 \value{
 \code{list()} with the stored configuration.
@@ -49,10 +49,10 @@ This function is usually used in third-party packages to setup how workers are s
 \examples{
 # This example is not executed since Redis must be installed
 \donttest{
-   config_local = redux::redis_config()
-   rush_plan(config = config_local, n_workers = 2)
+config_local = redux::redis_config()
+rush_plan(config = config_local, n_workers = 2)
 
-   rush = rsh(network_id = "test_network")
-   rush
+rush = rsh(network_id = "test_network")
+rush
 }
 }

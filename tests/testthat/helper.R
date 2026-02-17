@@ -1,50 +1,42 @@
-start_flush_redis = function() {
-  config = redux::redis_config()
-  r = redux::hiredis(config)
-  r$FLUSHDB()
-  config
+mlr3misc::walk(list.files(system.file("testthat", package = "rush"), pattern = "^helper.*\\.[rR]", full.names = TRUE), source)
+
+
+wl_default = function(rush) {
+  while (TRUE) {
+    xss = list(list(x1 = runif(1, 0, 10), x2 = runif(1, 0, 10)))
+    keys = rush$push_running_tasks(xss)
+    ys = list(list(y = xss$x1 + xss$x2))
+    rush$finish_tasks(keys, yss = ys)
+    Sys.sleep(1)
+  }
+
+  NULL
 }
 
-expect_rush_reset = function(rush) {
-  remove_rush_plan()
-  processes_processx = rush$processes_processx
-  rush$reset()
-  Sys.sleep(1)
-  walk(processes_processx, function(p) p$kill())
-  mirai::daemons(0)
+wl_finished = function(rush) {
+  xss = list(list(x1 = 1, x2 = 2))
+  keys = rush$push_running_tasks(xss)
+  rush$finish_tasks(keys, yss = list(list(y = 3)))
+  NULL
 }
 
-# parses the string returned by rush$worker_script() and starts a processx process
-start_script_worker = function(script) {
-  script = sub('^Rscript\\s+-e\\s+\\"(.*)\\"$', '\\1', script, perl = TRUE)
-
-  px = processx::process$new("Rscript",
-    args = c("-e", script),
-    supervise = TRUE,
-    stderr = "|", stdout = "|")
-  px
-}
-
-queue_worker_loop = function(rush) {
-  while(!rush$terminated) {
+# pops tasks from the queue and finishes them
+wl_queue = function(rush) {
+  while (!rush$terminated) {
     task = rush$pop_task(fields = c("xs"))
     if (!is.null(task)) {
-      tryCatch({
-        fun = function(x1, x2) list(y = x1 + x2)
-        ys = mlr3misc::invoke(fun, .args = task$xs)
-        rush$finish_tasks(task$key, yss = list(ys))
-      }, error = function(e) {
-        condition = list(message = e$message)
-        rush$fail_tasks(task$key, conditions = list(condition))
-      })
+      fun = function(x1, x2) list(y = x1 + x2)
+      ys = mlr3misc::invoke(fun, .args = task$xs)
+      rush$finish_tasks(task$key, yss = list(ys))
     }
   }
 
   NULL
 }
 
-fail_worker_loop = function(rush) {
-  while(!rush$terminated) {
+# fails a task with an R error if x1 < 1
+wl_fail = function(rush) {
+  while (!rush$terminated) {
     task = rush$pop_task(fields = c("xs"))
 
     if (!is.null(task)) {
@@ -61,12 +53,13 @@ fail_worker_loop = function(rush) {
     }
   }
 
-  return(NULL)
+  NULL
 }
 
-segfault_worker_loop = function(rush) {
+# simulates a segfault by killing the worker process after adding a running task
+wl_segfault = function(rush) {
   xs = list(x1 = 1, x2 = 2)
   rush$push_running_tasks(list(xs))
   Sys.sleep(1)
-  get("attach")(structure(list(), class = "UserDefinedDatabase"))
+  tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
