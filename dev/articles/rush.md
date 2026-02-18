@@ -147,32 +147,32 @@ argument.
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-             worker_id        x1          x2           y
-                <char>     <num>       <num>       <num>
-      1: florid_leo...  9.280327  2.92918468   0.8266084
-      2: florid_leo... -2.571671  9.77902534   3.2804369
-      3: florid_leo... -2.945215 13.52660173   3.5359028
-      4: florid_leo... -2.290901  9.43949745   4.4502298
-      5: florid_leo...  3.180755  0.01444782   5.3790839
+             worker_id        x1         x2           y
+                <char>     <num>      <num>       <num>
+      1: chargeless...  9.554883  2.0391493   0.7791096
+      2: irresponsi...  9.865755  2.4626391   1.4841252
+      3: coppery_ho...  9.123067  3.2978286   1.9670563
+      4: coppery_ho...  9.063677  0.6650326   3.3342844
+      5: mirthful_w... -2.506596 11.9007482   3.4789523
      ---
-     99: florid_leo... -4.448061  2.65730583 175.9185314
-    100: selfconcei...  6.915296 14.03218583 183.1379223
-    101: florid_leo...  6.266561 14.14862571 189.8802974
-    102: surefooted...  5.166459 14.97115530 203.1532192
-    103: surefooted... -4.193035  0.79606108 205.4178377
+     99: coppery_ho...  6.696461 14.3671423 193.8774983
+    100: irresponsi... -4.124370  0.9992866 194.0754566
+    101: coppery_ho...  5.654999 14.6525875 200.6028149
+    102: mirthful_w... -4.241160  0.7898129 209.6706589
+    103: mirthful_w... -4.751271  0.6902815 259.6305973
                                          keys
                                        <list>
-      1: 88743de4-2f4c-4816-9e7d-3f3738e7da1a
-      2: a4222043-dabc-460f-a3a0-b66bac38760a
-      3: cccd719c-d586-48c9-97ee-cebbeea3f390
-      4: 7532f411-be8a-4d37-8bc6-8593ac57bc22
-      5: ee79f0eb-46c5-4664-8c24-9480a115eabf
+      1: 235b522e-159d-4061-bc54-aff483849ade
+      2: a6707024-71f4-4923-bb5c-a2f55058255a
+      3: b811f5d1-8aea-49fc-8d85-c3e56ab1fb75
+      4: 4229db80-0079-4e42-b15d-4d5ae622d553
+      5: 117d85c4-3c85-4a26-beb9-09cd72b8c7ae
      ---
-     99: 670b41af-8195-453e-8e83-4b2d4a3c48a5
-    100: a1a3ba3e-a186-4761-9b16-d86d1a029ca3
-    101: fe6b4b3c-1c1c-4917-993a-4926f6d5cf26
-    102: 5dce0499-34d3-4538-80eb-67206848195c
-    103: 5ae8d14e-ed21-48c0-a6c4-d3f615c04d2d
+     99: 22a50da1-bac4-4405-97b4-636436e43279
+    100: 15d49635-ad88-46ba-bedb-08cb59fd5815
+    101: 597a471f-b513-4a7e-804d-f1657443ca3c
+    102: f983ce0c-fa46-434b-a954-393e0b2a0dbc
+    103: e8735ce9-5fce-41e8-bffd-f679ba4d808e
 
 The rush controller displays how many workers are running and how many
 tasks exist in each state. In this case, 103 tasks are marked as
