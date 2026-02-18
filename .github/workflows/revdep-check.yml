@@ -71,3 +71,4 @@ jobs:
         with:
           args: 'c("--no-manual")'
           working-directory: revdep-pkg
+          error-on: '"note"'
