@@ -142,7 +142,7 @@ Each worker evaluates tasks and pushes the corresponding results back to the dat
 The communication flow between a worker and the `Redis` database in a `rush` network.
 The hexagon represents a worker and the rectangle represents the `Redis` database.
 Each worker `W` runs its own instance of $\mathcal{O}$, evaluates $f$, and exchanges task information via a shared `Redis` database.
-Arrows indicate the flow of information: workers retrieve completed tasks via `$fetch_finished_tasks()`, propose and store new tasks via `$push_running_tasks()`, and report results via `$push_results()`.
+Arrows indicate the flow of information: workers retrieve completed tasks via `$fetch_finished_tasks()`, propose and store new tasks via `$push_running_tasks()`, and report results via `$finish_tasks()`.
 See Figure @fig-decentralized-network for the complete network.
 :::
 
@@ -226,15 +226,15 @@ wl_mbo = function(rush, branin, optimizer) {
     key = rush$push_running_tasks(xss = list(xs))
 
     ys = list(y = branin(xs$x1, xs$x2))
-    rush$push_results(key, yss = list(ys))
+    rush$finish_tasks(key, yss = list(ys))
   }
 }
 ```
 
-The worker loop relies on three principal methods of the RushWorker class.
+The worker loop relies on three principal methods of the Rush class.
 The `$fetch_tasks_with_state()` method retrieves all tasks in the specified states from the Redis database, returning a `data.table` containing task states, keys, inputs, and results.
 The `$push_running_tasks()` method creates a new task in the database and returns a unique key identifying it; because the task is scheduled for immediate evaluation by the same worker, it is marked as running rather than queued.
-The `$push_results()` method takes this key along with a list of result values and writes the corresponding results to the database.
+The `$finish_tasks()` method takes this key along with a list of result values and writes the corresponding results to the database.
 Finally, the `$n_finished_tasks` field tracks the number of completed tasks and serves as the termination criterion for the loop.
 
 ## Tasks {#sec-tasks}
@@ -244,14 +244,14 @@ The input and output are lists that may contain arbitrary data.
 Tasks pass through one of four computational states: `"running"`, `"finished"`, `"failed"`, and `"queued"`.
 The typical task lifecycle involves two states.
 The `$push_running_tasks()` method creates tasks marked as `"running"` and returns their keys.
-Upon completion, `$push_results()` marks tasks as `"finished"` and stores the associated results.
-Tasks that encounter errors can be marked as `"failed"` using the `$push_failed()` method; error handling must be implemented explicitly in the worker loop (see @sec-error-handling for details).
+Upon completion, `$finish_tasks()` marks tasks as `"finished"` and stores the associated results.
+Tasks that encounter errors can be marked as `"failed"` using the `$fail_tasks()` method; error handling must be implemented explicitly in the worker loop (see @sec-error-handling for details).
 The fourth state, `"queued"`, supports a special queue mechanism in which tasks are created centrally and distributed to workers; this feature is described in detail in @sec-queues.
 All methods can operate on multiple tasks simultaneously, with `xss` and `yss` denoting lists of inputs and outputs, respectively.
 
 ## Manager {#sec-manager}
 
-The `rush` manager is responsible for starting, monitoring, and stopping workers within the network.
+The `Rush` manager class is responsible for starting, monitoring, and stopping workers within the network.
 It is initialized using the `rsh()` function, which requires a network identifier and a `config` argument.
 The `config` argument specifies a configuration file used to connect to the Redis database via the `redux` package.
 
@@ -265,13 +265,14 @@ rush = rsh(
   config = config)
 ```
 
-Workers can be started using the `$start_local_workers()` method, which accepts the worker loop and the number of workers as arguments.
+Workers are started using the `$start_workers()` method, which accepts the worker loop and the number of workers as arguments.
 Any additional named arguments are forwarded to the worker loop function as named arguments.
-<!-- FIXME: Mention serialization of objects to the worker loop -->
-By default, workers are started as local processes using the `processx` package; distributed deployment is discussed in @sec-remote-workers.
+The worker run on `mirai` daemons which are started with the `mirai::daemons()` function.
 
 ```{r rush-005}
-rush$start_local_workers(
+mirai::daemons(4)
+
+rush$start_workers(
   worker_loop = wl_mbo,
   branin = branin,
   optimizer = optimizer,
@@ -283,9 +284,8 @@ rush
 Once the optimization completes, the results can be retrieved from the database.
 The `$fetch_finished_tasks()` method fetches all finished tasks from the database.
 It returns a `data.table` containing the task key, input, and result.
-The `pid` and `worker_id` columns store additional information recorded when each task is created.
-The `worker_id` identifies the worker that evaluated the task, and the `pid` corresponds to the process identifier of that worker.
-Further auxiliary information can be passed as lists to the `$push_running_tasks()` and `$push_results()` methods via the `extra` argument.
+The `worker_id` column identifies the worker that evaluated the task.
+Further auxiliary information can be passed as lists to the `$push_running_tasks()` and `$finish_tasks()` methods via the `extra` argument.
 
 ```{r rush-006}
 #| include: false
@@ -334,7 +334,7 @@ A task is stored as a Redis hash with the following structure:
 key : xs | ys | xs_extra
 ```
 
-The field-value pairs are written by different methods, e.g. `$push_running_tasks()` writes `xs` and `$push_results()` writes `ys`.
+The field-value pairs are written by different methods, e.g. `$push_running_tasks()` writes `xs` and `$finish_tasks()` writes `ys`.
 The values of the fields are serialized lists or atomic values e.g. deserializing the `xs` field gives `list(x1 = 1, x2 = 2)`.
 This structure allows a hash to be efficiently converted into a table row and multiple hashes to be joined into a table.
 When retrieved, multiple hashes are joined into a tabular format:
@@ -355,8 +355,6 @@ For the queue, the list structure is a natural choice, as it supports atomic pus
 Storing the finished tasks in a list gives them an order by time; enabling workers to cheaply retrieve only the most recent results and to cache previously fetched tasks.
 
 # Advanced Features of `rush` {#sec-advanced-features}
-
-## Remote Workers {#sec-remote-workers}
 
 ## Queues {#sec-queues}
 
@@ -390,7 +388,7 @@ wl_queue = function(rush) {
     task = rush$pop_task()
     if (is.null(task)) break
     ys = list(y = branin(task$xs$x1, task$xs$x2))
-    rush$push_results(task$key, yss = list(ys))
+    rush$finish_tasks(task$key, yss = list(ys))
   }
 }
 ```
@@ -400,7 +398,7 @@ In practice, the queue loop typically precedes the main optimization loop: worke
 ## Error Handling {#sec-error-handling}
 
 `rush` provides error-handling mechanisms for two failure modes: standard R errors during task evaluation and unexpected worker failures such as crashes or lost connections.
-For errors that occur during task evaluation, users are responsible for catching them within the worker loop and marking the corresponding task as `"failed"` using the `$push_failed()` method:
+For errors that occur during task evaluation, users are responsible for catching them within the worker loop and marking the corresponding task as `"failed"` using the `$fail_tasks()` method:
 
 ```{r rush-018}
 wl_error = function(rush) {
@@ -414,18 +412,18 @@ wl_error = function(rush) {
 
     tryCatch({
       ys = list(y = branin(xs$x1, xs$x2))
-      rush$push_results(key, yss = list(ys))
+      rush$finish_tasks(key, yss = list(ys))
     }, error = function(e) {
       condition = list(message = e$message)
-      rush$push_failed(key, conditions = list(condition))
+      rush$fail_tasks(key, conditions = list(condition))
     })
   }
 }
 ```
 
 When a worker fails unexpectedly due to a crash, segmentation fault, or lost network connection its tasks may remain in the "running" state indefinitely.
-The `$detect_lost_workers()` method identifies such workers and updates their status to `"lost"`.
-For workers started with `$start_local_workers()` or `$start_remote_workers()`, lost worker detection works automatically by checking process status.
+The `$detect_lost_workers()` method identifies such workers and updates their status to `"terminated"`.
+For workers started with `$start_local_workers()` or `$start_workers()`, lost worker detection works automatically by checking process status.
 
 Workers started via `$worker_script()` require an additional heartbeat mechanism: a background process periodically refreshes a `Redis` key with a set expiration timeout, and if the worker fails, the key expires, signaling the controller that the worker is lost.
 The heartbeat is configured at startup:
@@ -548,7 +546,7 @@ The same pattern applies at the 448-worker scale used in our benchmarks.
 ## Experimental Setup
 
 The evaluation of short-running tasks is sensitive to the overhead introduced by `rush`.
-To quantify this overhead, we benchmark the core functions: `$push_running_tasks()`, `$push_results()`, and `$fetch_finished_tasks()`.
+To quantify this overhead, we benchmark the core functions: `$push_running_tasks()`, `$finish_tasks()`, and `$fetch_finished_tasks()`.
 We benchmark `$fetch_finished_tasks()` both with and without caching to measure the effect of the caching mechanism.
 When caching is enabled, the cache holds all previously fetched tasks except the most recent one, so that each call retrieves only a single new result from the database.
 Runtime is reported as median and median absolute deviation (MAD) over 1000 replicates, measured with the `microbenchmark` R package.
@@ -561,7 +559,7 @@ Runtime is reported as median and median absolute deviation (MAD) over 1000 repl
 | Method                  | Median Runtime (ms) | MAD Runtime (ms) |
 |:------------------------|--------------------:|-----------------:|
 | `$push_running_tasks()` |                0.39 |             0.07 |
-| `$push_results()`       |                0.31 |             0.07 |
+| `$finish_tasks()`       |                0.31 |             0.07 |
 
 Runtime of the core functions of rush.
 The runtime is reported as median and median absolute deviation (MAD) over 1000 replicates.
