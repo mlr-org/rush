@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {package: mlr-org/bbotk, ref: rush_v1}
+          - {package: mlr-org/bbotk, ref: main}
           - {package: mlr-org/mlr3tuning, ref: rush_v1}
 
     steps:
