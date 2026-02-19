@@ -149,30 +149,30 @@ rush$fetch_finished_tasks()[order(y)]
 
              worker_id        x1         x2           y
                 <char>     <num>      <num>       <num>
-      1: chargeless...  9.554883  2.0391493   0.7791096
-      2: irresponsi...  9.865755  2.4626391   1.4841252
-      3: coppery_ho...  9.123067  3.2978286   1.9670563
-      4: coppery_ho...  9.063677  0.6650326   3.3342844
-      5: mirthful_w... -2.506596 11.9007482   3.4789523
+      1: coverable_... -3.326550 12.5448275   0.5937338
+      2: coverable_...  9.363459  1.2557469   1.7801927
+      3: decorative...  2.546389  3.4634816   2.5095392
+      4: coverable_...  3.764108  1.2666424   2.5273719
+      5: damaging_c... -3.818360 13.5027409   2.7238159
      ---
-     99: coppery_ho...  6.696461 14.3671423 193.8774983
-    100: irresponsi... -4.124370  0.9992866 194.0754566
-    101: coppery_ho...  5.654999 14.6525875 200.6028149
-    102: mirthful_w... -4.241160  0.7898129 209.6706589
-    103: mirthful_w... -4.751271  0.6902815 259.6305973
+     99: coverable_...  7.100950 13.9268896 178.2241540
+    100: coverable_...  6.995900 14.4957005 194.3515764
+    101: damaging_c...  7.355521 14.7589047 196.1990625
+    102: coverable_... -4.742390  2.2669214 211.5368436
+    103: damaging_c... -4.766141  0.8459819 256.1944071
                                          keys
                                        <list>
-      1: 235b522e-159d-4061-bc54-aff483849ade
-      2: a6707024-71f4-4923-bb5c-a2f55058255a
-      3: b811f5d1-8aea-49fc-8d85-c3e56ab1fb75
-      4: 4229db80-0079-4e42-b15d-4d5ae622d553
-      5: 117d85c4-3c85-4a26-beb9-09cd72b8c7ae
+      1: 7fde17eb-673b-4923-8695-4b22302c50fb
+      2: be69ecbb-b0cd-4bd5-8892-9ff5f935b69a
+      3: b140125d-a572-4458-9708-339840fd9be0
+      4: 319bf6e0-d7d9-4bf3-b0b2-e6855e59df78
+      5: 8ae8b79a-4611-435f-a155-8bb2c3b8498a
      ---
-     99: 22a50da1-bac4-4405-97b4-636436e43279
-    100: 15d49635-ad88-46ba-bedb-08cb59fd5815
-    101: 597a471f-b513-4a7e-804d-f1657443ca3c
-    102: f983ce0c-fa46-434b-a954-393e0b2a0dbc
-    103: e8735ce9-5fce-41e8-bffd-f679ba4d808e
+     99: 96d3dd6d-8f85-48c5-b925-4a8bfbab234b
+    100: 51194a62-17b8-41f8-8c3b-f636e51b247e
+    101: c66694d6-7fbf-4890-8b6f-b8ea32a5f581
+    102: 70e7baaf-2eaf-4d99-aa3a-0245f05139e1
+    103: 45cf0813-40ec-4ccb-badf-c3332222b90d
 
 The rush controller displays how many workers are running and how many
 tasks exist in each state. In this case, 103 tasks are marked as
