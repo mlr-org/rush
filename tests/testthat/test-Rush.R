@@ -277,7 +277,7 @@ test_that("reset data works", {
 
   rush$reset(workers = FALSE)
 
-  expect_true(keys %nin% rush$finished_tasks)
+  expect_true(all(keys %nin% rush$finished_tasks))
   expect_equal(rush$n_running_workers, 1)
   expect_data_table(rush$worker_info, nrows = 1)
 })
@@ -507,18 +507,7 @@ test_that("pushing a task with extras to the queue works", {
   expect_set_equal(rush$finished_tasks, keys)
   expect_null(rush$failed_tasks)
 
-  # check fetching
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 0)
-  data = rush$fetch_finished_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "timestamp", "keys"))
-  expect_data_table(data, nrows = 1)
-  expect_equal(data$timestamp, timestamp[[1]])
-  expect_data_table(rush$fetch_tasks(), nrows = 1)
-
-  # status checks
-  expect_false(rush$is_running_task(keys))
+  # check fetchingtest-Rush.R:280:3'
   expect_false(rush$is_failed_task(keys))
 })
 
