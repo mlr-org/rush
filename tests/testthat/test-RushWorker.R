@@ -563,3 +563,24 @@ test_that("task in states works", {
   expect_null(keys_list$running)
   expect_equal(keys_list$finished, task$key)
 })
+
+# heartbeat --------------------------------------------------------------------
+
+test_that("heartbeat process is started", {
+  config = redis_configuration()
+  network_id = uuid::UUIDgenerate()
+  rush = RushWorker$new(
+    network_id = network_id,
+    config = config,
+    heartbeat_period = 1,
+    heartbeat_expire = 3)
+
+  expect_true(rush$heartbeat$is_alive())
+  expect_true(rush$worker_info$heartbeat)
+
+  rush$heartbeat$kill()
+
+  Sys.sleep(5)
+
+  expect_string(rush$detect_lost_workers())
+})

@@ -62,8 +62,15 @@ RushWorker = R6::R6Class("RushWorker",
         )
         self$heartbeat = callr::r_bg(heartbeat, args = heartbeat_args, supervise = TRUE)
 
-        # wait until heartbeat process is able to work
-        Sys.sleep(1)
+        # wait until heartbeat process is running
+        start_time = Sys.time()
+        while (r$TTL(heartbeat_key) < 0 && difftime(Sys.time(), start_time, units = "secs") < 10) {
+          Sys.sleep(0.1)
+        }
+
+        if (r$TTL(heartbeat_key) < 0) {
+          stop("Heartbeat process failed to start within 10 seconds.")
+        }
 
         r$SADD(private$.get_key("heartbeat_keys"), heartbeat_key)
       }
