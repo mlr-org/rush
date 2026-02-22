@@ -47,6 +47,6 @@ Process ID of the worker.}
 \description{
 The heartbeat loop updates the heartbeat key if the worker is still alive.
 If the kill key is set, the worker is killed.
-This function is called in a callr session.
+This function is called in a \CRANpkg{callr} session.
 }
 \keyword{internal}

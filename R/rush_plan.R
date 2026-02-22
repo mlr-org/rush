@@ -37,7 +37,7 @@ rush_plan = function(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai"
-  ) {
+  ) { #nolint
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
