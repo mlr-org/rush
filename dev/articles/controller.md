@@ -69,8 +69,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: used_afric...  8792 runnervmwf...     FALSE running
-    2: unscholast...  8803 runnervmwf...     FALSE running
+    1: central_pi...  8824 runnervmwf...     FALSE running
+    2: stainable_...  8835 runnervmwf...     FALSE running
 
 Additional workers may be added to the network at any time.
 
@@ -87,10 +87,10 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: used_afric...  8792 runnervmwf...     FALSE running
-    2: unscholast...  8803 runnervmwf...     FALSE running
-    3: gorgeable_...  8888 runnervmwf...     FALSE running
-    4: illsorted_...  8886 runnervmwf...     FALSE running
+    1: central_pi...  8824 runnervmwf...     FALSE running
+    2: stainable_...  8835 runnervmwf...     FALSE running
+    3: annihilate...  8897 runnervmwf...     FALSE running
+    4: subdendroi...  8899 runnervmwf...     FALSE running
 
 ### Rush Plan
 
@@ -142,10 +142,10 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: unscholast...  8803 runnervmwf...     FALSE    running
-    2: gorgeable_...  8888 runnervmwf...     FALSE    running
-    3: illsorted_...  8886 runnervmwf...     FALSE    running
-    4: used_afric...  8792 runnervmwf...     FALSE terminated
+    1: stainable_...  8835 runnervmwf...     FALSE    running
+    2: annihilate...  8897 runnervmwf...     FALSE    running
+    3: subdendroi...  8899 runnervmwf...     FALSE    running
+    4: central_pi...  8824 runnervmwf...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -188,32 +188,32 @@ The random search proceeds as usual.
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1        x2           y
-                <char>     <num>     <num>       <num>
-      1: damaging_b...  5.665731 11.955425 135.0276797
-      2: corking_is...  4.618364  1.374065   9.0994552
-      3: damaging_b... -2.474676 11.239813   2.7155272
-      4: damaging_b...  9.251140  1.938646   0.6973409
-      5: damaging_b...  3.488020  3.919031   4.5733636
+             worker_id        x1           x2          y
+                <char>     <num>        <num>      <num>
+      1: inky_austr...  8.277312 13.454460895 144.759753
+      2: inky_austr...  5.531123 14.961672581 207.798641
+      3: inky_austr...  4.160048  8.231197310  48.739391
+      4: inky_austr...  4.217633 11.871449853 111.243198
+      5: inky_austr... -4.840187  5.495121335 137.443043
      ---
-    593: damaging_b...  3.346335 14.928596 164.6394761
-    594: corking_is...  6.812949 11.902077 133.8260366
-    595: damaging_b... -4.009461  3.590840 121.8877611
-    596: damaging_b... -2.672498 12.605781   3.4791677
-    597: corking_is...  2.442909  4.605637   5.6154549
+    560: inky_austr...  2.047601  9.198444667  40.588391
+    561: amicable_g... -3.896311 10.798902857  14.317985
+    562: inky_austr...  8.656596  5.056394523  13.036697
+    563: amicable_g... -2.436089  9.600306863   3.778944
+    564: inky_austr...  5.501230  0.001393254  18.141787
                                          keys
                                        <list>
-      1: dd3c363d-3d0e-4155-a9cf-687fb843eb69
-      2: 23d9ac2f-f119-4bf8-8d68-2b1e98b1947a
-      3: 508e2dcc-de13-4fc7-9c44-f7509b7ca508
-      4: 3de003db-3b94-477e-aee2-f5188e00580e
-      5: dad746c3-545a-4843-bbd9-9d9adcc926bc
+      1: def2a112-1d12-48da-a4c4-fd98b2581bc5
+      2: 77d2ae96-aeb1-4d28-b5f8-7467c4f0896b
+      3: a713e434-5a21-4efe-bd81-5656be6dad54
+      4: b1e75f34-7b53-4512-bba6-2247cf3a95b0
+      5: a78cedff-e368-450b-b67a-13b955f1926a
      ---
-    593: 8bcae74e-eb4a-4fd8-9fe6-68645bef1c8f
-    594: 25ec9358-8f31-436a-8f08-05e4232bf062
-    595: 89f26a4d-a553-493b-87b4-2631e5860279
-    596: 87ce465d-ffa2-4b5e-a39e-0a7fb187fcd8
-    597: c7b81235-81b1-44fd-961d-5c3eda31bced
+    560: 34eaae69-8e58-4544-9747-9c1ab1f2cb04
+    561: 128bc36e-546a-48ad-82ca-eaa66678eff0
+    562: f161703c-d380-4332-ae65-cab7d600ed13
+    563: 3e1a440e-64b7-4c2c-af23-0ce19c868df8
+    564: 64fa22df-0c63-4edb-b263-8cf5b29c4735
 
 To terminate the optimization, the following command is used.
 
@@ -229,8 +229,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: corking_is...  8962 runnervmwf...     FALSE terminated
-    2: damaging_b...  8960 runnervmwf...     FALSE terminated
+    1: amicable_g...  8973 runnervmwf...     FALSE terminated
+    2: inky_austr...  8971 runnervmwf...     FALSE terminated
 
 ### Failed Workers
 
@@ -259,7 +259,7 @@ When a worker is detected, its state is updated to `"lost"`.
 rush$detect_lost_workers()
 ```
 
-    [1] "cosy_seaurchin"         "preagricultural_minnow"
+    [1] "shortterm_tuatara"     "verbose_xuanhuasaurus"
 
 ``` r
 rush$worker_info
@@ -267,8 +267,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: cosy_seaur...  9037 runnervmwf...     FALSE terminated
-    2: preagricul...  9039 runnervmwf...     FALSE terminated
+    1: shortterm_...  9067 runnervmwf...     FALSE terminated
+    2: verbose_xu...  9069 runnervmwf...     FALSE terminated
 
 ### Log Messages
 
@@ -408,8 +408,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: equicontin...  9223 runnervmwf...     FALSE running
-    2: influentia...  9225 runnervmwf...     FALSE running
+    1: circumnavi...  9255 runnervmwf...     FALSE running
+    2: bardlike_b...  9253 runnervmwf...     FALSE running
 
 We stop the daemons.
 
@@ -448,7 +448,7 @@ worker_ids = rush$start_remote_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "contortionistic_snail" "carping_scarab"       
+    [1] "technocratic_canary"   "archeologic_ambushbug"
 
 A segmentation fault also terminates the associated `mirai` daemon.
 Therefore, it is necessary to restart the daemon before restarting the

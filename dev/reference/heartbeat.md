@@ -2,7 +2,7 @@
 
 The heartbeat loop updates the heartbeat key if the worker is still
 alive. If the kill key is set, the worker is killed. This function is
-called in a callr session.
+called in a [callr](https://CRAN.R-project.org/package=callr) session.
 
 ## Usage
 

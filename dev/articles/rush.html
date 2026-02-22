@@ -167,32 +167,32 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id        x1        x2          y
-            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;      &lt;num&gt;
-  1: entomophag...  9.113631  2.349140   0.874351
-  2: irrepressi...  3.069239  3.551334   1.909538
-  3: nobleminde...  2.482552  2.580520   2.478748
-  4: entomophag... -3.551820 12.098339   2.597085
-  5: entomophag...  9.956067  1.951301   2.738200
+<pre><code>         worker_id        x1         x2           y
+            &lt;char&gt;     &lt;num&gt;      &lt;num&gt;       &lt;num&gt;
+  1: close_coyo... -3.151460 12.9842777   0.8683344
+  2: ghoulish_j...  9.139695  1.6856085   1.0983926
+  3: unmindful_...  3.358458  0.9839071   1.8952837
+  4: ghoulish_j... -3.842498 13.9499560   2.6668276
+  5: ghoulish_j...  2.463648  2.1773727   2.9914547
  ---
- 99: nobleminde...  7.932885 14.222705 171.006365
-100: entomophag... -4.128936  1.807284 172.839548
-101: unanarchic... -4.238548  2.093126 173.931987
-102: entomophag...  5.040920 14.264049 182.208175
-103: nobleminde... -4.803286  2.668624 205.656362
+ 98: close_coyo... -3.204644  0.1090012 152.1511002
+ 99: close_coyo...  6.850585 13.2720988 164.8088697
+100: ghoulish_j...  7.412862 14.1996929 180.4805558
+101: unmindful_...  4.581124 14.8813365 189.9488592
+102: close_coyo... -4.711255  1.7540398 223.4857430
                                      keys
                                    &lt;list&gt;
-  1: 91fd98b3-1040-495d-bdc4-2f7107bd7cdc
-  2: a5c3794f-81e0-4baa-b32f-67c19a78a101
-  3: a1581355-dfa3-4e78-a941-780e23841b76
-  4: bdcf465b-4755-4183-8271-94a6c1c07f67
-  5: 07f46804-eb8d-4970-bdd2-6e82fb956d3b
+  1: ae7cf247-1e2f-4943-9e3d-9472cae61bc2
+  2: ea288baa-dd63-4371-937d-aaa0bde8c3a9
+  3: 55e9ef47-3bd6-4722-9263-9c4ae8a57c17
+  4: a93659f1-5e1b-486c-a6c9-9bb170cf9b4a
+  5: d18a25be-8550-458c-886d-d101b3247684
  ---
- 99: 96d96530-497d-4af7-90f7-d1a41b7fc781
-100: 054dad24-5213-47ed-a82e-1ad22c5fc166
-101: 572d3644-4044-46f1-9bb6-4658f15b3616
-102: 34571c37-5fe1-4333-b790-a723750c52d9
-103: 591b19bc-948e-4878-9750-56f5208d96e7</code></pre>
+ 98: e2e8a950-3358-49eb-8ef0-e9dabc8c0a89
+ 99: 09a33c1f-3f13-457f-ba91-950b7495cdd9
+100: b5d31087-443f-48df-af4a-42987be1750e
+101: 673bacaf-a14f-4131-98cd-c6cee3f5741c
+102: 8291228c-c3db-4af8-8c3d-1302c31a6014</code></pre>
 </div>
 </div>
 <p>The rush controller displays how many workers are running and how many tasks exist in each state. In this case, 103 tasks are marked as finished, and all workers have stopped. The number slightly exceeds 100 because workers check the stopping condition independently. If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.</p>
@@ -205,7 +205,7 @@
 • Running Workers: 0
 • Queued Tasks: 0
 • Running Tasks: 0
-• Finished Tasks: 103
+• Finished Tasks: 102
 • Failed Tasks: 0</code></pre>
 </div>
 </div>
@@ -316,16 +316,16 @@
 12:          &lt;NA&gt;        NA        NA        NA      NA       NA
 13:          &lt;NA&gt;        NA        NA        NA      NA       NA
 14:          &lt;NA&gt;        NA        NA        NA      NA       NA
-15: flushed_co...         2 0.4250107 0.1510945       6 5.660964
+15: commentari...        11 0.6532405 0.5218400       5 4.480539
 16:          &lt;NA&gt;        NA        NA        NA      NA       NA
 17:          &lt;NA&gt;        NA        NA        NA      NA       NA
 18:          &lt;NA&gt;        NA        NA        NA      NA       NA
-19: flushed_co...         2 0.4250107 0.1510945       5 4.293359
-20: larval_afr...        12 0.4169417 0.9343475       5 4.293359
-21: friendly_t...         1 0.3965486 0.8730090       5 4.293359
+19: crimpy_das...        17 0.3411780 0.6024068       5 4.480539
+20: maximum_na...         6 0.6167644 0.9682646       5 4.480539
+21: introvert_...        10 0.1736282 0.2753601       5 4.480539
 22:          &lt;NA&gt;        NA        NA        NA      NA       NA
 23:          &lt;NA&gt;        NA        NA        NA      NA       NA
-24: congested_...         6 0.8168297 0.9645963       5 4.293359
+24: crimpy_das...        17 0.3411780 0.6024068       6 5.652242
 25:          &lt;NA&gt;        NA        NA        NA      NA       NA
 26:          &lt;NA&gt;        NA        NA        NA      NA       NA
 27:          &lt;NA&gt;        NA        NA        NA      NA       NA
@@ -352,16 +352,16 @@
 12:                               [NULL]
 13:                               [NULL]
 14:                               [NULL]
-15: d3d66e1b-e1c8-4338-b105-c8a58d9a5a89
+15: 5c2d4de0-d9d4-4308-a574-7bf431ca4cb5
 16:                               [NULL]
 17:                               [NULL]
 18:                               [NULL]
-19: c48a8510-4555-465f-be4e-a06c2a99ed73
-20: 4c6b72d5-1b4e-4385-b1d4-11fa899b8261
-21: c095ed84-8bd4-479f-9ed0-5dc7c5ce7ed2
+19: 03f2e84d-451c-4e78-b234-8a32cf4b1d11
+20: 578950a7-ed2f-424f-9058-2b796a9f7d83
+21: abac558d-044e-43cf-b432-7cbbc7b7ebe5
 22:                               [NULL]
 23:                               [NULL]
-24: 7f88147d-9162-4b3a-99e3-68a5ac6ff7cb
+24: c2fb261a-a413-4b70-9b4b-f7638bb45f73
 25:                               [NULL]
 26:                               [NULL]
 27:                               [NULL]
