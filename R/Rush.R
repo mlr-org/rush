@@ -598,22 +598,25 @@ Rush = R6::R6Class("Rush",
         self$processes_processx = NULL
         self$processes_mirai = NULL
 
-        # remove worker info, terminate and kill
-        unlist(map(self$worker_ids, function(worker_id) {
+        # remove worker specific keys
+        cmds = unlist(map(self$worker_ids, function(worker_id) {
           list(
             c("DEL", private$.get_key(worker_id)),
             c("DEL", private$.get_worker_key("terminate", worker_id)),
             c("DEL", private$.get_worker_key("kill", worker_id)),
-            c("DEL", private$.get_worker_key("events", worker_id)),
-            c("DEL", private$.get_key("terminate")),
-            c("DEL", private$.get_key("worker_ids")),
-            c("DEL", private$.get_key("running_worker_ids")),
-            c("DEL", private$.get_key("terminated_worker_ids")),
-            c("DEL", private$.get_key("start_args")),
-            c("DEL", private$.get_key("terminate_on_idle")),
-            c("DEL", private$.get_key("local_workers")),
-            c("DEL", private$.get_key("heartbeat_keys")))
+            c("DEL", private$.get_worker_key("events", worker_id)))
         }), recursive = FALSE)
+
+        # remove network specific keys
+        c(cmds, list(
+          c("DEL", private$.get_key("terminate")),
+          c("DEL", private$.get_key("worker_ids")),
+          c("DEL", private$.get_key("running_worker_ids")),
+          c("DEL", private$.get_key("terminated_worker_ids")),
+          c("DEL", private$.get_key("start_args")),
+          c("DEL", private$.get_key("terminate_on_idle")),
+          c("DEL", private$.get_key("local_workers")),
+          c("DEL", private$.get_key("heartbeat_keys"))))
       }
 
       # remove all tasks, lists, and sets
@@ -699,7 +702,7 @@ Rush = R6::R6Class("Rush",
     #' @param fields (`character()`)\cr
     #' Fields to be returned.
     pop_task = function(timeout = 1, fields = "xs") {
-      r = self$connector
+      r = private$.connector
 
       key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
 
@@ -730,7 +733,7 @@ Rush = R6::R6Class("Rush",
       assert_character(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      r = self$connector
+      r = private$.connector
 
       # write results to hashes
       self$write_hashes(
@@ -837,7 +840,7 @@ Rush = R6::R6Class("Rush",
     push_running_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      r = self$connector
+      r = private$.connector
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
@@ -1554,7 +1557,7 @@ Rush = R6::R6Class("Rush",
 
       # check if worker configuration exceeds the limit supported by Redis
       max_object_size = getOption("rush.max_object_size", 512)
-      if (format(object.size(bin_start_args), units = "MiB") > max_object_size) {
+      if (as.numeric(object.size(bin_start_args)) / (1024^2) > max_object_size) {
         if (is.null(rush_env$large_objects_path)) {
           error_config("Worker configuration exceeds the %s MiB limit supported by Redis. Use a path to store large objects on disk instead.", max_object_size)
         } else {
