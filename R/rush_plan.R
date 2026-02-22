@@ -52,7 +52,7 @@ rush_plan = function(
     worker_type = "mirai"
   }
 
-  assert_choice(worker_type, c("mirai", "processx"))
+  assert_choice(worker_type, c("mirai", "processx", "script"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     error_config("Can't connect to Redis. Check the configuration.")
