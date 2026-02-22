@@ -3,10 +3,10 @@ mlr3misc::walk(list.files(system.file("testthat", package = "rush"), pattern = "
 
 wl_default = function(rush) {
   while (TRUE) {
-    xss = list(list(x1 = runif(1, 0, 10), x2 = runif(1, 0, 10)))
-    keys = rush$push_running_tasks(xss)
-    ys = list(list(y = xss$x1 + xss$x2))
-    rush$finish_tasks(keys, yss = ys)
+    xs = list(x1 = runif(1, 0, 10), x2 = runif(1, 0, 10))
+    keys = rush$push_running_tasks(list(xs))
+    ys = list(y = xs$x1 + xs$x2)
+    rush$finish_tasks(keys, yss = list(ys))
     Sys.sleep(1)
   }
 
