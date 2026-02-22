@@ -147,32 +147,32 @@ argument.
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-             worker_id        x1         x2           y
-                <char>     <num>      <num>       <num>
-      1: coverable_... -3.326550 12.5448275   0.5937338
-      2: coverable_...  9.363459  1.2557469   1.7801927
-      3: decorative...  2.546389  3.4634816   2.5095392
-      4: coverable_...  3.764108  1.2666424   2.5273719
-      5: damaging_c... -3.818360 13.5027409   2.7238159
+             worker_id        x1        x2           y
+                <char>     <num>     <num>       <num>
+      1: northern_p...  9.349097  1.947672   0.6408819
+      2: autographi...  3.510236  2.116455   1.0553914
+      3: corporativ... -2.978355 11.129390   1.0982109
+      4: autographi... -3.548433 13.280164   1.1816908
+      5: autographi...  9.258880  1.503548   1.2270606
      ---
-     99: coverable_...  7.100950 13.9268896 178.2241540
-    100: coverable_...  6.995900 14.4957005 194.3515764
-    101: damaging_c...  7.355521 14.7589047 196.1990625
-    102: coverable_... -4.742390  2.2669214 211.5368436
-    103: damaging_c... -4.766141  0.8459819 256.1944071
+     99: synonymous...  7.840934 12.675027 135.8334605
+    100: northern_p...  3.550217 13.733354 139.3791095
+    101: autographi...  8.939999 13.925398 141.4285549
+    102: autographi...  6.360783 13.030055 161.8219539
+    103: northern_p... -4.742543  3.417960 180.2167082
                                          keys
                                        <list>
-      1: 7fde17eb-673b-4923-8695-4b22302c50fb
-      2: be69ecbb-b0cd-4bd5-8892-9ff5f935b69a
-      3: b140125d-a572-4458-9708-339840fd9be0
-      4: 319bf6e0-d7d9-4bf3-b0b2-e6855e59df78
-      5: 8ae8b79a-4611-435f-a155-8bb2c3b8498a
+      1: 65c72702-9c8e-461d-8660-a4ed0ac93fb0
+      2: dad83551-dcdf-481b-a1bf-1037be66c8bf
+      3: e4964c5f-9317-4d0e-a6bb-7737d5da2bf8
+      4: a19cde76-55a3-463f-877d-0881da04e68b
+      5: b2ee5f4e-59d0-47d5-bff1-e5d69565a540
      ---
-     99: 96d3dd6d-8f85-48c5-b925-4a8bfbab234b
-    100: 51194a62-17b8-41f8-8c3b-f636e51b247e
-    101: c66694d6-7fbf-4890-8b6f-b8ea32a5f581
-    102: 70e7baaf-2eaf-4d99-aa3a-0245f05139e1
-    103: 45cf0813-40ec-4ccb-badf-c3332222b90d
+     99: cdb8482c-56c0-455a-afc6-de934f55ffab
+    100: 74cb7216-4351-4300-9db2-df13a7ad9827
+    101: d01c81e9-91db-4248-9015-4218bac713fb
+    102: a5a2eb79-4699-4ccc-bb6a-6c92e783725b
+    103: 15a5ec51-cfb3-4842-97ac-d4cb41efd9ba
 
 The rush controller displays how many workers are running and how many
 tasks exist in each state. In this case, 103 tasks are marked as
@@ -322,7 +322,78 @@ We fetch the finished tasks and sort them by the objective value.
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-    Null data.table (0 rows and 0 cols)
+            worker_id max_depth    lambda     alpha nrounds     rmse
+               <char>     <int>     <num>     <num>   <num>    <num>
+     1:          <NA>        NA        NA        NA      NA       NA
+     2:          <NA>        NA        NA        NA      NA       NA
+     3:          <NA>        NA        NA        NA      NA       NA
+     4:          <NA>        NA        NA        NA      NA       NA
+     5:          <NA>        NA        NA        NA      NA       NA
+     6:          <NA>        NA        NA        NA      NA       NA
+     7:          <NA>        NA        NA        NA      NA       NA
+     8:          <NA>        NA        NA        NA      NA       NA
+     9:          <NA>        NA        NA        NA      NA       NA
+    10:          <NA>        NA        NA        NA      NA       NA
+    11:          <NA>        NA        NA        NA      NA       NA
+    12:          <NA>        NA        NA        NA      NA       NA
+    13:          <NA>        NA        NA        NA      NA       NA
+    14:          <NA>        NA        NA        NA      NA       NA
+    15:          <NA>        NA        NA        NA      NA       NA
+    16:          <NA>        NA        NA        NA      NA       NA
+    17:          <NA>        NA        NA        NA      NA       NA
+    18:          <NA>        NA        NA        NA      NA       NA
+    19: growable_f...        15 0.9551875 0.1533150       5 3.318507
+    20: encyclopae...        16 0.5334215 0.8535684       5 3.318507
+    21: purply_zer...         6 0.5240073 0.3961821       5 3.318507
+    22:          <NA>        NA        NA        NA      NA       NA
+    23:          <NA>        NA        NA        NA      NA       NA
+    24: macronucle...         3 0.8404321 0.5009474       5 3.318507
+    25:          <NA>        NA        NA        NA      NA       NA
+    26:          <NA>        NA        NA        NA      NA       NA
+    27:          <NA>        NA        NA        NA      NA       NA
+    28:          <NA>        NA        NA        NA      NA       NA
+    29:          <NA>        NA        NA        NA      NA       NA
+    30:          <NA>        NA        NA        NA      NA       NA
+    31:          <NA>        NA        NA        NA      NA       NA
+    32:          <NA>        NA        NA        NA      NA       NA
+            worker_id max_depth    lambda     alpha nrounds     rmse
+               <char>     <int>     <num>     <num>   <num>    <num>
+                                        keys
+                                      <list>
+     1:                               [NULL]
+     2:                               [NULL]
+     3:                               [NULL]
+     4:                               [NULL]
+     5:                               [NULL]
+     6:                               [NULL]
+     7:                               [NULL]
+     8:                               [NULL]
+     9:                               [NULL]
+    10:                               [NULL]
+    11:                               [NULL]
+    12:                               [NULL]
+    13:                               [NULL]
+    14:                               [NULL]
+    15:                               [NULL]
+    16:                               [NULL]
+    17:                               [NULL]
+    18:                               [NULL]
+    19: 0cb3a07c-9858-4634-8c4d-5150b7494e73
+    20: 0c204145-bc4c-4aeb-a7da-f92bc63fe403
+    21: 340ccac5-4bb7-4d94-b61f-cbf0a28de37a
+    22:                               [NULL]
+    23:                               [NULL]
+    24: a4487d8b-fb9d-4c3d-8def-f34e5138b3d5
+    25:                               [NULL]
+    26:                               [NULL]
+    27:                               [NULL]
+    28:                               [NULL]
+    29:                               [NULL]
+    30:                               [NULL]
+    31:                               [NULL]
+    32:                               [NULL]
+                                        keys
+                                      <list>
 
 We stop the workers and reset the database.ch
 

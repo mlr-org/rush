@@ -69,8 +69,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: affable_au...  8238 runnervmie...     FALSE running
-    2: arctophili...  8249 runnervmie...     FALSE running
+    1: illmannere...  9409 runnervmwf...     FALSE running
+    2: potent_pig...  9420 runnervmwf...     FALSE running
 
 Additional workers may be added to the network at any time.
 
@@ -87,10 +87,10 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: affable_au...  8238 runnervmie...     FALSE running
-    2: arctophili...  8249 runnervmie...     FALSE running
-    3: moving_eye...  8312 runnervmie...     FALSE running
-    4: fidgety_ey...  8315 runnervmie...     FALSE running
+    1: illmannere...  9409 runnervmwf...     FALSE running
+    2: potent_pig...  9420 runnervmwf...     FALSE running
+    3: northernmo...  9482 runnervmwf...     FALSE running
+    4: olive_blac...  9484 runnervmwf...     FALSE running
 
 ### Rush Plan
 
@@ -142,10 +142,10 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: arctophili...  8249 runnervmie...     FALSE    running
-    2: moving_eye...  8312 runnervmie...     FALSE    running
-    3: fidgety_ey...  8315 runnervmie...     FALSE    running
-    4: affable_au...  8238 runnervmie...     FALSE terminated
+    1: potent_pig...  9420 runnervmwf...     FALSE    running
+    2: northernmo...  9482 runnervmwf...     FALSE    running
+    3: olive_blac...  9484 runnervmwf...     FALSE    running
+    4: illmannere...  9409 runnervmwf...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -188,32 +188,32 @@ The random search proceeds as usual.
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1        x2          y
-                <char>      <num>     <num>      <num>
-      1: subhemisph...  2.3074913  1.920784   4.746976
-      2: subhemisph...  0.9121869 10.641949  51.711817
-      3: subhemisph...  9.8382343  5.274787   7.106753
-      4: subhemisph...  4.8265277 11.587544 116.357104
-      5: subhemisph...  1.0765825  3.154535  16.197572
+             worker_id         x1         x2         y
+                <char>      <num>      <num>     <num>
+      1: dripdry_ga...  5.1686322 10.3171024 96.896824
+      2: patriarchi...  7.9999447  5.7858222 26.669618
+      3: dripdry_ga...  5.7145372  7.5547402 59.449656
+      4: dripdry_ga... -0.1004445 11.4377704 47.396271
+      5: dripdry_ga...  9.0292303  0.4667165  4.011799
      ---
-    529: thankless_...  8.3862922 11.640250 103.174608
-    530: subhemisph... -4.3830891  1.610874 198.630211
-    531: thankless_...  7.7892991 10.110110  85.774458
-    532: subhemisph...  2.7165786  8.677074  37.821841
-    533: thankless_...  4.1175650  6.010519  23.747612
+    590: patriarchi... -1.2231666  3.4189216 35.559809
+    591: dripdry_ga... -1.6561131 14.4312644 38.788024
+    592: patriarchi...  9.0518915  9.0182702 47.841233
+    593: dripdry_ga... -2.2791070  9.5687105  4.285686
+    594: patriarchi... -3.6031007  3.7843485 94.086977
                                          keys
                                        <list>
-      1: e0b13979-e3c0-4a3b-a744-50402548e856
-      2: bf83eb0c-91ca-432e-8069-1f45af480d8a
-      3: 092a354d-f313-43bf-b124-817dcd1ef26c
-      4: c9f8177e-9715-41f2-8c66-1b9f90597fe0
-      5: c64c1387-ce9b-4a9a-8291-84d2bb22e864
+      1: d64d67c5-eb68-4d63-928a-d68ea1c3225f
+      2: 56069513-53a2-4a2d-bb51-cc40c3a054c6
+      3: b8f233c9-665c-4c73-9981-123ef4280c60
+      4: 20fffe54-3dff-469f-97f1-b7dffbbffd92
+      5: 7563169f-595f-4ae4-a2c1-01adcc2367ca
      ---
-    529: 2f4a5f50-4898-4187-a5ec-23cdc18f6f1d
-    530: aef392b3-84bf-4c46-8eac-c223fda09da7
-    531: c3de6d28-c904-43a9-9f96-db7d82f37676
-    532: 38f4b8d3-7024-43a3-bc23-3f11fd4b95db
-    533: aec02052-baa0-49e9-aeb8-918325419759
+    590: 9f3c554b-ab08-4bd9-ba5c-b6c568dce38d
+    591: b5d88ac0-5c65-4f8b-a4e3-98e92e2c9210
+    592: 608c195b-9c0f-4f8e-a1f4-1daea4f42071
+    593: 2834bbdf-f8b4-45a5-ad0d-43d434972e90
+    594: fa17369e-51e7-4ac3-9ce6-404c652ab87e
 
 To terminate the optimization, the following command is used.
 
@@ -229,8 +229,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: subhemisph...  8407 runnervmie...     FALSE terminated
-    2: thankless_...  8409 runnervmie...     FALSE terminated
+    1: dripdry_ga...  9577 runnervmwf...     FALSE terminated
+    2: patriarchi...  9575 runnervmwf...     FALSE terminated
 
 ### Failed Workers
 
@@ -259,7 +259,7 @@ When a worker is detected, its state is updated to `"lost"`.
 rush$detect_lost_workers()
 ```
 
-    [1] "epicardial_raptors"         "predisastrous_greyhounddog"
+    [1] "productive_gavial" "deprivable_scoter"
 
 ``` r
 rush$worker_info
@@ -267,8 +267,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: epicardial...  8483 runnervmie...     FALSE terminated
-    2: predisastr...  8485 runnervmie...     FALSE terminated
+    1: productive...  9653 runnervmwf...     FALSE terminated
+    2: deprivable...  9655 runnervmwf...     FALSE terminated
 
 ### Log Messages
 
@@ -408,8 +408,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: corncolore...  8671 runnervmie...     FALSE running
-    2: entomologi...  8669 runnervmie...     FALSE running
+    1: diffractiv...  9841 runnervmwf...     FALSE running
+    2: splintery_...  9839 runnervmwf...     FALSE running
 
 We stop the daemons.
 
@@ -448,7 +448,7 @@ worker_ids = rush$start_remote_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "submissive_raven"     "papyraceous_mangabey"
+    [1] "subquinquefid_lion"        "stricken_iraniangroundjay"
 
 A segmentation fault also terminates the associated `mirai` daemon.
 Therefore, it is necessary to restart the daemon before restarting the
