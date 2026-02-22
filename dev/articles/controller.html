@@ -141,8 +141,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: illmannere...  9409 runnervmwf...     FALSE running
-2: potent_pig...  9420 runnervmwf...     FALSE running</code></pre>
+1: used_afric...  8792 runnervmwf...     FALSE running
+2: unscholast...  8803 runnervmwf...     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers may be added to the network at any time.</p>
@@ -159,10 +159,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: illmannere...  9409 runnervmwf...     FALSE running
-2: potent_pig...  9420 runnervmwf...     FALSE running
-3: northernmo...  9482 runnervmwf...     FALSE running
-4: olive_blac...  9484 runnervmwf...     FALSE running</code></pre>
+1: used_afric...  8792 runnervmwf...     FALSE running
+2: unscholast...  8803 runnervmwf...     FALSE running
+3: gorgeable_...  8888 runnervmwf...     FALSE running
+4: illsorted_...  8886 runnervmwf...     FALSE running</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
@@ -195,10 +195,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat      state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: potent_pig...  9420 runnervmwf...     FALSE    running
-2: northernmo...  9482 runnervmwf...     FALSE    running
-3: olive_blac...  9484 runnervmwf...     FALSE    running
-4: illmannere...  9409 runnervmwf...     FALSE terminated</code></pre>
+1: unscholast...  8803 runnervmwf...     FALSE    running
+2: gorgeable_...  8888 runnervmwf...     FALSE    running
+3: illsorted_...  8886 runnervmwf...     FALSE    running
+4: used_afric...  8792 runnervmwf...     FALSE terminated</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -234,32 +234,32 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id         x1         x2         y
-            &lt;char&gt;      &lt;num&gt;      &lt;num&gt;     &lt;num&gt;
-  1: dripdry_ga...  5.1686322 10.3171024 96.896824
-  2: patriarchi...  7.9999447  5.7858222 26.669618
-  3: dripdry_ga...  5.7145372  7.5547402 59.449656
-  4: dripdry_ga... -0.1004445 11.4377704 47.396271
-  5: dripdry_ga...  9.0292303  0.4667165  4.011799
+<pre><code>         worker_id        x1        x2           y
+            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;       &lt;num&gt;
+  1: damaging_b...  5.665731 11.955425 135.0276797
+  2: corking_is...  4.618364  1.374065   9.0994552
+  3: damaging_b... -2.474676 11.239813   2.7155272
+  4: damaging_b...  9.251140  1.938646   0.6973409
+  5: damaging_b...  3.488020  3.919031   4.5733636
  ---
-590: patriarchi... -1.2231666  3.4189216 35.559809
-591: dripdry_ga... -1.6561131 14.4312644 38.788024
-592: patriarchi...  9.0518915  9.0182702 47.841233
-593: dripdry_ga... -2.2791070  9.5687105  4.285686
-594: patriarchi... -3.6031007  3.7843485 94.086977
+593: damaging_b...  3.346335 14.928596 164.6394761
+594: corking_is...  6.812949 11.902077 133.8260366
+595: damaging_b... -4.009461  3.590840 121.8877611
+596: damaging_b... -2.672498 12.605781   3.4791677
+597: corking_is...  2.442909  4.605637   5.6154549
                                      keys
                                    &lt;list&gt;
-  1: d64d67c5-eb68-4d63-928a-d68ea1c3225f
-  2: 56069513-53a2-4a2d-bb51-cc40c3a054c6
-  3: b8f233c9-665c-4c73-9981-123ef4280c60
-  4: 20fffe54-3dff-469f-97f1-b7dffbbffd92
-  5: 7563169f-595f-4ae4-a2c1-01adcc2367ca
+  1: dd3c363d-3d0e-4155-a9cf-687fb843eb69
+  2: 23d9ac2f-f119-4bf8-8d68-2b1e98b1947a
+  3: 508e2dcc-de13-4fc7-9c44-f7509b7ca508
+  4: 3de003db-3b94-477e-aee2-f5188e00580e
+  5: dad746c3-545a-4843-bbd9-9d9adcc926bc
  ---
-590: 9f3c554b-ab08-4bd9-ba5c-b6c568dce38d
-591: b5d88ac0-5c65-4f8b-a4e3-98e92e2c9210
-592: 608c195b-9c0f-4f8e-a1f4-1daea4f42071
-593: 2834bbdf-f8b4-45a5-ad0d-43d434972e90
-594: fa17369e-51e7-4ac3-9ce6-404c652ab87e</code></pre>
+593: 8bcae74e-eb4a-4fd8-9fe6-68645bef1c8f
+594: 25ec9358-8f31-436a-8f08-05e4232bf062
+595: 89f26a4d-a553-493b-87b4-2631e5860279
+596: 87ce465d-ffa2-4b5e-a39e-0a7fb187fcd8
+597: c7b81235-81b1-44fd-961d-5c3eda31bced</code></pre>
 </div>
 </div>
 <p>To terminate the optimization, the following command is used.</p>
@@ -274,8 +274,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat      state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: dripdry_ga...  9577 runnervmwf...     FALSE terminated
-2: patriarchi...  9575 runnervmwf...     FALSE terminated</code></pre>
+1: corking_is...  8962 runnervmwf...     FALSE terminated
+2: damaging_b...  8960 runnervmwf...     FALSE terminated</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-failed-workers">Failed Workers<a class="anchor" aria-label="anchor" href="#sec-local-failed-workers"></a>
@@ -301,15 +301,15 @@
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "productive_gavial" "deprivable_scoter"</code></pre>
+<pre><code>[1] "cosy_seaurchin"         "preagricultural_minnow"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat      state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: productive...  9653 runnervmwf...     FALSE terminated
-2: deprivable...  9655 runnervmwf...     FALSE terminated</code></pre>
+1: cosy_seaur...  9037 runnervmwf...     FALSE terminated
+2: preagricul...  9039 runnervmwf...     FALSE terminated</code></pre>
 </div>
 </div>
 </section><section class="level2"><h3 id="sec-local-log-messages">Log Messages<a class="anchor" aria-label="anchor" href="#sec-local-log-messages"></a>
@@ -430,8 +430,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: diffractiv...  9841 runnervmwf...     FALSE running
-2: splintery_...  9839 runnervmwf...     FALSE running</code></pre>
+1: equicontin...  9223 runnervmwf...     FALSE running
+2: influentia...  9225 runnervmwf...     FALSE running</code></pre>
 </div>
 </div>
 <p>We stop the daemons.</p>
@@ -466,7 +466,7 @@
 <div class="sourceCode cell-code" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "subquinquefid_lion"        "stricken_iraniangroundjay"</code></pre>
+<pre><code>[1] "contortionistic_snail" "carping_scarab"       </code></pre>
 </div>
 </div>
 <p>A segmentation fault also terminates the associated <code>mirai</code> daemon. Therefore, it is necessary to restart the daemon before restarting the workers.</p>

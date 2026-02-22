@@ -6,7 +6,7 @@
   Manager
 - [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
   Rush Worker
-- [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) : Synctatic
+- [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) : Syntactic
   Sugar for Rush Manager Construction
 
 ## Plan

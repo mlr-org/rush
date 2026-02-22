@@ -167,32 +167,32 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id        x1        x2           y
-            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;       &lt;num&gt;
-  1: northern_p...  9.349097  1.947672   0.6408819
-  2: autographi...  3.510236  2.116455   1.0553914
-  3: corporativ... -2.978355 11.129390   1.0982109
-  4: autographi... -3.548433 13.280164   1.1816908
-  5: autographi...  9.258880  1.503548   1.2270606
+<pre><code>         worker_id        x1        x2          y
+            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;      &lt;num&gt;
+  1: entomophag...  9.113631  2.349140   0.874351
+  2: irrepressi...  3.069239  3.551334   1.909538
+  3: nobleminde...  2.482552  2.580520   2.478748
+  4: entomophag... -3.551820 12.098339   2.597085
+  5: entomophag...  9.956067  1.951301   2.738200
  ---
- 99: synonymous...  7.840934 12.675027 135.8334605
-100: northern_p...  3.550217 13.733354 139.3791095
-101: autographi...  8.939999 13.925398 141.4285549
-102: autographi...  6.360783 13.030055 161.8219539
-103: northern_p... -4.742543  3.417960 180.2167082
+ 99: nobleminde...  7.932885 14.222705 171.006365
+100: entomophag... -4.128936  1.807284 172.839548
+101: unanarchic... -4.238548  2.093126 173.931987
+102: entomophag...  5.040920 14.264049 182.208175
+103: nobleminde... -4.803286  2.668624 205.656362
                                      keys
                                    &lt;list&gt;
-  1: 65c72702-9c8e-461d-8660-a4ed0ac93fb0
-  2: dad83551-dcdf-481b-a1bf-1037be66c8bf
-  3: e4964c5f-9317-4d0e-a6bb-7737d5da2bf8
-  4: a19cde76-55a3-463f-877d-0881da04e68b
-  5: b2ee5f4e-59d0-47d5-bff1-e5d69565a540
+  1: 91fd98b3-1040-495d-bdc4-2f7107bd7cdc
+  2: a5c3794f-81e0-4baa-b32f-67c19a78a101
+  3: a1581355-dfa3-4e78-a941-780e23841b76
+  4: bdcf465b-4755-4183-8271-94a6c1c07f67
+  5: 07f46804-eb8d-4970-bdd2-6e82fb956d3b
  ---
- 99: cdb8482c-56c0-455a-afc6-de934f55ffab
-100: 74cb7216-4351-4300-9db2-df13a7ad9827
-101: d01c81e9-91db-4248-9015-4218bac713fb
-102: a5a2eb79-4699-4ccc-bb6a-6c92e783725b
-103: 15a5ec51-cfb3-4842-97ac-d4cb41efd9ba</code></pre>
+ 99: 96d96530-497d-4af7-90f7-d1a41b7fc781
+100: 054dad24-5213-47ed-a82e-1ad22c5fc166
+101: 572d3644-4044-46f1-9bb6-4658f15b3616
+102: 34571c37-5fe1-4333-b790-a723750c52d9
+103: 591b19bc-948e-4878-9750-56f5208d96e7</code></pre>
 </div>
 </div>
 <p>The rush controller displays how many workers are running and how many tasks exist in each state. In this case, 103 tasks are marked as finished, and all workers have stopped. The number slightly exceeds 100 because workers check the stopping condition independently. If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.</p>
@@ -316,16 +316,16 @@
 12:          &lt;NA&gt;        NA        NA        NA      NA       NA
 13:          &lt;NA&gt;        NA        NA        NA      NA       NA
 14:          &lt;NA&gt;        NA        NA        NA      NA       NA
-15:          &lt;NA&gt;        NA        NA        NA      NA       NA
+15: flushed_co...         2 0.4250107 0.1510945       6 5.660964
 16:          &lt;NA&gt;        NA        NA        NA      NA       NA
 17:          &lt;NA&gt;        NA        NA        NA      NA       NA
 18:          &lt;NA&gt;        NA        NA        NA      NA       NA
-19: growable_f...        15 0.9551875 0.1533150       5 3.318507
-20: encyclopae...        16 0.5334215 0.8535684       5 3.318507
-21: purply_zer...         6 0.5240073 0.3961821       5 3.318507
+19: flushed_co...         2 0.4250107 0.1510945       5 4.293359
+20: larval_afr...        12 0.4169417 0.9343475       5 4.293359
+21: friendly_t...         1 0.3965486 0.8730090       5 4.293359
 22:          &lt;NA&gt;        NA        NA        NA      NA       NA
 23:          &lt;NA&gt;        NA        NA        NA      NA       NA
-24: macronucle...         3 0.8404321 0.5009474       5 3.318507
+24: congested_...         6 0.8168297 0.9645963       5 4.293359
 25:          &lt;NA&gt;        NA        NA        NA      NA       NA
 26:          &lt;NA&gt;        NA        NA        NA      NA       NA
 27:          &lt;NA&gt;        NA        NA        NA      NA       NA
@@ -352,16 +352,16 @@
 12:                               [NULL]
 13:                               [NULL]
 14:                               [NULL]
-15:                               [NULL]
+15: d3d66e1b-e1c8-4338-b105-c8a58d9a5a89
 16:                               [NULL]
 17:                               [NULL]
 18:                               [NULL]
-19: 0cb3a07c-9858-4634-8c4d-5150b7494e73
-20: 0c204145-bc4c-4aeb-a7da-f92bc63fe403
-21: 340ccac5-4bb7-4d94-b61f-cbf0a28de37a
+19: c48a8510-4555-465f-be4e-a06c2a99ed73
+20: 4c6b72d5-1b4e-4385-b1d4-11fa899b8261
+21: c095ed84-8bd4-479f-9ed0-5dc7c5ce7ed2
 22:                               [NULL]
 23:                               [NULL]
-24: a4487d8b-fb9d-4c3d-8def-f34e5138b3d5
+24: 7f88147d-9162-4b3a-99e3-68a5ac6ff7cb
 25:                               [NULL]
 26:                               [NULL]
 27:                               [NULL]

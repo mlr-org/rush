@@ -1,4 +1,4 @@
-# Synctatic Sugar for Rush Manager Construction
+# Syntactic Sugar for Rush Manager Construction
 
 Function to construct a
 [Rush](https://rush.mlr-org.com/dev/reference/Rush.md) manager.
