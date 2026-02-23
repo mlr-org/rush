@@ -106,7 +106,7 @@ start_worker = function(
 
   start_args = unserialize(bin_start_args)
 
-  lg$debug("Start arguments unserialized")
+  lg$debug("Start arguments deserialized")
 
   # load large object from disk
   if (inherits(start_args, "rush_large_object")) {
