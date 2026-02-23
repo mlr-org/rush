@@ -11,8 +11,8 @@ options(datatable.prettyprint.char = 10L)
 ```
 
 
-*rush* is a package designed to solve large-scale problems asynchronously across a distributed network.
-Employing a database centric model, rush enables workers to communicate tasks and their results over a shared [`Redis`](https://redis.io/) database.
+`rush` is a package for asynchronous and decentralized optimization in R.
+It uses a database-centric architecture in which workers communicate through a shared Redis database, each independently executing its own optimization loop.
 This article demonstrates how to use `rush` with 3 different examples.
 
 # Random Search
@@ -20,7 +20,7 @@ This article demonstrates how to use `rush` with 3 different examples.
 We begin with a simple random search to optimize the Branin function in parallel.
 Although random search does not require communication between workers, it is a good way to introduce the basic ideas behind `rush`.
 The classic Branin function (also called the Branin-Hoo function) is a well-known benchmark problem in global optimization.
-It is a two-dimensional function that is non-convex, multimodal, and has three global minima.
+It is a two-dimensional function that is non-convex, multi-modal, and has three global minima.
 The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.
 
 ```{r rush-002}
@@ -50,7 +50,7 @@ wl_random_search = function(rush, branin) {
     key = rush$push_running_tasks(xss = list(xs))
 
     ys = list(y = branin(xs$x1, xs$x2))
-    rush$push_results(key, yss = list(ys))
+    rush$finish_tasks(key, yss = list(ys))
   }
 }
 ```

@@ -1,0 +1,323 @@
+---
+title: "Quick Reference"
+format: html
+vignette: >
+  %\VignetteIndexEntry{Quick Reference}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+A quick reference cheatsheet for `rush`.
+
+# Basic Example
+
+```{r}
+library(rush)
+
+config = redux::redis_config()
+
+rush = rsh(network_id = "my_network", config = config)
+
+worker_loop = function(rush) {
+  while (rush$n_finished_tasks < 100) {
+
+    xs = list(x = runif(1))
+    key = rush$push_running_tasks(xss = list(xs))
+
+    ys = list(y = sqrt(xs$x))
+    rush$finish_tasks(key, yss = list(ys))
+  }
+}
+
+mirai::daemons(2)
+
+rush$start_workers(
+  worker_loop = worker_loop,
+  n_workers = 2)
+```
+
+# Rush Manager {#sec-rush-manager}
+
+```{r}
+library(rush)
+
+config = redux::redis_config()
+
+rush = rsh(network_id = "my_network", config = config)
+rush
+```
+
+The `rsh()` function returns a `Rush` manager object used to start workers, push tasks, and retrieve results.
+Multiple networks can run in parallel on the same Redis instance using different network IDs.
+
+# Worker Loop
+
+The worker loop is the function executed by each worker.
+It receives a `RushWorker` object as its first argument and runs until the stopping condition is met.
+
+```{r}
+worker_loop = function(rush) {
+  while (!rush$terminated) {
+
+    xs = list(x = runif(1))
+    key = rush$push_running_tasks(xss = list(xs))
+
+    ys = list(y = sqrt(xs$x))
+    rush$finish_tasks(key, yss = list(ys))
+  }
+}
+```
+
+# Tasks
+
+Tasks are the unit of work exchanged between workers via Redis.
+
+| Component   | Description                                          |
+|-------------|------------------------------------------------------|
+| `key`       | Unique task identifier                               |
+| `xs`        | Named list of inputs                                 |
+| `ys`        | Named list of results                                |
+| `state`     | `"queued"`, `"running"`, `"finished"`, or `"failed"` |
+| `worker_id` | ID of the worker that ran the task                   |
+
+
+# Start Workers
+
+```{r}
+rush$start_workers(
+  worker_loop = worker_loop,
+  n_workers = 2)
+```
+
+# Stop Workers
+
+```{r}
+rush$stop_workers(type = "kill")
+```
+
+
+## Fetch Tasks
+
+Retrieve tasks by state as a `data.table`:
+
+```{r}
+rush$fetch_finished_tasks()
+rush$fetch_running_tasks()
+rush$fetch_failed_tasks()
+rush$fetch_queued_tasks()
+```
+
+Fetch multiple states atomically to avoid duplicates when tasks change state during retrieval:
+
+```{r}
+rush$fetch_tasks_with_state(states = c("running", "finished"))
+```
+
+# Task State
+
+```{r}
+rush$n_queued_tasks
+rush$n_running_tasks
+rush$n_finished_tasks
+rush$n_failed_tasks
+```
+
+# Local Workers
+
+Start workers on the local machine using the `processx` package:
+
+```{r}
+rush$start_local_workers(
+  worker_loop = worker_loop,
+  n_workers = 2)
+```
+
+# Script Workers
+
+Generate a standalone R script that can be run on any machine with Redis access.
+This is the most flexible deployment option.
+
+```{r}
+script = rush$worker_script(worker_loop = worker_loop)
+cat(script)
+```
+
+# Heartbeats
+
+Add a heartbeat to detect crashed script workers:
+
+```{r}
+script = rush$worker_script(
+  worker_loop = worker_loop,
+  heartbeat_period = 10,
+  heartbeat_expire = 30)
+```
+
+# Task Queues
+
+Push tasks to a central queue for workers to consume:
+
+```{r}
+xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
+
+rush$push_tasks(xss = xss)
+```
+
+Pop tasks from the queue in the worker loop:
+
+```{r}
+worker_loop = function(rush) {
+  repeat {
+    task = rush$pop_task()
+    if (is.null(task)) break
+
+    ys = list(y = sqrt(task$xs$x))
+    rush$push_results(task$key, yss = list(ys))
+  }
+}
+```
+
+
+
+## 10. Stop Workers and Reset
+
+Graceful termination (worker loop must check `rush$terminated`):
+
+```r
+rush$stop_workers(type = "terminate")
+```
+
+Kill workers immediately:
+
+```r
+rush$stop_workers(type = "kill")
+
+# Kill specific workers
+rush$stop_workers(worker_ids = worker_ids[1:2])
+```
+
+Reset the entire network (stops all workers and flushes Redis keys):
+
+```r
+rush$reset()
+```
+
+## 11. Error Handling
+
+Catch errors in the worker loop and mark tasks as failed:
+
+```r
+worker_loop = function(rush) {
+  while (!rush$terminated) {
+
+    xs = list(x = runif(1))
+    key = rush$push_running_tasks(xss = list(xs))
+
+    tryCatch({
+      ys = list(y = some_function(xs$x))
+      rush$push_results(key, yss = list(ys))
+    }, error = function(e) {
+      rush$push_failed(key, conditions = list(list(message = e$message)))
+    })
+  }
+}
+```
+
+Failed tasks store the error message and are retrievable:
+
+```r
+rush$fetch_failed_tasks()
+```
+
+## 12. Detecting Lost Workers
+
+Workers that crash (segfault, OOM, network loss) leave tasks stuck in `"running"`.
+Call `$detect_lost_workers()` to identify them and fail their running tasks:
+
+```r
+rush$detect_lost_workers()
+
+rush$worker_info
+```
+
+This works for local (`processx`) and remote (`mirai`) workers.
+Script workers require a heartbeat (see [Script Workers](#script-workers)).
+
+## 13. Debugging
+
+Run the worker loop locally by creating a `RushWorker` manually:
+
+```r
+rush_worker = RushWorker$new("test-network", remote = FALSE)
+
+worker_loop(rush_worker)
+```
+
+Any error raised locally shows a full traceback.
+Enable file logs for workers running in the background:
+
+```r
+message_log = tempdir()
+output_log = tempdir()
+
+worker_ids = rush$start_local_workers(
+  worker_loop = worker_loop,
+  n_workers = 1,
+  message_log = message_log,
+  output_log = output_log)
+
+readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
+```
+
+## 14. Logging
+
+Workers log to Redis using `lgr`.
+Enable logging by passing `lgr_thresholds` when starting workers:
+
+```r
+rush$start_local_workers(
+  worker_loop = worker_loop,
+  n_workers = 2,
+  lgr_thresholds = c(rush = "info"))
+```
+
+Write log messages in the worker loop:
+
+```r
+worker_loop = function(rush) {
+  lg = lgr::get_logger("mlr3/rush")
+  lg$info("Worker %s started on %s", rush$worker_id, rush$hostname)
+  ...
+}
+```
+
+Read logs from the controller:
+
+```r
+rush$print_log()   # formatted output
+rush$read_log()    # data.table
+```
+
+## 15. Rush Plan
+
+When `rush` is embedded in a third-party package, users configure workers via `rush_plan()`:
+
+```r
+rush_plan(
+  n_workers = 4,
+  config = redux::redis_config(),
+  worker_type = "local")          # "local" or "mirai"
+```
+
+Read back the stored configuration:
+
+```r
+rush_config()
+rush_available()   # TRUE if config is set
+```
+
+Remove the plan:
+
+```r
+remove_rush_plan()
+```
