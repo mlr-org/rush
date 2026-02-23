@@ -167,32 +167,32 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id        x1         x2           y
-            &lt;char&gt;     &lt;num&gt;      &lt;num&gt;       &lt;num&gt;
-  1: close_coyo... -3.151460 12.9842777   0.8683344
-  2: ghoulish_j...  9.139695  1.6856085   1.0983926
-  3: unmindful_...  3.358458  0.9839071   1.8952837
-  4: ghoulish_j... -3.842498 13.9499560   2.6668276
-  5: ghoulish_j...  2.463648  2.1773727   2.9914547
+<pre><code>         worker_id        x1        x2           y
+            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;       &lt;num&gt;
+  1: groggy_ivo...  9.299071  2.279144   0.4820939
+  2: repellent_... -3.286682 11.966055   0.9348384
+  3: repellent_...  3.573991  2.392554   1.4670605
+  4: numb_hellb...  3.546505  2.622605   1.5867626
+  5: extraterri...  9.614280  1.535704   1.7881232
  ---
- 98: close_coyo... -3.204644  0.1090012 152.1511002
- 99: close_coyo...  6.850585 13.2720988 164.8088697
-100: ghoulish_j...  7.412862 14.1996929 180.4805558
-101: unmindful_...  4.581124 14.8813365 189.9488592
-102: close_coyo... -4.711255  1.7540398 223.4857430
+ 99: groggy_ivo...  4.280995 12.692740 130.0534342
+100: groggy_ivo...  5.404510 11.888559 130.9773459
+101: extraterri...  3.122540 14.107789 140.0619858
+102: groggy_ivo... -3.693031  1.638240 145.8519445
+103: repellent_...  9.107975 14.526161 152.2992314
                                      keys
                                    &lt;list&gt;
-  1: ae7cf247-1e2f-4943-9e3d-9472cae61bc2
-  2: ea288baa-dd63-4371-937d-aaa0bde8c3a9
-  3: 55e9ef47-3bd6-4722-9263-9c4ae8a57c17
-  4: a93659f1-5e1b-486c-a6c9-9bb170cf9b4a
-  5: d18a25be-8550-458c-886d-d101b3247684
+  1: 953b2ee4-f360-4204-aa8a-82446f1b56fd
+  2: 05e28e4e-e49f-4f67-8c69-33b325415f3e
+  3: d85563e3-b4eb-413a-9c28-a53e66f04448
+  4: 85e92dc7-1b8d-47a7-8195-1961007f7261
+  5: 3c6396a4-aa4a-4463-be8c-1b880e99b4be
  ---
- 98: e2e8a950-3358-49eb-8ef0-e9dabc8c0a89
- 99: 09a33c1f-3f13-457f-ba91-950b7495cdd9
-100: b5d31087-443f-48df-af4a-42987be1750e
-101: 673bacaf-a14f-4131-98cd-c6cee3f5741c
-102: 8291228c-c3db-4af8-8c3d-1302c31a6014</code></pre>
+ 99: f1c206ef-e4b2-4ba2-ae87-f38c462b1a3b
+100: 2cc05c84-3dc0-40f9-b359-658fd7809793
+101: 58d52116-1ef3-4ded-8462-dfa126121fc3
+102: 26c60c5b-2537-4251-9826-71e503d2de79
+103: debb5db3-818d-4430-82cb-35d81748cce0</code></pre>
 </div>
 </div>
 <p>The rush controller displays how many workers are running and how many tasks exist in each state. In this case, 103 tasks are marked as finished, and all workers have stopped. The number slightly exceeds 100 because workers check the stopping condition independently. If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.</p>
@@ -205,7 +205,7 @@
 • Running Workers: 0
 • Queued Tasks: 0
 • Running Tasks: 0
-• Finished Tasks: 102
+• Finished Tasks: 103
 • Failed Tasks: 0</code></pre>
 </div>
 </div>
@@ -300,48 +300,48 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        worker_id max_depth    lambda     alpha nrounds     rmse
-           &lt;char&gt;     &lt;int&gt;     &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;num&gt;
- 1:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 2:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 3:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 4:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 5:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 6:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 7:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 8:          &lt;NA&gt;        NA        NA        NA      NA       NA
- 9:          &lt;NA&gt;        NA        NA        NA      NA       NA
-10:          &lt;NA&gt;        NA        NA        NA      NA       NA
-11:          &lt;NA&gt;        NA        NA        NA      NA       NA
-12:          &lt;NA&gt;        NA        NA        NA      NA       NA
-13:          &lt;NA&gt;        NA        NA        NA      NA       NA
-14:          &lt;NA&gt;        NA        NA        NA      NA       NA
-15: commentari...        11 0.6532405 0.5218400       5 4.480539
-16:          &lt;NA&gt;        NA        NA        NA      NA       NA
-17:          &lt;NA&gt;        NA        NA        NA      NA       NA
-18:          &lt;NA&gt;        NA        NA        NA      NA       NA
-19: crimpy_das...        17 0.3411780 0.6024068       5 4.480539
-20: maximum_na...         6 0.6167644 0.9682646       5 4.480539
-21: introvert_...        10 0.1736282 0.2753601       5 4.480539
-22:          &lt;NA&gt;        NA        NA        NA      NA       NA
-23:          &lt;NA&gt;        NA        NA        NA      NA       NA
-24: crimpy_das...        17 0.3411780 0.6024068       6 5.652242
-25:          &lt;NA&gt;        NA        NA        NA      NA       NA
-26:          &lt;NA&gt;        NA        NA        NA      NA       NA
-27:          &lt;NA&gt;        NA        NA        NA      NA       NA
-28:          &lt;NA&gt;        NA        NA        NA      NA       NA
-29:          &lt;NA&gt;        NA        NA        NA      NA       NA
-30:          &lt;NA&gt;        NA        NA        NA      NA       NA
-31:          &lt;NA&gt;        NA        NA        NA      NA       NA
-32:          &lt;NA&gt;        NA        NA        NA      NA       NA
-        worker_id max_depth    lambda     alpha nrounds     rmse
-           &lt;char&gt;     &lt;int&gt;     &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;num&gt;
+<pre><code>        worker_id max_depth    lambda      alpha nrounds     rmse
+           &lt;char&gt;     &lt;int&gt;     &lt;num&gt;      &lt;num&gt;   &lt;num&gt;    &lt;num&gt;
+ 1:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 2:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 3:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 4: cardiovasc...        14 0.4512315 0.75089360       5 3.854847
+ 5:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 6:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 7:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 8:          &lt;NA&gt;        NA        NA         NA      NA       NA
+ 9:          &lt;NA&gt;        NA        NA         NA      NA       NA
+10:          &lt;NA&gt;        NA        NA         NA      NA       NA
+11:          &lt;NA&gt;        NA        NA         NA      NA       NA
+12:          &lt;NA&gt;        NA        NA         NA      NA       NA
+13:          &lt;NA&gt;        NA        NA         NA      NA       NA
+14: fleshcolor...         4 0.6733517 0.36056116       5 3.854847
+15: gentile_co...        12 0.7058268 0.04810909       8 5.759707
+16:          &lt;NA&gt;        NA        NA         NA      NA       NA
+17:          &lt;NA&gt;        NA        NA         NA      NA       NA
+18:          &lt;NA&gt;        NA        NA         NA      NA       NA
+19: gentile_co...        12 0.7058268 0.04810909       5 3.854847
+20: gentile_co...        12 0.7058268 0.04810909       6 5.759707
+21: chaotic_mo...        18 0.3684117 0.13939877       5 3.854847
+22:          &lt;NA&gt;        NA        NA         NA      NA       NA
+23:          &lt;NA&gt;        NA        NA         NA      NA       NA
+24: gentile_co...        12 0.7058268 0.04810909       7 5.759707
+25:          &lt;NA&gt;        NA        NA         NA      NA       NA
+26: chaotic_mo...        18 0.3684117 0.13939877       6 5.759707
+27:          &lt;NA&gt;        NA        NA         NA      NA       NA
+28:          &lt;NA&gt;        NA        NA         NA      NA       NA
+29:          &lt;NA&gt;        NA        NA         NA      NA       NA
+30:          &lt;NA&gt;        NA        NA         NA      NA       NA
+31:          &lt;NA&gt;        NA        NA         NA      NA       NA
+32:          &lt;NA&gt;        NA        NA         NA      NA       NA
+        worker_id max_depth    lambda      alpha nrounds     rmse
+           &lt;char&gt;     &lt;int&gt;     &lt;num&gt;      &lt;num&gt;   &lt;num&gt;    &lt;num&gt;
                                     keys
                                   &lt;list&gt;
  1:                               [NULL]
  2:                               [NULL]
  3:                               [NULL]
- 4:                               [NULL]
+ 4: 5fafd320-76c5-4195-be84-bb33d8c26435
  5:                               [NULL]
  6:                               [NULL]
  7:                               [NULL]
@@ -351,19 +351,19 @@
 11:                               [NULL]
 12:                               [NULL]
 13:                               [NULL]
-14:                               [NULL]
-15: 5c2d4de0-d9d4-4308-a574-7bf431ca4cb5
+14: 778ad11d-dfc7-49bb-aa55-87d32d95389b
+15: f0d6995d-4821-4ffd-9137-ce7d35a0fe62
 16:                               [NULL]
 17:                               [NULL]
 18:                               [NULL]
-19: 03f2e84d-451c-4e78-b234-8a32cf4b1d11
-20: 578950a7-ed2f-424f-9058-2b796a9f7d83
-21: abac558d-044e-43cf-b432-7cbbc7b7ebe5
+19: 30e892ce-1247-4bf1-9d3f-5ac2cd516ccf
+20: a32ee60b-4dcc-4596-b669-d3d65fe3dedd
+21: 1ad333d7-3485-40e3-80ee-15cf3ec508ac
 22:                               [NULL]
 23:                               [NULL]
-24: c2fb261a-a413-4b70-9b4b-f7638bb45f73
+24: d5685fea-69b2-44cb-8474-5ef90b36421e
 25:                               [NULL]
-26:                               [NULL]
+26: 2eb6c190-d065-4cf3-aa25-557464774740
 27:                               [NULL]
 28:                               [NULL]
 29:                               [NULL]

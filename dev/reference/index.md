@@ -38,6 +38,3 @@
   : Store Large Objects
 - [`filter_custom_fields()`](https://rush.mlr-org.com/dev/reference/filter_custom_fields.md)
   : Filter Custom Fields
-- [`warn_deprecated()`](https://rush.mlr-org.com/dev/reference/warn_deprecated.md)
-  : Give a Warning about a Deprecated Function, Argument, or Active
-  Binding
