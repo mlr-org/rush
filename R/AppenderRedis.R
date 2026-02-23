@@ -58,7 +58,7 @@ AppenderRedis = R6::R6Class("AppenderRedis",
       flush_on_rotate = TRUE,
       should_flush = NULL,
       filters = NULL
-      ){
+      ) { # nolint
       require_namespaces(c("redux", "data.table"))
       assert_class(config, "redis_config")
       private$.connector = redux::hiredis(config)
@@ -120,4 +120,3 @@ filter_custom_fields = function(event) {
   rm(list = extra_cols, envir = event)
   TRUE
 }
-

@@ -44,7 +44,7 @@ RushWorker = R6::R6Class("RushWorker",
         require_namespaces("callr")
         assert_number(heartbeat_period)
         assert_number(heartbeat_expire, null.ok = TRUE)
-        heartbeat_expire = heartbeat_expire %??% heartbeat_period * 3
+        heartbeat_expire = heartbeat_expire %??% (heartbeat_period * 3)
 
         # set heartbeat key
         heartbeat_key = private$.get_worker_key("heartbeat")

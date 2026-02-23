@@ -3,7 +3,7 @@
 #' @description
 #' The heartbeat loop updates the heartbeat key if the worker is still alive.
 #' If the kill key is set, the worker is killed.
-#' This function is called in a callr session.
+#' This function is called in a \CRANpkg{callr} session.
 #'
 #' @param pid (`integer(1)`)\cr
 #' Process ID of the worker.
@@ -22,7 +22,6 @@
 #' @export
 heartbeat = function(network_id, config, worker_id, heartbeat_key, heartbeat_period, heartbeat_expire, pid) {
   r = redux::hiredis(config)
-  worker_id_key = sprintf("%s:%s", network_id, worker_id)
   kill_key = sprintf("%s:%s:kill", network_id, worker_id)
 
   repeat {
@@ -36,5 +35,5 @@ heartbeat = function(network_id, config, worker_id, heartbeat_key, heartbeat_per
     }
   }
 
-  return(NULL)
+  NULL
 }

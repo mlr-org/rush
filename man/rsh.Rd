@@ -2,7 +2,7 @@
 % Please edit documentation in R/sugar.R
 \name{rsh}
 \alias{rsh}
-\title{Synctatic Sugar for Rush Manager Construction}
+\title{Syntactic Sugar for Rush Manager Construction}
 \usage{
 rsh(network_id = NULL, config = NULL, ...)
 }

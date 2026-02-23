@@ -1,4 +1,4 @@
-#' @title Synctatic Sugar for Rush Manager Construction
+#' @title Syntactic Sugar for Rush Manager Construction
 #'
 #' @description
 #' Function to construct a [Rush] manager.

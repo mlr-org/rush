@@ -37,7 +37,7 @@ rush_plan = function(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai"
-  ) {
+  ) { #nolint
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
@@ -52,7 +52,7 @@ rush_plan = function(
     worker_type = "mirai"
   }
 
-  assert_choice(worker_type, c("mirai", "processx"))
+  assert_choice(worker_type, c("mirai", "processx", "script"))
   if (is.null(config)) config = redux::redis_config()
   if (!redux::redis_available(config)) {
     error_config("Can't connect to Redis. Check the configuration.")
