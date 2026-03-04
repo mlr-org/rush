@@ -11,7 +11,7 @@ A quick reference cheatsheet for `rush`.
 
 # Basic Example
 
-```{r}
+```{r quick_reference-001}
 library(rush)
 
 config = redux::redis_config()
@@ -38,7 +38,7 @@ rush$start_workers(
 
 # Rush Manager {#sec-rush-manager}
 
-```{r}
+```{r quick_reference-002}
 library(rush)
 
 config = redux::redis_config()
@@ -55,7 +55,7 @@ Multiple networks can run in parallel on the same Redis instance using different
 The worker loop is the function executed by each worker.
 It receives a `RushWorker` object as its first argument and runs until the stopping condition is met.
 
-```{r}
+```{r quick_reference-003}
 worker_loop = function(rush) {
   while (!rush$terminated) {
 
@@ -83,7 +83,7 @@ Tasks are the unit of work exchanged between workers via Redis.
 
 # Start Workers
 
-```{r}
+```{r quick_reference-004}
 rush$start_workers(
   worker_loop = worker_loop,
   n_workers = 2)
@@ -91,7 +91,7 @@ rush$start_workers(
 
 # Stop Workers
 
-```{r}
+```{r quick_reference-005}
 rush$stop_workers(type = "kill")
 ```
 
@@ -100,7 +100,7 @@ rush$stop_workers(type = "kill")
 
 Retrieve tasks by state as a `data.table`:
 
-```{r}
+```{r quick_reference-006}
 rush$fetch_finished_tasks()
 rush$fetch_running_tasks()
 rush$fetch_failed_tasks()
@@ -109,13 +109,13 @@ rush$fetch_queued_tasks()
 
 Fetch multiple states atomically to avoid duplicates when tasks change state during retrieval:
 
-```{r}
+```{r quick_reference-007}
 rush$fetch_tasks_with_state(states = c("running", "finished"))
 ```
 
 # Task State
 
-```{r}
+```{r quick_reference-008}
 rush$n_queued_tasks
 rush$n_running_tasks
 rush$n_finished_tasks
@@ -126,7 +126,7 @@ rush$n_failed_tasks
 
 Start workers on the local machine using the `processx` package:
 
-```{r}
+```{r quick_reference-009}
 rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 2)
@@ -137,7 +137,7 @@ rush$start_local_workers(
 Generate a standalone R script that can be run on any machine with Redis access.
 This is the most flexible deployment option.
 
-```{r}
+```{r quick_reference-010}
 script = rush$worker_script(worker_loop = worker_loop)
 cat(script)
 ```
@@ -146,7 +146,7 @@ cat(script)
 
 Add a heartbeat to detect crashed script workers:
 
-```{r}
+```{r quick_reference-011}
 script = rush$worker_script(
   worker_loop = worker_loop,
   heartbeat_period = 10,
@@ -157,7 +157,7 @@ script = rush$worker_script(
 
 Push tasks to a central queue for workers to consume:
 
-```{r}
+```{r quick_reference-012}
 xss = replicate(25, list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -165,31 +165,29 @@ rush$push_tasks(xss = xss)
 
 Pop tasks from the queue in the worker loop:
 
-```{r}
+```{r quick_reference-013}
 worker_loop = function(rush) {
   repeat {
     task = rush$pop_task()
     if (is.null(task)) break
 
     ys = list(y = sqrt(task$xs$x))
-    rush$push_results(task$key, yss = list(ys))
+    rush$finish_tasks(task$key, yss = list(ys))
   }
 }
 ```
 
-
-
-## 10. Stop Workers and Reset
+# Stop Workers and Reset
 
 Graceful termination (worker loop must check `rush$terminated`):
 
-```r
+```{r quick_reference-014}
 rush$stop_workers(type = "terminate")
 ```
 
 Kill workers immediately:
 
-```r
+```{r quick_reference-015}
 rush$stop_workers(type = "kill")
 
 # Kill specific workers
@@ -198,15 +196,15 @@ rush$stop_workers(worker_ids = worker_ids[1:2])
 
 Reset the entire network (stops all workers and flushes Redis keys):
 
-```r
+```{r quick_reference-016}
 rush$reset()
 ```
 
-## 11. Error Handling
+## Error Handling
 
 Catch errors in the worker loop and mark tasks as failed:
 
-```r
+```{r quick_reference-017}
 worker_loop = function(rush) {
   while (!rush$terminated) {
 
@@ -215,9 +213,9 @@ worker_loop = function(rush) {
 
     tryCatch({
       ys = list(y = some_function(xs$x))
-      rush$push_results(key, yss = list(ys))
+      rush$finish_tasks(key, yss = list(ys))
     }, error = function(e) {
-      rush$push_failed(key, conditions = list(list(message = e$message)))
+      rush$fail_tasks(key, conditions = list(list(message = e$message)))
     })
   }
 }
@@ -225,29 +223,24 @@ worker_loop = function(rush) {
 
 Failed tasks store the error message and are retrievable:
 
-```r
+```{r quick_reference-018}
 rush$fetch_failed_tasks()
 ```
 
-## 12. Detecting Lost Workers
+# Detecting Lost Workers
 
 Workers that crash (segfault, OOM, network loss) leave tasks stuck in `"running"`.
 Call `$detect_lost_workers()` to identify them and fail their running tasks:
 
-```r
+```{r quick_reference-019}
 rush$detect_lost_workers()
-
-rush$worker_info
 ```
 
-This works for local (`processx`) and remote (`mirai`) workers.
-Script workers require a heartbeat (see [Script Workers](#script-workers)).
-
-## 13. Debugging
+## Debugging
 
 Run the worker loop locally by creating a `RushWorker` manually:
 
-```r
+```{r quick_reference-020}
 rush_worker = RushWorker$new("test-network", remote = FALSE)
 
 worker_loop(rush_worker)
@@ -256,17 +249,12 @@ worker_loop(rush_worker)
 Any error raised locally shows a full traceback.
 Enable file logs for workers running in the background:
 
-```r
-message_log = tempdir()
-output_log = tempdir()
-
+```{r}
 worker_ids = rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 1,
-  message_log = message_log,
-  output_log = output_log)
-
-readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
+  message_log = "message",
+  output_log = "output")
 ```
 
 ## 14. Logging
@@ -274,7 +262,7 @@ readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
 Workers log to Redis using `lgr`.
 Enable logging by passing `lgr_thresholds` when starting workers:
 
-```r
+```{r}
 rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 2,
@@ -283,7 +271,7 @@ rush$start_local_workers(
 
 Write log messages in the worker loop:
 
-```r
+```{r}
 worker_loop = function(rush) {
   lg = lgr::get_logger("mlr3/rush")
   lg$info("Worker %s started on %s", rush$worker_id, rush$hostname)
@@ -293,7 +281,7 @@ worker_loop = function(rush) {
 
 Read logs from the controller:
 
-```r
+```{r}
 rush$print_log()   # formatted output
 rush$read_log()    # data.table
 ```
@@ -302,7 +290,7 @@ rush$read_log()    # data.table
 
 When `rush` is embedded in a third-party package, users configure workers via `rush_plan()`:
 
-```r
+```{r}
 rush_plan(
   n_workers = 4,
   config = redux::redis_config(),
@@ -311,13 +299,13 @@ rush_plan(
 
 Read back the stored configuration:
 
-```r
+```{r}
 rush_config()
 rush_available()   # TRUE if config is set
 ```
 
 Remove the plan:
 
-```r
+```{r}
 remove_rush_plan()
 ```
