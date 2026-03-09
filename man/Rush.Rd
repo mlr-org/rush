@@ -317,9 +317,6 @@ Loop run on the workers.}
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -329,19 +326,8 @@ Number of workers to be started.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -352,16 +338,6 @@ This improves the performance of the logging.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log files e.g. \verb{/tmp/message_logs/}
-The message log files are named \verb{message_<worker_id>.log}.
-If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log files e.g. \verb{/tmp/output_logs/}
-The output log files are named \verb{output_<worker_id>.log}.
-If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -401,9 +377,6 @@ Loop run on the workers.}
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -413,19 +386,8 @@ Number of workers to be started.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -439,16 +401,6 @@ Whether to kill the workers when the main R process is shut down.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log files e.g. \verb{/tmp/message_logs/}
-The message log files are named \verb{message_<worker_id>.log}.
-If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log files e.g. \verb{/tmp/output_logs/}
-The output log files are named \verb{output_<worker_id>.log}.
-If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -486,9 +438,6 @@ Loop run on the workers.}
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -498,19 +447,8 @@ Number of workers to be started.}
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -521,16 +459,6 @@ This improves the performance of the logging.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log files e.g. \verb{/tmp/message_logs/}
-The message log files are named \verb{message_<worker_id>.log}.
-If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log files e.g. \verb{/tmp/output_logs/}
-The output log files are named \verb{output_<worker_id>.log}.
-If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
@@ -569,28 +497,14 @@ Loop run on the workers.}
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
 \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
 
-\item{\code{packages}}{(\code{character()})\cr
-Packages to be loaded by the workers.}
-
 \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
-Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
-By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
-If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
-This improves the performance of the logging.}
 
 \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
@@ -601,14 +515,6 @@ This improves the performance of the logging.}
 Period of the heartbeat in seconds.
 The heartbeat is updated every \code{heartbeat_period} seconds.}
 
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
-Period of the heartbeat in seconds.
-The heartbeat is updated every \code{heartbeat_period} seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
-Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
-
 \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
@@ -617,16 +523,6 @@ The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
-Path to the message log files e.g. \verb{/tmp/message_logs/}
-The message log files are named \verb{message_<worker_id>.log}.
-If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
-Path to the output log files e.g. \verb{/tmp/output_logs/}
-The output log files are named \verb{output_<worker_id>.log}.
-If \code{NULL}, no output is stored.}
 
 \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}

@@ -305,17 +305,8 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Generate a script to start workers.
     #' Run this script `n` times to start `n` workers.
-    #'
-    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
-    #' @template param_packages
-    #' @template param_lgr_thresholds
-    #' @template param_lgr_buffer_size
-    #' @template param_heartbeat_period
-    #' @template param_heartbeat_expire
-    #' @template param_message_log
-    #' @template param_output_log
     worker_script = function(
       worker_loop,
       ...,
