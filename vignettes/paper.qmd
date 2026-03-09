@@ -12,7 +12,7 @@ What journal is this for?
 - R Journal
 -->
 
-```{r}
+```{r paper-001}
 #| include: false
 library(rush)
 library(here)
@@ -155,7 +155,7 @@ The Branin function is a commonly used benchmark function that is fast to evalua
 
 ![Branin function](figures/branin.png){#fig-branin width=100%}
 
-```{r}
+```{r paper-002}
 branin = function(x1, x2) {
   (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 +
     10 * (1 - 1 / (8 * pi)) * cos(x1) +
@@ -172,7 +172,7 @@ It then fits a surrogate model and proposes a new point by maximizing an upper-c
 Fitting the surrogate model becomes increasingly expensive as the number of tasks in the `archive` grows.
 A detailed understanding of this optimizer is not necessary to follow the subsequent examples; two properties are relevant for what follows: it uses previously evaluated points from other workers to inform new proposals, and proposal generation incurs a non-negligible computational cost.
 
-```{r}
+```{r paper-003}
 optimizer = function(archive) {
   if (nrow(archive) == 0) {
     return(list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15)))
@@ -213,7 +213,7 @@ The worker loop repeats the following steps until 100 tasks have been evaluated:
 Crucially, each worker executes this loop independently; no central controller is involved in proposing or dispatching tasks.
 
 
-```{r rush-003}
+```{r paper-004}
 library(rush)
 
 wl_mbo = function(rush, branin, optimizer) {
@@ -255,7 +255,7 @@ The `Rush` manager class is responsible for starting, monitoring, and stopping w
 It is initialized using the `rsh()` function, which requires a network identifier and a `config` argument.
 The `config` argument specifies a configuration file used to connect to the Redis database via the `redux` package.
 
-```{r rush-004}
+```{r paper-005}
 library(rush)
 
 config = redux::redis_config()
@@ -269,7 +269,7 @@ Workers are started using the `$start_workers()` method, which accepts the worke
 Any additional named arguments are forwarded to the worker loop function as named arguments.
 The worker run on `mirai` daemons which are started with the `mirai::daemons()` function.
 
-```{r rush-005}
+```{r paper-006}
 mirai::daemons(4)
 
 rush$start_workers(
@@ -287,12 +287,12 @@ It returns a `data.table` containing the task key, input, and result.
 The `worker_id` column identifies the worker that evaluated the task.
 Further auxiliary information can be passed as lists to the `$push_running_tasks()` and `$finish_tasks()` methods via the `extra` argument.
 
-```{r rush-006}
+```{r paper-007}
 #| include: false
 Sys.sleep(5)
 ```
 
-```{r rush-007}
+```{r paper-008}
 rush$fetch_finished_tasks()[order(y)]
 ```
 
@@ -302,13 +302,13 @@ The total of tasks slightly exceeds 100 because workers check the stopping condi
 
 Printing the `rush` object displays the number of running workers and the number of tasks in each state.
 
-```{r rush-008}
+```{r paper-009}
 rush
 ```
 
 The workers can be stopped and the database reset using the `$reset()` method.
 
-```{r rush-009}
+```{r paper-010}
 rush$reset()
 
 rush
@@ -363,7 +363,7 @@ Structured designs such as Latin hypercube sampling (LHS) or Sobol sequences can
 If each worker were to generate its own initial design independently, they would need to coordinate to avoid redundant evaluations.
 A queue avoids this problem: the initial design is created once in a central process, and workers draw tasks from the shared queue.
 
-```{r}
+```{r paper-011}
 lhs_points = lhs::maximinLHS(n = 25, k = 2)
 xss = lapply(1:25, function(i) {
   list(x1 = lhs_points[i, 1] * 15 - 5, x2 = lhs_points[i, 2] * 15)
@@ -373,7 +373,7 @@ xss = lapply(1:25, function(i) {
 The `$push_tasks()` method creates new tasks and adds them to the queue.
 Here, we push 25 tasks corresponding to the LHS design:
 
-```{r rush-016}
+```{r paper-012}
 rush$push_tasks(xss = xss)
 
 rush
@@ -382,7 +382,7 @@ rush
 To consume tasks from the queue, the worker loop calls the `$pop_task()` method, which retrieves the next queued task, marks it as running, and returns it.
 If the queue is empty, the method returns `NULL`, which serves as the termination signal.
 
-```{r rush-017}
+```{r paper-013}
 wl_queue = function(rush) {
   repeat {
     task = rush$pop_task()
@@ -400,7 +400,7 @@ In practice, the queue loop typically precedes the main optimization loop: worke
 `rush` provides error-handling mechanisms for two failure modes: standard R errors during task evaluation and unexpected worker failures such as crashes or lost connections.
 For errors that occur during task evaluation, users are responsible for catching them within the worker loop and marking the corresponding task as `"failed"` using the `$fail_tasks()` method:
 
-```{r rush-018}
+```{r paper-014}
 wl_error = function(rush) {
 
   while(rush$n_finished_tasks < 100) {
@@ -428,7 +428,7 @@ For workers started with `$start_local_workers()` or `$start_workers()`, lost wo
 Workers started via `$worker_script()` require an additional heartbeat mechanism: a background process periodically refreshes a `Redis` key with a set expiration timeout, and if the worker fails, the key expires, signaling the controller that the worker is lost.
 The heartbeat is configured at startup:
 
-```{r controller-054}
+```{r paper-015}
 rush$worker_script(
   worker_loop = wl_mbo,
   heartbeat_period = 1,

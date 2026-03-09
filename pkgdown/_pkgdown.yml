@@ -41,6 +41,15 @@ navbar:
       href: https://mlr-org.com/
       aria-label: mlr-org
 
+articles:
+  - title: Get Started
+    navbar: ~
+    contents:
+      - quick_reference
+      - rush
+      - controller
+      - error_handling
+
 reference:
   - title: Controller and Worker
     contents:
