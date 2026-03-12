@@ -45,8 +45,8 @@ articles:
   - title: Get Started
     navbar: ~
     contents:
-      - quick_reference
       - rush
+      - tutorial
       - manager
       - error_handling
       - paper

@@ -144,6 +144,7 @@ wl_error = function(rush) {
 To debug the worker loop locally, a `RushWorker` instance is instantiated manually and passed as argument to the worker loop.
 
 ```{r error_handling-011}
+#| error: true
 rush_worker = RushWorker$new(network_id = "test-error")
 
 wl_error(rush_worker)
