@@ -47,15 +47,18 @@ articles:
     contents:
       - quick_reference
       - rush
-      - controller
+      - manager
       - error_handling
+      - paper
 
 reference:
-  - title: Controller and Worker
+  - title: Manager
     contents:
       - Rush
-      - RushWorker
       - rsh
+  - title: Worker
+    contents:
+      - RushWorker
   - title: Plan
     contents:
       - rush_plan
@@ -72,4 +75,3 @@ reference:
       - rush-package
       - store_large_object
       - filter_custom_fields
-      - warn_deprecated
