@@ -147,7 +147,6 @@ Rush = R6::R6Class("Rush",
     #' Start workers to run the worker loop in `mirai::daemons()`.
     #' Initializes a [RushWorker] in each process and starts the worker loop.
     #'
-    #' @template param_worker_loop
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
@@ -305,6 +304,7 @@ Rush = R6::R6Class("Rush",
     #' @description
     #' Generate a script to start workers.
     #' Run this script `n` times to start `n` workers.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     worker_script = function(

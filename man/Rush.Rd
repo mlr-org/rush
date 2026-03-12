@@ -314,9 +314,6 @@ Initializes a \link{RushWorker} in each process and starts the worker loop.
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -371,9 +368,6 @@ Use \verb{$wait_for_workers()} to wait until the workers are registered in the n
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
@@ -435,9 +429,6 @@ Initializes a \link{RushWorker} in each process and starts the worker loop.
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
 
@@ -491,9 +482,6 @@ Run this script \code{n} times to start \code{n} workers.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{worker_loop}}{(\code{function})\cr
-Loop run on the workers.}
-
 \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
 
