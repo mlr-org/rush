@@ -41,12 +41,23 @@ navbar:
       href: https://mlr-org.com/
       aria-label: mlr-org
 
+articles:
+  - title: Get Started
+    navbar: ~
+    contents:
+      - rush
+      - tutorial
+      - manager
+      - error_handling
+
 reference:
-  - title: Controller and Worker
+  - title: Manager
     contents:
       - Rush
-      - RushWorker
       - rsh
+  - title: Worker
+    contents:
+      - RushWorker
   - title: Plan
     contents:
       - rush_plan

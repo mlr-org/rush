@@ -2,7 +2,8 @@
 #'
 #' @description
 #' [RushWorker] inherits all methods from [Rush].
-#' Upon initialization, the worker registers itself in the Redis database.
+#' Upon initialization, the worker registers itself in the Redis database as a running worker.
+#' This class is usually not constructed directly by the user.
 #'
 #' @template param_network_id
 #' @template param_config
@@ -10,7 +11,7 @@
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #'
-#' @return Object of class [R6::R6Class] and `RushWorker` with worker methods.
+#' @return Object of class [R6::R6Class] and `RushWorker`.
 #' @export
 RushWorker = R6::R6Class("RushWorker",
   inherit = Rush,
