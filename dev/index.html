@@ -88,23 +88,21 @@
 <p>Package website: <a href="https://rush.mlr-org.com/">release</a> | <a href="https://rush.mlr-org.com/dev/">dev</a></p>
 <!-- badges: start -->
 
-<p><em>rush</em> is a package designed to solve large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared <a href="https://redis.io/" class="external-link"><code>Redis</code></a> database. Key features include low task overhead, efficient caching, and robust error handling. The package powers asynchronous optimization algorithms in the <a href="https://CRAN.R-project.org/package=bbotk" class="external-link"><code>bbotk</code></a> and <a href="https://CRAN.R-project.org/package=paradox" class="external-link"><code>mlr3tuning</code></a> packages.</p>
+<p><em>rush</em> is an R package for asynchronous and decentralized optimization. It uses a database-centric architecture in which workers communicate through a shared <a href="https://redis.io/" class="external-link"><code>Redis</code></a> database. To support high-throughput workloads, rush combines sub-millisecond per-task overhead with caching strategies that reduce database operations. The package integrates with the <code>mlr3</code> ecosystem and serves as the backend for asynchronous optimization algorithms in <a href="https://CRAN.R-project.org/package=bbotk" class="external-link"><code>bbotk</code></a> and <a href="https://CRAN.R-project.org/package=mlr3tuning" class="external-link"><code>mlr3tuning</code></a>.</p>
 </div>
 <div class="section level1">
 <h1 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h1>
 <ul>
-<li>Database centric model for robust scalability.</li>
-<li>Efficient communication between workers using<a href="https://redis.io/" class="external-link"><code>Redis</code></a>.</li>
-<li>Maintains low overhead, limiting delays to just a millisecond per task.</li>
-<li>Reduces read/write operations with a lightweight and efficient caching system.</li>
-<li>Offers centralized system features, such as task queues.</li>
-<li>Provides fast data transformation from Redis to <a href="https://CRAN.R-project.org/package=data.table" class="external-link"><code>data.table</code></a>.</li>
-<li>Simplifies local worker setup with <a href="https://CRAN.R-project.org/package=processx" class="external-link"><code>processx</code></a>.</li>
-<li>Enables scaling to large remote worker networks via the <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><code>mirai</code></a> package.</li>
-<li>Automatically detects and recovers from worker failures for high reliability.</li>
-<li>Logs worker messages directly into the Redis database using <a href="https://CRAN.R-project.org/package=lgr" class="external-link"><code>lgr</code></a>.</li>
-<li>Designed with minimal dependencies for lightweight integration.</li>
+<li>Database-centric architecture for decentralized optimization without a central controller.</li>
+<li>Asynchronous communication between workers using <a href="https://redis.io/" class="external-link"><code>Redis</code></a>.</li>
+<li>Sub-millisecond per-task overhead for high-throughput workloads.</li>
+<li>Efficient caching mechanism that minimizes database read/write operations.</li>
+<li>Task queue support for centralized tasks distribution when needed.</li>
+<li>Fast data transformation from Redis to <a href="https://CRAN.R-project.org/package=data.table" class="external-link"><code>data.table</code></a>.</li>
+<li>Scales to large remote worker networks via the <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><code>mirai</code></a> package.</li>
+<li>Worker logging directly into the Redis database using <a href="https://CRAN.R-project.org/package=lgr" class="external-link"><code>lgr</code></a>.</li>
+<li>Minimal dependencies for lightweight integration.</li>
 </ul>
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
@@ -129,11 +127,11 @@
 <h1 id="related-work">Related Work<a class="anchor" aria-label="anchor" href="#related-work"></a>
 </h1>
 <ul>
-<li>The <a href="https://github.com/mrc-ide/rrq" class="external-link">rrq</a> package is a task queue system for R using Redis.</li>
-<li>The <a href="https://CRAN.R-project.org/package=future" class="external-link">future</a> package provides a simple and uniform way of evaluating R expressions asynchronously across a range of backends.</li>
-<li>
-<a href="https://CRAN.R-project.org/package=batchtools" class="external-link">batchtools</a> is a package for the execution of long-running tasks on high-performance computing clusters.</li>
-<li>The <a href="https://CRAN.R-project.org/package=mirai" class="external-link">mirai</a> package evaluates an R expression asynchronously in a parallel process, locally or distributed over the network.</li>
+<li><a href="https://CRAN.R-project.org/package=future" class="external-link">future</a></li>
+<li><a href="https://CRAN.R-project.org/package=mirai" class="external-link">mirai</a></li>
+<li><a href="https://CRAN.R-project.org/package=batchtools" class="external-link">batchtools</a></li>
+<li><a href="https://CRAN.R-project.org/package=crew" class="external-link">crew</a></li>
+<li><a href="https://github.com/mrc-ide/rrq" class="external-link">rrq</a></li>
 </ul>
 </div>
 
