@@ -49,6 +49,7 @@ articles:
       - tutorial
       - manager
       - error_handling
+      - paper
 
 reference:
   - title: Manager
