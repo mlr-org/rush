@@ -14,11 +14,17 @@ options(datatable.prettyprint.char = 10L)
 
 The `Rush` manager class is responsible for starting, monitoring, and stopping workers within the network.
 This vignette describes the three mechanisms for starting workers: `mirai` daemons, local `processx` processes, and portable R scripts.
-We advise you reading the general [rush vignette](rush.html) first.
-We use the random search example from this vignetteto demonstrate the manager.
+We advise reading the [tutorial](tutorial.html) first.
+We use the random search example from this vignette to demonstrate the manager.
 
 ```{r manager-006}
 library(rush)
+
+branin = function(x1, x2) {
+  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 +
+    10 * (1 - 1 / (8 * pi)) * cos(x1) +
+    10
+}
 
 wl_random_search = function(rush, branin) {
   while(TRUE) {
@@ -39,14 +45,14 @@ rush = rsh(
 # Starting Workers with mirai {#sec-starting-workers}
 
 The `mirai` package provides a mechanism for launching `rush` workers on local and remote machines.
-`mirai` manages daemons — persistent background processes that execute arbitrary R code in parallel.
+`mirai` daemons are persistent background processes that execute arbitrary R code in parallel.
 Daemons are started using `mirai::daemons()`.
 For local daemons, the number of workers is specified.
 
 ```{r manager-003}
 library(mirai)
 
-daemons(n = 2)
+daemons(n = 2L)
 ```
 
 ```{r manager-008}
@@ -56,7 +62,7 @@ while (mirai::status()$connections < 2) {
 }
 ```
 
-After the daemons are started, workers are started with the `$start_workers()` method.
+After the daemons are started, workers are launched with the `$start_workers()` method.
 The `$wait_for_workers()` method blocks until all workers have registered in the network.
 
 ```{r manager-009}
@@ -65,14 +71,14 @@ worker_ids = rush$start_workers(
   n_workers = 2,
   branin = branin)
 
-rush$wait_for_workers(worker_ids)
+rush$wait_for_workers(worker_ids = worker_ids)
 ```
 
 Worker information is accessible through the `$worker_info` field.
 Each worker is identified by a `worker_id`.
 The `pid` field denotes the process identifier and the `hostname` field indicates the machine name.
 The `remote` column specifies whether the worker is remote and the `heartbeat` column indicates the presence of a heartbeat process.
-The `state` column reflects the current worker state, which can be `"running"`, `"terminated"`, `"killed"`, or `"lost"`.
+The `state` column reflects the current worker state, which can be `"running"` or `"terminated"`.
 
 ```{r manager-010}
 rush$worker_info
@@ -97,7 +103,7 @@ To stop all workers and reset the network, the `$reset()` method is used.
 rush$reset()
 ```
 
-Instead of killing the worker processes, a terminate signal can be sent to the workers.
+Instead of killing the worker processes, the manager can send a terminate signal.
 The worker then terminates after completing its current task.
 The worker loop must check the `rush$terminated` flag.
 
@@ -156,20 +162,18 @@ wl_failed_worker = function(rush) {
 ```
 
 ```{r manager-022}
-daemons(2)
+mirai::daemons(n = 2L)
 ```
 
 ```{r manager-023}
 worker_ids = rush$start_workers(
   worker_loop = wl_failed_worker,
-  n_workers = 2)
+  n_workers = 2L)
 ```
 
 ```{r manager-024}
 #| include: false
-while (mirai::status()$connections < 2) {
-  Sys.sleep(0.1)
-}
+Sys.sleep(5L)
 ```
 
 ```{r manager-025}
@@ -182,7 +186,7 @@ Daemons can also be launched on remote machines via SSH.
 
 ```{r manager-004}
 #| eval: false
-daemons(
+mirai::daemons(
   n = 2L,
   url = host_url(port = 5555),
   remote = ssh_config(remotes = "ssh://10.75.32.90")
@@ -193,7 +197,7 @@ On high-performance computing clusters, daemons can be started using a scheduler
 
 ```{r manager-005}
 #| eval: false
-daemons(
+mirai::daemons(
   n = 2L,
   url = host_url(),
   remote = remote_config(
@@ -204,7 +208,6 @@ daemons(
   )
 )
 ```
-
 
 ## Rush Plan {#sec-local-rush-plan}
 
@@ -233,7 +236,7 @@ The `large_objects_path` argument of `rush_plan()` specifies the directory used 
 
 ## Log Messages {#sec-local-log-messages}
 
-Workers record all messages generated via the `lgr` package to the database.
+Workers can record messages generated via the `lgr` package to the database.
 The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging level for each logger, e.g. `c("mlr3/rush" = "debug")`.
 Logging introduces a minor performance overhead and is disabled by default.
 
@@ -276,39 +279,20 @@ rush$reset()
 # Starting Local Workers {#sec-starting-local-workers}
 
 The `$start_local_workers()` method launches workers using the `processx` package on the local machine.
-We use the random search example from the [rush vignette](rush.html).
-
-```{r manager-032}
-wl_random_search = function(rush, branin) {
-  while(TRUE) {
-    xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
-    key = rush$push_running_tasks(xss = list(xs))
-    ys = list(y = branin(xs$x1, xs$x2))
-    rush$finish_tasks(key, yss = list(ys))
-  }
-}
-
-rush = rsh(
-  network = "test-network",
-  config = redux::redis_config())
-
-branin = function(x1, x2) {
-  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
-}
-```
-
-## Starting Workers {#sec-local-start-workers}
-
 The `n_workers` argument specifies the number of workers to launch and `worker_loop` defines the function executed by each worker.
 Additional arguments required by the worker loop are passed as named arguments to `$start_local_workers()`.
 
 ```{r manager-033}
+rush = rsh(
+  network = "test-network",
+  config = redux::redis_config())
+
 worker_ids = rush$start_local_workers(
   worker_loop = wl_random_search,
   branin = branin,
   n_workers = 2)
 
-rush$wait_for_workers(worker_ids)
+rush$wait_for_workers(worker_ids = worker_ids)
 ```
 
 ```{r manager-034}
@@ -323,40 +307,10 @@ rush$start_local_workers(
   branin = branin,
   n_workers = 2)
 
-rush$wait_for_workers(worker_ids)
+rush$wait_for_workers(worker_ids = worker_ids)
 ```
 
 ```{r manager-036}
-rush$worker_info
-```
-
-## Failed Workers {#sec-local-failed-workers}
-
-We simulate a worker crash by killing the worker process.
-
-```{r manager-037}
-rush = rsh(network = "test-failed-workers")
-
-wl_failed_worker = function(rush) {
-  tools::pskill(Sys.getpid(), tools::SIGKILL)
-}
-```
-
-```{r manager-038}
-worker_ids = rush$start_local_workers(
-  worker_loop = wl_failed_worker,
-  n_workers = 2)
-```
-
-```{r manager-039}
-#| include: false
-Sys.sleep(1)
-```
-
-The `$detect_lost_workers()` method identifies failed workers and updates their state to `"lost"`.
-
-```{r manager-040}
-rush$detect_lost_workers()
 rush$worker_info
 ```
 
@@ -376,10 +330,10 @@ rush$worker_script(
 
 ## Error Handling {#sec-script-error-handling}
 
-Workers started with `processx` or `mirai` are monitored automatically by the respective packages.
+Workers started with `processx` and `mirai` are monitored automatically by the respective packages.
 Script workers require an explicit heartbeat mechanism to detect failures.
 The heartbeat consists of a Redis key with a set expiration timeout, refreshed periodically by a background process linked to the main worker process.
-If the worker fails, the heartbeat process also ceases, the key expires, and the manager marks the worker as `"lost"`.
+If the worker fails, the heartbeat process also ceases, the key expires, and the manager marks the worker as `"terminated"`.
 
 The `heartbeat_period` and `heartbeat_expire` arguments configure the heartbeat at startup.
 The `heartbeat_period` defines the refresh interval in seconds; `heartbeat_expire` sets the expiration duration, which must exceed the heartbeat period.
