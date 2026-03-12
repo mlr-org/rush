@@ -1623,7 +1623,7 @@ Rush = R6::R6Class("Rush",
         # rbindlist only the new results and append to cached data.table
         data = self$read_hashes(new_keys, fields)
         new_tab = rbindlist(data, use.names = TRUE, fill = TRUE)
-        if (nrow(new_tab)) new_tab[, keys := new_keys]
+        if (nrow(new_tab)) new_tab[, keys := unlist(new_keys)]
         private$.cached_tasks = rbindlist(list(private$.cached_tasks, new_tab), use.names = TRUE, fill = TRUE)
       }
 
