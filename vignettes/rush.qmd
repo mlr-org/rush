@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
+```{r rush-001}
 #| include: false
 r = redux::hiredis()
 r$FLUSHDB()
@@ -19,7 +19,7 @@ See the [tutorial](tutorial.html) for a detailed introduction.
 
 # Worker Loop
 
-```{r rush-001}
+```{r rush-002}
 library(rush)
 
 worker_loop = function(rush) {
@@ -36,7 +36,7 @@ worker_loop = function(rush) {
 
 # Rush Manager
 
-```{r rush-002}
+```{r rush-003}
 config = redux::redis_config()
 
 rush = rsh(network_id = "my_network", config = config)
@@ -45,7 +45,7 @@ rush
 
 # Start Workers
 
-```{r rush-003}
+```{r rush-004}
 mirai::daemons(n = 2L)
 
 rush$start_workers(
@@ -55,24 +55,24 @@ rush$start_workers(
 
 # Wait for Workers
 
-```{r rush-004}
+```{r rush-005}
 rush$wait_for_workers(n = 2L)
 ```
 
-```{r}
+```{r rush-006}
 #| include: false
 Sys.sleep(5)
 ```
 
 # Fetch Results
 
-```{r rush-005}
+```{r rush-007}
 rush$fetch_finished_tasks()
 ```
 
 # Stop Workers
 
-```{r rush-006}
+```{r rush-008}
 rush$stop_workers(type = "kill")
 ```
 
@@ -88,7 +88,7 @@ rush$stop_workers(type = "kill")
 
 # More fetch methods
 
-```{r rush-007}
+```{r rush-009}
 rush$fetch_tasks()
 rush$fetch_queued_tasks()
 rush$fetch_running_tasks()
@@ -98,7 +98,7 @@ rush$fetch_tasks_with_state(states = c("running", "finished"))
 
 # Task Counts
 
-```{r rush-008}
+```{r rush-010}
 rush$n_queued_tasks
 rush$n_running_tasks
 rush$n_finished_tasks
@@ -107,7 +107,7 @@ rush$n_failed_tasks
 
 # Push Tasks to Queue
 
-```{r rush-009}
+```{r rush-011}
 xss = replicate(25, list(x = runif(1L)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -115,12 +115,12 @@ rush$push_tasks(xss = xss)
 
 # Pop Task from Queue
 
-```{r rush-010}
+```{r rush-012}
 task = rush$pop_task()
 task
 ```
 
-```{r rush-011}
+```{r rush-013}
 worker_loop = function(rush) {
   repeat {
     task = rush$pop_task()
@@ -134,7 +134,7 @@ worker_loop = function(rush) {
 
 # Local Workers
 
-```{r rush-012}
+```{r rush-014}
 rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 2)
@@ -142,14 +142,14 @@ rush$start_local_workers(
 
 # Script Workers
 
-```{r rush-013}
+```{r rush-015}
 script = rush$worker_script(worker_loop = worker_loop)
 cat(script)
 ```
 
 # Heartbeats
 
-```{r rush-014}
+```{r rush-016}
 script = rush$worker_script(
   worker_loop = worker_loop,
   heartbeat_period = 10,
@@ -158,13 +158,13 @@ script = rush$worker_script(
 
 # Reset Network
 
-```{r rush-015}
+```{r rush-017}
 rush$reset()
 ```
 
 # Handling R Errors
 
-```{r rush-016}
+```{r rush-018}
 worker_loop = function(rush) {
   while (!rush$terminated) {
 
@@ -183,13 +183,13 @@ worker_loop = function(rush) {
 
 # Detecting Lost Workers
 
-```{r rush-017}
+```{r rush-019}
 rush$detect_lost_workers()
 ```
 
 # Logging
 
-```{r rush-018}
+```{r rush-020}
 worker_loop = function(rush) {
   lg = lgr::get_logger("mlr3/rush")
   lg$info("Worker %s started on %s", rush$worker_id, rush$hostname)
@@ -201,24 +201,24 @@ rush$start_workers(
   lgr_thresholds = c(rush = "info"))
 ```
 
-```{r}
+```{r rush-021}
 #| include: false
 Sys.sleep(5)
 ```
 
-```{r rush-019}
+```{r rush-022}
 rush$print_log()
 ```
 
 # Debugging
 
-```{r rush-020}
+```{r rush-023}
 rush_worker = RushWorker$new("test-network")
 
 worker_loop(rush_worker)
 ```
 
-```{r rush-021}
+```{r rush-024}
 mirai::daemons(1L)
 
 worker_ids = rush$start_workers(
@@ -230,7 +230,7 @@ worker_ids = rush$start_workers(
 
 # Rush Plan
 
-```{r rush-022}
+```{r rush-025}
 rush_plan(
   n_workers = 4,
   config = redux::redis_config(),

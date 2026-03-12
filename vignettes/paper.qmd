@@ -15,8 +15,6 @@ What journal is this for?
 ```{r paper-001}
 #| include: false
 library(rush)
-library(here)
-here::i_am("vignettes/paper.qmd")
 
 r = redux::hiredis()
 r$FLUSHDB()
