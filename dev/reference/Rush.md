@@ -1,11 +1,14 @@
-# Rush Manager
+# Rush
 
-The `Rush` manager is responsible for starting, observing, and stopping
-workers within a rush network. It is initialized using the
-[`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) function, which
-requires a network ID and a config argument. The config argument is a
-configuration used to connect to the Redis database via the
-[redux](https://CRAN.R-project.org/package=redux) package.
+The `Rush` class manages a rush network by starting, monitoring, and
+stopping workers. It shares all task-related methods (e.g., fetching
+results, pushing tasks) with
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md). A
+`Rush` instance is created with the
+[`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) function which
+requires a network ID and a config argument to connect to the Redis
+database via the [redux](https://CRAN.R-project.org/package=redux)
+package.
 
 ## Value
 

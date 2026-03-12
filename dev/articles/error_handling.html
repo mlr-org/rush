@@ -53,7 +53,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/controller.html">Controller</a></li>
+<li><a class="dropdown-item" href="../articles/tutorial.html">rush - Asynchronous and Distributed Computing</a></li>
+    <li><a class="dropdown-item" href="../articles/manager.html">Rush Manager</a></li>
     <li><a class="dropdown-item" href="../articles/error_handling.html">Error Handling and Debugging</a></li>
   </ul>
 </li>
@@ -97,10 +98,10 @@
 
 
 
-    <p><em>rush</em> is equipped with an advanced error-handling mechanism designed to manage and mitigate errors encountered during the execution of tasks. It adeptly handles a range of error scenarios, from standard R errors to more complex issues such as segmentation faults and network errors.t If all of this fails, the user can manually debug the worker loop.</p>
+    <p><code>rush</code> provides error-handling mechanisms for two failure modes: standard R errors during task evaluation and unexpected worker failures such as crashes or lost connections. If errors cannot be caught automatically, the worker loop can be debugged locally.</p>
 <section class="section level2"><h2 id="sec-error-handling-simple">Simple R Errors<a class="anchor" aria-label="anchor" href="#sec-error-handling-simple"></a>
 </h2>
-<p>To illustrate the error-handling mechanism in rush, we employ the random search example from the main <a href="rush.html">vignette</a>. This time we introduce a random error with a 50% probability. Within the worker loop, users are responsible for catching errors and marking the corresponding task as <code>"failed"</code> using the <code>$push_failed()</code> method.</p>
+<p>We use the random search example from the <a href="tutorial.html">tutorial</a> and introduce a random error with 50% probability. Within the worker loop, users are responsible for catching errors and marking the corresponding task as <code>"failed"</code> using the <code>$fail_tasks()</code> method.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rush.mlr-org.com">rush</a></span><span class="op">)</span></span>
@@ -119,67 +120,51 @@
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.5</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Random Error"</span><span class="op">)</span></span>
 <span>      <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
-<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="va">condition</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>message <span class="op">=</span> <span class="va">e</span><span class="op">$</span><span class="va">message</span><span class="op">)</span></span>
-<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">push_failed</span><span class="op">(</span><span class="va">key</span>, conditions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">fail_tasks</span><span class="op">(</span><span class="va">key</span>, conditions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">condition</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="op">}</span><span class="op">)</span></span>
-<span></span>
-<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
-<p>We start the workers.</p>
+<p>We initialize the network and start the workers.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
-<span>  network <span class="op">=</span> <span class="st">"test-simply-error"</span>,</span>
+<span>  network <span class="op">=</span> <span class="st">"test-simple-error"</span>,</span>
 <span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
+<span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  branin <span class="op">=</span> <span class="va">branin</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>When an error occurs, the task is marked as <code>"failed"</code>, and the error message is stored in the <code>"message"</code> column. This approach ensures that errors do not interrupt the overall execution process. It allows for subsequent inspection of errors and the reevaluation of failed tasks as necessary.</p>
+<p>When an error occurs, the task is marked as <code>"failed"</code> and the error message is stored in the <code>"message"</code> column. This ensures that errors do not interrupt the overall execution and allows subsequent inspection and reevaluation of failed tasks.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x1         x2     worker_id       message          keys
-         &lt;num&gt;      &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
- 1:  2.2947277  0.4745478 chemical_l... Random Err... ad4e4324-0...
- 2:  5.7000978  9.3530923 political_... Random Err... cd9562d6-1...
- 3:  1.6782707 13.8619338 semitheatr... Random Err... ed7c907e-2...
- 4:  8.2418556 14.1884747 chemical_l... Random Err... ef51015c-4...
- 5:  3.3143802  9.1981312 smartaleck... Random Err... eb0c01d2-4...
- 6:  1.8940152  5.6957241 chemical_l... Random Err... eee6c19d-c...
- 7:  6.5758297 13.1252159 chemical_l... Random Err... 16337c70-f...
- 8: -1.6382504 12.8092796 chemical_l... Random Err... ab32c9c0-0...
- 9:  7.7332666  6.3234991 chemical_l... Random Err... fa49b40c-e...
-10:  6.0014508  0.5649495 political_... Random Err... 2480b563-1...
-11:  4.6499698  1.9147231 smartaleck... Random Err... e32a1b55-d...
-12: -1.0399205  4.8643585 chemical_l... Random Err... a51a7670-0...
-13:  6.7979786  6.5948989 political_... Random Err... 21264c88-2...
-14:  7.7065164  2.8239539 smartaleck... Random Err... 7866ada0-8...
-15:  9.8413241 11.4920877 political_... Random Err... 88dd4f9b-a...
-16: -2.0238387  3.8540434 chemical_l... Random Err... 44452283-2...
-17: -3.8184796 12.3012716 semitheatr... Random Err... 30c6005d-b...
-18:  3.7320727  4.8962709 chemical_l... Random Err... 286ec4ca-f...
-19:  2.6426119  2.3469309 political_... Random Err... 4967d6fd-0...
-20:  1.6218938 12.0269512 smartaleck... Random Err... dbbe1459-5...
-21: -3.8117844  4.2623595 semitheatr... Random Err... d0bdf6f8-3...
-22: -0.6292267  8.6332977 political_... Random Err... ab31007a-c...
-23:  9.0176113  3.6672953 semitheatr... Random Err... 02dbba2b-3...
-24:  1.4434629 11.7992394 semitheatr... Random Err... acc19b71-6...
-            x1         x2     worker_id       message          keys
-         &lt;num&gt;      &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;</code></pre>
+<pre><code>             x1         x2     worker_id       message          keys
+          &lt;num&gt;      &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
+  1:  6.2425065  8.1909709 unlovely_l... Random Err... 2f584ef0-5...
+  2:  6.7964576  0.2554611 altophobic... Random Err... d42b9156-0...
+  3:  8.0325098 13.8438496 unshaken_s... Random Err... 7b26bfd8-0...
+  4:  1.1247842 13.1788960 unlovely_l... Random Err... 5dfd5e3d-5...
+  5:  1.4088916  2.9843842 altophobic... Random Err... 44463467-c...
+ ---
+133:  7.1635753  4.0181632 altophobic... Random Err... 57e8bcbd-3...
+134:  7.9173769  3.9634486 unlovely_l... Random Err... 5a13da71-e...
+135: -2.3732922  6.1738938 unlovely_l... Random Err... e4798802-3...
+136:  1.3284706  6.3870127 altophobic... Random Err... 1846dad2-7...
+137:  0.1392366 11.4745169 unshaken_s... Random Err... 7a29f174-c...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-error-handling-workers">Handling Failing Workers<a class="anchor" aria-label="anchor" href="#sec-error-handling-workers"></a>
 </h2>
-<p>The rush package provides mechanisms to address situations in which workers fail due to crashes or lost connections. Such failures may result in tasks remaining in the “running” state indefinitely. To illustrate this, we define a function that simulates a segmentation fault by terminating the worker process.</p>
+<p>When a worker fails due to a crash or lost connection, its tasks may remain in the <code>"running"</code> state indefinitely. We simulate a segmentation fault by terminating the worker process.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wl_failed_worker</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
@@ -189,35 +174,38 @@
 <span>  <span class="fu">tools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">pskill</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getpid.html" class="external-link">Sys.getpid</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu">tools</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/tools/pskill.html" class="external-link">SIGKILL</a></span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span>network <span class="op">=</span> <span class="st">"test-failed-workers"</span><span class="op">)</span></span>
+<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
+<span>  network <span class="op">=</span> <span class="st">"test-failed-workers"</span>,</span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">worker_ids</span> <span class="op">=</span>  <span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
+<span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_failed_worker</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>The package offers the <code>$detect_lost_workers()</code> method, which is designed to identify and manage these occurrences.</p>
+<p>The <code>$detect_lost_workers()</code> method identifies such workers and updates their state to <code>"terminated"</code>. For workers started with <code>$start_local_workers()</code> or <code>$start_workers()</code>, lost worker detection works automatically by checking process status. Workers started via <code>$worker_script()</code> require an additional heartbeat mechanism (see the <a href="manager.html#sec-script-error-handling">manager vignette</a>).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "overjoyful_dogfish" "ancestral_topi"    </code></pre>
+<pre><code>[1] "undecided_teledu"     "sharpeyed_anglerfish"</code></pre>
 </div>
 </div>
-<p>This method works for workers started with <code>$start_local_workers()</code> and <code>$start_remote_workers()</code>. Workers started with <code>$worker_script()</code> must be started with a heartbeat mechanism (see <a href="controller.html#sec-script-error-handling">vignette</a>).</p>
-<p>When a worker fails, the status of the task that caused the failure is set to <code>"failed"</code>.</p>
+<p>When a worker fails, the state of any task it was evaluating is set to <code>"failed"</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         x1       x2     worker_id       message          keys
       &lt;num&gt;    &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
-1: 5.535459 7.026065 overjoyful... Worker has... 16eadab4-c...
-2: 9.287910 4.126489 ancestral_... Worker has... 8d06c20a-2...</code></pre>
+1: 0.240888 12.76888 undecided_... Worker has... 52c34454-7...
+2: 4.782618 12.33467 sharpeyed_... Worker has... d888cf3b-6...</code></pre>
 </div>
 </div>
-</section><section class="section level2"><h2 id="debugging">Debugging<a class="anchor" aria-label="anchor" href="#debugging"></a>
+</section><section class="section level2"><h2 id="sec-debugging">Debugging<a class="anchor" aria-label="anchor" href="#sec-debugging"></a>
 </h2>
-<p>When the worker loop fails unexpectedly due to an uncaught error, it is necessary to debug the worker loop. Consider the following example, in which the worker loop randomly generates an error.</p>
+<p>When the worker loop fails due to an uncaught error, the loop can be executed locally to reproduce and inspect the failure. Consider the following worker loop, which generates an error for large values of <code>x1</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wl_error</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
@@ -234,80 +222,69 @@
 <span>      <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Unexpected error"</span><span class="op">)</span></span>
 <span>    <span class="op">}</span></span>
 <span></span>
-<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
-<p>To begin debugging, the worker loop is executed locally. This requires the initialization of a <code>RushWorker</code> instance. Although the rush worker is typically created during worker initialization, it can also be instantiated manually. The worker instance is then passed as an argument to the worker loop.</p>
+<p>To debug the worker loop locally, a <code>RushWorker</code> instance is instantiated manually and passed as argument to the worker loop.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush_worker</span> <span class="op">=</span> <span class="va"><a href="../reference/RushWorker.html">RushWorker</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"test"</span>, remote <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-error">
-<pre><code>Error in `initialize()`:
-! unused argument (remote = FALSE)</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">wl_error</span><span class="op">(</span><span class="va">rush_worker</span><span class="op">)</span></span></code></pre></div>
-<div class="cell-output cell-output-error">
-<pre><code>Error:
-! object 'rush_worker' not found</code></pre>
-</div>
-</div>
-<p>When an error is raised in the main process, the <code><a href="https://rdrr.io/r/base/traceback.html" class="external-link">traceback()</a></code> function can be invoked to examine the stack trace. Breakpoints may also be set within the worker loop to inspect the program state. This approach provides substantial control over the debugging process. Certain errors, such as missing packages or undefined global variables, may not be encountered when running locally. However, such issues can be readily identified using the <code>$detect_lost_workers()</code> method.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span><span class="st">"test-error"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">rush_worker</span> <span class="op">=</span> <span class="va"><a href="../reference/RushWorker.html">RushWorker</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"test-error"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">wl_error</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">wl_error</span><span class="op">(</span><span class="va">rush_worker</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>Error in `wl_error()`:
+! Unexpected error</code></pre>
 </div>
-<p>The <code>$detect_lost_workers()</code> method can be used to identify lost workers.</p>
+</div>
+<p>When an error is raised in the main process, <code><a href="https://rdrr.io/r/base/traceback.html" class="external-link">traceback()</a></code> can be called to examine the stack trace and breakpoints can be set within the worker loop to inspect the program state. Note that certain errors such as missing packages may not be reproducible locally but can be identified by running the worker loop in a separate process and using <code>$detect_lost_workers()</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
+<span>  network <span class="op">=</span> <span class="st">"test-error"</span>,</span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">wl_error</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "burning_leafwing"</code></pre>
+<pre><code>[1] "describable_whiterhino"</code></pre>
 </div>
 </div>
-<p>Output and message logs can be written to files by specifying the <code>message_log</code> and <code>output_log</code> arguments.</p>
+<p>Output and message logs can be written to files via the <code>message_log</code> and <code>output_log</code> arguments.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span><span class="st">"test-error"</span><span class="op">)</span></span>
+<div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
+<span>  network <span class="op">=</span> <span class="st">"test-error"</span>,</span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">message_log</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">output_log</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
+<span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_error</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  message_log <span class="op">=</span> <span class="va">message_log</span>,</span>
-<span>  output_log <span class="op">=</span> <span class="va">output_log</span></span>
-<span><span class="op">)</span></span>
+<span>  output_log <span class="op">=</span> <span class="va">output_log</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">message_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"message_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] "Debug message logging on worker itchy_wireworm started"
- [2] "Error in start_args$worker_loop(rush = rush) : Unexpected error"
- [3] "Calls: &lt;Anonymous&gt; ... &lt;Anonymous&gt; -&gt; eval.parent -&gt; eval -&gt; eval -&gt; &lt;Anonymous&gt;"
- [4] "In addition: Warning message:"
- [5] ""
- [6] "✖ $push_results() is deprecated. Use $finish_tasks() instead. is deprecated and"
- [7] "  will be removed in the future."
- [8] "→ Class: Mlr3WarningDeprecated"
- [9] " "
-[10] "Error in close.connection(message_log) : "
-[11] "  cannot close 'message' sink connection"
-[12] "Calls: &lt;Anonymous&gt; -&gt; close -&gt; close.connection"
-[13] "Execution halted"                                                                </code></pre>
+<pre><code>[1] "Debug message logging on worker effaceable_iberianemeraldlizard started"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"output_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "[1] \"Debug output logging on worker itchy_wireworm started\""</code></pre>
+<pre><code>[1] "[1] \"Debug output logging on worker effaceable_iberianemeraldlizard started\""</code></pre>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

@@ -1,13 +1,15 @@
 # Package index
 
-## Controller and Worker
+## Manager
 
 - [`Rush`](https://rush.mlr-org.com/dev/reference/Rush.md) : Rush
-  Manager
-- [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
-  Rush Worker
 - [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) : Syntactic
   Sugar for Rush Manager Construction
+
+## Worker
+
+- [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
+  Rush Worker
 
 ## Plan
 

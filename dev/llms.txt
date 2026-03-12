@@ -77,14 +77,16 @@ Sys.setenv(RUSH_TEST_USE_REDIS = "true")
 
 # Package index
 
-## Controller and Worker
+## Manager
 
 - [`Rush`](https://rush.mlr-org.com/dev/reference/Rush.md) : Rush
-  Manager
-- [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
-  Rush Worker
 - [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) : Syntactic
   Sugar for Rush Manager Construction
+
+## Worker
+
+- [`RushWorker`](https://rush.mlr-org.com/dev/reference/RushWorker.md) :
+  Rush Worker
 
 ## Plan
 
@@ -118,10 +120,12 @@ Sys.setenv(RUSH_TEST_USE_REDIS = "true")
 
 # Articles
 
-### All vignettes
+### Get Started
 
-- [Controller](https://rush.mlr-org.com/dev/articles/controller.md):
+- [rush - Quick
+  Reference](https://rush.mlr-org.com/dev/articles/rush.md):
+- [rush - Asynchronous and Distributed
+  Computing](https://rush.mlr-org.com/dev/articles/tutorial.md):
+- [Rush Manager](https://rush.mlr-org.com/dev/articles/manager.md):
 - [Error Handling and
   Debugging](https://rush.mlr-org.com/dev/articles/error_handling.md):
-- [rush - Asynchronous and Distributed
-  Computing](https://rush.mlr-org.com/dev/articles/rush.md):

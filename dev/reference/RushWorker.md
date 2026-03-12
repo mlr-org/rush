@@ -2,13 +2,15 @@
 
 RushWorker inherits all methods from
 [Rush](https://rush.mlr-org.com/dev/reference/Rush.md). Upon
-initialization, the worker registers itself in the Redis database.
+initialization, the worker registers itself in the Redis database as a
+running worker. This class is usually not constructed directly by the
+user.
 
 ## Value
 
 Object of class
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) and
-`RushWorker` with worker methods.
+`RushWorker`.
 
 ## Super class
 
