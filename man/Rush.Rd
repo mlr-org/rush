@@ -2,14 +2,14 @@
 % Please edit documentation in R/Rush.R
 \name{Rush}
 \alias{Rush}
-\title{Rush Manager}
+\title{Rush}
 \value{
 Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush}.
 }
 \description{
-The \code{Rush} manager is responsible for starting, observing, and stopping workers within a rush network.
-It is initialized using the \code{\link[=rsh]{rsh()}} function, which requires a network ID and a config argument.
-The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
+The \code{Rush} class manages a rush network by starting, monitoring, and stopping workers.
+It shares all task-related methods (e.g., fetching results, pushing tasks) with \link{RushWorker}.
+A \code{Rush} instance is created with the \code{\link[=rsh]{rsh()}} function which requires a network ID and a config argument to connect to the Redis database via the \CRANpkg{redux} package.
 }
 \section{Tasks}{
 

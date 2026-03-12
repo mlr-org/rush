@@ -1,9 +1,9 @@
-#' @title Rush Manager
+#' @title Rush
 #'
 #' @description
-#' The `Rush` manager is responsible for starting, observing, and stopping workers within a rush network.
-#' It is initialized using the [rsh()] function, which requires a network ID and a config argument.
-#' The config argument is a configuration used to connect to the Redis database via the \CRANpkg{redux} package.
+#' The `Rush` class manages a rush network by starting, monitoring, and stopping workers.
+#' It shares all task-related methods (e.g., fetching results, pushing tasks) with [RushWorker].
+#' A `Rush` instance is created with the [rsh()] function which requires a network ID and a config argument to connect to the Redis database via the \CRANpkg{redux} package.
 #'
 #' @section Tasks:
 #' Tasks are the unit in which workers exchange information.

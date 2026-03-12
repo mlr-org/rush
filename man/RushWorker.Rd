@@ -4,11 +4,12 @@
 \alias{RushWorker}
 \title{Rush Worker}
 \value{
-Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker} with worker methods.
+Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker}.
 }
 \description{
 \link{RushWorker} inherits all methods from \link{Rush}.
-Upon initialization, the worker registers itself in the Redis database.
+Upon initialization, the worker registers itself in the Redis database as a running worker.
+This class is usually not constructed directly by the user.
 }
 \section{Super class}{
 \code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
