@@ -209,8 +209,8 @@ The training and test splits are passed explicitly as arguments to the worker lo
 ```{r tutorial-011}
 data(mtcars)
 
-training_ids = sample(1:nrow(mtcars), 20)
-test_ids = setdiff(1:nrow(mtcars), training_ids)
+training_ids = sample(seq_len(nrow(mtcars)), 20)
+test_ids = setdiff(seq_len(nrow(mtcars)), training_ids)
 mtcars_data = mtcars[, -1]
 response = mtcars$mpg
 

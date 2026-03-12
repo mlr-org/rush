@@ -90,7 +90,10 @@ test_that("reading and writing a hash works without flatten", {
 
   # two fields with lists
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list(list(y = 3)))
-  expect_equal(rush$read_hashes(key, c("xs", "ys"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))))
+  expect_equal(
+    rush$read_hashes(key, c("xs", "ys"), flatten = FALSE),
+    list(list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3)))
+  )
 
   # two fields with list and empty list
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), ys = list())
@@ -98,7 +101,10 @@ test_that("reading and writing a hash works without flatten", {
 
   # two fields with list and atomic
   key = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), timeout = 1)
-  expect_equal(rush$read_hashes(key, c("xs", "timeout"), flatten = FALSE), list(list(xs = list(x1 = 1, x2 = 2), timeout = 1)))
+  expect_equal(
+    rush$read_hashes(key, c("xs", "timeout"), flatten = FALSE),
+    list(list(xs = list(x1 = 1, x2 = 2), timeout = 1))
+  )
 })
 
 test_that("reading and writing hashes works", {
@@ -114,7 +120,10 @@ test_that("reading and writing hashes works", {
 
   # two fields with list and recycled atomic
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+  expect_equal(
+    rush$read_hashes(keys, c("xs", "timeout")),
+    list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1))
+  )
 
   # two fields
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list(list(y = 3), list(y = 4)))
@@ -122,11 +131,17 @@ test_that("reading and writing hashes works", {
 
   # two fields with list and atomic
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = c(1, 1))
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+  expect_equal(
+    rush$read_hashes(keys, c("xs", "timeout")),
+    list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1))
+  )
 
   # two fields with list and recycled atomic
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), timeout = 1)
-  expect_equal(rush$read_hashes(keys, c("xs", "timeout")), list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1)))
+  expect_equal(
+    rush$read_hashes(keys, c("xs", "timeout")),
+    list(list(x1 = 1, x2 = 2, timeout = 1), list(x1 = 1, x2 = 3, timeout = 1))
+  )
 
   # two fields, one empty
   keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), ys = list())
@@ -152,7 +167,10 @@ test_that("writing hashes to specific keys works", {
 
   # wrong number of keys
   keys = uuid::UUIDgenerate()
-  expect_error(rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys), "Assertion on 'keys' failed")
+  expect_error(
+    rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys),
+    "Assertion on 'keys' failed"
+  )
 })
 
 test_that("writing list columns works", {
@@ -170,7 +188,10 @@ test_that("writing list columns works", {
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
   rush$reset(workers = FALSE)
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)), xs_extra = list(list(extra = list("A")), list(extra = list("B"))))
+  keys = rush$write_hashes(
+    xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)),
+    xs_extra = list(list(extra = list("A")), list(extra = list("B")))
+  )
   rush$finish_tasks(keys, yss = list(list(y = 3), list(y = 4)))
 
   expect_list(rush$fetch_finished_tasks()$extra, len = 2)
@@ -217,8 +238,6 @@ test_that("popping a task works", {
   # status checks
   expect_true(rush$is_running_task(task$key))
   expect_false(rush$is_failed_task(task$key))
-
-
 })
 
 test_that("finishing a task works", {
@@ -256,8 +275,6 @@ test_that("finishing a task works", {
   # status checks
   expect_false(rush$is_running_task(task$key))
   expect_false(rush$is_failed_task(task$key))
-
-
 })
 
 test_that("failing a tasks works", {
@@ -294,8 +311,6 @@ test_that("failing a tasks works", {
   # status checks
   expect_false(rush$is_running_task(task$key))
   expect_true(rush$is_failed_task(task$key))
-
-
 })
 
 test_that("moving and fetching tasks works", {
@@ -365,8 +380,6 @@ test_that("moving and fetching tasks works", {
   all_tasks = rush$fetch_tasks()
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
-
-
 })
 
 test_that("moving a queued task to failed works", {
@@ -401,8 +414,6 @@ test_that("moving a queued task to failed works", {
 
   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 5)
-
-
 })
 
 test_that("fetch task with states works", {
@@ -481,7 +492,12 @@ test_that("latest results are fetched", {
 test_that("pushing finished tasks works", {
   rush = start_rush_worker()
 
-  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)), xss_extra = list(list(extra_input = "A")), yss_extra = list(list(extra_output = "B")))
+  rush$push_finished_tasks(
+    list(list(x1 = 1, x2 = 2)),
+    list(list(y = 3)),
+    xss_extra = list(list(extra_input = "A")),
+    yss_extra = list(list(extra_output = "B"))
+  )
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$n_tasks, 1)
   expect_equal(rush$fetch_finished_tasks()$extra_input, "A")

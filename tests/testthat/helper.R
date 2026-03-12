@@ -1,4 +1,7 @@
-mlr3misc::walk(list.files(system.file("testthat", package = "rush"), pattern = "^helper.*\\.[rR]", full.names = TRUE), source)
+mlr3misc::walk(
+  list.files(system.file("testthat", package = "rush"), pattern = "^helper.*\\.[rR]", full.names = TRUE),
+  source
+)
 
 
 wl_default = function(rush) {

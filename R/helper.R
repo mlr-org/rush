@@ -29,6 +29,8 @@ get_hostname = function() {
 
 # skips serialization of NULL
 safe_bin_to_object = function(bin) {
-  if (is.null(bin)) return(NULL)
+  if (is.null(bin)) {
+    return(NULL)
+  }
   redux::bin_to_object(bin)
 }

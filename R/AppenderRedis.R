@@ -40,11 +40,11 @@
 #'    rush = rsh(network_id = "test_network")
 #'    rush
 #' }
-AppenderRedis = R6::R6Class("AppenderRedis",
+AppenderRedis = R6::R6Class(
+  "AppenderRedis",
   inherit = lgr::AppenderMemory,
   cloneable = FALSE,
   public = list(
-
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(
@@ -58,7 +58,7 @@ AppenderRedis = R6::R6Class("AppenderRedis",
       flush_on_rotate = TRUE,
       should_flush = NULL,
       filters = NULL
-      ) { # nolint
+    ) {
       require_namespaces(c("redux", "data.table"))
       assert_class(config, "redis_config")
       private$.connector = redux::hiredis(config)
@@ -82,7 +82,7 @@ AppenderRedis = R6::R6Class("AppenderRedis",
     #' @description
     #' Sends the buffer's contents to the Redis data store, and then clears the buffer.
     flush = function() {
-      lo =  get(".layout", envir = private)
+      lo = get(".layout", envir = private)
       buffer = get("buffer_events", envir = self)
       r = get(".connector", envir = private)
       key = get(".key", envir = private)

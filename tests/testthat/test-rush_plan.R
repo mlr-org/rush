@@ -37,7 +37,8 @@ test_that("start workers", {
   rush = rsh("test-rush")
   worker_ids = rush$start_workers(
     worker_loop = wl_queue,
-    n_workers = 1)
+    n_workers = 1
+  )
   rush$wait_for_workers(1, timeout = 5)
 
   expect_equal(rush$n_running_workers, 1)
@@ -63,11 +64,14 @@ test_that("set threshold", {
   expect_equal(rush_env$lgr_thresholds, c("mlr3/rush" = "debug"))
 
   rush = rsh("test-rush")
-  expect_output(rush$start_workers(
-    worker_loop = wl_queue,
-    n_workers = 2,
-    wait_for_workers = TRUE),
-  "Pushing.*")
+  expect_output(
+    rush$start_workers(
+      worker_loop = wl_queue,
+      n_workers = 2,
+      wait_for_workers = TRUE
+    ),
+    "Pushing.*"
+  )
 
   Sys.sleep(2)
 })

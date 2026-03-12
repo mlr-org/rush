@@ -27,7 +27,7 @@ branin = function(x1, x2) {
 }
 
 wl_random_search = function(rush, branin) {
-  while(TRUE) {
+  while (TRUE) {
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
     ys = list(y = branin(xs$x1, xs$x2))
@@ -109,7 +109,7 @@ The worker loop must check the `rush$terminated` flag.
 
 ```{r manager-010}
 wl_random_search = function(rush, branin) {
-  while(!rush$terminated) {
+  while (!rush$terminated) {
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
     ys = list(y = branin(xs$x1, xs$x2))

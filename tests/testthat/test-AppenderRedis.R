@@ -29,7 +29,7 @@ test_that("saving logs with redis appender works", {
   tab = rbindlist(map(logs, fromJSON))
 
   expect_data_table(tab, nrows = 1)
-  expect_names(colnames(tab), identical.to =  c("level", "timestamp", "logger", "caller", "msg"))
+  expect_names(colnames(tab), identical.to = c("level", "timestamp", "logger", "caller", "msg"))
   expect_equal(tab$msg, "test-1")
 
   root_logger$info("test-2")
@@ -37,7 +37,7 @@ test_that("saving logs with redis appender works", {
   logs = r$command(c("LRANGE", key, 0, -1))
   tab = rbindlist(map(logs, fromJSON))
   expect_data_table(tab, nrows = 2)
-  expect_names(colnames(tab), identical.to =  c("level", "timestamp", "logger", "caller", "msg"))
+  expect_names(colnames(tab), identical.to = c("level", "timestamp", "logger", "caller", "msg"))
   expect_equal(tab$msg, c("test-1", "test-2"))
 })
 
@@ -107,6 +107,6 @@ test_that("R6 classes can be filtered", {
   logs = r$command(c("LRANGE", key, 0, -1))
   tab = rbindlist(map(logs, fromJSON))
   expect_data_table(tab, nrows = 1)
-  expect_names(colnames(tab), identical.to =  c("level", "timestamp", "logger", "caller", "msg"))
+  expect_names(colnames(tab), identical.to = c("level", "timestamp", "logger", "caller", "msg"))
   expect_equal(tab$msg, "test-1")
 })

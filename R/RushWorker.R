@@ -13,10 +13,10 @@
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker`.
 #' @export
-RushWorker = R6::R6Class("RushWorker",
+RushWorker = R6::R6Class(
+  "RushWorker",
   inherit = Rush,
   public = list(
-
     #' @field worker_id (`character(1)`)\cr
     #' Identifier of the worker.
     worker_id = NULL,
@@ -33,7 +33,7 @@ RushWorker = R6::R6Class("RushWorker",
       worker_id = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL
-      ) { # nolint
+    ) {
       super$initialize(network_id = network_id, config = config)
 
       self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
@@ -75,11 +75,17 @@ RushWorker = R6::R6Class("RushWorker",
 
       # register worker info in
       r$command(c(
-        "HSET", private$.get_key(self$worker_id),
-        "worker_id", self$worker_id,
-        "pid", Sys.getpid(),
-        "hostname", rush::get_hostname(),
-        "heartbeat", heartbeat_key))
+        "HSET",
+        private$.get_key(self$worker_id),
+        "worker_id",
+        self$worker_id,
+        "pid",
+        Sys.getpid(),
+        "hostname",
+        rush::get_hostname(),
+        "heartbeat",
+        heartbeat_key
+      ))
     },
 
     #' @description
@@ -91,13 +97,17 @@ RushWorker = R6::R6Class("RushWorker",
     set_terminated = function() {
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
-      r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), self$worker_id))
+      r$command(c(
+        "SMOVE",
+        private$.get_key("running_worker_ids"),
+        private$.get_key("terminated_worker_ids"),
+        self$worker_id
+      ))
       invisible(self)
     }
   ),
 
   active = list(
-
     #' @field terminated (`logical(1)`)\cr
     #' Whether to shutdown the worker.
     #' Used in the worker loop to determine whether to continue.
