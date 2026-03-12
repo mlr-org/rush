@@ -9,6 +9,7 @@ library(rush)
 r = redux::hiredis()
 r$FLUSHDB()
 options(datatable.prettyprint.char = 10L)
+options(datatable.print.nrows = 10L)
 ```
 
 `rush` provides error-handling mechanisms for two failure modes: standard R errors during task evaluation and unexpected worker failures such as crashes or lost connections.
@@ -16,7 +17,7 @@ If errors cannot be caught automatically, the worker loop can be debugged locall
 
 # Simple R Errors {#sec-error-handling-simple}
 
-We use the random search example from the [rush vignette](rush.html) and introduce a random error with 50% probability.
+We use the random search example from the [tutorial](tutorial.html) and introduce a random error with 50% probability.
 Within the worker loop, users are responsible for catching errors and marking the corresponding task as `"failed"` using the `$fail_tasks()` method.
 
 ```{r error_handling-002}
@@ -85,7 +86,9 @@ wl_failed_worker = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
 
-rush = rsh(network = "test-failed-workers")
+rush = rsh(
+  network = "test-failed-workers",
+  config = redux::redis_config())
 
 mirai::daemons(2)
 
@@ -99,9 +102,9 @@ worker_ids = rush$start_workers(
 Sys.sleep(1)
 ```
 
-The `$detect_lost_workers()` method identifies such workers and updates their state to `"lost"`.
-This works automatically for workers started with `$start_local_workers()` or `$start_workers()` by checking the process status.
-Workers started with `$worker_script()` must be configured with a heartbeat mechanism (see the [manager vignette](manager.html#sec-script-error-handling)).
+The `$detect_lost_workers()` method identifies such workers and updates their state to `"terminated"`.
+For workers started with `$start_local_workers()` or `$start_workers()`, lost worker detection works automatically by checking process status.
+Workers started via `$worker_script()` require an additional heartbeat mechanism (see the [manager vignette](manager.html#sec-script-error-handling)).
 
 ```{r error_handling-008}
 rush$detect_lost_workers()
@@ -141,24 +144,24 @@ wl_error = function(rush) {
 To debug the worker loop locally, a `RushWorker` instance is instantiated manually and passed as argument to the worker loop.
 
 ```{r error_handling-011}
-#| error: true
-rush_worker = RushWorker$new("test", remote = FALSE)
+rush_worker = RushWorker$new(network_id = "test-error")
 
 wl_error(rush_worker)
 ```
 
 When an error is raised in the main process, `traceback()` can be called to examine the stack trace and breakpoints can be set within the worker loop to inspect the program state.
-Note that certain errors — such as missing packages — may not be reproducible locally but can be identified by running the worker loop in a separate process and using `$detect_lost_workers()`.
+Note that certain errors such as missing packages may not be reproducible locally but can be identified by running the worker loop in a separate process and using `$detect_lost_workers()`.
 
 ```{r error_handling-012}
-rush = rsh("test-error")
+rush = rsh(
+  network = "test-error",
+  config = redux::redis_config())
 
 mirai::daemons(1)
 
 rush$start_workers(
   worker_loop = wl_error,
-  n_workers = 1
-)
+  n_workers = 1)
 ```
 
 ```{r error_handling-013}
@@ -173,17 +176,20 @@ rush$detect_lost_workers()
 Output and message logs can be written to files via the `message_log` and `output_log` arguments.
 
 ```{r error_handling-015}
-rush = rsh("test-error")
+rush = rsh(
+  network = "test-error",
+  config = redux::redis_config())
 
 message_log = tempdir()
 output_log = tempdir()
 
-worker_ids = rush$start_local_workers(
+mirai::daemons(1)
+
+worker_ids = rush$start_workers(
   worker_loop = wl_error,
   n_workers = 1,
   message_log = message_log,
-  output_log = output_log
-)
+  output_log = output_log)
 
 Sys.sleep(5)
 

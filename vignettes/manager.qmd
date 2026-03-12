@@ -38,7 +38,7 @@ wl_random_search = function(rush, branin) {
 config = redux::redis_config()
 
 rush = rsh(
-  network = "test-network",
+  network = "random-search-network",
   config = config)
 ```
 
@@ -118,7 +118,7 @@ wl_random_search = function(rush, branin) {
 }
 
 rush = rsh(
-  network = "test-random-search-terminate",
+  network = "random-search-network",
   config = redux::redis_config())
 
 rush$start_workers(
@@ -148,13 +148,17 @@ Sys.sleep(1)
 rush$worker_info
 ```
 
+```{r manager-021}
+rush$reset()
+```
+
 ## Failed Workers {#sec-remote-failed-workers}
 
 Failed workers started with `mirai` are automatically detected by the manager.
 We simulate a worker crash by killing the worker process.
 
 ```{r manager-021}
-rush = rsh(network = "test-failed-mirai-workers")
+rush = rsh(network = "random-search-network")
 
 wl_failed_worker = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
@@ -178,6 +182,10 @@ Sys.sleep(5L)
 
 ```{r manager-025}
 rush$detect_lost_workers()
+```
+
+```{r manager-026}
+rush$reset()
 ```
 
 ## Remote Workers {#sec-remote-workers}
@@ -241,7 +249,7 @@ The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging 
 Logging introduces a minor performance overhead and is disabled by default.
 
 ```{r manager-027}
-rush = rsh(network = "test-log-messages")
+rush = rsh(network = "random-search-network")
 
 wl_log_message = function(rush) {
   lg = lgr::get_logger("mlr3/rush")
@@ -284,7 +292,7 @@ Additional arguments required by the worker loop are passed as named arguments t
 
 ```{r manager-033}
 rush = rsh(
-  network = "test-network",
+  network = "random-search-network",
   config = redux::redis_config())
 
 worker_ids = rush$start_local_workers(
@@ -314,6 +322,10 @@ rush$wait_for_workers(worker_ids = worker_ids)
 rush$worker_info
 ```
 
+```{r manager-037}
+rush$reset()
+```
+
 # Script Workers {#sec-script-workers}
 
 The `$worker_script()` method generates an R script that can be executed on any machine with access to the Redis database.
@@ -321,7 +333,7 @@ This is the most flexible mechanism for starting workers, as it imposes no const
 
 ```{r manager-041}
 rush = rsh(
-  network = "test-script-workers",
+  network = "random-search-network",
   config = redux::redis_config())
 
 rush$worker_script(
