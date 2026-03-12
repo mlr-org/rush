@@ -22,7 +22,7 @@ branin = function(x1, x2) {
 
 wl_random_search = function(rush, branin) {
 
-  while(rush$n_finished_tasks < 100) {
+  while (rush$n_finished_tasks < 100) {
 
     xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
     key = rush$push_running_tasks(xss = list(xs))
@@ -63,19 +63,19 @@ reevaluation of failed tasks.
 rush$fetch_failed_tasks()
 ```
 
-                x1         x2     worker_id       message          keys
-             <num>      <num>        <char>        <char>        <char>
-     1: -1.1252548  4.3147674 insensate_... Random Err... 10069d08-0...
-     2:  7.5578554  8.7872352 immaculate... Random Err... 791b5286-3...
-     3:  8.4296743  5.2768455 baffling_f... Random Err... 0b929734-3...
-     4:  0.2976533  8.9632286 missing_mi... Random Err... 85af16d5-c...
-     5:  9.4086986 11.2515059 immaculate... Random Err... 51733edd-8...
-    ---
-    95:  5.3928510  6.5888018 baffling_f... Random Err... 662fe36c-c...
-    96:  0.6949031 14.2082810 missing_mi... Random Err... 9f8316f5-9...
-    97:  7.4404729  0.8613649 baffling_f... Random Err... 76ca655f-2...
-    98: -1.2885384 10.1833640 missing_mi... Random Err... 78574713-e...
-    99:  9.3205132  1.0821609 insensate_... Random Err... 3e140451-8...
+                 x1         x2     worker_id       message          keys
+              <num>      <num>        <char>        <char>        <char>
+      1:  8.2322672  9.4905792 intrapsych... Random Err... 5a6c3994-1...
+      2:  7.5587072  2.7750808 complaisan... Random Err... 5ea4732e-8...
+      3:  7.3393419  6.8111183 spodumene_... Random Err... 2291ac5f-4...
+      4: -2.6322858 14.3228276 ropeable_f... Random Err... 50c9e1b4-c...
+      5: -2.7078717  7.7567914 ropeable_f... Random Err... 8407d8b4-8...
+     ---
+    106:  4.7389980  0.1516037 intrapsych... Random Err... 783bae8b-5...
+    107:  4.7467455  8.7088073 spodumene_... Random Err... 4cd585e8-1...
+    108:  7.1295440  0.2468458 complaisan... Random Err... 3d5e0820-9...
+    109: -3.9984492  9.3813685 ropeable_f... Random Err... 3bb31297-0...
+    110: -0.7284828  2.5857042 spodumene_... Random Err... a575e7dd-3...
 
 ## Handling Failing Workers
 
@@ -114,7 +114,7 @@ vignette](https://rush.mlr-org.com/dev/articles/manager.html#sec-script-error-ha
 rush$detect_lost_workers()
 ```
 
-    [1] "errable_borzoi" "ferrety_dodo"  
+    [1] "diverse_whippoorwill" "crawly_umbrellabird" 
 
 When a worker fails, the state of any task it was evaluating is set to
 `"failed"`.
@@ -123,10 +123,10 @@ When a worker fails, the state of any task it was evaluating is set to
 rush$fetch_failed_tasks()
 ```
 
-             x1       x2     worker_id       message          keys
-          <num>    <num>        <char>        <char>        <char>
-    1: 8.411293 13.82631 errable_bo... Worker has... e848d592-3...
-    2: 5.246283 13.93794 ferrety_do... Worker has... e4d36f18-4...
+              x1         x2     worker_id       message          keys
+           <num>      <num>        <char>        <char>        <char>
+    1: -3.527457 8.82916273 diverse_wh... Worker has... 03b3987b-3...
+    2:  8.212465 0.03370792 crawly_umb... Worker has... 4f25c226-c...
 
 ## Debugging
 
@@ -191,7 +191,7 @@ rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "germinable_northerncardinals"
+    [1] "distorted_galapagostortoise"
 
 Output and message logs can be written to files via the `message_log`
 and `output_log` arguments.
@@ -217,10 +217,10 @@ Sys.sleep(5)
 readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
 ```
 
-    [1] "Debug message logging on worker exponential_gadwall started"
+    [1] "Debug message logging on worker gnarled_creature started"
 
 ``` r
 readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))
 ```
 
-    [1] "[1] \"Debug output logging on worker exponential_gadwall started\""
+    [1] "[1] \"Debug output logging on worker gnarled_creature started\""

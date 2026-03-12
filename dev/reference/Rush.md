@@ -111,7 +111,7 @@ defined by the user and is passed to the `$start_workers()` method.
 
 The [`mirai::mirai`](https://mirai.r-lib.org/reference/mirai.html)
 objects started with `$start_workers()` are stored in
-`$processes_mirai`. Standard output and error of the workers ca be
+`$processes_mirai`. Standard output and error of the workers can be
 written to log files with the `message_log` and `output_log` arguments
 of `$start_workers()`.
 
@@ -1339,10 +1339,11 @@ Keys of the hashes.
 Reads R Objects from Redis hashes. The function reads the field-value
 pairs of the hashes stored at `keys`. The values of a hash are
 deserialized and combined to a list. If `flatten` is `TRUE`, the values
-are flattened to a single list e.g. list(xs = list(x1 = 1, x2 = 2), ys =
-list(y = 3)) becomes list(x1 = 1, x2 = 2, y = 3). The reading functions
-combine the hashes to a table where the names of the inner lists are the
-column names. For example,
+are flattened to a single list e.g.
+`list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))` becomes
+`list(x1 = 1, x2 = 2, y = 3)`. The reading functions combine the hashes
+to a table where the names of the inner lists are the column names. For
+example,
 `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))`
 becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
 
