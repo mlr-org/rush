@@ -36,7 +36,8 @@ The path to the directory where large objects are stored.}
 
 \item{worker_type}{(\code{character(1)})\cr
 The type of worker to use.
-Options are \code{"mirai"} to start with \CRANpkg{mirai}, \code{"processx"} to use \CRANpkg{processx} or \code{"script"} to get a script to run.}
+Options are \code{"mirai"} to start with \CRANpkg{mirai}, \code{"processx"} to use \CRANpkg{processx} or \code{"script"}
+to get a script to run.}
 }
 \value{
 \code{list()} with the stored configuration.

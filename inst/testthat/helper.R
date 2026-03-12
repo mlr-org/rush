@@ -35,7 +35,7 @@ start_rush_worker = function(n_workers = 2) {
 
 # parses the string returned by rush$worker_script() and starts a processx process
 start_script_worker = function(script) {
-  script = sub('^Rscript\\s+-e\\s+\\"(.*)\\"$', '\\1', script, perl = TRUE)
+  script = sub("^Rscript\\s+-e\\s+\"(.*)\"$", "\\1", script, perl = TRUE)
 
   px = processx::process$new("Rscript",
     args = c("-e", script),

@@ -9,7 +9,8 @@ Object of class \link[R6:R6Class]{R6::R6Class} and \code{Rush}.
 \description{
 The \code{Rush} class manages a rush network by starting, monitoring, and stopping workers.
 It shares all task-related methods (e.g., fetching results, pushing tasks) with \link{RushWorker}.
-A \code{Rush} instance is created with the \code{\link[=rsh]{rsh()}} function which requires a network ID and a config argument to connect to the Redis database via the \CRANpkg{redux} package.
+A \code{Rush} instance is created with the \code{\link[=rsh]{rsh()}} function which requires a network ID and a config argument
+to connect to the Redis database via the \CRANpkg{redux} package.
 }
 \section{Tasks}{
 
@@ -71,7 +72,8 @@ Workers can be started on the
 using the \CRANpkg{mirai} package.
 }
 
-Alternatively, workers can be started locally with the \verb{$start_local_workers()} method via the \CRANpkg{processx} package.
+Alternatively, workers can be started locally with the \verb{$start_local_workers()} method
+via the \CRANpkg{processx} package.
 Or a help script can be generated with the \verb{$worker_script()} method that can be run anywhere.
 The only requirement is that the worker can connect to the Redis database.
 }
@@ -85,7 +87,8 @@ It is defined by the user and is passed to the \verb{$start_workers()} method.
 \section{Debugging}{
 
 The \code{mirai::mirai} objects started with \verb{$start_workers()} are stored in \verb{$processes_mirai}.
-Standard output and error of the workers ca be written to log files with the \code{message_log} and \code{output_log} arguments of \verb{$start_workers()}.
+Standard output and error of the workers can be written to log files
+with the \code{message_log} and \code{output_log} arguments of \verb{$start_workers()}.
 }
 
 \examples{
@@ -988,7 +991,8 @@ Table of finished tasks.
 \if{latex}{\out{\hypertarget{method-Rush-fetch_tasks_with_state}{}}}
 \subsection{Method \code{fetch_tasks_with_state()}}{
 Fetch tasks with different states from the data base.
-If tasks with different states are to be queried at the same time, this function prevents tasks from appearing twice.
+If tasks with different states are to be queried at the same time,
+this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
 Finished tasks are cached.
 \subsection{Usage}{
@@ -1087,7 +1091,8 @@ Comes with an overhead.}
 Writes R objects to Redis hashes.
 The function takes the vectors in \code{...} as input and writes each element as a field-value pair to a new hash.
 The name of the argument defines the field into which the serialized element is written.
-For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes \code{serialize(list(x1 = 1, x2 = 2))} at field \code{xs} into a hash
+For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes
+\code{serialize(list(x1 = 1, x2 = 2))} at field \code{xs} into a hash
 and \code{serialize(list(x1 = 3, x2 = 4))} at field \code{xs} into another hash.
 The function can iterate over multiple vectors simultaneously.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} creates two hashes with the fields \code{xs} and \code{ys}.
@@ -1127,9 +1132,11 @@ Keys of the hashes.
 Reads R Objects from Redis hashes.
 The function reads the field-value pairs of the hashes stored at \code{keys}.
 The values of a hash are deserialized and combined to a list.
-If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g. list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3)) becomes list(x1 = 1, x2 = 2, y = 3).
+If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g.
+\code{list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))} becomes \code{list(x1 = 1, x2 = 2, y = 3)}.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
-For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
+For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes
+\code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Rush$read_hashes(keys, fields, flatten = TRUE)}\if{html}{\out{</div>}}
 }

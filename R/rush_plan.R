@@ -12,7 +12,8 @@
 #' See [redux::redis_config] for details.
 #' @param worker_type (`character(1)`)\cr
 #' The type of worker to use.
-#' Options are `"mirai"` to start with \CRANpkg{mirai}, `"processx"` to use \CRANpkg{processx} or `"script"` to get a script to run.
+#' Options are `"mirai"` to start with \CRANpkg{mirai}, `"processx"` to use \CRANpkg{processx} or `"script"`
+#' to get a script to run.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
@@ -37,7 +38,7 @@ rush_plan = function(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai"
-  ) { #nolint
+) {
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
@@ -53,7 +54,9 @@ rush_plan = function(
   }
 
   assert_choice(worker_type, c("mirai", "processx", "script"))
-  if (is.null(config)) config = redux::redis_config()
+  if (is.null(config)) {
+    config = redux::redis_config()
+  }
   if (!redux::redis_available(config)) {
     error_config("Can't connect to Redis. Check the configuration.")
   }
@@ -89,7 +92,8 @@ rush_config = function() {
     lgr_buffer_size = rush_env$lgr_buffer_size,
     large_objects_path = rush_env$large_objects_path,
     start_worker_timeout = rush_env$start_worker_timeout,
-    worker_type = rush_env$worker_type)
+    worker_type = rush_env$worker_type
+  )
 }
 
 #' @title Remove Rush Plan

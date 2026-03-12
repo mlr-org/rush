@@ -3,7 +3,8 @@
 #' @description
 #' Starts a worker.
 #' The function loads packages, initializes the [RushWorker] instance and invokes the worker loop.
-#' This function is called by `$start_local_workers()` or by the user after creating the worker script with `$create_worker_script()`.
+#' This function is called by `$start_local_workers()` or
+#' by the user after creating the worker script with `$create_worker_script()`.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
@@ -44,7 +45,7 @@ start_worker = function(
   heartbeat_expire = NULL,
   message_log = NULL,
   output_log = NULL
-  ) {
+) {
   timestamp_start = Sys.time()
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
 
@@ -66,8 +67,12 @@ start_worker = function(
 
   checkmate::assert_string(network_id)
   # connect to redis
-  if (!is.null(config$port)) config$port = as.integer(config$port)
-  if (!is.null(config$timeout)) config$timeout = as.integer(config$timeout)
+  if (!is.null(config$port)) {
+    config$port = as.integer(config$port)
+  }
+  if (!is.null(config$timeout)) {
+    config$timeout = as.integer(config$timeout)
+  }
   config = redux::redis_config(config = config)
   r = redux::hiredis(config)
 
@@ -87,7 +92,9 @@ start_worker = function(
 
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)
-    if ("console" %in% names(root_logger$appenders) && is.null(output_log)) root_logger$remove_appender("console")
+    if ("console" %in% names(root_logger$appenders) && is.null(output_log)) {
+      root_logger$remove_appender("console")
+    }
 
     # restore log levels
     for (package in names(lgr_thresholds)) {
@@ -124,7 +131,8 @@ start_worker = function(
     worker_id = worker_id,
     config = config,
     heartbeat_period = heartbeat_period,
-    heartbeat_expire = heartbeat_expire)
+    heartbeat_expire = heartbeat_expire
+  )
 
   lg$debug("Worker '%s' started", worker_id)
 
