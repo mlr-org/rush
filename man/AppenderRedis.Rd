@@ -11,8 +11,7 @@ Object of class \link[R6:R6Class]{R6::R6Class} and \code{AppenderRedis} with met
 This \link[lgr:Appender]{lgr::Appender} is created internally by \link{RushWorker} when logger thresholds are passed via \code{\link[=rush_plan]{rush_plan()}}.
 }
 \examples{
-# This example is not executed since Redis must be installed
-\donttest{
+if (redux::redis_available()) {
    config_local = redux::redis_config()
 
    rush_plan(
