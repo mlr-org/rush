@@ -23,13 +23,12 @@
 #' @return `list()` with the stored configuration.
 #' @export
 #' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
-#' config_local = redux::redis_config()
-#' rush_plan(config = config_local, n_workers = 2)
+#' if (redux::redis_available()) {
+#'   config_local = redux::redis_config()
+#'   rush_plan(config = config_local, n_workers = 2)
 #'
-#' rush = rsh(network_id = "test_network")
-#' rush
+#'   rush = rsh(network_id = "test_network")
+#'   rush
 #' }
 rush_plan = function(
   n_workers = NULL,
@@ -78,8 +77,7 @@ rush_plan = function(
 #'
 #' @export
 #' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
+#' if (redux::redis_available()) {
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)
 #'   rush_config()
@@ -104,8 +102,7 @@ rush_config = function() {
 #' @return Invisible `TRUE`. Function called for side effects.
 #' @export
 #' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
+#' if (redux::redis_available()) {
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)
 #'   remove_rush_plan()
@@ -124,8 +121,7 @@ remove_rush_plan = function() {
 #'
 #' @export
 #' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
+#' if (redux::redis_available()) {
 #'   config_local = redux::redis_config()
 #'   rush_plan(config = config_local, n_workers = 2)
 #'   rush_available()

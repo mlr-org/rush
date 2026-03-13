@@ -92,11 +92,10 @@ with the \code{message_log} and \code{output_log} arguments of \verb{$start_work
 }
 
 \examples{
-# This example is not executed since Redis must be installed
-\donttest{
-config_local = redux::redis_config()
-rush = rsh(network_id = "test_network", config = config_local)
-rush
+if (redux::redis_available()) {
+  config_local = redux::redis_config()
+  rush = rsh(network_id = "test_network", config = config_local)
+  rush
 }
 }
 \section{Public fields}{

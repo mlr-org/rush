@@ -28,8 +28,7 @@
 #' @return Object of class [R6::R6Class] and `AppenderRedis` with methods for writing log events to Redis data bases.
 #' @export
 #' @examples
-#' # This example is not executed since Redis must be installed
-#' \donttest{
+#' if (redux::redis_available()) {
 #'    config_local = redux::redis_config()
 #'
 #'    rush_plan(

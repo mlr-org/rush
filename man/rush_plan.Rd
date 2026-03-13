@@ -48,12 +48,11 @@ The function tests the connection to Redis and throws an error if the connection
 This function is usually used in third-party packages to setup how workers are started.
 }
 \examples{
-# This example is not executed since Redis must be installed
-\donttest{
-config_local = redux::redis_config()
-rush_plan(config = config_local, n_workers = 2)
+if (redux::redis_available()) {
+  config_local = redux::redis_config()
+  rush_plan(config = config_local, n_workers = 2)
 
-rush = rsh(network_id = "test_network")
-rush
+  rush = rsh(network_id = "test_network")
+  rush
 }
 }

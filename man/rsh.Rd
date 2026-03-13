@@ -28,8 +28,7 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
 Function to construct a \link{Rush} manager.
 }
 \examples{
-# This example is not executed since Redis must be installed
-\donttest{
+if (redux::redis_available()) {
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)
    rush
