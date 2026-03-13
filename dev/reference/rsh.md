@@ -40,11 +40,11 @@ rsh(network_id = NULL, config = NULL, ...)
 ## Examples
 
 ``` r
-# This example is not executed since Redis must be installed
-# \donttest{
+if (redux::redis_available()) {
    config_local = redux::redis_config()
    rush = rsh(network_id = "test_network", config = config_local)
    rush
+}
 #> 
 #> ── <Rush> ──────────────────────────────────────────────────────────────────────
 #> • Running Workers: 0
@@ -52,5 +52,4 @@ rsh(network_id = NULL, config = NULL, ...)
 #> • Running Tasks: 0
 #> • Finished Tasks: 0
 #> • Failed Tasks: 0
-# }
 ```

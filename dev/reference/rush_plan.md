@@ -71,13 +71,13 @@ configuration.
 ## Examples
 
 ``` r
-# This example is not executed since Redis must be installed
-# \donttest{
-config_local = redux::redis_config()
-rush_plan(config = config_local, n_workers = 2)
+if (redux::redis_available()) {
+  config_local = redux::redis_config()
+  rush_plan(config = config_local, n_workers = 2)
 
-rush = rsh(network_id = "test_network")
-rush
+  rush = rsh(network_id = "test_network")
+  rush
+}
 #> 
 #> ── <Rush> ──────────────────────────────────────────────────────────────────────
 #> • Running Workers: 0
@@ -85,5 +85,4 @@ rush
 #> • Running Tasks: 0
 #> • Finished Tasks: 0
 #> • Failed Tasks: 0
-# }
 ```
