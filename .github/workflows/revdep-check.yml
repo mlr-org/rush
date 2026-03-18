@@ -47,6 +47,9 @@ jobs:
         include:
           - {package: mlr-org/bbotk, ref: main}
           - {package: mlr-org/mlr3tuning, ref: main}
+          - {package: mlr-org/mlr3hyperband, ref: main}
+          - {package: mlr-org/mlr3fselect, ref: main}
+          - {package: mlr-org/mlr3mbo, ref: main}
 
     steps:
       - uses: actions/checkout@v3
