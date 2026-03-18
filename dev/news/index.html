@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.4.1.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +57,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="rush-100">rush 1.0.0<a class="anchor" aria-label="anchor" href="#rush-100"></a></h2>
 <ul><li>feat: Add <code>$push_finished_tasks()</code> method.</li>
 <li>feat: Combine <code>$wait_for_new_tasks()</code> and <code>$fetch_new_tasks()</code> into <code>$fetch_new_tasks()</code> with timeout argument.</li>
 <li>refactor: The <code>$wait_for_finished_tasks()</code> method is removed.</li>
@@ -81,6 +84,11 @@
 <li>refactor: Moved <code>$worker_states</code> to <code>$worker_info</code>.</li>
 <li>feat: Add <code>"rush.max_object_size"</code> option to limit the size of objects stored in Redis.</li>
 <li>refactor: Renamed <code>$start_remote_workers()</code> to <code>$start_workers()</code>.</li>
+<li>feat: Add <code>$reset_data()</code> method to reset task data without resetting the network.</li>
+<li>fix: <code><a href="../reference/rush_plan.html">rush_plan()</a></code> now allows script workers.</li>
+<li>fix: Default heartbeat expire is now correctly calculated as three times the heartbeat period.</li>
+<li>fix: Message and output log file connections are now properly closed when the worker exits.</li>
+<li>perf: Network-specific Redis keys are now deleted once during <code>$reset()</code> instead of once per worker.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="rush-041">rush 0.4.1<a class="anchor" aria-label="anchor" href="#rush-041"></a></h2><p class="text-muted">CRAN release: 2025-11-06</p>

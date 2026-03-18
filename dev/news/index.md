@@ -2,6 +2,8 @@
 
 ## rush (development version)
 
+## rush 1.0.0
+
 - feat: Add `$push_finished_tasks()` method.
 - feat: Combine `$wait_for_new_tasks()` and `$fetch_new_tasks()` into
   `$fetch_new_tasks()` with timeout argument.
@@ -39,6 +41,17 @@
 - feat: Add `"rush.max_object_size"` option to limit the size of objects
   stored in Redis.
 - refactor: Renamed `$start_remote_workers()` to `$start_workers()`.
+- feat: Add `$reset_data()` method to reset task data without resetting
+  the network.
+- fix:
+  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
+  now allows script workers.
+- fix: Default heartbeat expire is now correctly calculated as three
+  times the heartbeat period.
+- fix: Message and output log file connections are now properly closed
+  when the worker exits.
+- perf: Network-specific Redis keys are now deleted once during
+  `$reset()` instead of once per worker.
 
 ## rush 0.4.1
 
