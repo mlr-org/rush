@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 1.0.0
 
 * feat: Add `$push_finished_tasks()` method.
