@@ -101,6 +101,10 @@ Rush = R6::R6Class(
     #' List of mirai processes started with `$start_remote_workers()`.
     processes_mirai = NULL,
 
+    #' @field processes_batchtools (`list()`)\cr
+    #' List of batchtools registry and job information for workers started with `$start_batchtools_workers()`.
+    processes_batchtools = NULL,
+
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     initialize = function(network_id = NULL, config = NULL) {
@@ -156,7 +160,7 @@ Rush = R6::R6Class(
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
     start_workers = function(
-      worker_loop,
+      worker_loop = NULL,
       ...,
       n_workers = NULL,
       packages = NULL,
@@ -192,12 +196,14 @@ Rush = R6::R6Class(
         )
       }
 
-      # push worker config to redis
-      private$.push_worker_config(
-        worker_loop = worker_loop,
-        ...,
-        packages = packages
-      )
+      # push worker config to redis (skip if already configured e.g. via $sweep())
+      if (!is.null(worker_loop)) {
+        private$.push_worker_config(
+          worker_loop = worker_loop,
+          ...,
+          packages = packages
+        )
+      }
 
       lg$info("Starting %i worker(s)", n_workers)
 
@@ -243,7 +249,7 @@ Rush = R6::R6Class(
     #' @param supervise (`logical(1)`)\cr
     #' Whether to kill the workers when the main R process is shut down.
     start_local_workers = function(
-      worker_loop,
+      worker_loop = NULL,
       ...,
       n_workers = NULL,
       packages = NULL,
@@ -268,12 +274,14 @@ Rush = R6::R6Class(
 
       r = private$.connector
 
-      # push worker config to redis
-      private$.push_worker_config(
-        worker_loop = worker_loop,
-        ...,
-        packages = packages
-      )
+      # push worker config to redis (skip if already configured e.g. via $sweep())
+      if (!is.null(worker_loop)) {
+        private$.push_worker_config(
+          worker_loop = worker_loop,
+          ...,
+          packages = packages
+        )
+      }
 
       lg$info("Starting %i worker(s)", n_workers)
 
@@ -371,7 +379,7 @@ Rush = R6::R6Class(
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     worker_script = function(
-      worker_loop,
+      worker_loop = NULL,
       ...,
       packages = NULL,
       lgr_thresholds = NULL,
@@ -392,12 +400,14 @@ Rush = R6::R6Class(
         .var.name = "lgr_buffer_size"
       )
 
-      # push worker config to redis
-      private$.push_worker_config(
-        worker_loop = worker_loop,
-        ...,
-        packages = packages
-      )
+      # push worker config to redis (skip if already configured e.g. via $sweep())
+      if (!is.null(worker_loop)) {
+        private$.push_worker_config(
+          worker_loop = worker_loop,
+          ...,
+          packages = packages
+        )
+      }
 
       # convert arguments to character
       args = list(network_id = sprintf("'%s'", private$.network_id))
@@ -431,6 +441,113 @@ Rush = R6::R6Class(
       lg$info("Rscript -e \"rush::start_worker(%s)\"", args)
 
       invisible(sprintf("Rscript -e \"rush::start_worker(%s)\"", args))
+    },
+
+    #' @description
+    #' Start workers on HPC clusters via \CRANpkg{batchtools}.
+    #' Initializes a [RushWorker] in each cluster job and starts the worker loop.
+    #' Use `$wait_for_workers()` to wait until the workers are registered in the network.
+    #' Workers can be stopped with `$stop_workers()`.
+    #' Enabling heartbeats is recommended on HPC clusters to detect workers killed by the scheduler.
+    #'
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
+    #' @param n_workers (`integer(1)`)\cr
+    #' Number of workers to be started.
+    #' @param reg ([batchtools::Registry])\cr
+    #' A batchtools registry.
+    #' If `NULL`, a temporary registry is created.
+    #' The cluster function is configured via the registry or `.batchtools.conf.R`.
+    #' @param resources (named `list()`)\cr
+    #' Resources passed to [batchtools::submitJobs].
+    start_batchtools_workers = function(
+      worker_loop = NULL,
+      ...,
+      n_workers = NULL,
+      packages = NULL,
+      lgr_thresholds = NULL,
+      lgr_buffer_size = NULL,
+      heartbeat_period = NULL,
+      heartbeat_expire = NULL,
+      message_log = NULL,
+      output_log = NULL,
+      reg = NULL,
+      resources = list()
+    ) {
+      n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
+      lgr_thresholds = assert_vector(
+        lgr_thresholds %??% rush_env$lgr_thresholds,
+        names = "named",
+        null.ok = TRUE,
+        .var.name = "lgr_thresholds"
+      )
+      lgr_buffer_size = assert_count(
+        lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0,
+        .var.name = "lgr_buffer_size"
+      )
+      assert_list(resources)
+      if (!requireNamespace("batchtools", quietly = TRUE)) {
+        stop("Package 'batchtools' is required. Install it with install.packages('batchtools').")
+      }
+
+      # push worker config to redis (skip if already configured e.g. via $sweep())
+      if (!is.null(worker_loop)) {
+        private$.push_worker_config(
+          worker_loop = worker_loop,
+          ...,
+          packages = packages
+        )
+      }
+
+      lg$info("Starting %i worker(s) via batchtools", n_workers)
+
+      # reduce redis config
+      config = mlr3misc::discard(unclass(self$config), is.null)
+      config$url = NULL
+
+      # generate worker ids
+      worker_ids = adjective_animal(n = n_workers)
+
+      # create batchtools registry if not provided
+      if (is.null(reg)) {
+        reg = batchtools::makeRegistry(
+          file.dir = tempfile(paste0("rush_", private$.network_id, "_")),
+          packages = c("rush", packages)
+        )
+      }
+
+      # define jobs - each job starts a rush worker
+      ids = batchtools::batchMap(
+        fun = rush::start_worker,
+        worker_id = worker_ids,
+        more.args = list(
+          network_id = private$.network_id,
+          config = config,
+          lgr_thresholds = lgr_thresholds,
+          lgr_buffer_size = lgr_buffer_size,
+          heartbeat_period = heartbeat_period,
+          heartbeat_expire = heartbeat_expire,
+          message_log = message_log,
+          output_log = output_log
+        ),
+        reg = reg
+      )
+
+      # submit jobs to cluster
+      batchtools::submitJobs(ids = ids, resources = resources, reg = reg)
+
+      # store registry and job mapping for stop_workers and detect_lost_workers
+      self$processes_batchtools = c(
+        self$processes_batchtools,
+        set_names(
+          map(seq_along(worker_ids), function(i) {
+            list(reg = reg, job_id = ids$job.id[i])
+          }),
+          worker_ids
+        )
+      )
+
+      invisible(worker_ids)
     },
 
     #' @description
@@ -543,6 +660,23 @@ Rush = R6::R6Class(
           })
         }
 
+        worker_ids_batchtools = intersect(worker_ids, names(self$processes_batchtools))
+        if (length(worker_ids_batchtools)) {
+          lg$debug("Killing %i batchtools worker(s)", length(worker_ids_batchtools))
+
+          walk(worker_ids_batchtools, function(id) {
+            lg$info("Kill worker '%s'", id)
+            info = self$processes_batchtools[[id]]
+            tryCatch(
+              batchtools::killJobs(ids = info$job_id, reg = info$reg),
+              error = function(e) lg$error("Failed to kill worker '%s': %s", id, e$message)
+            )
+
+            # move worker to terminated
+            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          })
+        }
+
         worker_ids_heartbeat = self$worker_info[heartbeat == TRUE, worker_id]
         worker_ids_heartbeat = intersect(worker_ids_heartbeat, worker_ids)
         if (length(worker_ids_heartbeat)) {
@@ -637,6 +771,41 @@ Rush = R6::R6Class(
             }
           }
         })
+      }
+
+      # check batchtools workers
+      if (length(self$processes_batchtools)) {
+        batchtools_worker_ids = intersect(running_worker_ids, names(self$processes_batchtools))
+        if (length(batchtools_worker_ids)) {
+          lost_workers = character(0)
+          walk(batchtools_worker_ids, function(id) {
+            info = self$processes_batchtools[[id]]
+            expired = tryCatch(batchtools::findExpired(reg = info$reg)$job.id, error = function(e) integer(0))
+            errors = tryCatch(batchtools::findErrors(reg = info$reg)$job.id, error = function(e) integer(0))
+            if (info$job_id %in% c(expired, errors)) {
+              lg$error("Lost worker '%s'", id)
+
+              # move worker to terminated
+              r$command(c(
+                "SMOVE", private$.get_key("running_worker_ids"),
+                private$.get_key("terminated_worker_ids"), id
+              ))
+              lost_workers <<- c(lost_workers, id)
+            }
+          })
+
+          # identify and fail lost tasks
+          if (nrow(running_tasks) && length(lost_workers)) {
+            walk(lost_workers, function(worker_id) {
+              keys = running_tasks[list(worker_id), keys, on = "worker_id"]
+              if (length(keys)) {
+                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+                conditions = list(list(message = "Worker has crashed or was killed"))
+                self$fail_tasks(keys, conditions = conditions)
+              }
+            })
+          }
+        }
       }
 
       # check heartbeat of workers
@@ -962,6 +1131,57 @@ Rush = R6::R6Class(
       r$pipeline(.commands = cmds)
 
       return(invisible(keys))
+    },
+
+    #' @description
+    #' Push the worker loop configuration to Redis.
+    #' Called automatically by the `$start_*_workers()` and `$sweep()` methods.
+    #' Can also be called directly to configure the worker loop before starting workers separately.
+    #'
+    #' @param worker_loop (`function(rush, ...)`)\cr
+    #' Worker loop function.
+    #' @param ... (`any`)\cr
+    #' Arguments passed to `worker_loop`.
+    #' @param packages (`character()`)\cr
+    #' Packages to load on workers.
+    push_worker_config = function(worker_loop, ..., packages = NULL) {
+      private$.push_worker_config(worker_loop = worker_loop, ..., packages = packages)
+      invisible(self)
+    },
+
+    #' @description
+    #' Push a parameter sweep into the queue.
+    #' Converts parameter combinations to tasks, pushes them to the queue,
+    #' and configures [worker_loop_default] as the worker loop.
+    #' Workers must be started separately with any `$start_*_workers()` method.
+    #' Accepts a `data.frame` or `data.table` where each row is one parameter combination.
+    #'
+    #' @param fun (`function()`)\cr
+    #' Function to evaluate on each parameter combination.
+    #' Called with the task's `xs` as arguments.
+    #' Must return a named `list()`.
+    #' @param xss (list of named `list()` or `data.frame()`)\cr
+    #' Parameter combinations.
+    #' Either a list of named lists or a `data.frame`/`data.table` where each row is one combination.
+    #' @param extra (`list()`)\cr
+    #' List of additional information stored along with the task.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the created tasks.
+    sweep = function(fun, xss, extra = NULL) {
+      assert_function(fun)
+
+      # convert data.frame/data.table to list of named lists
+      if (is.data.frame(xss)) {
+        xss = lapply(seq_len(nrow(xss)), function(i) as.list(xss[i, , drop = FALSE]))
+      }
+      assert_list(xss, types = "list", min.len = 1)
+
+      # configure worker loop
+      private$.push_worker_config(worker_loop = worker_loop_default, fun = fun)
+
+      # push parameter combinations as tasks
+      self$push_tasks(xss, extra = extra)
     },
 
     #' @description
