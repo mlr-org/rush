@@ -726,8 +726,16 @@ Rush = R6::R6Class(
         )
       }
 
-      # remove all tasks, lists, and sets
-      cmds = c(cmds, map(self$tasks, function(key) c("DEL", key)))
+      # remove all tasks, lists, sets, and dependency keys
+      task_keys = self$tasks
+      cmds = c(cmds, map(task_keys, function(key) c("DEL", key)))
+      # remove per-task dependency keys
+      cmds = c(cmds, map(task_keys, function(key) {
+        c("DEL", private$.get_key(sprintf("%s:deps", key)))
+      }))
+      cmds = c(cmds, map(task_keys, function(key) {
+        c("DEL", private$.get_key(sprintf("%s:rdeps", key)))
+      }))
       cmds = c(
         cmds,
         list(
@@ -735,6 +743,7 @@ Rush = R6::R6Class(
           c("DEL", private$.get_key("running_tasks")),
           c("DEL", private$.get_key("finished_tasks")),
           c("DEL", private$.get_key("failed_tasks")),
+          c("DEL", private$.get_key("waiting_tasks")),
           c("DEL", private$.get_key("all_tasks"))
         )
       )
@@ -879,6 +888,9 @@ Rush = R6::R6Class(
         )
       )
 
+      # resolve dependencies of waiting tasks
+      private$.resolve_deps(keys)
+
       invisible(self)
     },
 
@@ -934,17 +946,23 @@ Rush = R6::R6Class(
 
     #' @description
     #' Create queued tasks and add them to the queue.
+    #' If `deps` is provided, tasks are placed in a waiting state until all
+    #' dependencies are finished.
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
     #' @param extra (`list()`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' @param deps (`character()`)\cr
+    #' Keys of tasks that must finish before these tasks are queued.
+    #' All tasks in `xss` share the same set of dependencies.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, extra = NULL) {
+    push_tasks = function(xss, extra = NULL, deps = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
+      assert_character(deps, null.ok = TRUE)
       r = private$.connector
 
       lg$debug("Pushing %i task(s) to the queue", length(xss))
@@ -955,10 +973,43 @@ Rush = R6::R6Class(
         xs_extra = extra
       )
 
-      cmds = list(
-        c("RPUSH", private$.get_key("all_tasks"), keys),
-        c("LPUSH", private$.get_key("queued_tasks"), keys)
-      )
+      cmds = list(c("RPUSH", private$.get_key("all_tasks"), keys))
+
+      if (is.null(deps) || length(deps) == 0L) {
+        # no dependencies: add directly to queue
+        cmds = c(cmds, list(c("LPUSH", private$.get_key("queued_tasks"), keys)))
+      } else {
+        # filter out deps that are already finished or failed
+        check_cmds = c(
+          map(deps, function(dep) c("HEXISTS", dep, "ys")),
+          map(deps, function(dep) c("HEXISTS", dep, "condition"))
+        )
+        res = r$pipeline(.commands = check_cmds)
+        n = length(deps)
+        done = map_lgl(seq_len(n), function(i) res[[i]] == 1L || res[[n + i]] == 1L)
+        unresolved = deps[!done]
+
+        if (length(unresolved) == 0L) {
+          # all deps already done: add directly to queue
+          cmds = c(cmds, list(c("LPUSH", private$.get_key("queued_tasks"), keys)))
+        } else {
+          # add to waiting set
+          cmds = c(cmds, list(c("SADD", private$.get_key("waiting_tasks"), keys)))
+          # store forward deps per waiting task
+          for (key in keys) {
+            cmds = c(cmds, list(
+              c("SADD", private$.get_key(sprintf("%s:deps", key)), unresolved)
+            ))
+          }
+          # store reverse deps per dependency
+          for (dep in unresolved) {
+            cmds = c(cmds, list(
+              c("SADD", private$.get_key(sprintf("%s:rdeps", dep)), keys)
+            ))
+          }
+        }
+      }
+
       r$pipeline(.commands = cmds)
 
       return(invisible(keys))
@@ -1170,7 +1221,7 @@ Rush = R6::R6Class(
     ) {
       # nolint
       r = private$.connector
-      assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
+      assert_subset(states, c("waiting", "queued", "running", "finished", "failed"), empty.ok = FALSE)
 
       all_keys = private$.tasks_with_state(states, only_new_keys = TRUE)
 
@@ -1610,6 +1661,13 @@ Rush = R6::R6Class(
       unlist(r$SMEMBERS(private$.get_key("failed_tasks")))
     },
 
+    #' @field waiting_tasks (`character()`)\cr
+    #' Keys of tasks waiting for dependencies.
+    waiting_tasks = function() {
+      r = private$.connector
+      unlist(r$SMEMBERS(private$.get_key("waiting_tasks")))
+    },
+
     #' @field n_queued_tasks (`integer(1)`)\cr
     #' Number of queued tasks.
     n_queued_tasks = function() {
@@ -1636,6 +1694,13 @@ Rush = R6::R6Class(
     n_failed_tasks = function() {
       r = private$.connector
       as.integer(r$SCARD(private$.get_key("failed_tasks"))) %??% 0
+    },
+
+    #' @field n_waiting_tasks (`integer(1)`)\cr
+    #' Number of tasks waiting for dependencies.
+    n_waiting_tasks = function() {
+      r = private$.connector
+      as.integer(r$SCARD(private$.get_key("waiting_tasks"))) %??% 0
     },
 
     #' @field n_tasks (`integer(1)`)\cr
@@ -1704,6 +1769,55 @@ Rush = R6::R6Class(
       sprintf("%s:%s", private$.network_id, key)
     },
 
+    # resolve dependencies when tasks finish
+    # uses a Lua script for atomic dep removal + conditional queuing
+    .resolve_deps = function(finished_keys) {
+      r = private$.connector
+      waiting_set = private$.get_key("waiting_tasks")
+      queued_list = private$.get_key("queued_tasks")
+
+      # Lua script: atomically remove dep, check if all resolved, then queue
+      lua = "
+        local deps_key = KEYS[1]
+        local waiting_set = KEYS[2]
+        local queued_list = KEYS[3]
+        local finished_key = ARGV[1]
+        local waiting_key = ARGV[2]
+        redis.call('SREM', deps_key, finished_key)
+        if redis.call('SCARD', deps_key) == 0 then
+          redis.call('SREM', waiting_set, waiting_key)
+          redis.call('LPUSH', queued_list, waiting_key)
+          redis.call('DEL', deps_key)
+          return 1
+        end
+        return 0
+      "
+
+      # batch check: which finished keys have reverse deps?
+      rdeps_keys = map_chr(finished_keys, function(key) {
+        private$.get_key(sprintf("%s:rdeps", key))
+      })
+      cmds = map(rdeps_keys, function(k) c("SMEMBERS", k))
+      all_rdeps = r$pipeline(.commands = cmds)
+
+      # resolve each dependency
+      for (i in seq_along(finished_keys)) {
+        waiting_tasks = unlist(all_rdeps[[i]])
+        if (length(waiting_tasks)) {
+          for (wt in waiting_tasks) {
+            deps_key = private$.get_key(sprintf("%s:deps", wt))
+            r$command(list(
+              "EVAL", lua, 3L,
+              deps_key, waiting_set, queued_list,
+              finished_keys[[i]], wt
+            ))
+          }
+          # clean up reverse deps key
+          r$DEL(rdeps_keys[[i]])
+        }
+      }
+    },
+
     # prefix key with instance id and worker id
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
@@ -1768,6 +1882,9 @@ Rush = R6::R6Class(
 
       # get keys of tasks with different states in one transaction
       r$MULTI()
+      if ("waiting" %in% states) {
+        r$SMEMBERS(private$.get_key("waiting_tasks"))
+      }
       if ("queued" %in% states) {
         r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
       }
@@ -1782,7 +1899,7 @@ Rush = R6::R6Class(
       }
       keys = r$EXEC()
       keys = map(keys, unlist)
-      states_order = c("queued", "running", "finished", "failed")
+      states_order = c("waiting", "queued", "running", "finished", "failed")
       set_names(keys, states_order[states_order %in% states])
     },
 
