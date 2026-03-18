@@ -190,6 +190,7 @@ test_that("additional local workers are started", {
 # start workers with script ----------------------------------------------------
 
 test_that("heartbeat process is started", {
+  skip_if_not_installed("callr")
   config = redis_configuration()
   rush = rsh(config = config)
   on.exit({
@@ -374,6 +375,7 @@ test_that("a local worker is killed", {
 })
 
 test_that("worker is killed with a heartbeat process", {
+  skip_if_not_installed("callr")
   config = redis_configuration()
   rush = rsh(config = config)
   on.exit({
@@ -687,6 +689,7 @@ test_that("segfaults on processx workers are detected", {
 })
 
 test_that("a segfault on a single worker is detected via heartbeat", {
+  skip_if_not_installed("callr")
   config = redis_configuration()
   rush = rsh(config = config)
   on.exit({
@@ -727,6 +730,7 @@ test_that("a segfault on a single worker is detected via heartbeat", {
 })
 
 test_that("segfaults on multiple workers are detected via the heartbeat", {
+  skip_if_not_installed("callr")
   config = redis_configuration()
   rush = rsh(config = config)
   on.exit({
