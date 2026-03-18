@@ -2,7 +2,7 @@
 
 The heartbeat loop updates the heartbeat key if the worker is still
 alive. If the kill key is set, the worker is killed. This function is
-called in a callr session.
+called in a [callr](https://CRAN.R-project.org/package=callr) session.
 
 ## Usage
 
@@ -23,8 +23,8 @@ heartbeat(
 - network_id:
 
   (`character(1)`)  
-  Identifier of the rush network. Controller and workers must have the
-  same instance id. Keys in Redis are prefixed with the instance id.
+  Identifier of the rush network. Manager and workers must have the same
+  id. Keys in Redis are prefixed with the instance id.
 
 - config:
 

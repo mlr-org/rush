@@ -136,8 +136,7 @@ buffer.
 ## Examples
 
 ``` r
-# This example is not executed since Redis must be installed
-# \donttest{
+if (redux::redis_available()) {
    config_local = redux::redis_config()
 
    rush_plan(
@@ -147,12 +146,12 @@ buffer.
 
    rush = rsh(network_id = "test_network")
    rush
-#> <Rush>
-#> * Running Workers: 0
-#> * Queued Tasks: 0
-#> * Queued Priority Tasks: 0
-#> * Running Tasks: 0
-#> * Finished Tasks: 0
-#> * Failed Tasks: 0
-# }
+}
+#> 
+#> ── <Rush> ──────────────────────────────────────────────────────────────────────
+#> • Running Workers: 0
+#> • Queued Tasks: 0
+#> • Running Tasks: 0
+#> • Finished Tasks: 0
+#> • Failed Tasks: 0
 ```

@@ -18,11 +18,10 @@ rush_available()
 ## Examples
 
 ``` r
-# This example is not executed since Redis must be installed
-# \donttest{
+if (redux::redis_available()) {
   config_local = redux::redis_config()
   rush_plan(config = config_local, n_workers = 2)
   rush_available()
+}
 #> [1] TRUE
-# }
 ```

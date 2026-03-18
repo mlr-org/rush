@@ -17,11 +17,11 @@ configuration.
 ## Examples
 
 ``` r
-# This example is not executed since Redis must be installed
-# \donttest{
+if (redux::redis_available()) {
   config_local = redux::redis_config()
   rush_plan(config = config_local, n_workers = 2)
   rush_config()
+}
 #> $config
 #> Redis configuration:
 #>   - url: redis://127.0.0.1:6379
@@ -49,7 +49,6 @@ configuration.
 #> NULL
 #> 
 #> $worker_type
-#> [1] "local"
+#> [1] "mirai"
 #> 
-# }
 ```

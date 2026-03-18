@@ -1,12 +1,15 @@
 # Package index
 
-## Controller and Worker
+## Manager
 
-- [`Rush`](https://rush.mlr-org.com/reference/Rush.md) : Rush Controller
+- [`Rush`](https://rush.mlr-org.com/reference/Rush.md) : Rush
+- [`rsh()`](https://rush.mlr-org.com/reference/rsh.md) : Syntactic Sugar
+  for Rush Manager Construction
+
+## Worker
+
 - [`RushWorker`](https://rush.mlr-org.com/reference/RushWorker.md) :
   Rush Worker
-- [`rsh()`](https://rush.mlr-org.com/reference/rsh.md) : Synctatic Sugar
-  for Rush Controller Construction
 
 ## Plan
 
@@ -33,8 +36,6 @@
 - [`rush`](https://rush.mlr-org.com/reference/rush-package.md)
   [`rush-package`](https://rush.mlr-org.com/reference/rush-package.md) :
   rush: Rapid Asynchronous and Distributed Computing
-- [`with_rng_state()`](https://rush.mlr-org.com/reference/with_rng_state.md)
-  : Set RNG Sate before Running a Function
 - [`store_large_object()`](https://rush.mlr-org.com/reference/store_large_object.md)
   : Store Large Objects
 - [`filter_custom_fields()`](https://rush.mlr-org.com/reference/filter_custom_fields.md)

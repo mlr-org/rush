@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>rush - Asynchronous and Distributed Computing • rush</title>
+<title>rush - Quick Reference • rush</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -26,7 +26,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="rush_files/libs/quarto-html/popper.min.js"></script><script src="rush_files/libs/quarto-html/tippy.umd.min.js"></script><link href="rush_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="rush_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="rush - Asynchronous and Distributed Computing">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="rush - Quick Reference">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/controller.html">Controller</a></li>
+<li><a class="dropdown-item" href="../articles/tutorial.html">rush - Asynchronous and Distributed Computing</a></li>
+    <li><a class="dropdown-item" href="../articles/manager.html">Rush Manager</a></li>
     <li><a class="dropdown-item" href="../articles/error_handling.html">Error Handling and Debugging</a></li>
   </ul>
 </li>
@@ -82,7 +83,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>rush - Asynchronous and Distributed Computing</h1>
+      <h1>rush - Quick Reference</h1>
 
 
 
@@ -96,315 +97,338 @@
 
 
 
-    <p><em>rush</em> is a package designed to solve large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared <a href="https://redis.io/" class="external-link"><code>Redis</code></a> database. This article demonstrates how to use <code>rush</code> with 3 different examples.</p>
-<section class="section level2"><h2 id="random-search">Random Search<a class="anchor" aria-label="anchor" href="#random-search"></a>
+    <p>A quick reference cheatsheet for <code>rush</code>. See the <a href="tutorial.html">tutorial</a> for a detailed introduction.</p>
+<section class="section level2"><h2 id="worker-loop">Worker Loop<a class="anchor" aria-label="anchor" href="#worker-loop"></a>
 </h2>
-<p>We begin with a simple random search to optimize the Branin function in parallel. Although random search does not require communication between workers, it is a good way to introduce the basic ideas behind <code>rush</code>. The classic Branin function (also called the Branin-Hoo function) is a well-known benchmark problem in global optimization. It is a two-dimensional function that is non-convex, multimodal, and has three global minima. The function is a toy example for optimization thats fast to evaluate but not too simple to be solved.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">branin</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="op">(</span><span class="va">x2</span> <span class="op">-</span> <span class="fl">5.1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">4</span> <span class="op">*</span> <span class="va">pi</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="va">x1</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">5</span> <span class="op">/</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">-</span> <span class="fl">6</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">10</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">8</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">x1</span><span class="op">)</span> <span class="op">+</span> <span class="fl">10</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</div>
-<p>The Branin function is usually evaluated on the domain <span class="math inline">\(x_1 \in [-5, 10]\)</span> and <span class="math inline">\(x_2 \in [0, 15]\)</span>.</p>
-<p><img src="branin.png"></p>
-<section class="level2"><h3 id="worker-loop">Worker Loop<a class="anchor" aria-label="anchor" href="#worker-loop"></a>
-</h3>
-<p>We define the <code>worker_loop</code> function, which runs on each worker. It repeatedly draws tasks, evaluates them, and sends the results to the Redis database. The function takes a single argument: a <code>RushWorker</code> object, which handles communication with Redis. In this example, each worker samples a random point, creates a task, evaluates it using the Branin function, and submits the result. The optimization stops after 100 tasks have been evaluated.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_random_search</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>    <span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</div>
-<p>The most important methods of the <code>RushWorker</code> are the <code>$push_running_tasks()</code> and <code>$push_results()</code> methods. The first method <code>$push_running_tasks()</code> creates a new task in the Redis database. Since it is evaluated next, the task is marked as running. The <code>$push_running_tasks()</code> method returns a unique key that is used to identify the task. The second method <code>$push_results()</code> is used to push the results back to the Redis database. It takes the key of the task and a list of results. To mark the task as running is not important for a random search, but it is crucial for more sophisticated algorithms that use the tasks of other workers to decide which task to evaluate next. For example, Bayesian optimization algorithms would sample the next point further away from the previous points to explore the search space. The <code>$n_finished_tasks</code> shows how many tasks are finished and is used to stop the worker loop.</p>
-</section><section class="level2"><h3 id="tasks">Tasks<a class="anchor" aria-label="anchor" href="#tasks"></a>
-</h3>
-<p>Tasks are the unit in which workers exchange information. The main components of a task are the key, computational state, input (<code>xs</code>), and result (<code>ys</code>). The key is a unique identifier for the task. It identifies the task in the Redis database. The four possible computational states are <code>"running"</code>, <code>"finished"</code>, <code>"failed"</code>, and <code>"queued"</code>. The <code>$push_running_tasks()</code> method marks it as <code>"running"</code> and returns the key of the task. The <code>$push_results()</code> method marks a task as <code>"finished"</code> and stores the result. Failed tasks can be marked as <code>"failed"</code> with the <code>$push_failed()</code> method. The error catching must be implemented in the worker loop (see <a href="error_handling.html">Error Handling</a> for more details). Tasks can also be pushed to a queue with the <code>$push_tasks()</code> method which sets the state to <code>"queued"</code>. The last example gives more details on the task queue and the different methods to push and pop tasks. The input <code>xs</code> and result <code>ys</code> are lists that can contain arbitrary data. Usually the methods of the <code>RushWorker</code> work on multiple tasks at once, so <code>xxs</code> and <code>yss</code> are lists of inputs and results.</p>
-</section><section class="level2"><h3 id="controller">Controller<a class="anchor" aria-label="anchor" href="#controller"></a>
-</h3>
-<p>The Rush controller is responsible for starting, observing, and stopping workers within the network. It is initialized using the <code><a href="../reference/rsh.html">rsh()</a></code> function, which requires a network ID and a config argument. The config argument is a configuration file used to connect to the Redis database via the <code>redux</code> package.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rush.mlr-org.com">rush</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">worker_loop</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">while</span> <span class="op">(</span><span class="op">!</span><span class="va">rush</span><span class="op">$</span><span class="va">terminated</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
-<span>  network <span class="op">=</span> <span class="st">"test-random-search"</span>,</span>
-<span>  config <span class="op">=</span> <span class="va">config</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>Workers can be started using the <code>$start_local_workers()</code> method, which accepts the worker loop and the number of workers as arguments. The workers are started locally with the <code>processx</code> package but it is also possible to start workers on a remote machine (see <a href="rush_controller.html">Rush Controller</a>). We need to export the <code>branin</code> function to the workers, so we set the <code>globals</code> argument to <code>"branin"</code>. More on globals and the different worker types can be found in the <a href="rush_controller.html">Rush Controller</a> vignette.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  globals <span class="op">=</span> <span class="st">"branin"</span><span class="op">)</span></span>
+<span>    <span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rush</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;Rush&gt;
-* Running Workers: 0
-* Queued Tasks: 0
-* Queued Priority Tasks: 0
-* Running Tasks: 0
-* Finished Tasks: 0
-* Failed Tasks: 0</code></pre>
-</div>
-</div>
-<p>The optimization is quickly finished and we retrieve the results. The <code>$fetch_finished_tasks()</code> method fetches all finished tasks from the database. The method returns a <code>data.table()</code> with the key, input, and result. The <code>pid</code> and <code>worker_id</code> column are additional information that are stored when the task is created. The <code>worker_id</code> is the id of the worker that evaluated the task and the <code>pid</code> is the process id of that worker. Further extra information can be passed as <code>list</code>s to the <code>$push_running_tasks()</code> and <code>$push_results()</code> methods via the <code>extra</code> argument.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>            x1         x2           y   pid     worker_id          keys
-         &lt;num&gt;      &lt;num&gt;       &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;
-  1:  3.477268  2.2650660   0.9901065 12428 inconseque... 54b8738f-3...
-  2:  3.502803  2.6687294   1.4512257 12448 piecemeal_... ae6bca55-c...
-  3:  4.042130  1.7160029   4.0367571 12428 inconseque... 1c3237ba-1...
-  4:  3.800528  0.5028386   4.1357267 12439 carbonaceo... 2c80cd37-f...
-  5: -4.056844 13.4290685   5.4776957 12428 inconseque... fe9e383b-6...
- ---
- 99:  3.271289 14.7904817 159.6029664 12428 inconseque... 8d367119-f...
-100:  8.986640 14.7968538 161.7484887 12448 piecemeal_... b7d3944c-f...
-101:  9.043105 14.9249383 163.7295778 12448 piecemeal_... f3bf402a-e...
-102:  5.797529 14.6892901 202.7528628 12428 inconseque... b393c15b-c...
-103: -4.870316  0.3978545 281.0526278 12428 inconseque... e36cf733-8...</code></pre>
-</div>
-</div>
-<p>The rush controller displays how many workers are running and how many tasks exist in each state. In this case, 103 tasks are marked as finished, and all workers have stopped. The number slightly exceeds 100 because workers check the stopping condition independently. If several workers evaluate the condition around the same time — when, for example, 99 tasks are finished — they may all create new tasks before detecting that the limit has been reached. Additionally, tasks may continue to be created while the 100th task is still being evaluated.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;Rush&gt;
-* Running Workers: 0
-* Queued Tasks: 0
-* Queued Priority Tasks: 0
-* Running Tasks: 0
-* Finished Tasks: 103
-* Failed Tasks: 0</code></pre>
-</div>
-</div>
-<p>We can stop the workers and reset the database with the <code>$reset()</code> method.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;Rush&gt;
-* Running Workers: 0
-* Queued Tasks: 0
-* Queued Priority Tasks: 0
-* Running Tasks: 0
-* Finished Tasks: 0
-* Failed Tasks: 0</code></pre>
-</div>
-</div>
-<p>To learn more about starting, stopping and observing workers, see the <a href="rush_controller.html">Rush Controller</a> vignette.</p>
-</section></section><section class="section level2"><h2 id="median-stopping">Median Stopping<a class="anchor" aria-label="anchor" href="#median-stopping"></a>
-</h2>
-<p>Random search is a simple example that doesn’t rely on information from previous tasks and therefore doesn’t require communication between workers. Now, let’s implement a more sophisticated algorithm that uses the results of completed tasks to decide whether to continue evaluating the current one. We tune an XGBoost model on the mtcars dataset and use the median stopping rule to stop the training early.</p>
-<section class="level2"><h3 id="worker-loop-1">Worker Loop<a class="anchor" aria-label="anchor" href="#worker-loop-1"></a>
-</h3>
-<p>The worker starts by sampling a random hyperparameter configuration with three parameters: maximum tree depth, lambda regularization, and alpha regularization. These parameters control how the XGBoost model learns from the data. The worker then trains the model incrementally, starting with 5 boosting rounds and adding one round at a time up to 20 rounds. After each round, the worker evaluates the model’s performance on a test set using root mean squared error (RMSE). At this point, the worker checks how well its model is doing compared to other workers by fetching their completed results and comparing its performance to the median score among all models with the same number of training rounds.</p>
-<p>If the current model performs worse than the median, the worker stops this hyperparameter configuration and starts over with a new one. This early stopping mechanism prevents workers from wasting time on poor-performing configurations. If the model performs at or above the median, the worker continues training for one more round. The process continues until the network has evaluated 1000 complete models across all workers.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_median_stopping</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>    <span class="va">params</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      max_depth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>      lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>      alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span></span>
-<span>    <span class="va">model</span> <span class="op">=</span> <span class="cn">NULL</span></span>
-<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">iteration</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">20</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>      <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">params</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>nrounds <span class="op">=</span> <span class="va">iteration</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="va">model</span> <span class="op">=</span> <span class="fu">xgboost</span><span class="op">(</span></span>
-<span>        data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="va">training_ids</span>, <span class="op">]</span><span class="op">)</span>,</span>
-<span>        label <span class="op">=</span> <span class="va">y</span><span class="op">[</span><span class="va">training_ids</span><span class="op">]</span>,</span>
-<span>        nrounds <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="fl">5</span> <span class="kw">else</span> <span class="fl">1</span>,</span>
-<span>        params <span class="op">=</span> <span class="va">params</span>,</span>
-<span>        xgb_model <span class="op">=</span> <span class="va">model</span>,</span>
-<span>        verbose <span class="op">=</span> <span class="fl">0</span></span>
-<span>      <span class="op">)</span></span>
-<span></span>
-<span>      <span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">model</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="va">test_ids</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span>      <span class="va">rmse</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">pred</span> <span class="op">-</span> <span class="va">y</span><span class="op">[</span><span class="va">test_ids</span><span class="op">]</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rmse <span class="op">=</span> <span class="va">rmse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="va">tasks</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span>
-<span>      <span class="kw">if</span> <span class="op">(</span><span class="va">rmse</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">tasks</span><span class="op">[</span><span class="va">nrounds</span> <span class="op">==</span> <span class="va">iteration</span>, <span class="va">rmse</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="kw">break</span></span>
-<span>    <span class="op">}</span></span>
+<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
-<p>The worker loop uses a new method called <code>$fetch_finished_tasks()</code> to fetch all finished tasks from the database. Other methods like <code>$fetch_running_tasks()</code> and <code>$fetch_failed_tasks()</code> are also available.</p>
-<p>We sample a training and test set from the mtcars dataset. The training set is used to fit the model and the test set is used to evaluate the model. Then we initialize the rush network and start the workers. This time we have to pass the training and test set to the workers via the <code>globals</code> argument and the <code>packages</code> argument to load the <code>data.table</code> and <code>xgboost</code> packages.</p>
+</section><section class="section level2"><h2 id="rush-manager">Rush Manager<a class="anchor" aria-label="anchor" href="#rush-manager"></a>
+</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">training_ids</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="va">test_ids</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span>, <span class="va">training_ids</span><span class="op">)</span></span>
-<span><span class="va">data</span> <span class="op">=</span> <span class="va">mtcars</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">y</span> <span class="op">=</span> <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span></span>
-<span></span>
-<span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
-<span>  network <span class="op">=</span> <span class="st">"test-median-stopping"</span>,</span>
-<span>  config <span class="op">=</span> <span class="va">config</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">wl_median_stopping</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"data.table"</span>, <span class="st">"xgboost"</span><span class="op">)</span>,</span>
-<span>  globals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"training_ids"</span>, <span class="st">"test_ids"</span>, <span class="st">"data"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"my_network"</span>, config <span class="op">=</span> <span class="va">config</span><span class="op">)</span></span>
+<span><span class="va">rush</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+── &lt;Rush&gt; ──────────────────────────────────────────────────────────────────────
+• Running Workers: 0
+• Queued Tasks: 0
+• Running Tasks: 0
+• Finished Tasks: 0
+• Failed Tasks: 0</code></pre>
 </div>
-<p>We fetch the finished tasks and sort them by the objective value.</p>
+</div>
+</section><section class="section level2"><h2 id="start-workers">Start Workers<a class="anchor" aria-label="anchor" href="#start-workers"></a>
+</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="wait-for-workers">Wait for Workers<a class="anchor" aria-label="anchor" href="#wait-for-workers"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="fetch-results">Fetch Results<a class="anchor" aria-label="anchor" href="#fetch-results"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               worker_id           x          y               keys
+                  &lt;char&gt;       &lt;num&gt;      &lt;num&gt;             &lt;char&gt;
+   1: photodramatic_s... 0.533183005 0.73019381 0eb8228b-12b0-4...
+   2: photodramatic_s... 0.289699194 0.53823712 343b2c70-4d5a-4...
+   3: photodramatic_s... 0.309398069 0.55623562 874a3648-bed5-4...
+   4: inferior_rainbo... 0.391084959 0.62536786 7154d4e7-1bc9-4...
+   5: photodramatic_s... 0.892131758 0.94452727 71dda56a-f7d6-4...
+  ---
+7540: photodramatic_s... 0.012910456 0.11362419 9a114cab-3040-4...
+7541: inferior_rainbo... 0.008243177 0.09079195 b57167ce-b68a-4...
+7542: photodramatic_s... 0.375026604 0.61239416 2f18431c-00ac-4...
+7543: inferior_rainbo... 0.234845641 0.48460875 d44a616d-8f86-4...
+7544: photodramatic_s... 0.661488105 0.81331919 99bd68dc-33fb-4...</code></pre>
+</div>
+</div>
+</section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">stop_workers</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"kill"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="tasks">Tasks<a class="anchor" aria-label="anchor" href="#tasks"></a>
+</h2>
+<table class="table caption-top">
+<thead><tr class="header">
+<th>Component</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>key</code></td>
+<td>Unique task identifier</td>
+</tr>
+<tr class="even">
+<td><code>xs</code></td>
+<td>Named list of inputs</td>
+</tr>
+<tr class="odd">
+<td><code>ys</code></td>
+<td>Named list of results</td>
+</tr>
+<tr class="even">
+<td><code>state</code></td>
+<td>
+<code>"running"</code>, <code>"finished"</code>,<code>"failed"</code>, or <code>"queued"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>worker_id</code></td>
+<td>ID of the worker that ran the task</td>
+</tr>
+</tbody>
+</table></section><section class="section level2"><h2 id="more-fetch-methods">More fetch methods<a class="anchor" aria-label="anchor" href="#more-fetch-methods"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               x         y          worker_id               keys
+           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+   1: 0.53318301 0.7301938 photodramatic_s... 0eb8228b-12b0-4...
+   2: 0.39108496 0.6253679 inferior_rainbo... 7154d4e7-1bc9-4...
+   3: 0.28969919 0.5382371 photodramatic_s... 343b2c70-4d5a-4...
+   4: 0.30939807 0.5562356 photodramatic_s... 874a3648-bed5-4...
+   5: 0.89213176 0.9445273 photodramatic_s... 71dda56a-f7d6-4...
+  ---
+8117: 0.30553075 0.5527484 inferior_rainbo... 4b69e2ec-aa49-4...
+8118: 0.84361372 0.9184845 photodramatic_s... 4b056ebb-d8fd-4...
+8119: 0.09120919 0.3020086 inferior_rainbo... 0f0f28b8-2609-4...
+8120: 0.21058671 0.4588973 photodramatic_s... 736a5fde-2efc-4...
+8121: 0.25787869        NA inferior_rainbo... 07621ec8-cdc3-4...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Null data.table (0 rows and 0 cols)</code></pre>
 </div>
-</div>
-<p>We stop the workers and reset the database.ch</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section></section><section class="section level2"><h2 id="bayesian-optimization">Bayesian Optimization<a class="anchor" aria-label="anchor" href="#bayesian-optimization"></a>
-</h2>
-<p>We implement Asynchronous Distributed Bayesian Optimization (ADBO) <span class="citation" data-cites="egele_2023">[@egele_2023]</span> next. This example shows how workers use information about running tasks and introduces task queues. ADBO runs sequential <a href="https://mlr3book.mlr-org.com/chapters/chapter5/advanced_tuning_methods_and_black_box_optimization.html#sec-bayesian-optimization" class="external-link">Bayesian optimization</a> on multiple workers in parallel. Each worker maintains its own surrogate model (a random forest) and selects the next hyperparameter configuration by maximizing the upper confidence bounds acquisition function. To promote a varying exploration-exploitation tradeoff between the workers, the acquisition functions are initialized with different lambda values ranging from 0.1 to 10. When a worker completes an evaluation, it asynchronously sends the result to its peers via a Redis data base; each worker then updates its local model with this shared information. This decentralized design enables workers to proceed independently; eliminating the need for a central coordinator that could become a bottleneck in large-scale optimization scenarios.</p>
-<p>We first create a new rush network.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">config</span> <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
-<span>  network <span class="op">=</span> <span class="st">"test-bayesian-optimization"</span>,</span>
-<span>  config <span class="op">=</span> <span class="va">config</span><span class="op">)</span></span></code></pre></div>
-</div>
-<section class="level2"><h3 id="queues">Queues<a class="anchor" aria-label="anchor" href="#queues"></a>
-</h3>
-<p>The queue system works by pushing and popping tasks from a queue. The <code>$push_task()</code> method creates new tasks and pushes them to the queue. In this example, we draw an initial design of 25 points and push them to the queue.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">xss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="va">xss</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rush</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;Rush&gt;
-* Running Workers: 0
-* Queued Tasks: 25
-* Queued Priority Tasks: 0
-* Running Tasks: 0
-* Finished Tasks: 0
-* Failed Tasks: 0</code></pre>
+<pre><code>           x          worker_id               keys
+       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.2578787 inferior_rainbo... 07621ec8-cdc3-4...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Null data.table (0 rows and 0 cols)</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         state          worker_id          x               keys         y
+        &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
+   1:  running inferior_rainbo... 0.25787869 07621ec8-cdc3-4...        NA
+   2: finished photodramatic_s... 0.53318301 0eb8228b-12b0-4... 0.7301938
+   3: finished photodramatic_s... 0.28969919 343b2c70-4d5a-4... 0.5382371
+   4: finished photodramatic_s... 0.30939807 874a3648-bed5-4... 0.5562356
+   5: finished inferior_rainbo... 0.39108496 7154d4e7-1bc9-4... 0.6253679
+  ---
+8117: finished photodramatic_s... 0.64125929 165e2b76-4d85-4... 0.8007867
+8118: finished inferior_rainbo... 0.30553075 4b69e2ec-aa49-4... 0.5527484
+8119: finished photodramatic_s... 0.84361372 4b056ebb-d8fd-4... 0.9184845
+8120: finished inferior_rainbo... 0.09120919 0f0f28b8-2609-4... 0.3020086
+8121: finished photodramatic_s... 0.21058671 736a5fde-2efc-4... 0.4588973</code></pre>
 </div>
 </div>
-<p>We see 25 queued tasks in the database. To retrieve the tasks from the queue, we need to implement the <code>$pop_task()</code> method in the worker loop.</p>
-</section><section class="level2"><h3 id="worker-loop-2">Worker Loop<a class="anchor" aria-label="anchor" href="#worker-loop-2"></a>
-</h3>
-<p>The worker loop pops tasks with the <code>$pop_task()</code> method from the queue. The task is evaluated and the results are pushed back to the database with the <code>$push_results()</code> method. If there are no more tasks in the queue, the <code>$pop_task()</code> method returns <code>NULL</code> and the worker loop starts the Bayesian optimization. First, a lambda value for the acquisition function is sampled between 0.01 and 10. Then all running and finished tasks are fetched from the database. Using <code>rush$fetch_tasks_with_state()</code> instead of using <code>$fetch_running_tasks()</code> and <code>$fetch_finished_tasks()</code> is important because it prevents tasks from appearing twice. This could be the case if a worker changes the state of a task from <code>"running"</code> to <code>"finished"</code> while the tasks are being fetched. The missing y values of the running tasks are imputed with the mean of the finished tasks. Then the surrogate random forest model is fitted to the data and the acquisition function is optimized to find the next task. Marking the task as running is important for the Bayesian optimization algorithm, as it uses the already sampled points of the other workers to decide which task to evaluate next. The task is evaluated and the results are pushed back to the database. We stop the optimization process after 100 evaluated tasks.</p>
+</section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
+</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">wl_bayesian_optimization</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<div class="sourceCode cell-code" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_queued_tasks</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_running_tasks</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 8120</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+</section><section class="section level2"><h2 id="push-tasks-to-queue">Push Tasks to Queue<a class="anchor" aria-label="anchor" href="#push-tasks-to-queue"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">xss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="va">xss</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="pop-task-from-queue">Pop Task from Queue<a class="anchor" aria-label="anchor" href="#pop-task-from-queue"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">task</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">pop_task</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">task</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$xs
+$xs$x
+[1] 0.9840326
+
+
+$key
+[1] "0b949e43-096d-48ad-9f59-c570d6a33952"</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worker_loop</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">repeat</span> <span class="op">{</span></span>
 <span>    <span class="va">task</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">pop_task</span><span class="op">(</span><span class="op">)</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">task</span><span class="op">)</span><span class="op">)</span> <span class="kw">break</span></span>
-<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">task</span><span class="op">$</span><span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
 <span></span>
-<span>  <span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.01</span>, <span class="fl">10</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="kw">while</span><span class="op">(</span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span> <span class="op">&lt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>    <span class="va">xydt</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">mean_y</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">xydt</span><span class="op">$</span><span class="va">y</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>    <span class="va">xydt</span><span class="op">[</span><span class="st">"running"</span>, <span class="va">y</span> <span class="op">:=</span> <span class="va">mean_y</span>, on <span class="op">=</span> <span class="st">"state"</span><span class="op">]</span></span>
-<span></span>
-<span>    <span class="va">surrogate</span> <span class="op">=</span> <span class="fu">ranger</span><span class="fu">::</span><span class="fu">ranger</span><span class="op">(</span></span>
-<span>      <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>,</span>
-<span>      data <span class="op">=</span> <span class="va">xydt</span>,</span>
-<span>      num.trees <span class="op">=</span> <span class="fl">100L</span>,</span>
-<span>      keep.inbag <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>    <span class="va">xdt</span> <span class="op">=</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">p</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">surrogate</span>, <span class="va">xdt</span>, type <span class="op">=</span> <span class="st">"se"</span>, se.method <span class="op">=</span> <span class="st">"jack"</span><span class="op">)</span></span>
-<span>    <span class="va">cb</span> <span class="op">=</span> <span class="va">p</span><span class="op">$</span><span class="va">predictions</span> <span class="op">-</span> <span class="va">lambda</span> <span class="op">*</span> <span class="va">p</span><span class="op">$</span><span class="va">se</span></span>
-<span>    <span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">xdt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min</a></span><span class="op">(</span><span class="va">cb</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">xs</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
-<p>We start the optimization process by starting 4 local workers that run the Bayesian optimization worker loop.</p>
+</section><section class="section level2"><h2 id="local-workers">Local Workers<a class="anchor" aria-label="anchor" href="#local-workers"></a>
+</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
-<span>  worker_loop <span class="op">=</span> <span class="va">wl_bayesian_optimization</span>,</span>
-<span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  globals <span class="op">=</span> <span class="st">"branin"</span><span class="op">)</span></span></code></pre></div>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>The optimization is quickly finished and we retrieve the results.</p>
+</section><section class="section level2"><h2 id="script-workers">Script Workers<a class="anchor" aria-label="anchor" href="#script-workers"></a>
+</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">script</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span>worker_loop <span class="op">=</span> <span class="va">worker_loop</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">script</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x1          x2           y   pid     worker_id          keys
-         &lt;num&gt;       &lt;num&gt;       &lt;num&gt; &lt;int&gt;        &lt;char&gt;        &lt;char&gt;
- 1:  2.7924979  2.50714245   0.9801791 12739 countrybre... a577a520-d...
- 2: -2.6754505  9.79817210   3.3395953 12764 purplish_g... 7bdae76d-d...
- 3:  9.8853611  5.19024674   6.6854101 12751 taphophobi... faeddfc2-7...
- 4:  4.3764446  3.10113034   9.3695093 12741    gray_squid 6e2915c7-7...
- 5:  0.8998047  4.36091001  16.0673323 12741    gray_squid 5de2c04f-b...
- 6:  2.1267100  6.75476900  17.5725443 12739 countrybre... 28ea3710-e...
- 7:  6.9130140  0.98196181  17.7955868 12739 countrybre... d61c6c63-c...
- 8:  7.1073872  2.81049143  19.0700204 12751 taphophobi... b83ab47f-0...
- 9: -1.6310192  5.79151153  19.3319604 12741    gray_squid 7e485d17-b...
-10:  6.4170065  2.50491247  21.4716160 12751 taphophobi... 20769765-d...
-11:  5.5849414  4.08354154  26.0149305 12751 taphophobi... 7b54fb46-f...
-12: -4.7778521 11.36174781  37.5792610 12739 countrybre... 8e5d86c7-b...
-13:  0.6511601  9.95170780  41.9746485 12764 purplish_g... 04792139-1...
-14:  0.9761339 10.03121460  45.2094209 12739 countrybre... f47d993f-8...
-15:  8.5722539  8.33391948  45.7252061 12751 taphophobi... 98013fc4-6...
-16: -0.8324983  0.19483215  68.5860278 12764 purplish_g... 75259c18-f...
-17:  7.6008389  9.05628876  71.5417727 12739 countrybre... 8d6c6e42-1...
-18: -3.8756164  5.81869908  71.5936681 12764 purplish_g... 4c1d60a5-8...
-19:  0.7781223 12.31142545  72.6641596 12739 countrybre... 067189e3-3...
-20:  8.9212060 12.94364525 119.5437786 12741    gray_squid e86c6605-1...
-21:  3.8212686 14.46926380 162.9247431 12741    gray_squid fa829003-b...
-22: -3.5876643  0.51421983 166.6785451 12741    gray_squid 95b20013-0...
-23:  6.0533521 13.49630961 173.0303060 12751 taphophobi... 348d6cd7-a...
-24:  6.2090454 14.75276250 206.0187113 12741    gray_squid 94a3e101-8...
-25: -4.0809181  0.07664435 216.6095634 12739 countrybre... 2ec3ab77-6...
-            x1          x2           y   pid     worker_id          keys</code></pre>
+<pre><code>Rscript -e "rush::start_worker(network_id = 'my_network', config = list(scheme = 'redis', host = '127.0.0.1', port = '6379'))"</code></pre>
 </div>
 </div>
-</section></section><script id="quarto-html-after-body" type="application/javascript">
+</section><section class="section level2"><h2 id="heartbeats">Heartbeats<a class="anchor" aria-label="anchor" href="#heartbeats"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">script</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop</span>,</span>
+<span>  heartbeat_period <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  heartbeat_expire <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="reset-network">Reset Network<a class="anchor" aria-label="anchor" href="#reset-network"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="handling-r-errors">Handling R Errors<a class="anchor" aria-label="anchor" href="#handling-r-errors"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worker_loop</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">while</span> <span class="op">(</span><span class="op">!</span><span class="va">rush</span><span class="op">$</span><span class="va">terminated</span><span class="op">)</span> <span class="op">{</span></span>
+<span></span>
+<span>    <span class="va">xs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">key</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span>xss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>      <span class="va">ys</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">some_function</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">key</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">rush</span><span class="op">$</span><span class="fu">fail_tasks</span><span class="op">(</span><span class="va">key</span>, conditions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>message <span class="op">=</span> <span class="va">e</span><span class="op">$</span><span class="va">message</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">}</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="detecting-lost-workers">Detecting Lost Workers<a class="anchor" aria-label="anchor" href="#detecting-lost-workers"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code><span><span class="cn">NULL</span></span></code></pre>
+</div>
+</div>
+</section><section class="section level2"><h2 id="logging">Logging<a class="anchor" aria-label="anchor" href="#logging"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worker_loop</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">lg</span> <span class="op">=</span> <span class="fu">lgr</span><span class="fu">::</span><span class="fu"><a href="https://s-fleck.github.io/lgr/reference/get_logger.html" class="external-link">get_logger</a></span><span class="op">(</span><span class="st">"mlr3/rush"</span><span class="op">)</span></span>
+<span>  <span class="va">lg</span><span class="op">$</span><span class="fu">info</span><span class="op">(</span><span class="st">"Worker %s started on %s"</span>, <span class="va">rush</span><span class="op">$</span><span class="va">worker_id</span>, <span class="va">rush</span><span class="op">$</span><span class="va">hostname</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  lgr_thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>rush <span class="op">=</span> <span class="st">"info"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">print_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="debugging">Debugging<a class="anchor" aria-label="anchor" href="#debugging"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush_worker</span> <span class="op">=</span> <span class="va"><a href="../reference/RushWorker.html">RushWorker</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"test-network"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">worker_loop</span><span class="op">(</span><span class="va">rush_worker</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">worker_loop</span>,</span>
+<span>  n_workers <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  message_log <span class="op">=</span> <span class="st">"message"</span>,</span>
+<span>  output_log <span class="op">=</span> <span class="st">"output"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="section level2"><h2 id="rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#rush-plan"></a>
+</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rush_plan.html">rush_plan</a></span><span class="op">(</span></span>
+<span>  n_workers <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  worker_type <span class="op">=</span> <span class="st">"mirai"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
@@ -487,8 +511,7 @@
       }
     }
   });
-  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
+  </script></main>
 </div>
 
 
