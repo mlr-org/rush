@@ -939,20 +939,41 @@ Rush = R6::R6Class(
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
     #' @param extra (`list()`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' @param funs (`list()` of `function()`)\cr
+    #' List of functions to evaluate on each task's `xs`.
+    #' Each function is called with the corresponding `xs` as arguments and must return a named `list()`.
+    #' If a single function is provided, it is recycled for all tasks.
+    #' Requires [worker_loop_default] (or a custom loop that reads the `"fun"` field).
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, extra = NULL) {
+    push_tasks = function(xss, extra = NULL, funs = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       r = private$.connector
+
+      # handle funs
+      if (!is.null(funs)) {
+        if (is.function(funs)) {
+          funs = replicate(length(xss), funs, simplify = FALSE)
+        }
+        assert_list(funs, types = "function", len = length(xss))
+
+        # FIXME: large closures can be expensive to serialize per-task.
+        # consider deduplicating identical functions or storing them once and referencing by key.
+        total_size = sum(map_dbl(funs, function(f) as.numeric(object.size(f))))
+        if (total_size > 10 * 1024^2) {
+          warningf("Task functions total %.1f MiB. Large closures are serialized per-task.", total_size / 1024^2)
+        }
+      }
 
       lg$debug("Pushing %i task(s) to the queue", length(xss))
 
       # write tasks to hashes
       keys = self$write_hashes(
         xs = xss,
-        xs_extra = extra
+        xs_extra = extra,
+        fun = funs
       )
 
       cmds = list(
