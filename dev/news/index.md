@@ -4,6 +4,8 @@
 
 ## rush 1.0.0
 
+CRAN release: 2026-03-18
+
 - feat: Add `$push_finished_tasks()` method.
 - feat: Combine `$wait_for_new_tasks()` and `$fetch_new_tasks()` into
   `$fetch_new_tasks()` with timeout argument.
