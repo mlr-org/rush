@@ -1717,6 +1717,7 @@ Rush = R6::R6Class(
       packages = NULL
     ) {
       assert_function(worker_loop)
+      worker_loop = crate(worker_loop, .parent = topenv(environment(worker_loop)))
       dots = list(...)
       assert_character(packages, null.ok = TRUE)
 
