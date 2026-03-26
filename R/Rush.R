@@ -1310,22 +1310,15 @@ Rush = R6::R6Class(
 
       lg$debug("Writing %i hash(es) with %i field(s)", length(keys), length(fields))
 
-      # construct list of redis commands to write hashes
-      # one hash per iteration
-      cmds = pmap(c(list(key = keys), values), function(key, ...) {
-        # serialize value of field
-        bin_values = map(list(...), redux::object_to_bin)
-
-        lg$debug("Serializing %i value(s) to %s", length(bin_values), format(Reduce(`+`, map(bin_values, object.size))))
-
-        # merge fields and values alternatively
-        # HSET expects `c(field1, value1, field2, value2, ...)`
-        # c and rbind are fastest option in R
-        # data is not copied
-        c("HSET", key, c(rbind(fields, bin_values)))
+      # ensure each field is a list of values (C code uses VECTOR_ELT)
+      # and recycle shorter fields to n_hashes (pmap semantics)
+      values = map(values, function(v) {
+        if (!is.list(v)) v = as.list(v)
+        if (length(v) < n_hashes) rep_len(v, n_hashes) else v
       })
 
-      private$.connector$pipeline(.commands = cmds)
+      # serialize and HSET directly in C (no intermediate R raw vectors)
+      .Call(c_rush_write_hashes, private$.get_redis_ptr(), keys, fields, values)
 
       invisible(keys)
     },
@@ -1352,40 +1345,23 @@ Rush = R6::R6Class(
     #' The outer list contains one element for each key.
     #' The inner list is the combination of the lists stored at the different fields.
     read_hashes = function(keys, fields, flatten = TRUE) {
+      if (is.list(keys)) keys = as.character(keys)
       lg$debug("Reading %i hash(es) with %i field(s)", length(keys), length(fields))
 
-      # construct list of redis commands to read hashes
-      cmds = map(keys, function(key) c("HMGET", key, fields))
-
-      # list of hashes
-      # first level contains hashes
-      # second level contains fields
-      # the values of the fields are serialized lists and atomics
-      # List
-      #   Hash 1
-      #     Field 1 (serialized list or atomic)
-      #     Field 2
-      #   Hash 2
-      #     Field 1
-      #     Field 2
-      hashes = private$.connector$pipeline(.commands = cmds)
+      # HMGET and unserialize directly in C (no intermediate R raw vectors)
+      # returns list of named lists: hashes[[i]][[field]] = unserialized R object
+      hashes = .Call(c_rush_read_hashes, private$.get_redis_ptr(), keys, fields)
 
       if (flatten) {
-        # unserialize elements / fields of the second level
-        # flatten elements / fields of the second level to one list
+        # flatten fields to one list
         # e.g. list(hash1 = list(field1 = list(x1 = 1, x2 = 2), field2 = list(y = 3)))
         # becomes list(hash1 = list(x1 = 1, x2 = 2, y = 3))
-        # using mapply instead of pmap is faster
         map(hashes, function(hash) {
           unlist(
             .mapply(
-              function(bin_value, field) {
-                #nolint
-                # unserialize value
-                value = safe_bin_to_object(bin_value)
+              function(value, field) {
                 # wrap atomic values in list and name by field
                 if (is.atomic(value) && !is.null(value)) {
-                  # list column or column with type of value
                   if (length(value) > 1) {
                     value = list(value)
                   }
@@ -1393,25 +1369,14 @@ Rush = R6::R6Class(
                 }
                 value
               },
-              list(bin_value = hash, field = fields),
+              list(value = hash, field = fields),
               NULL
             ),
             recursive = FALSE
           )
         })
       } else {
-        # unserialize elements of the second level
-        # e.g. list(hash1 = list(field1 = list(x1 = 1, x2 = 2), field2 = list(y = 3)))
-        # becomes list(hash1 = list(field1 = list(x1 = 1, x2 = 2), field2 = list(y = 3)))
-        map(hashes, function(hash) {
-          setNames(
-            map(hash, function(bin_value) {
-              #nolint
-              safe_bin_to_object(bin_value)
-            }),
-            fields
-          )
-        })
+        hashes
       }
     },
 
@@ -1698,6 +1663,16 @@ Rush = R6::R6Class(
     # counter for printed logs
     # zero based
     .log_counter = list(),
+
+    # dedicated hiredis connection for C fast path (separate from redux connector)
+    .c_ptr = NULL,
+
+    .get_redis_ptr = function() {
+      if (is.null(private$.c_ptr)) {
+        private$.c_ptr = .Call(c_rush_connect, private$.config$host, as.integer(private$.config$port))
+      }
+      private$.c_ptr
+    },
 
     # prefix key with instance id
     .get_key = function(key) {

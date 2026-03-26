@@ -9,6 +9,7 @@
 #' @importFrom utils str object.size
 #' @importFrom jsonlite fromJSON
 #' @importFrom ids adjective_animal
+#' @useDynLib rush, .registration = TRUE
 "_PACKAGE"
 
 .onLoad = function(libname, pkgname) {

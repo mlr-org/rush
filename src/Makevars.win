@@ -1,0 +1,13 @@
+# -*- makefile -*-
+PKG_CPPFLAGS=-I../windows/hiredis/include/hiredis -DSTRICT_R_HEADERS
+PKG_LIBS=-L../windows/hiredis/lib -lhiredis -lws2_32
+
+all: clean winlibs
+
+clean:
+	rm -f $(OBJECTS) $(SHLIB)
+
+winlibs: clean
+	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
+
+.PHONY: all winlibs clean
