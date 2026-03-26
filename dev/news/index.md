@@ -2,6 +2,10 @@
 
 ## rush (development version)
 
+- `$start_workers()` now strips the enclosing environment from
+  `worker_loop` before serialization, avoiding bloated Redis payloads
+  when the function is a closure.
+
 ## rush 1.0.0
 
 CRAN release: 2026-03-18
