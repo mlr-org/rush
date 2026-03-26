@@ -980,6 +980,29 @@ test_that("large objects limit works", {
   expect_equal(rush$fetch_tasks()$x2, 1e6)
 })
 
+test_that("worker_loop environment is stripped before serialization", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  # large_data (~8 MB) lives in the same local environment as worker_loop.
+  # without crate(), R's closure mechanism would serialize it along with the function.
+  local({
+    large_data = runif(1e6)
+    worker_loop = function(rush) {
+      rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+    }
+
+    rush$.__enclos_env__$private$.push_worker_config(worker_loop = worker_loop)
+
+    r = redux::hiredis(rush$config)
+    bin = r$GET(sprintf("%s:start_args", rush$network_id))
+    expect_lt(as.numeric(object.size(bin)), 1e6)
+  })
+})
+
 test_that("simple errors are pushed as failed tasks", {
   rush = start_rush(n_workers = 1)
   on.exit({
