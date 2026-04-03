@@ -1377,18 +1377,13 @@ Rush = R6::R6Class(
         # becomes list(hash1 = list(x1 = 1, x2 = 2, y = 3))
         # using mapply instead of pmap is faster
         map(hashes, function(hash) {
-          unlist(
+          result = unlist(
             .mapply(
               function(bin_value, field) {
-                #nolint
                 # unserialize value
                 value = safe_bin_to_object(bin_value)
                 # wrap atomic values in list and name by field
                 if (is.atomic(value) && !is.null(value)) {
-                  # list column or column with type of value
-                  if (length(value) > 1) {
-                    value = list(value)
-                  }
                   value = setNames(list(value), field)
                 }
                 value
@@ -1398,6 +1393,14 @@ Rush = R6::R6Class(
             ),
             recursive = FALSE
           )
+          # wrap vectors in list to create list columns
+          # rbindlist would expand a vector into multiple rows
+          lens = lengths(result)
+          if (any(lens > 1L)) {
+            idx = lens > 1L
+            result[idx] = lapply(result[idx], list)
+          }
+          result
         })
       } else {
         # unserialize elements of the second level
