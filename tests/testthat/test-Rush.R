@@ -591,6 +591,26 @@ test_that("pushing multiple tasks with extras to the queue works", {
   expect_false(any(rush$is_failed_task(keys)))
 })
 
+test_that("fetching tasks with vector parameters works", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  xss = list(
+    list(x1 = c(1, 2, 3), x2 = c(4, 5, 6)),
+    list(x1 = c(7, 8, 9), x2 = c(10, 11, 12))
+  )
+  yss = list(list(y = 1), list(y = 2))
+  keys = rush$push_finished_tasks(xss, yss)
+
+  data = rush$fetch_finished_tasks()
+  expect_data_table(data, nrows = 2)
+  expect_equal(data$x1[[1]], c(1, 2, 3))
+  expect_equal(data$x1[[2]], c(7, 8, 9))
+  expect_data_table(rush$fetch_tasks(), nrows = 2)
+})
 
 test_that("empty queue works", {
   rush = start_rush(n_workers = 1)
