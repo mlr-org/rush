@@ -59,6 +59,8 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
 <ul><li>
 <code>$start_workers()</code> now strips the enclosing environment from <code>worker_loop</code> before serialization, avoiding bloated Redis payloads when the function is a closure.</li>
+<li>
+<code>$fetch_tasks()</code> and related methods no longer fail when task parameters contain vector values instead of scalars.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="rush-100">rush 1.0.0<a class="anchor" aria-label="anchor" href="#rush-100"></a></h2><p class="text-muted">CRAN release: 2026-03-18</p>
