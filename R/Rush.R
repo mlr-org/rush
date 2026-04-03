@@ -1380,7 +1380,6 @@ Rush = R6::R6Class(
           result = unlist(
             .mapply(
               function(bin_value, field) {
-                #nolint
                 # unserialize value
                 value = safe_bin_to_object(bin_value)
                 # wrap atomic values in list and name by field
@@ -1394,8 +1393,8 @@ Rush = R6::R6Class(
             ),
             recursive = FALSE
           )
-          # wrap vectors in list to create list columns instead of
-          # expanding into multiple rows in rbindlist
+          # wrap vectors in list to create list columns
+          # rbindlist would expand a vector into multiple rows
           lens = lengths(result)
           if (any(lens > 1L)) {
             idx = lens > 1L
