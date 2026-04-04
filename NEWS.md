@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 1.0.1
 
 * `$start_workers()` now strips the enclosing environment from `worker_loop` before serialization, avoiding bloated Redis payloads when the function is a closure.
 * `$fetch_tasks()` and related methods no longer fail when task parameters contain vector values instead of scalars.
