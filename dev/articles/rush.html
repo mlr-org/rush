@@ -37,7 +37,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -158,17 +158,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               worker_id         x         y               keys
                   &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: incensed_mergan... 0.1093980 0.3307537 ceb1ebe1-b64b-4...
-   2: incensed_mergan... 0.7747276 0.8801861 684f6c39-970e-4...
-   3: incensed_mergan... 0.6021302 0.7759705 048c6361-3d2f-4...
-   4: incensed_mergan... 0.5105775 0.7145471 c4b439e2-5562-4...
-   5: semispheric_jav... 0.3775906 0.6144840 c58efb8d-8ed3-4...
+   1: nonirrational_i... 0.6381224 0.7988257 c6df3e3e-2247-4...
+   2: nonirrational_i... 0.5126596 0.7160025 6b1b827e-cb38-4...
+   3:      agreed_ocelot 0.7028887 0.8383846 58daf3fc-1d59-4...
+   4: nonirrational_i... 0.5567195 0.7461364 09766682-cd6f-4...
+   5: nonirrational_i... 0.1414600 0.3761117 4507abaa-a6f9-4...
   ---
-5868: semispheric_jav... 0.4662421 0.6828192 fa697d85-49b4-4...
-5869: incensed_mergan... 0.8897236 0.9432516 b4bc5507-b31a-4...
-5870: semispheric_jav... 0.1237372 0.3517630 f1800554-54bc-4...
-5871: incensed_mergan... 0.7771058 0.8815360 b4539c9e-2a29-4...
-5872: semispheric_jav... 0.7293147 0.8539992 1580c84b-3a47-4...</code></pre>
+5926:      agreed_ocelot 0.7072937 0.8410075 ecb4baa9-acfe-4...
+5927: nonirrational_i... 0.2638684 0.5136812 f8cded18-5167-4...
+5928:      agreed_ocelot 0.5406039 0.7352577 b806471b-2ac0-4...
+5929: nonirrational_i... 0.1744121 0.4176267 79adc730-c0f0-4...
+5930:      agreed_ocelot 0.3351238 0.5788987 2afe2f28-ff4d-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -214,19 +214,19 @@
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              x         y          worker_id               keys
-          &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.3775906 0.6144840 semispheric_jav... c58efb8d-8ed3-4...
-   2: 0.1093980 0.3307537 incensed_mergan... ceb1ebe1-b64b-4...
-   3: 0.7747276 0.8801861 incensed_mergan... 684f6c39-970e-4...
-   4: 0.6021302 0.7759705 incensed_mergan... 048c6361-3d2f-4...
-   5: 0.5105775 0.7145471 incensed_mergan... c4b439e2-5562-4...
+<pre><code>                x          y          worker_id               keys
+            &lt;num&gt;      &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+   1: 0.638122438 0.79882566 nonirrational_i... c6df3e3e-2247-4...
+   2: 0.702888720 0.83838459      agreed_ocelot 58daf3fc-1d59-4...
+   3: 0.512659566 0.71600249 nonirrational_i... 6b1b827e-cb38-4...
+   4: 0.556719539 0.74613641 nonirrational_i... 09766682-cd6f-4...
+   5: 0.141460000 0.37611169 nonirrational_i... 4507abaa-a6f9-4...
   ---
-6239: 0.4040373 0.6356393 semispheric_jav... 5d4ca0fe-bc21-4...
-6240: 0.4497027 0.6705988 incensed_mergan... 08e13ea8-afa4-4...
-6241: 0.6575656 0.8109042 semispheric_jav... a12effa8-5ecb-4...
-6242: 0.6189069 0.7867063 incensed_mergan... 048d9ae8-16cc-4...
-6243: 0.3103346        NA semispheric_jav... 232509be-f108-4...</code></pre>
+6323: 0.204651803 0.45238457      agreed_ocelot a506e3e7-a6ac-4...
+6324: 0.004786388 0.06918373 nonirrational_i... 76ce31ef-bba2-4...
+6325: 0.024907413 0.15782083      agreed_ocelot e59c101a-0f15-4...
+6326: 0.323995475         NA nonirrational_i... cd9db225-1247-4...
+6327: 0.088952438 0.29824895      agreed_ocelot 76aab164-2888-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -238,7 +238,7 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>           x          worker_id               keys
        &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.3103346 semispheric_jav... 232509be-f108-4...</code></pre>
+1: 0.3239955 nonirrational_i... cd9db225-1247-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -248,19 +248,19 @@
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         state          worker_id         x               keys         y
-        &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running semispheric_jav... 0.3103346 232509be-f108-4...        NA
-   2: finished incensed_mergan... 0.1093980 ceb1ebe1-b64b-4... 0.3307537
-   3: finished incensed_mergan... 0.7747276 684f6c39-970e-4... 0.8801861
-   4: finished incensed_mergan... 0.6021302 048c6361-3d2f-4... 0.7759705
-   5: finished incensed_mergan... 0.5105775 c4b439e2-5562-4... 0.7145471
+<pre><code>         state          worker_id           x               keys          y
+        &lt;char&gt;             &lt;char&gt;       &lt;num&gt;             &lt;char&gt;      &lt;num&gt;
+   1:  running nonirrational_i... 0.323995475 cd9db225-1247-4...         NA
+   2: finished nonirrational_i... 0.638122438 c6df3e3e-2247-4... 0.79882566
+   3: finished nonirrational_i... 0.512659566 6b1b827e-cb38-4... 0.71600249
+   4: finished      agreed_ocelot 0.702888720 58daf3fc-1d59-4... 0.83838459
+   5: finished nonirrational_i... 0.556719539 09766682-cd6f-4... 0.74613641
   ---
-6239: finished incensed_mergan... 0.6417066 d55c05d0-c5fe-4... 0.8010659
-6240: finished semispheric_jav... 0.4040373 5d4ca0fe-bc21-4... 0.6356393
-6241: finished incensed_mergan... 0.4497027 08e13ea8-afa4-4... 0.6705988
-6242: finished semispheric_jav... 0.6575656 a12effa8-5ecb-4... 0.8109042
-6243: finished incensed_mergan... 0.6189069 048d9ae8-16cc-4... 0.7867063</code></pre>
+6323: finished nonirrational_i... 0.994264466 1da91b68-fb0c-4... 0.99712811
+6324: finished      agreed_ocelot 0.204651803 a506e3e7-a6ac-4... 0.45238457
+6325: finished      agreed_ocelot 0.024907413 e59c101a-0f15-4... 0.15782083
+6326: finished nonirrational_i... 0.004786388 76ce31ef-bba2-4... 0.06918373
+6327: finished      agreed_ocelot 0.088952438 76aab164-2888-4... 0.29824895</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 6242</code></pre>
+<pre><code>[1] 6326</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -304,11 +304,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.9585528
+[1] 0.1647099
 
 
 $key
-[1] "60aa5353-ea20-4aa8-99ac-1bfd0d25b4a1"</code></pre>
+[1] "a56a6a01-b38a-47cc-b0be-a77def7224e6"</code></pre>
 </div>
 </div>
 <div class="cell">

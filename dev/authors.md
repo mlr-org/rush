@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/mlr-org/rush/blob/main/DESCRIPTION)
 
 Becker M (2026). *rush: Rapid Asynchronous and Distributed Computing*. R
-package version 1.0.0.9000, <https://rush.mlr-org.com>.
+package version 1.0.1.9000, <https://rush.mlr-org.com>.
 
     @Manual{,
       title = {rush: Rapid Asynchronous and Distributed Computing},
       author = {Marc Becker},
       year = {2026},
-      note = {R package version 1.0.0.9000},
+      note = {R package version 1.0.1.9000},
       url = {https://rush.mlr-org.com},
     }
