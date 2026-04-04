@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,14 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0.0" id="rush-100">rush 1.0.0<a class="anchor" aria-label="anchor" href="#rush-100"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.0.1" id="rush-101">rush 1.0.1<a class="anchor" aria-label="anchor" href="#rush-101"></a></h2>
+<ul><li>
+<code>$start_workers()</code> now strips the enclosing environment from <code>worker_loop</code> before serialization, avoiding bloated Redis payloads when the function is a closure.</li>
+<li>
+<code>$fetch_tasks()</code> and related methods no longer fail when task parameters contain vector values instead of scalars.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="rush-100">rush 1.0.0<a class="anchor" aria-label="anchor" href="#rush-100"></a></h2><p class="text-muted">CRAN release: 2026-03-18</p>
 <ul><li>feat: Add <code>$push_finished_tasks()</code> method.</li>
 <li>feat: Combine <code>$wait_for_new_tasks()</code> and <code>$fetch_new_tasks()</code> into <code>$fetch_new_tasks()</code> with timeout argument.</li>
 <li>refactor: The <code>$wait_for_finished_tasks()</code> method is removed.</li>
