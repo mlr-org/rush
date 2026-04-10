@@ -4,7 +4,6 @@
 ^CLAUDE\.md$
 ^CONTRIBUTING\.md$
 ^CRAN-SUBMISSION$
-^LICENSE$
 ^README\.Rmd$
 ^README\.html$
 ^\.?air\.toml$
