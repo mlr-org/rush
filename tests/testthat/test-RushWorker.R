@@ -169,7 +169,7 @@ test_that("writing hashes to specific keys works", {
   keys = uuid::UUIDgenerate()
   expect_error(
     rush$write_hashes(xs = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3)), keys = keys),
-    "Assertion on 'keys' failed"
+    "length 1"
   )
 })
 
@@ -414,6 +414,32 @@ test_that("moving a queued task to failed works", {
 
   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 5)
+})
+
+test_that("fail_tasks broadcasts a length-1 condition across all keys", {
+  rush = start_rush_worker()
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4))
+  rush$push_tasks(xss)
+  queued_tasks = rush$queued_tasks
+
+  rush$fail_tasks(queued_tasks, conditions = list(list(message = "boom")))
+  data = rush$fetch_failed_tasks()
+  expect_data_table(data, nrows = 3)
+  expect_set_equal(data$message, "boom")
+})
+
+test_that("fail_tasks rejects conditions whose length is neither 1 nor length(keys)", {
+  rush = start_rush_worker()
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4))
+  rush$push_tasks(xss)
+  queued_tasks = rush$queued_tasks
+
+  expect_error(
+    rush$fail_tasks(queued_tasks, conditions = replicate(2, list(message = "error"), simplify = FALSE)),
+    "length"
+  )
 })
 
 test_that("fetch task with states works", {
