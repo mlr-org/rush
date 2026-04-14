@@ -898,9 +898,7 @@ Rush = R6::R6Class(
       assert_character(keys)
       assert_list(conditions, types = "list", null.ok = TRUE)
       r = private$.connector
-      if (is.null(conditions)) {
-        conditions = list(list(message = "Task failed"))
-      }
+      conditions = conditions %??% list(list(message = "Task failed"))
 
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
@@ -1066,11 +1064,8 @@ Rush = R6::R6Class(
       r = private$.connector
       keys = keys %??% self$queued_tasks
 
-      if (is.null(conditions)) {
-        conditions = replicate(length(keys), list(message = "Removed from queue"), simplify = FALSE)
-      }
-
       if (length(keys)) {
+        conditions = conditions %??% list(list(message = "Removed from queue"))
         self$fail_tasks(keys, conditions = conditions)
       }
 
@@ -1281,7 +1276,9 @@ Rush = R6::R6Class(
     #' The function can iterate over multiple vectors simultaneously.
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)),
     #' ys = list(list(y = 3), list(y = 7))` creates two hashes with the fields `xs` and `ys`.
-    #' The vectors are recycled to the length of the longest vector.
+    #' All value lists must either have the same length (the number of hashes) or length 1,
+    #' in which case the value is broadcast across all hashes.
+    #' Other length mismatches raise an error.
     #' Both lists and atomic vectors are supported.
     #' Arguments that are `NULL` are ignored.
     #'
@@ -1301,11 +1298,22 @@ Rush = R6::R6Class(
       # discard empty lists
       values = discard(c(list(...), .values), function(l) !length(l))
       fields = names(values)
-      n_hashes = max(map_int(values, length))
+      lens = map_int(values, length)
       if (is.null(keys)) {
+        n_hashes = if (length(lens)) max(lens) else 0L
         keys = UUIDgenerate(n = n_hashes)
       } else {
-        assert_character(keys, min.len = n_hashes)
+        assert_character(keys)
+        n_hashes = length(keys)
+      }
+
+      # every value list must be length 1 (broadcast) or length n_hashes
+      if (any(lens != 1L & lens != n_hashes)) {
+        error_input(
+          "All value lists must have length 1 or %i (the number of hashes); got %s",
+          n_hashes,
+          str_collapse(sprintf("%s=%i", fields, lens))
+        )
       }
 
       lg$debug("Writing %i hash(es) with %i field(s)", length(keys), length(fields))
