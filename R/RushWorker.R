@@ -63,8 +63,14 @@ RushWorker = R6::R6Class(
         )
         self$heartbeat = callr::r_bg(heartbeat, args = heartbeat_args, supervise = TRUE)
 
-        # wait until heartbeat process is able to work
-        Sys.sleep(1)
+        # wait until heartbeat process has set the first EXPIRE on the key
+        # the key is created with SET (no TTL), the heartbeat loop adds a TTL via EXPIRE
+        timeout = 5
+        start_time = Sys.time()
+        while (difftime(Sys.time(), start_time, units = "secs") < timeout) {
+          if (r$command(c("TTL", heartbeat_key)) > 0) break
+          Sys.sleep(0.1)
+        }
 
         r$SADD(private$.get_key("heartbeat_keys"), heartbeat_key)
       }
