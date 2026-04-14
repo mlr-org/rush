@@ -1256,7 +1256,9 @@ For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code> 
 and <code>serialize(list(x1 = 3, x2 = 4))</code> at field <code>xs</code> into another hash.
 The function can iterate over multiple vectors simultaneously.
 For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))</code> creates two hashes with the fields <code>xs</code> and <code>ys</code>.
-The vectors are recycled to the length of the longest vector.
+All value lists must either have the same length (the number of hashes) or length 1,
+in which case the value is broadcast across all hashes.
+Other length mismatches raise an error.
 Both lists and atomic vectors are supported.
 Arguments that are <code>NULL</code> are ignored.</p><div class="section">
 <h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>

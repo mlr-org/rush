@@ -1300,9 +1300,11 @@ serialized element is written. For example,
 `serialize(list(x1 = 3, x2 = 4))` at field `xs` into another hash. The
 function can iterate over multiple vectors simultaneously. For example,
 `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))`
-creates two hashes with the fields `xs` and `ys`. The vectors are
-recycled to the length of the longest vector. Both lists and atomic
-vectors are supported. Arguments that are `NULL` are ignored.
+creates two hashes with the fields `xs` and `ys`. All value lists must
+either have the same length (the number of hashes) or length 1, in which
+case the value is broadcast across all hashes. Other length mismatches
+raise an error. Both lists and atomic vectors are supported. Arguments
+that are `NULL` are ignored.
 
 #### Usage
 
