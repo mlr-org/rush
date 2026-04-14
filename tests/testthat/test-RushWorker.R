@@ -173,6 +173,44 @@ test_that("writing hashes to specific keys works", {
   )
 })
 
+test_that("write_hashes enforces length-1-or-equal across fields", {
+  rush = start_rush_worker()
+
+  # length-1 broadcast mixed with length-3 is allowed
+  keys = rush$write_hashes(
+    xs = list(list(x1 = 1), list(x1 = 2), list(x1 = 3)),
+    meta = list(list(tag = "shared"))
+  )
+  expect_length(keys, 3)
+  expect_equal(
+    rush$read_hashes(keys, c("xs", "meta")),
+    list(
+      list(x1 = 1, tag = "shared"),
+      list(x1 = 2, tag = "shared"),
+      list(x1 = 3, tag = "shared")
+    )
+  )
+
+  # two fields of differing non-1, non-N lengths is rejected
+  expect_error(
+    rush$write_hashes(
+      xs = list(list(x1 = 1), list(x1 = 2), list(x1 = 3)),
+      ys = list(list(y = 1), list(y = 2))
+    ),
+    "length 1 or 3"
+  )
+
+  # with explicit keys, fields longer than length(keys) (and not 1) are rejected
+  keys = uuid::UUIDgenerate(n = 2)
+  expect_error(
+    rush$write_hashes(
+      xs = list(list(x1 = 1), list(x1 = 2), list(x1 = 3)),
+      keys = keys
+    ),
+    "length 1 or 2"
+  )
+})
+
 test_that("writing list columns works", {
   rush = start_rush_worker()
 
