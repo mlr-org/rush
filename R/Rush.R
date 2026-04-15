@@ -1066,7 +1066,6 @@ Rush = R6::R6Class(
     #' @return (`Rush`)\cr
     #' Invisible self.
     empty_queue = function(keys = NULL, conditions = NULL) {
-      r = private$.connector
       keys = keys %??% self$queued_tasks
 
       if (length(keys)) {
