@@ -158,17 +158,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               worker_id          x         y               keys
                   &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: doused_newfound... 0.23933633 0.4892201 25b1a85b-0f05-4...
-   2: doused_newfound... 0.27365388 0.5231194 3b7c2321-0a04-4...
-   3: doused_newfound... 0.87389594 0.9348240 8275d00e-b2c7-4...
-   4: doused_newfound... 0.32897037 0.5735594 5228b954-6737-4...
-   5: emptyheaded_ame... 0.08663653 0.2943408 8057d0b4-915f-4...
+   1: confirmed_bedli... 0.09485495 0.3079853 5ce053b4-b6b1-4...
+   2: confirmed_bedli... 0.71114445 0.8432938 c5a2a6a6-33c4-4...
+   3: confirmed_bedli... 0.17831913 0.4222785 b1d7e2bb-75d5-4...
+   4: confirmed_bedli... 0.26791095 0.5176011 97133b1c-cecc-4...
+   5: confirmed_bedli... 0.01548153 0.1244248 a0e20ef5-5e8d-4...
   ---
-6003: emptyheaded_ame... 0.37855782 0.6152705 375eccdf-7dba-4...
-6004: doused_newfound... 0.71429565 0.8451601 c8275489-dcd6-4...
-6005: emptyheaded_ame... 0.38203626 0.6180908 4fa61ef5-1182-4...
-6006: doused_newfound... 0.54602204 0.7389330 a2a1badb-dd52-4...
-6007: emptyheaded_ame... 0.13093095 0.3618438 154bf781-8dec-4...</code></pre>
+5801: avaricious_amer... 0.98016703 0.9900339 99c8871b-955b-4...
+5802: avaricious_amer... 0.76563159 0.8750038 8958a9a1-1934-4...
+5803: confirmed_bedli... 0.67109973 0.8192068 91538b31-1ca4-4...
+5804: avaricious_amer... 0.97024875 0.9850121 dc1973bb-d3cd-4...
+5805: confirmed_bedli... 0.26417127 0.5139759 c65df86c-4e1a-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -216,17 +216,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               x         y          worker_id               keys
            &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.08663653 0.2943408 emptyheaded_ame... 8057d0b4-915f-4...
-   2: 0.23933633 0.4892201 doused_newfound... 25b1a85b-0f05-4...
-   3: 0.27365388 0.5231194 doused_newfound... 3b7c2321-0a04-4...
-   4: 0.87389594 0.9348240 doused_newfound... 8275d00e-b2c7-4...
-   5: 0.32897037 0.5735594 doused_newfound... 5228b954-6737-4...
+   1: 0.09485495 0.3079853 confirmed_bedli... 5ce053b4-b6b1-4...
+   2: 0.21597653 0.4647327 avaricious_amer... 5e3fefcf-88dc-4...
+   3: 0.71114445 0.8432938 confirmed_bedli... c5a2a6a6-33c4-4...
+   4: 0.17831913 0.4222785 confirmed_bedli... b1d7e2bb-75d5-4...
+   5: 0.26791095 0.5176011 confirmed_bedli... 97133b1c-cecc-4...
   ---
-6408: 0.53071864 0.7285044 emptyheaded_ame... 5854d935-c45e-4...
-6409: 0.94725236 0.9732689 doused_newfound... 75c99038-d96c-4...
-6410: 0.66577341 0.8159494 emptyheaded_ame... 5eb353f5-b352-4...
-6411: 0.24878445 0.4987830 doused_newfound... c96aa316-e5fb-4...
-6412: 0.45408095        NA emptyheaded_ame... f65a1619-c1c9-4...</code></pre>
+6192: 0.62465816 0.7903532 avaricious_amer... 2187950e-c8e1-4...
+6193: 0.86478929 0.9299405 confirmed_bedli... 606269af-8522-4...
+6194: 0.46871763 0.6846296 avaricious_amer... 026d605a-5df1-4...
+6195: 0.49067774 0.7004839 confirmed_bedli... b6296c49-6900-4...
+6196: 0.44172072        NA avaricious_amer... 618c02bf-bbed-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,9 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          x          worker_id               keys
-      &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.454081 emptyheaded_ame... f65a1619-c1c9-4...</code></pre>
+<pre><code>           x          worker_id               keys
+       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.4417207 avaricious_amer... 618c02bf-bbed-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -248,19 +248,19 @@
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         state          worker_id         x               keys         y
-        &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running emptyheaded_ame... 0.4540810 f65a1619-c1c9-4...        NA
-   2: finished doused_newfound... 0.2393363 25b1a85b-0f05-4... 0.4892201
-   3: finished doused_newfound... 0.2736539 3b7c2321-0a04-4... 0.5231194
-   4: finished doused_newfound... 0.8738959 8275d00e-b2c7-4... 0.9348240
-   5: finished doused_newfound... 0.3289704 5228b954-6737-4... 0.5735594
+<pre><code>         state          worker_id          x               keys         y
+        &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
+   1:  running avaricious_amer... 0.44172072 618c02bf-bbed-4...        NA
+   2: finished confirmed_bedli... 0.09485495 5ce053b4-b6b1-4... 0.3079853
+   3: finished confirmed_bedli... 0.71114445 c5a2a6a6-33c4-4... 0.8432938
+   4: finished confirmed_bedli... 0.17831913 b1d7e2bb-75d5-4... 0.4222785
+   5: finished confirmed_bedli... 0.26791095 97133b1c-cecc-4... 0.5176011
   ---
-6408: finished doused_newfound... 0.3081873 d90037af-9a52-4... 0.5551462
-6409: finished emptyheaded_ame... 0.5307186 5854d935-c45e-4... 0.7285044
-6410: finished doused_newfound... 0.9472524 75c99038-d96c-4... 0.9732689
-6411: finished emptyheaded_ame... 0.6657734 5eb353f5-b352-4... 0.8159494
-6412: finished doused_newfound... 0.2487844 c96aa316-e5fb-4... 0.4987830</code></pre>
+6192: finished confirmed_bedli... 0.96168636 54a2d4af-05e4-4... 0.9806561
+6193: finished avaricious_amer... 0.62465816 2187950e-c8e1-4... 0.7903532
+6194: finished confirmed_bedli... 0.86478929 606269af-8522-4... 0.9299405
+6195: finished avaricious_amer... 0.46871763 026d605a-5df1-4... 0.6846296
+6196: finished confirmed_bedli... 0.49067774 b6296c49-6900-4... 0.7004839</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 6411</code></pre>
+<pre><code>[1] 6195</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -304,11 +304,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.1789001
+[1] 0.7253032
 
 
 $key
-[1] "f500841d-edc4-411c-bc23-9aa5ace863c2"</code></pre>
+[1] "a89c434d-06cb-4be4-b8f3-11812c9fb5bf"</code></pre>
 </div>
 </div>
 <div class="cell">
