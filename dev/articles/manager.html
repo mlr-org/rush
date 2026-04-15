@@ -150,8 +150,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: dislikeabl...  9155 runnervm35...     FALSE running
-2: wandering_...  9157 runnervm35...     FALSE running</code></pre>
+1: amoebic_ne...  9117 runnervm35...     FALSE running
+2: aimless_ca...  9115 runnervm35...     FALSE running</code></pre>
 </div>
 </div>
 <section class="level2"><h3 id="sec-local-stop-worker">Stopping Workers<a class="anchor" aria-label="anchor" href="#sec-local-stop-worker"></a>
@@ -167,8 +167,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat      state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: dislikeabl...  9155 runnervm35...     FALSE    running
-2: wandering_...  9157 runnervm35...     FALSE terminated</code></pre>
+1: aimless_ca...  9115 runnervm35...     FALSE    running
+2: amoebic_ne...  9117 runnervm35...     FALSE terminated</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -203,19 +203,19 @@
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id        x1        x2        y          keys
-            &lt;char&gt;     &lt;num&gt;     &lt;num&gt;    &lt;num&gt;        &lt;char&gt;
-  1: dewyeyed_g...  5.619972  4.893450 31.68724 18467dbe-c...
-  2: dewyeyed_g...  9.320494  6.702005 19.05691 9c6ce41b-b...
-  3: dewyeyed_g...  1.116178 11.144391 59.91270 e7d2932c-a...
-  4: dewyeyed_g... -4.640560 10.033327 46.94071 2c34678c-d...
-  5: dewyeyed_g... -1.594773  5.921337 18.44505 81591649-e...
+<pre><code>         worker_id         x1        x2          y          keys
+            &lt;char&gt;      &lt;num&gt;     &lt;num&gt;      &lt;num&gt;        &lt;char&gt;
+  1: homicidal_...  5.0056641  4.258388  21.705301 d23e535d-d...
+  2: homicidal_...  8.5137502  3.622334   7.385523 391bd84a-3...
+  3: homicidal_... -0.1988581  7.959275  22.094857 32d4c64b-8...
+  4: homicidal_... -0.7089177 14.217493  66.629317 68d3c72b-f...
+  5: homicidal_... -3.3106359 14.736698   4.744453 b9c0d681-1...
  ---
-115: dewyeyed_g...  7.162936  7.669749 57.61613 e3d2e5aa-8...
-116: psychograp... -1.784096  1.551175 67.24960 c6a5e5b1-2...
-117: dewyeyed_g...  6.883684  9.179977 82.15092 ab30feb3-1...
-118: psychograp...  5.180129  8.621726 69.08419 d70354e3-6...
-119: dewyeyed_g...  2.083314  1.788579  7.41251 4e936d98-d...</code></pre>
+115: homicidal_... -1.4089566 12.691215  29.122937 ad674eb0-e...
+116: ligyrophob...  7.2287297  6.890935  47.489983 2b16ed84-7...
+117: homicidal_...  6.2389478  5.317766  37.392012 b88c4a7d-6...
+118: ligyrophob...  5.6185287  1.781076  17.974333 af8bdbe7-b...
+119: homicidal_...  6.1521067 14.513244 199.487235 e7377556-b...</code></pre>
 </div>
 </div>
 <p>The <code>$stop_workers()</code> method with <code>type = "terminate"</code> sends the terminate signal.</p>
@@ -229,8 +229,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat      state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: psychograp...  9155 runnervm35...     FALSE terminated
-2: dewyeyed_g...  9157 runnervm35...     FALSE terminated</code></pre>
+1: ligyrophob...  9115 runnervm35...     FALSE terminated
+2: homicidal_...  9117 runnervm35...     FALSE terminated</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -262,7 +262,7 @@
 <div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "commendatory_guineapig" "convulsive_kakapo"     </code></pre>
+<pre><code>[1] "unplayable_andalusianhorse" "complemented_rainbowfish"  </code></pre>
 </div>
 </div>
 <div class="cell">
@@ -367,8 +367,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: imperfect_...  9427 runnervm35...     FALSE running
-2: conventual...  9429 runnervm35...     FALSE running</code></pre>
+1: brassy_hei...  9405 runnervm35...     FALSE running
+2: largeheart...  9407 runnervm35...     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers can be added to the network at any time.</p>
@@ -387,8 +387,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>       worker_id   pid      hostname heartbeat   state
           &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: imperfect_...  9427 runnervm35...     FALSE running
-2: conventual...  9429 runnervm35...     FALSE running</code></pre>
+1: brassy_hei...  9405 runnervm35...     FALSE running
+2: largeheart...  9407 runnervm35...     FALSE running</code></pre>
 </div>
 </div>
 <div class="cell">
