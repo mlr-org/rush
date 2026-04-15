@@ -400,14 +400,19 @@ Rush = R6::R6Class(
       )
 
       # convert arguments to character
-      args = list(network_id = sprintf("'%s'", private$.network_id))
+      args = list(network_id = shQuote(private$.network_id, type = "sh"))
       config = mlr3misc::discard(unclass(self$config), is.null)
       config$url = NULL
-      config = paste(imap(config, function(value, name) sprintf("%s = '%s'", name, value)), collapse = ", ")
+      config = paste(
+        imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh"))),
+        collapse = ", "
+      )
       args[["config"]] = paste0("list(", config, ")")
       if (!is.null(lgr_thresholds)) {
         lgr_thresholds = paste(
-          imap(lgr_thresholds, function(value, name) sprintf("'%s' = '%s'", name, value)),
+          imap(lgr_thresholds, function(value, name) {
+            sprintf("%s = %s", shQuote(name, type = "sh"), shQuote(value, type = "sh"))
+          }),
           collapse = ", "
         )
         args[["lgr_thresholds"]] = paste0("c(", lgr_thresholds, ")")
@@ -420,10 +425,10 @@ Rush = R6::R6Class(
         args[["heartbeat_expire"]] = heartbeat_expire
       }
       if (!is.null(message_log)) {
-        args[["message_log"]] = sprintf("'%s'", message_log)
+        args[["message_log"]] = shQuote(message_log, type = "sh")
       }
       if (!is.null(output_log)) {
-        args[["output_log"]] = sprintf("'%s'", output_log)
+        args[["output_log"]] = shQuote(output_log, type = "sh")
       }
       args = paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
 
