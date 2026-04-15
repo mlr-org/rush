@@ -1210,25 +1210,22 @@ Rush = R6::R6Class(
         lg$debug("Wait for new tasks for at most %s seconds", as.character(timeout))
         start_time = Sys.time()
         while (start_time + timeout > Sys.time()) {
-          n_new_results = self$n_finished_tasks - private$.n_seen_results
-          if (n_new_results) {
+          if (self$n_finished_tasks > private$.n_seen_results) {
             break
           }
           Sys.sleep(0.01)
         }
       }
 
-      # return empty data.table if all results are fetched
-      n_new_results = self$n_finished_tasks - private$.n_seen_results
+      # fetch finished tasks to populate cache
+      self$fetch_finished_tasks(fields)
+
+      # advance the seen counter by the actual number of newly cached rows,
+      n_new_results = nrow(private$.cached_tasks) - private$.n_seen_results
       if (!n_new_results) {
         return(data.table())
       }
-
-      # increase seen results counter
-      private$.n_seen_results = private$.n_seen_results + n_new_results
-
-      # fetch finished tasks to populate cache
-      self$fetch_finished_tasks(fields)
+      private$.n_seen_results = nrow(private$.cached_tasks)
 
       # return only the new results from the cached data.table
       tail(private$.cached_tasks, n_new_results)[]
