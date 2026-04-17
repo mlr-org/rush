@@ -4,7 +4,7 @@
 \alias{rsh}
 \title{Syntactic Sugar for Rush Manager Construction}
 \usage{
-rsh(network_id = NULL, config = NULL, ...)
+rsh(network_id = NULL, config = NULL)
 }
 \arguments{
 \item{network_id}{(\code{character(1)})\cr
@@ -18,8 +18,6 @@ If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is us
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
-
-\item{...}{(ignored).}
 }
 \value{
 \link{Rush} manager.

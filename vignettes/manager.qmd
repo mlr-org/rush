@@ -158,7 +158,7 @@ Failed workers started with `mirai` are automatically detected by the manager.
 We simulate a worker crash by killing the worker process.
 
 ```{r manager-016}
-rush = rsh(network = "random-search-network")
+rush = rsh(network_id = "random-search-network")
 
 wl_failed_worker = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
@@ -249,7 +249,7 @@ The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging 
 Logging introduces a minor performance overhead and is disabled by default.
 
 ```{r manager-025}
-rush = rsh(network = "random-search-network")
+rush = rsh(network_id = "random-search-network")
 
 wl_log_message = function(rush) {
   lg = lgr::get_logger("mlr3/rush")

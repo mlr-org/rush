@@ -5,7 +5,6 @@
 #'
 #' @template param_network_id
 #' @template param_config
-#' @param ... (ignored).
 #'
 #' @return [Rush] manager.
 #' @export
@@ -15,6 +14,6 @@
 #'    rush = rsh(network_id = "test_network", config = config_local)
 #'    rush
 #' }
-rsh = function(network_id = NULL, config = NULL, ...) {
+rsh = function(network_id = NULL, config = NULL) {
   Rush$new(network_id, config)
 }
