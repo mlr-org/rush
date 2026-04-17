@@ -68,18 +68,19 @@ RushWorker = R6::R6Class(
         timeout = 5
         start_time = Sys.time()
         while (difftime(Sys.time(), start_time, units = "secs") < timeout) {
-          if (r$command(c("TTL", heartbeat_key)) > 0) break
+          if (r$command(c("TTL", heartbeat_key)) > 0) {
+            break
+          }
           Sys.sleep(0.1)
         }
 
         r$SADD(private$.get_key("heartbeat_keys"), heartbeat_key)
       }
 
-      # register worker ids
+      # register worker ids and worker info
+      r$MULTI()
       r$SADD(private$.get_key("worker_ids"), self$worker_id)
       r$SADD(private$.get_key("running_worker_ids"), self$worker_id)
-
-      # register worker info in
       r$command(c(
         "HSET",
         private$.get_key(self$worker_id),
@@ -92,6 +93,7 @@ RushWorker = R6::R6Class(
         "heartbeat",
         heartbeat_key
       ))
+      r$EXEC()
     },
 
     #' @description
