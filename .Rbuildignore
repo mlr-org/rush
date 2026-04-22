@@ -4,6 +4,7 @@
 ^CLAUDE\.md$
 ^CONTRIBUTING\.md$
 ^CRAN-SUBMISSION$
+^LICENSE\.md$
 ^README\.Rmd$
 ^README\.html$
 ^\.?air\.toml$
@@ -37,6 +38,5 @@
 ^pkgdown$
 ^revdep$
 ^tests/testthat/_object_snapshots$
-^LICENSE\.md$
 ^vignettes$
 ^vignettes/\.quarto$
