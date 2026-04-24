@@ -2,9 +2,19 @@
 
 ## rush (development version)
 
+## rush 1.1.0
+
 - `$detect_lost_workers()` no longer creates phantom failed tasks when a
   worker crashes between task evaluations
   ([\#89](https://github.com/mlr-org/rush/issues/89)).
+- `$fetch_new_tasks()` now correctly tracks seen results by using the
+  actual cache size instead of the Redis counter, fixing cases where new
+  results could be missed or duplicated.
+- `$write_hashes()` now requires all value lists to have the same length
+  or length 1 instead of recycling. Length mismatches raise an error
+  ([\#87](https://github.com/mlr-org/rush/issues/87)).
+- [`rsh()`](https://rush.mlr-org.com/dev/reference/rsh.md) no longer
+  accepts `...` (which was ignored).
 
 ## rush 1.0.1
 
