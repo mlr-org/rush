@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 1.1.0
 
 * `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).
