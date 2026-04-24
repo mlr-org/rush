@@ -590,14 +590,19 @@ Rush = R6::R6Class(
             # identify lost tasks
             if (nrow(running_tasks)) {
               keys = running_tasks[list(id), keys, on = "worker_id"]
-              lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+              keys = keys[!is.na(keys)]
+              if (length(keys)) {
+                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
 
-              # Replace interrupt error message
-              message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+                # Replace interrupt error message
+                message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-              # push failed tasks
-              conditions = list(list(message = message))
-              self$fail_tasks(keys, conditions = conditions)
+                # push failed tasks
+                conditions = list(list(message = message))
+                self$fail_tasks(keys, conditions = conditions)
+              } else {
+                lg$error("Worker '%s' crashed before evaluating a task", id)
+              }
             }
           }
         })
@@ -617,11 +622,16 @@ Rush = R6::R6Class(
             # identify lost tasks
             if (nrow(running_tasks)) {
               keys = running_tasks[list(id), keys, on = "worker_id"]
-              lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+              keys = keys[!is.na(keys)]
+              if (length(keys)) {
+                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
 
-              # push failed tasks
-              conditions = list(list(message = "Worker has crashed or was killed"))
-              self$fail_tasks(keys, conditions = conditions)
+                # push failed tasks
+                conditions = list(list(message = "Worker has crashed or was killed"))
+                self$fail_tasks(keys, conditions = conditions)
+              } else {
+                lg$error("Worker '%s' crashed before evaluating a task", id)
+              }
             }
           }
         })
@@ -654,10 +664,13 @@ Rush = R6::R6Class(
           if (nrow(running_tasks) && length(lost_workers)) {
             walk(lost_workers, function(worker_id) {
               keys = running_tasks[list(worker_id), keys, on = "worker_id"]
+              keys = keys[!is.na(keys)]
               if (length(keys)) {
                 lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
                 conditions = list(list(message = "Worker has crashed or was killed"))
                 self$fail_tasks(keys, conditions = conditions)
+              } else {
+                lg$error("Worker '%s' crashed before evaluating a task", worker_id)
               }
             })
           }

@@ -1,5 +1,7 @@
 # rush (development version)
 
+* `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).
+
 # rush 1.0.1
 
 * `$start_workers()` now strips the enclosing environment from `worker_loop` before serialization, avoiding bloated Redis payloads when the function is a closure.
