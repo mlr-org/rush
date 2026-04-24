@@ -6,7 +6,7 @@ Function to construct a
 ## Usage
 
 ``` r
-rsh(network_id = NULL, config = NULL, ...)
+rsh(network_id = NULL, config = NULL)
 ```
 
 ## Arguments
@@ -28,10 +28,6 @@ rsh(network_id = NULL, config = NULL, ...)
   `REDIS_URL` is not set, a default configuration is used. See
   [redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html)
   for details.
-
-- ...:
-
-  (ignored).
 
 ## Value
 

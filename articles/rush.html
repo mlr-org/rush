@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.1</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -155,19 +155,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id         x         y               keys
-                  &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: wakeful_amethys... 0.1508612 0.3884086 e663b49a-ad1a-4...
-   2: wakeful_amethys... 0.2161227 0.4648900 6e337597-0b90-4...
-   3: wakeful_amethys... 0.9206323 0.9594959 acd6508d-df24-4...
-   4: wakeful_amethys... 0.5377901 0.7333417 a506e13f-d804-4...
-   5: pediophobic_bai... 0.3677968 0.6064626 c4a2d57a-2a55-4...
+<pre><code>               worker_id          x         y               keys
+                  &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1: successive_mora... 0.75739725 0.8702857 685c02d0-8d5d-4...
+   2: successive_mora... 0.73470609 0.8571500 ccc33ca6-bc3c-4...
+   3: successive_mora... 0.94463880 0.9719253 319d201e-249e-4...
+   4: successive_mora... 0.25832031 0.5082522 aa72bab7-5f00-4...
+   5: successive_mora... 0.31593424 0.5620803 9b62ede3-ea73-4...
   ---
-6030: wakeful_amethys... 0.3265871 0.5714780 7ba1f0a3-7ab4-4...
-6031: pediophobic_bai... 0.4401831 0.6634630 8f3aabbe-da59-4...
-6032: wakeful_amethys... 0.8855411 0.9410319 42120247-045a-4...
-6033: pediophobic_bai... 0.9481609 0.9737356 f475b05f-4aec-4...
-6034: wakeful_amethys... 0.4353374 0.6598010 57f78436-f41b-4...</code></pre>
+5829:       unquiet_lice 0.96045558 0.9800284 6b13ddaf-7b48-4...
+5830: successive_mora... 0.46340474 0.6807384 6bdd6b84-08b1-4...
+5831: successive_mora... 0.50453684 0.7103076 6b93ab6c-e46c-4...
+5832:       unquiet_lice 0.07438545 0.2727370 5e2fd392-1b0f-4...
+5833: successive_mora... 0.74783803 0.8647763 1c9c0352-bc6f-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -215,17 +215,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>              x         y          worker_id               keys
           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.1508612 0.3884086 wakeful_amethys... e663b49a-ad1a-4...
-   2: 0.3677968 0.6064626 pediophobic_bai... c4a2d57a-2a55-4...
-   3: 0.2161227 0.4648900 wakeful_amethys... 6e337597-0b90-4...
-   4: 0.9206323 0.9594959 wakeful_amethys... acd6508d-df24-4...
-   5: 0.5377901 0.7333417 wakeful_amethys... a506e13f-d804-4...
+   1: 0.7573972 0.8702857 successive_mora... 685c02d0-8d5d-4...
+   2: 0.6455596 0.8034673       unquiet_lice b0551f74-940f-4...
+   3: 0.7347061 0.8571500 successive_mora... ccc33ca6-bc3c-4...
+   4: 0.9446388 0.9719253 successive_mora... 319d201e-249e-4...
+   5: 0.2583203 0.5082522 successive_mora... aa72bab7-5f00-4...
   ---
-6413: 0.2820424 0.5310766 wakeful_amethys... 76acfbe6-4bc1-4...
-6414: 0.7079486 0.8413968 pediophobic_bai... 2c9f9ccd-c911-4...
-6415: 0.6645669 0.8152097 wakeful_amethys... 98d81fc6-ec71-4...
-6416: 0.2485594 0.4985573 pediophobic_bai... 6cb66aed-f81b-4...
-6417: 0.8014730        NA wakeful_amethys... 1d6d8d51-3e74-4...</code></pre>
+6214: 0.9990487 0.9995242 successive_mora... 9364de75-ae42-4...
+6215: 0.5845468 0.7645566       unquiet_lice 7db58d49-4cc2-4...
+6216: 0.8998862 0.9486233 successive_mora... 9f9486b4-4546-4...
+6217: 0.1527503 0.3908328       unquiet_lice 5add1a51-93d7-4...
+6218: 0.1106366        NA       unquiet_lice 1db068fa-ab0c-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -235,9 +235,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          x          worker_id               keys
-      &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.801473 wakeful_amethys... 1d6d8d51-3e74-4...</code></pre>
+<pre><code>           x    worker_id               keys
+       &lt;num&gt;       &lt;char&gt;             &lt;char&gt;
+1: 0.1106366 unquiet_lice 1db068fa-ab0c-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -249,17 +249,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id         x               keys         y
         &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running wakeful_amethys... 0.8014730 1d6d8d51-3e74-4...        NA
-   2: finished wakeful_amethys... 0.1508612 e663b49a-ad1a-4... 0.3884086
-   3: finished wakeful_amethys... 0.2161227 6e337597-0b90-4... 0.4648900
-   4: finished wakeful_amethys... 0.9206323 acd6508d-df24-4... 0.9594959
-   5: finished wakeful_amethys... 0.5377901 a506e13f-d804-4... 0.7333417
+   1:  running       unquiet_lice 0.1106366 1db068fa-ab0c-4...        NA
+   2: finished successive_mora... 0.7573972 685c02d0-8d5d-4... 0.8702857
+   3: finished successive_mora... 0.7347061 ccc33ca6-bc3c-4... 0.8571500
+   4: finished successive_mora... 0.9446388 319d201e-249e-4... 0.9719253
+   5: finished successive_mora... 0.2583203 aa72bab7-5f00-4... 0.5082522
   ---
-6413: finished pediophobic_bai... 0.4358341 1c7ac2df-0be4-4... 0.6601773
-6414: finished wakeful_amethys... 0.2820424 76acfbe6-4bc1-4... 0.5310766
-6415: finished pediophobic_bai... 0.7079486 2c9f9ccd-c911-4... 0.8413968
-6416: finished wakeful_amethys... 0.6645669 98d81fc6-ec71-4... 0.8152097
-6417: finished pediophobic_bai... 0.2485594 6cb66aed-f81b-4... 0.4985573</code></pre>
+6214: finished       unquiet_lice 0.6929914 3b5f2ce2-c169-4... 0.8324610
+6215: finished successive_mora... 0.9990487 9364de75-ae42-4... 0.9995242
+6216: finished       unquiet_lice 0.5845468 7db58d49-4cc2-4... 0.7645566
+6217: finished successive_mora... 0.8998862 9f9486b4-4546-4... 0.9486233
+6218: finished       unquiet_lice 0.1527503 5add1a51-93d7-4... 0.3908328</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -278,7 +278,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 6416</code></pre>
+<pre><code>[1] 6217</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -303,11 +303,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.9909729
+[1] 0.1350048
 
 
 $key
-[1] "a58fd878-c6e3-40a0-8c86-d8552938b5ca"</code></pre>
+[1] "eb47e2cf-c45b-448a-82c1-fea1fe73d117"</code></pre>
 </div>
 </div>
 <div class="cell">
