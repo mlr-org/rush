@@ -36,12 +36,14 @@ for asynchronous optimization algorithms in
 Install the latest release from CRAN.
 
 ``` r
+
 install.packages("rush")
 ```
 
 Install the development version from GitHub.
 
 ``` r
+
 pak::pak("mlr-org/rush")
 ```
 
@@ -55,6 +57,7 @@ to `true`. The test suite deletes the Redis database before execution,
 so never run it against a production server.
 
 ``` r
+
 Sys.setenv(RUSH_TEST_USE_REDIS = "true")
 ```
 

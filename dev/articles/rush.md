@@ -7,6 +7,7 @@ detailed introduction.
 ## Worker Loop
 
 ``` r
+
 library(rush)
 
 worker_loop = function(rush) {
@@ -24,11 +25,13 @@ worker_loop = function(rush) {
 ## Rush Manager
 
 ``` r
+
 config = redux::redis_config()
 
 rush = rsh(network_id = "my_network", config = config)
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
@@ -40,6 +43,7 @@ rush
 ## Start Workers
 
 ``` r
+
 mirai::daemons(n = 2L)
 
 rush$start_workers(
@@ -50,32 +54,35 @@ rush$start_workers(
 ## Wait for Workers
 
 ``` r
+
 rush$wait_for_workers(n = 2L)
 ```
 
 ## Fetch Results
 
 ``` r
+
 rush$fetch_finished_tasks()
 ```
 
                    worker_id          x         y               keys
                       <char>      <num>     <num>             <char>
-       1: appreciative_ba... 0.54193212 0.7361604 b43932c8-681d-4...
-       2: appreciative_ba... 0.76679000 0.8756655 ffb679bc-4fce-4...
-       3: appreciative_ba... 0.22803156 0.4775265 5ac0f8ad-a1fa-4...
-       4: appreciative_ba... 0.09503441 0.3082765 543321e6-bf00-4...
-       5: appreciative_ba... 0.84798485 0.9208609 5a5a4dc3-5925-4...
+       1: beamlike_africa... 0.49505454 0.7036011 e4211b19-dd2f-4...
+       2: beamlike_africa... 0.43314128 0.6581347 793e8a25-e605-4...
+       3: beamlike_africa... 0.04702792 0.2168592 50dea008-9949-4...
+       4: sour_acornwoodp... 0.53893556 0.7341223 3e81011b-e210-4...
+       5: beamlike_africa... 0.67493639 0.8215451 1d40973a-1be6-4...
       ---
-    6224: skipping_harpye... 0.17696827 0.4206760 a5bbece9-99e8-4...
-    6225: appreciative_ba... 0.41281036 0.6425032 e57a72f0-c5ad-4...
-    6226: skipping_harpye... 0.53140307 0.7289740 c0d6e7d7-e648-4...
-    6227: appreciative_ba... 0.74079067 0.8606920 1b5ca059-1537-4...
-    6228: skipping_harpye... 0.72728945 0.8528127 4fe53e95-cfbd-4...
+    6791: beamlike_africa... 0.33248264 0.5766131 cffb727b-9035-4...
+    6792: sour_acornwoodp... 0.19983054 0.4470241 87a935bd-fa27-4...
+    6793: beamlike_africa... 0.07267642 0.2695856 b833eeac-88d7-4...
+    6794: sour_acornwoodp... 0.30251977 0.5500180 78c2d40c-33ac-4...
+    6795: beamlike_africa... 0.66624347 0.8162374 33cbacad-3bf2-4...
 
 ## Stop Workers
 
 ``` r
+
 rush$stop_workers(type = "kill")
 ```
 
@@ -92,82 +99,91 @@ rush$stop_workers(type = "kill")
 ## More fetch methods
 
 ``` r
+
 rush$fetch_tasks()
 ```
 
                    x         y          worker_id               keys
                <num>     <num>             <char>             <char>
-       1: 0.54193212 0.7361604 appreciative_ba... b43932c8-681d-4...
-       2: 0.22513471 0.4744836 skipping_harpye... 11120787-f0ac-4...
-       3: 0.76679000 0.8756655 appreciative_ba... ffb679bc-4fce-4...
-       4: 0.22803156 0.4775265 appreciative_ba... 5ac0f8ad-a1fa-4...
-       5: 0.09503441 0.3082765 appreciative_ba... 543321e6-bf00-4...
+       1: 0.53893556 0.7341223 sour_acornwoodp... 3e81011b-e210-4...
+       2: 0.49505454 0.7036011 beamlike_africa... e4211b19-dd2f-4...
+       3: 0.43314128 0.6581347 beamlike_africa... 793e8a25-e605-4...
+       4: 0.04702792 0.2168592 beamlike_africa... 50dea008-9949-4...
+       5: 0.67493639 0.8215451 beamlike_africa... 1d40973a-1be6-4...
       ---
-    6614: 0.93179928 0.9652975 skipping_harpye... 9594f7ac-27b8-4...
-    6615: 0.40534885 0.6366701 appreciative_ba... 6088bd25-56a8-4...
-    6616: 0.48137068 0.6938088 appreciative_ba... 096ead19-9b0b-4...
-    6617: 0.65218042 0.8075769 skipping_harpye... e2607863-24ea-4...
-    6618: 0.09194513        NA skipping_harpye... f40e47cb-907f-4...
+    7228: 0.22776361 0.4772459 beamlike_africa... b9e274f9-3898-4...
+    7229: 0.20639754 0.4543100 sour_acornwoodp... 8892681b-6ea9-4...
+    7230: 0.06359068 0.2521719 beamlike_africa... d95c1a39-c0c0-4...
+    7231: 0.52675705 0.7257803 sour_acornwoodp... 82ea5d41-2c20-4...
+    7232: 0.41194203        NA beamlike_africa... 3cb34be1-7e7b-4...
 
 ``` r
+
 rush$fetch_queued_tasks()
 ```
 
     Null data.table (0 rows and 0 cols)
 
 ``` r
+
 rush$fetch_running_tasks()
 ```
 
-                x          worker_id               keys
-            <num>             <char>             <char>
-    1: 0.09194513 skipping_harpye... f40e47cb-907f-4...
+              x          worker_id               keys
+          <num>             <char>             <char>
+    1: 0.411942 beamlike_africa... 3cb34be1-7e7b-4...
 
 ``` r
+
 rush$fetch_failed_tasks()
 ```
 
     Null data.table (0 rows and 0 cols)
 
 ``` r
+
 rush$fetch_tasks_with_state(states = c("running", "finished"))
 ```
 
              state          worker_id          x               keys         y
             <char>             <char>      <num>             <char>     <num>
-       1:  running skipping_harpye... 0.09194513 f40e47cb-907f-4...        NA
-       2: finished appreciative_ba... 0.54193212 b43932c8-681d-4... 0.7361604
-       3: finished appreciative_ba... 0.76679000 ffb679bc-4fce-4... 0.8756655
-       4: finished appreciative_ba... 0.22803156 5ac0f8ad-a1fa-4... 0.4775265
-       5: finished appreciative_ba... 0.09503441 543321e6-bf00-4... 0.3082765
+       1:  running beamlike_africa... 0.41194203 3cb34be1-7e7b-4...        NA
+       2: finished beamlike_africa... 0.49505454 e4211b19-dd2f-4... 0.7036011
+       3: finished beamlike_africa... 0.43314128 793e8a25-e605-4... 0.6581347
+       4: finished beamlike_africa... 0.04702792 50dea008-9949-4... 0.2168592
+       5: finished sour_acornwoodp... 0.53893556 3e81011b-e210-4... 0.7341223
       ---
-    6614: finished appreciative_ba... 0.51460287 c7cabaf6-237e-4... 0.7173583
-    6615: finished skipping_harpye... 0.93179928 9594f7ac-27b8-4... 0.9652975
-    6616: finished appreciative_ba... 0.40534885 6088bd25-56a8-4... 0.6366701
-    6617: finished appreciative_ba... 0.48137068 096ead19-9b0b-4... 0.6938088
-    6618: finished skipping_harpye... 0.65218042 e2607863-24ea-4... 0.8075769
+    7228: finished sour_acornwoodp... 0.81933604 822ab3e3-ddd7-4... 0.9051718
+    7229: finished sour_acornwoodp... 0.20639754 8892681b-6ea9-4... 0.4543100
+    7230: finished beamlike_africa... 0.22776361 b9e274f9-3898-4... 0.4772459
+    7231: finished sour_acornwoodp... 0.52675705 82ea5d41-2c20-4... 0.7257803
+    7232: finished beamlike_africa... 0.06359068 d95c1a39-c0c0-4... 0.2521719
 
 ## Task Counts
 
 ``` r
+
 rush$n_queued_tasks
 ```
 
     [1] 0
 
 ``` r
+
 rush$n_running_tasks
 ```
 
     [1] 1
 
 ``` r
+
 rush$n_finished_tasks
 ```
 
-    [1] 6617
+    [1] 7231
 
 ``` r
+
 rush$n_failed_tasks
 ```
 
@@ -176,6 +192,7 @@ rush$n_failed_tasks
 ## Push Tasks to Queue
 
 ``` r
+
 xss = replicate(25, list(x = runif(1L)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -184,19 +201,21 @@ rush$push_tasks(xss = xss)
 ## Pop Task from Queue
 
 ``` r
+
 task = rush$pop_task()
 task
 ```
 
     $xs
     $xs$x
-    [1] 0.8376459
+    [1] 0.6030423
 
 
     $key
-    [1] "9ea5355c-0f7c-437e-8359-38f5f24423eb"
+    [1] "9a52c8df-3d1d-405a-a08f-8cce9f3edc09"
 
 ``` r
+
 worker_loop = function(rush) {
   repeat {
     task = rush$pop_task()
@@ -211,6 +230,7 @@ worker_loop = function(rush) {
 ## Local Workers
 
 ``` r
+
 rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 2)
@@ -219,6 +239,7 @@ rush$start_local_workers(
 ## Script Workers
 
 ``` r
+
 script = rush$worker_script(worker_loop = worker_loop)
 cat(script)
 ```
@@ -228,6 +249,7 @@ cat(script)
 ## Heartbeats
 
 ``` r
+
 script = rush$worker_script(
   worker_loop = worker_loop,
   heartbeat_period = 10,
@@ -237,12 +259,14 @@ script = rush$worker_script(
 ## Reset Network
 
 ``` r
+
 rush$reset()
 ```
 
 ## Handling R Errors
 
 ``` r
+
 worker_loop = function(rush) {
   while (!rush$terminated) {
 
@@ -262,6 +286,7 @@ worker_loop = function(rush) {
 ## Detecting Lost Workers
 
 ``` r
+
 rush$detect_lost_workers()
 ```
 
@@ -270,6 +295,7 @@ rush$detect_lost_workers()
 ## Logging
 
 ``` r
+
 worker_loop = function(rush) {
   lg = lgr::get_logger("mlr3/rush")
   lg$info("Worker %s started on %s", rush$worker_id, rush$hostname)
@@ -282,18 +308,21 @@ rush$start_workers(
 ```
 
 ``` r
+
 rush$print_log()
 ```
 
 ## Debugging
 
 ``` r
+
 rush_worker = RushWorker$new("test-network")
 
 worker_loop(rush_worker)
 ```
 
 ``` r
+
 mirai::daemons(1L)
 
 worker_ids = rush$start_workers(
@@ -306,6 +335,7 @@ worker_ids = rush$start_workers(
 ## Rush Plan
 
 ``` r
+
 rush_plan(
   n_workers = 4,
   config = redux::redis_config(),
