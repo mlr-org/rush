@@ -1,5 +1,8 @@
 # rush (development version)
 
+* `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.
+  Affected tasks are dropped with a warning.
+
 # rush 1.1.0
 
 * `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).

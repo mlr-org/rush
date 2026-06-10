@@ -1806,7 +1806,20 @@ Rush = R6::R6Class(
 
       data = self$read_hashes(keys, fields)
 
+      # tasks can disappear from the database e.g. when redis evicts keys under memory pressure
+      # drop them so keys and rows stay aligned
+      missing = map_lgl(data, is.null)
+      if (any(missing)) {
+        lg$warn("Removing %i task(s) with missing data", sum(missing))
+        data = data[!missing]
+        keys = keys[!missing]
+      }
+
       lg$debug("Fetching %i task(s)", length(data))
+
+      if (!length(data)) {
+        return(data.table())
+      }
 
       tab = rbindlist(data, use.names = TRUE, fill = TRUE)
       tab[, keys := unlist(keys)]

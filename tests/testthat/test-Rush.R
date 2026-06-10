@@ -612,6 +612,27 @@ test_that("fetching tasks with vector parameters works", {
   expect_data_table(rush$fetch_tasks(), nrows = 2)
 })
 
+test_that("fetching tasks with missing hashes works", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4), list(x1 = 5, x2 = 6))
+  keys = rush$push_tasks(xss)
+
+  rush$connector$DEL(keys[2])
+  data = rush$fetch_queued_tasks()
+  expect_data_table(data, nrows = 2)
+  expect_set_equal(data$keys, keys[-2])
+  data = rush$fetch_tasks()
+  expect_data_table(data, nrows = 2)
+  expect_set_equal(data$keys, keys[-2])
+
+  walk(keys, function(key) rush$connector$DEL(key))
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_tasks(), nrows = 0)
+})
+
 test_that("empty queue works", {
   rush = start_rush(n_workers = 1)
   on.exit({
