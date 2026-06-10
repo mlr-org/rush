@@ -39,3 +39,5 @@
 ^pkgdown$
 ^revdep$
 ^tests/testthat/_object_snapshots$
+^vignettes$
+^vignettes/\.quarto$
