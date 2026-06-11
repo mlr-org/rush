@@ -62,6 +62,8 @@
 <li>
 <code>$fetch_tasks()</code> and related methods no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
 <li>
+<code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
+<li>
 <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 </ul></div>
     <div class="section level2">

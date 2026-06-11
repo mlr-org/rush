@@ -700,7 +700,7 @@ Wait until workers are registered in the network. Either `n`,
 
 #### Usage
 
-    Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)
+    Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = NULL)
 
 #### Arguments
 
@@ -719,7 +719,9 @@ Wait until workers are registered in the network. Either `n`,
 - `timeout`:
 
   (`numeric(1)`)  
-  Timeout in seconds. Default is `Inf`.
+  Timeout in seconds. Defaults to the `start_worker_timeout` set with
+  [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md),
+  or `Inf` if none is set.
 
 ------------------------------------------------------------------------
 

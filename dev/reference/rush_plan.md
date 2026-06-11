@@ -16,7 +16,8 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "mirai"
+  worker_type = "mirai",
+  start_worker_timeout = NULL
 )
 ```
 
@@ -62,6 +63,14 @@ rush_plan(
   [mirai](https://CRAN.R-project.org/package=mirai), `"processx"` to use
   [processx](https://CRAN.R-project.org/package=processx) or `"script"`
   to get a script to run.
+
+- start_worker_timeout:
+
+  (`numeric(1)`)  
+  Default timeout in seconds used by `$wait_for_workers()` of
+  [Rush](https://rush.mlr-org.com/dev/reference/Rush.md) when no
+  `timeout` is passed. If `NULL`, `$wait_for_workers()` waits
+  indefinitely by default.
 
 ## Value
 

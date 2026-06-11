@@ -74,7 +74,8 @@ This function is usually used in third-party packages to setup how workers are s
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  large_objects_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  worker_type <span class="op">=</span> <span class="st">"mirai"</span></span>
+<span>  worker_type <span class="op">=</span> <span class="st">"mirai"</span>,</span>
+<span>  start_worker_timeout <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -117,6 +118,12 @@ The path to the directory where large objects are stored.</p></dd>
 The type of worker to use.
 Options are <code>"mirai"</code> to start with <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><span class="pkg">mirai</span></a>, <code>"processx"</code> to use <a href="https://CRAN.R-project.org/package=processx" class="external-link"><span class="pkg">processx</span></a> or <code>"script"</code>
 to get a script to run.</p></dd>
+
+
+<dt id="arg-start-worker-timeout">start_worker_timeout<a class="anchor" aria-label="anchor" href="#arg-start-worker-timeout"></a></dt>
+<dd><p>(<code>numeric(1)</code>)<br>
+Default timeout in seconds used by <code>$wait_for_workers()</code> of <a href="Rush.html">Rush</a> when no <code>timeout</code> is passed.
+If <code>NULL</code>, <code>$wait_for_workers()</code> waits indefinitely by default.</p></dd>
 
 </dl></div>
     <div class="section level2">
