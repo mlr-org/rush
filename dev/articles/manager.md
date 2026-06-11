@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: retiring_a...  9376 runnervm3j...     FALSE running
-    2: apolitical...  9378 runnervm3j...     FALSE running
+    1: doctorial_...  9300 runnervm3j...     FALSE running
+    2: victorious...  9302 runnervm3j...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: retiring_a...  9376 runnervm3j...     FALSE    running
-    2: apolitical...  9378 runnervm3j...     FALSE terminated
+    1: victorious...  9302 runnervm3j...     FALSE    running
+    2: doctorial_...  9300 runnervm3j...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1          x2          y          keys
-                <char>      <num>       <num>      <num>        <char>
-      1: light_dobe...  2.0053451  5.36124452 10.0919981 e224f387-8...
-      2: light_dobe...  2.1758650  2.49108939  4.9704770 9fe103b6-2...
-      3: light_dobe...  3.9297245 10.53596491 80.5871116 2371b8f2-6...
-      4: light_dobe... -0.2153809 11.76748371 48.7425836 83dc5d41-3...
-      5: light_dobe...  6.3651031  7.82130661 64.6991825 33f314c5-3...
+             worker_id         x1         x2         y          keys
+                <char>      <num>      <num>     <num>        <char>
+      1: introverti...  0.6091042  9.1220847 34.225781 7604444d-6...
+      2: introverti...  5.0894997  0.8694434 13.677694 04d77218-8...
+      3: introverti...  9.9258156  1.0952532  4.944673 9ff5194d-5...
+      4: introverti... -3.3767308  3.7602379 83.235649 9cb56c38-5...
+      5: introverti...  7.4064162  6.8569656 45.049410 6df75e8f-6...
      ---
-     98: light_dobe...  1.2744967  4.43744241 12.8692047 551a8da5-8...
-     99: unquiet_gr... -2.9579562 12.34953262  0.8209665 1a227734-4...
-    100: light_dobe...  7.6776405  7.61100399 50.3158955 c4442e3b-9...
-    101: unquiet_gr...  0.7587625  7.24051660 22.6028291 817f59cb-8...
-    102: light_dobe...  3.3641953  0.01028574  5.0343853 8622d9f9-0...
+    106: introverti... -0.9871574  4.1776469 27.677209 38dd3ac2-3...
+    107: introverti... -3.6867604 12.9300440  2.270776 9a14bc50-e...
+    108: singlemind...  5.3246358  1.5753301 15.668288 77de4cf4-c...
+    109: introverti... -1.3564272  3.7259622 33.856655 fe80ca7a-f...
+    110: singlemind...  7.2726378  6.0347343 38.090463 6a9cf39e-9...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: light_dobe...  9378 runnervm3j...     FALSE terminated
-    2: unquiet_gr...  9376 runnervm3j...     FALSE terminated
+    1: introverti...  9300 runnervm3j...     FALSE terminated
+    2: singlemind...  9302 runnervm3j...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "urban_nag"                   "calmative_northerncardinals"
+    [1] "smashable_bluebird"      "resurrective_arctichare"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: unfit_macr...  9628 runnervm3j...     FALSE running
-    2: vapid_orop...  9630 runnervm3j...     FALSE running
+    1: schematic_...  9552 runnervm3j...     FALSE running
+    2: longish_wh...  9555 runnervm3j...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: unfit_macr...  9628 runnervm3j...     FALSE running
-    2: vapid_orop...  9630 runnervm3j...     FALSE running
+    1: schematic_...  9552 runnervm3j...     FALSE running
+    2: longish_wh...  9555 runnervm3j...     FALSE running
 
 ``` r
 
