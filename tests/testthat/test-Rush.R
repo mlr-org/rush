@@ -208,6 +208,30 @@ test_that("local workers remove the arguments file after start", {
 
 # start workers with script ----------------------------------------------------
 
+test_that("worker script contains the password but the log redacts it", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+  })
+
+  rush$config = redux::redis_config(password = "test-secret")
+
+  lg_rush = lgr::get_logger("mlr3/rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush), add = TRUE)
+  lg_rush$set_threshold("info")
+
+  log = capture.output({
+    script = rush$worker_script(worker_loop = wl_queue)
+  })
+  log = paste(log, collapse = "\n")
+
+  expect_match(script, "test-secret", fixed = TRUE)
+  expect_match(log, "<redacted>", fixed = TRUE)
+  expect_false(grepl("test-secret", log, fixed = TRUE))
+})
+
 test_that("heartbeat process is started", {
   skip_if_not_installed("callr")
   config = redis_configuration()

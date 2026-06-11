@@ -457,6 +457,7 @@ If \code{NULL}, no output is stored.}
 \subsection{\code{Rush$worker_script()}}{
   Generate a script to start workers.
 Run this script \code{n} times to start \code{n} workers.
+The logged variant of the script redacts the Redis password.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$worker_script(
@@ -505,6 +506,10 @@ The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character(1)})\cr
+Shell command to start a worker.
   }
 }
 

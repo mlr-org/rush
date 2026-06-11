@@ -66,6 +66,7 @@ testthat
 tgen
 tgens
 tsks
+unparseable
 urldate
 Venkatram
 Vishwanath

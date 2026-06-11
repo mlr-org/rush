@@ -4,6 +4,11 @@
   The cache now tracks consumed entries of the finished tasks list separately from cached rows.
 * `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
+* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
+  The temporary arguments file is now deleted after the worker reads it.
+* `$worker_script()` no longer logs the Redis password.
+  The logged script shows `<redacted>` instead.
+  The method now returns the script visibly.
 * `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
 * `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to `RushWorker` because they require a worker identity.
   Calling them on a `Rush` manager previously stored an empty `worker_id` in the task hashes.
