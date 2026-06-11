@@ -14,7 +14,7 @@ Object of class
 
 ## Super class
 
-[`rush::Rush`](https://rush.mlr-org.com/dev/reference/Rush.md) -\>
+[`Rush`](https://rush.mlr-org.com/dev/reference/Rush.md) -\>
 `RushWorker`
 
 ## Public fields
@@ -41,7 +41,7 @@ Object of class
 
 ### Public methods
 
-- [`RushWorker$new()`](#method-RushWorker-new)
+- [`RushWorker$new()`](#method-RushWorker-initialize)
 
 - [`RushWorker$set_terminated()`](#method-RushWorker-set_terminated)
 
@@ -49,48 +49,48 @@ Object of class
 
 Inherited methods
 
-- [`rush::Rush$detect_lost_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-detect_lost_workers)
-- [`rush::Rush$empty_queue()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-empty_queue)
-- [`rush::Rush$fail_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fail_tasks)
-- [`rush::Rush$fetch_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_failed_tasks)
-- [`rush::Rush$fetch_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_finished_tasks)
-- [`rush::Rush$fetch_new_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_new_tasks)
-- [`rush::Rush$fetch_queued_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_queued_tasks)
-- [`rush::Rush$fetch_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_running_tasks)
-- [`rush::Rush$fetch_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks)
-- [`rush::Rush$fetch_tasks_with_state()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks_with_state)
-- [`rush::Rush$finish_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-finish_tasks)
-- [`rush::Rush$format()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-format)
-- [`rush::Rush$is_failed_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_failed_task)
-- [`rush::Rush$is_running_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_running_task)
-- [`rush::Rush$pop_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-pop_task)
-- [`rush::Rush$print()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print)
-- [`rush::Rush$print_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print_log)
-- [`rush::Rush$push_failed()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed)
-- [`rush::Rush$push_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed_tasks)
-- [`rush::Rush$push_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_finished_tasks)
-- [`rush::Rush$push_results()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_results)
-- [`rush::Rush$push_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_running_tasks)
-- [`rush::Rush$push_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_tasks)
-- [`rush::Rush$read_hash()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hash)
-- [`rush::Rush$read_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hashes)
-- [`rush::Rush$read_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_log)
-- [`rush::Rush$reconnect()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reconnect)
-- [`rush::Rush$reset()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset)
-- [`rush::Rush$reset_cache()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset_cache)
-- [`rush::Rush$start_local_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_local_workers)
-- [`rush::Rush$start_remote_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_remote_workers)
-- [`rush::Rush$start_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_workers)
-- [`rush::Rush$stop_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-stop_workers)
-- [`rush::Rush$tasks_with_state()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-tasks_with_state)
-- [`rush::Rush$wait_for_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-wait_for_tasks)
-- [`rush::Rush$wait_for_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-wait_for_workers)
-- [`rush::Rush$worker_script()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-worker_script)
-- [`rush::Rush$write_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-write_hashes)
+- [`Rush$detect_lost_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-detect_lost_workers)
+- [`Rush$empty_queue()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-empty_queue)
+- [`Rush$fail_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fail_tasks)
+- [`Rush$fetch_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_failed_tasks)
+- [`Rush$fetch_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_finished_tasks)
+- [`Rush$fetch_new_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_new_tasks)
+- [`Rush$fetch_queued_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_queued_tasks)
+- [`Rush$fetch_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_running_tasks)
+- [`Rush$fetch_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks)
+- [`Rush$fetch_tasks_with_state()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks_with_state)
+- [`Rush$finish_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-finish_tasks)
+- [`Rush$format()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-format)
+- [`Rush$is_failed_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_failed_task)
+- [`Rush$is_running_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_running_task)
+- [`Rush$pop_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-pop_task)
+- [`Rush$print()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print)
+- [`Rush$print_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print_log)
+- [`Rush$push_failed()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed)
+- [`Rush$push_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed_tasks)
+- [`Rush$push_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_finished_tasks)
+- [`Rush$push_results()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_results)
+- [`Rush$push_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_running_tasks)
+- [`Rush$push_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_tasks)
+- [`Rush$read_hash()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hash)
+- [`Rush$read_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hashes)
+- [`Rush$read_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_log)
+- [`Rush$reconnect()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reconnect)
+- [`Rush$reset()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset)
+- [`Rush$reset_cache()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-reset_cache)
+- [`Rush$start_local_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_local_workers)
+- [`Rush$start_remote_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_remote_workers)
+- [`Rush$start_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-start_workers)
+- [`Rush$stop_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-stop_workers)
+- [`Rush$tasks_with_state()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-tasks_with_state)
+- [`Rush$wait_for_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-wait_for_tasks)
+- [`Rush$wait_for_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-wait_for_workers)
+- [`Rush$worker_script()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-worker_script)
+- [`Rush$write_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-write_hashes)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `RushWorker$new()`
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -145,7 +145,7 @@ Creates a new instance of this
 
 ------------------------------------------------------------------------
 
-### Method `set_terminated()`
+### `RushWorker$set_terminated()`
 
 Mark the worker as terminated. Last step in the worker loop before the
 worker terminates.
@@ -161,7 +161,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `RushWorker$clone()`
 
 The objects of this class are cloneable with this method.
 

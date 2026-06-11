@@ -26,7 +26,7 @@ Object of class
 
 ### Public methods
 
-- [`AppenderRedis$new()`](#method-AppenderRedis-new)
+- [`AppenderRedis$new()`](#method-AppenderRedis-initialize)
 
 - [`AppenderRedis$flush()`](#method-AppenderRedis-flush)
 
@@ -50,7 +50,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `AppenderRedis$new()`
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -124,7 +124,7 @@ Creates a new instance of this
 
 ------------------------------------------------------------------------
 
-### Method [`flush()`](https://rdrr.io/r/base/connections.html)
+### `AppenderRedis$flush()`
 
 Sends the buffer's contents to the Redis data store, and then clears the
 buffer.

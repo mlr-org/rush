@@ -21,3 +21,8 @@ Useful links:
 
 **Maintainer**: Marc Becker <marcbecker@posteo.de>
 ([ORCID](https://orcid.org/0000-0002-8115-0400)) \[copyright holder\]
+
+Authors:
+
+- Marc Becker <marcbecker@posteo.de>
+  ([ORCID](https://orcid.org/0000-0002-8115-0400)) \[copyright holder\]

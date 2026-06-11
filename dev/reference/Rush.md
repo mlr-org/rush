@@ -233,7 +233,7 @@ of `$start_workers()`.
 
 ### Public methods
 
-- [`Rush$new()`](#method-Rush-new)
+- [`Rush$new()`](#method-Rush-initialize)
 
 - [`Rush$format()`](#method-Rush-format)
 
@@ -315,7 +315,7 @@ of `$start_workers()`.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Rush$new()`
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -346,7 +346,7 @@ Creates a new instance of this
 
 ------------------------------------------------------------------------
 
-### Method [`format()`](https://rdrr.io/r/base/format.html)
+### `Rush$format()`
 
 Helper for print outputs.
 
@@ -366,7 +366,7 @@ Helper for print outputs.
 
 ------------------------------------------------------------------------
 
-### Method [`print()`](https://rdrr.io/r/base/print.html)
+### `Rush$print()`
 
 Print method.
 
@@ -380,7 +380,7 @@ Print method.
 
 ------------------------------------------------------------------------
 
-### Method `reconnect()`
+### `Rush$reconnect()`
 
 Reconnect to Redis. The connection breaks when the Rush object is saved
 to disk. Call this method to reconnect after loading the object.
@@ -391,7 +391,7 @@ to disk. Call this method to reconnect after loading the object.
 
 ------------------------------------------------------------------------
 
-### Method `start_workers()`
+### `Rush$start_workers()`
 
 Start workers to run the worker loop in
 [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
@@ -464,7 +464,7 @@ each process and starts the worker loop.
 
 ------------------------------------------------------------------------
 
-### Method `start_local_workers()`
+### `Rush$start_local_workers()`
 
 Start workers locally with `processx`. Initializes a
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) in
@@ -542,7 +542,7 @@ wait until the workers are registered in the network.
 
 ------------------------------------------------------------------------
 
-### Method `start_remote_workers()`
+### `Rush$start_remote_workers()`
 
 Start workers to run the worker loop in
 [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
@@ -615,7 +615,7 @@ each process and starts the worker loop.
 
 ------------------------------------------------------------------------
 
-### Method `worker_script()`
+### `Rush$worker_script()`
 
 Generate a script to start workers. Run this script `n` times to start
 `n` workers.
@@ -693,7 +693,7 @@ Generate a script to start workers. Run this script `n` times to start
 
 ------------------------------------------------------------------------
 
-### Method `wait_for_workers()`
+### `Rush$wait_for_workers()`
 
 Wait until workers are registered in the network. Either `n`,
 `worker_ids` or both must be provided.
@@ -723,7 +723,7 @@ Wait until workers are registered in the network. Either `n`,
 
 ------------------------------------------------------------------------
 
-### Method `stop_workers()`
+### `Rush$stop_workers()`
 
 Stop workers.
 
@@ -748,7 +748,7 @@ Stop workers.
 
 ------------------------------------------------------------------------
 
-### Method `detect_lost_workers()`
+### `Rush$detect_lost_workers()`
 
 Detect lost workers. The state of the worker is changed to
 `"terminated"`.
@@ -764,7 +764,7 @@ Worker ids of detected lost workers.
 
 ------------------------------------------------------------------------
 
-### Method `reset()`
+### `Rush$reset()`
 
 Stop workers and delete data stored in redis.
 
@@ -782,7 +782,7 @@ Stop workers and delete data stored in redis.
 
 ------------------------------------------------------------------------
 
-### Method `read_log()`
+### `Rush$read_log()`
 
 Read log messages written with the `lgr` package by the workers.
 
@@ -810,7 +810,7 @@ time difference.
 
 ------------------------------------------------------------------------
 
-### Method `print_log()`
+### `Rush$print_log()`
 
 Print log messages written with the `lgr` package by the workers. Log
 messages are printed with the original logger.
@@ -826,7 +826,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `pop_task()`
+### `Rush$pop_task()`
 
 Pop a task from the queue and mark it as running.
 
@@ -848,7 +848,7 @@ Pop a task from the queue and mark it as running.
 
 ------------------------------------------------------------------------
 
-### Method `finish_tasks()`
+### `Rush$finish_tasks()`
 
 Save output of tasks and mark them as finished.
 
@@ -880,7 +880,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `fail_tasks()`
+### `Rush$fail_tasks()`
 
 Mark tasks as failed and optionally save the condition objects
 
@@ -907,7 +907,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `push_tasks()`
+### `Rush$push_tasks()`
 
 Create queued tasks and add them to the queue.
 
@@ -936,7 +936,7 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_running_tasks()`
+### `Rush$push_running_tasks()`
 
 Create running tasks.
 
@@ -965,7 +965,7 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_finished_tasks()`
+### `Rush$push_finished_tasks()`
 
 Create finished tasks. See `$finish_tasks()` for moving existing tasks
 from running to finished.
@@ -1007,7 +1007,7 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_failed_tasks()`
+### `Rush$push_failed_tasks()`
 
 Create failed tasks. See `$fail_tasks()` for moving existing tasks from
 queued and running to failed.
@@ -1042,7 +1042,7 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `empty_queue()`
+### `Rush$empty_queue()`
 
 Remove all tasks from the queue. The state of the tasks is set to
 failed.
@@ -1070,7 +1070,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_tasks()`
+### `Rush$fetch_tasks()`
 
 Fetch all tasks from the data base.
 
@@ -1095,7 +1095,7 @@ Table of all tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_queued_tasks()`
+### `Rush$fetch_queued_tasks()`
 
 Fetch queued tasks from the data base.
 
@@ -1117,7 +1117,7 @@ Table of queued tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_running_tasks()`
+### `Rush$fetch_running_tasks()`
 
 Fetch running tasks from the data base.
 
@@ -1140,7 +1140,7 @@ Table of running tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_failed_tasks()`
+### `Rush$fetch_failed_tasks()`
 
 Fetch failed tasks from the data base.
 
@@ -1163,7 +1163,7 @@ Table of failed tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_finished_tasks()`
+### `Rush$fetch_finished_tasks()`
 
 Fetch finished tasks from the data base. Finished tasks are cached.
 
@@ -1188,7 +1188,7 @@ Table of finished tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_tasks_with_state()`
+### `Rush$fetch_tasks_with_state()`
 
 Fetch tasks with different states from the data base. If tasks with
 different states are to be queried at the same time, this function
@@ -1219,7 +1219,7 @@ tasks are cached.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_new_tasks()`
+### `Rush$fetch_new_tasks()`
 
 Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks. If `timeout` is set, blocks
@@ -1251,7 +1251,7 @@ Table of latest results.
 
 ------------------------------------------------------------------------
 
-### Method `reset_cache()`
+### `Rush$reset_cache()`
 
 Reset the cache of the finished tasks.
 
@@ -1266,7 +1266,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `wait_for_tasks()`
+### `Rush$wait_for_tasks()`
 
 Wait until tasks are finished. The function also unblocks when no worker
 is running or all tasks failed.
@@ -1289,7 +1289,7 @@ is running or all tasks failed.
 
 ------------------------------------------------------------------------
 
-### Method `write_hashes()`
+### `Rush$write_hashes()`
 
 Writes R objects to Redis hashes. The function takes the vectors in
 `...` as input and writes each element as a field-value pair to a new
@@ -1336,7 +1336,7 @@ Keys of the hashes.
 
 ------------------------------------------------------------------------
 
-### Method `read_hashes()`
+### `Rush$read_hashes()`
 
 Reads R Objects from Redis hashes. The function reads the field-value
 pairs of the hashes stored at `keys`. The values of a hash are
@@ -1378,7 +1378,7 @@ combination of the lists stored at the different fields.
 
 ------------------------------------------------------------------------
 
-### Method `read_hash()`
+### `Rush$read_hash()`
 
 Reads a single Redis hash and returns the values as a list named by the
 fields.
@@ -1407,7 +1407,7 @@ combination of the lists stored at the different fields.
 
 ------------------------------------------------------------------------
 
-### Method `is_running_task()`
+### `Rush$is_running_task()`
 
 Checks whether tasks have the status `"running"`.
 
@@ -1424,7 +1424,7 @@ Checks whether tasks have the status `"running"`.
 
 ------------------------------------------------------------------------
 
-### Method `is_failed_task()`
+### `Rush$is_failed_task()`
 
 Checks whether tasks have the status `"failed"`.
 
@@ -1441,7 +1441,7 @@ Checks whether tasks have the status `"failed"`.
 
 ------------------------------------------------------------------------
 
-### Method `tasks_with_state()`
+### `Rush$tasks_with_state()`
 
 Returns keys of requested states.
 
@@ -1462,7 +1462,7 @@ Returns keys of requested states.
 
 ------------------------------------------------------------------------
 
-### Method `push_results()`
+### `Rush$push_results()`
 
 Deprecated method. Use `$finish_tasks()` instead.
 
@@ -1494,7 +1494,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `push_failed()`
+### `Rush$push_failed()`
 
 Deprecated method. Use `$fail_tasks()` instead.
 
@@ -1521,7 +1521,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Rush$clone()`
 
 The objects of this class are cloneable with this method.
 
