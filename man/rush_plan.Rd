@@ -10,7 +10,8 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "mirai"
+  worker_type = "mirai",
+  start_worker_timeout = NULL
 )
 }
 \arguments{
@@ -38,6 +39,10 @@ The path to the directory where large objects are stored.}
 The type of worker to use.
 Options are \code{"mirai"} to start with \CRANpkg{mirai}, \code{"processx"} to use \CRANpkg{processx} or \code{"script"}
 to get a script to run.}
+
+\item{start_worker_timeout}{(\code{numeric(1)})\cr
+Default timeout in seconds used by \verb{$wait_for_workers()} of \link{Rush} when no \code{timeout} is passed.
+If \code{NULL}, \verb{$wait_for_workers()} waits indefinitely by default.}
 }
 \value{
 \code{list()} with the stored configuration.

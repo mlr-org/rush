@@ -515,7 +515,7 @@ If \code{NULL}, no output is stored.}
 Either \code{n}, \code{worker_ids} or both must be provided.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)}
+    \preformatted{Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -529,7 +529,7 @@ Worker ids to wait for.
 If \code{NULL}, wait for any \code{n} workers to be registered.}
       \item{\code{timeout}}{(\code{numeric(1)})\cr
 Timeout in seconds.
-Default is \code{Inf}.}
+Defaults to the \code{start_worker_timeout} set with \code{\link[=rush_plan]{rush_plan()}}, or \code{Inf} if none is set.}
     }
     \if{html}{\out{</div>}}
   }
