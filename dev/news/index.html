@@ -70,6 +70,8 @@
 <li>
 <code>$pop_task()</code> and <code>$push_running_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> because they require a worker identity. Calling them on a <code>Rush</code> manager previously stored an empty <code>worker_id</code> in the task hashes.</li>
 <li>
+<code>$reset()</code> now also resets the internal log counter, so <code>$print_log()</code> no longer skips messages when the same network id is reused after a reset.</li>
+<li>
 <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
 <li>
 <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>

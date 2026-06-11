@@ -24,6 +24,9 @@
   `RushWorker` because they require a worker identity. Calling them on a
   `Rush` manager previously stored an empty `worker_id` in the task
   hashes.
+- `$reset()` now also resets the internal log counter, so `$print_log()`
+  no longer skips messages when the same network id is reused after a
+  reset.
 - [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   gains the `start_worker_timeout` argument, which sets the default
   timeout used by `$wait_for_workers()`. An explicit `timeout` passed to
