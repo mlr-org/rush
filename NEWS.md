@@ -2,6 +2,7 @@
 
 * `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
+* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.
 
 # rush 1.1.0
 

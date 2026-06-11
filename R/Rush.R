@@ -302,9 +302,15 @@ Rush = R6::R6Class(
             args_file = tempfile(fileext = ".rds")
             saveRDS(args, args_file)
 
+            # deparse() escapes the path as an R string literal e.g. backslashes in windows paths
+            expr = sprintf(
+              "args = readRDS(%1$s); unlink(%1$s); do.call(rush::start_worker, args)",
+              deparse(args_file)
+            )
+
             processx::process$new(
               "Rscript",
-              args = c("-e", sprintf("do.call(rush::start_worker, readRDS(%s))", shQuote(args_file))),
+              args = c("-e", expr),
               supervise = supervise,
               stderr = "|"
             )
