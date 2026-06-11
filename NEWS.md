@@ -1,5 +1,7 @@
 # rush (development version)
 
+* `$pop_task()` now moves tasks atomically from the queue to a worker-specific processing list, so a task can no longer be lost when the worker crashes before the task is marked as running. `$detect_lost_workers()` fails tasks left in the processing list of a crashed worker.
+
 # rush 1.1.0
 
 * `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).

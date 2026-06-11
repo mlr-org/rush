@@ -276,6 +276,10 @@ test_that("popping a task works", {
   # status checks
   expect_true(rush$is_running_task(task$key))
   expect_false(rush$is_failed_task(task$key))
+
+  # task is removed from the processing list
+  processing_tasks_key = sprintf("%s:%s:processing_tasks", rush$network_id, rush$worker_id)
+  expect_equal(rush$connector$LLEN(processing_tasks_key), 0)
 })
 
 test_that("finishing a task works", {

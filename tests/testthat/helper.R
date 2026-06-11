@@ -66,3 +66,13 @@ wl_segfault = function(rush) {
   Sys.sleep(1)
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
+
+# simulates a crash between popping a task from the queue and marking it as running
+wl_crash_mid_pop = function(rush) {
+  r = rush$connector
+  queued_tasks_key = sprintf("%s:queued_tasks", rush$network_id)
+  processing_tasks_key = sprintf("%s:%s:processing_tasks", rush$network_id, rush$worker_id)
+  r$command(c("BLMOVE", queued_tasks_key, processing_tasks_key, "RIGHT", "LEFT", 5))
+  Sys.sleep(1)
+  tools::pskill(Sys.getpid(), tools::SIGKILL)
+}

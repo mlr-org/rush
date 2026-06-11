@@ -587,23 +587,11 @@ Rush = R6::R6Class(
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            # identify lost tasks
-            if (nrow(running_tasks)) {
-              keys = running_tasks[list(id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+            # replace interrupt error message
+            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-                # Replace interrupt error message
-                message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
-
-                # push failed tasks
-                conditions = list(list(message = message))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", id)
-              }
-            }
+            # fail lost tasks
+            private$.fail_lost_tasks(id, running_tasks, message)
           }
         })
       }
@@ -619,20 +607,8 @@ Rush = R6::R6Class(
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            # identify lost tasks
-            if (nrow(running_tasks)) {
-              keys = running_tasks[list(id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-
-                # push failed tasks
-                conditions = list(list(message = "Worker has crashed or was killed"))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", id)
-              }
-            }
+            # fail lost tasks
+            private$.fail_lost_tasks(id, running_tasks, "Worker has crashed or was killed")
           }
         })
       }
@@ -660,20 +636,10 @@ Rush = R6::R6Class(
 
           r$pipeline(.commands = cmds)
 
-          # identify and fail lost tasks
-          if (nrow(running_tasks) && length(lost_workers)) {
-            walk(lost_workers, function(worker_id) {
-              keys = running_tasks[list(worker_id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-                conditions = list(list(message = "Worker has crashed or was killed"))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", worker_id)
-              }
-            })
-          }
+          # fail lost tasks
+          walk(lost_workers, function(worker_id) {
+            private$.fail_lost_tasks(worker_id, running_tasks, "Worker has crashed or was killed")
+          })
         }
       }
 
@@ -705,7 +671,8 @@ Rush = R6::R6Class(
               c("DEL", private$.get_key(worker_id)),
               c("DEL", private$.get_worker_key("terminate", worker_id)),
               c("DEL", private$.get_worker_key("kill", worker_id)),
-              c("DEL", private$.get_worker_key("events", worker_id))
+              c("DEL", private$.get_worker_key("events", worker_id)),
+              c("DEL", private$.get_worker_key("processing_tasks", worker_id))
             )
           }),
           recursive = FALSE
@@ -826,16 +793,25 @@ Rush = R6::R6Class(
     #' Fields to be returned.
     pop_task = function(timeout = 1, fields = "xs") {
       r = private$.connector
+      processing_tasks_key = private$.get_worker_key("processing_tasks")
 
-      key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
+      # move task atomically from the queue to the processing list
+      # the task survives in the processing list if the worker crashes before the SADD to running tasks
+      # tasks left in the processing list of a crashed worker are failed by $detect_lost_workers()
+      key = r$command(c("BLMOVE", private$.get_key("queued_tasks"), processing_tasks_key, "RIGHT", "LEFT", timeout))
 
       if (is.null(key)) {
         return(NULL)
       }
       self$write_hashes(worker_id = list(self$worker_id), keys = key)
 
-      # move key from queued to running
-      r$command(c("SADD", private$.get_key("running_tasks"), key))
+      # move key from processing to running
+      r$pipeline(
+        .commands = list(
+          c("SADD", private$.get_key("running_tasks"), key),
+          c("LREM", processing_tasks_key, 1, key)
+        )
+      )
 
       task = self$read_hash(key = key, fields = fields)
       task$key = key
@@ -1765,6 +1741,28 @@ Rush = R6::R6Class(
       lg$debug("Serializing worker configuration to %s", format(object.size(bin_start_args)))
 
       r$command(list("SET", private$.get_key("start_args"), bin_start_args))
+    },
+
+    # fail all tasks of a lost worker
+    # collects tasks marked as running and tasks stuck in the worker's processing list
+    # i.e. tasks popped from the queue but not marked as running before the worker crashed
+    .fail_lost_tasks = function(worker_id, running_tasks, message) {
+      r = private$.connector
+      processing_tasks_key = private$.get_worker_key("processing_tasks", worker_id)
+
+      keys = if (nrow(running_tasks)) running_tasks[list(worker_id), keys, on = "worker_id"]
+      keys = keys[!is.na(keys)]
+      keys = union(keys, unlist(r$command(c("LRANGE", processing_tasks_key, 0, -1))))
+
+      if (length(keys)) {
+        lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+        self$fail_tasks(keys, conditions = list(list(message = message)))
+      } else {
+        lg$error("Worker '%s' crashed before evaluating a task", worker_id)
+      }
+
+      r$command(c("DEL", processing_tasks_key))
+      invisible(NULL)
     },
 
     # get task keys

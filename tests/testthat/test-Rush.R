@@ -679,6 +679,36 @@ test_that("segfaults on mirai workers are detected", {
   expect_set_equal(data$message, "Worker has crashed or was killed")
 })
 
+test_that("a task popped from the queue but not marked as running is failed", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+
+  worker_ids = rush$start_workers(
+    worker_loop = wl_crash_mid_pop,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  # wait until the lost worker is detected but timeout after 10 seconds
+  start_time = Sys.time()
+  while (start_time + 10 > Sys.time()) {
+    lost_workers = rush$detect_lost_workers()
+    if (length(lost_workers)) break
+  }
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  data = rush$fetch_failed_tasks()
+  expect_data_table(data, nrows = 1)
+  expect_equal(data$keys, keys)
+  expect_equal(data$message, "Worker has crashed or was killed")
+})
+
 test_that("segfaults on processx workers are detected", {
   config = redis_configuration()
   rush = rsh(config = config)
