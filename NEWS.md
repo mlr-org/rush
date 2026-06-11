@@ -1,5 +1,7 @@
 # rush (development version)
 
+* `$fetch_finished_tasks()` and `$fetch_new_tasks()` no longer crash or return duplicated results when finished task hashes have been removed from the database.
+  The cache now tracks consumed entries of the finished tasks list separately from cached rows.
 * `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
 * `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.

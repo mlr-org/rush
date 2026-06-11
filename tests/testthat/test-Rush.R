@@ -979,6 +979,66 @@ test_that("caching results works", {
   expect_data_table(get_private(rush)$.cached_tasks, nrows = 20)
 })
 
+test_that("caching results with missing hashes works", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  xss = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4), list(x1 = 5, x2 = 6))
+  yss = list(list(y = 3), list(y = 7), list(y = 11))
+  keys = rush$push_finished_tasks(xss, yss)
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 3)
+
+  xss = list(list(x1 = 7, x2 = 8), list(x1 = 9, x2 = 10))
+  yss = list(list(y = 15), list(y = 19))
+  keys_2 = rush$push_finished_tasks(xss, yss)
+  rush$connector$DEL(keys_2[1])
+
+  data = rush$fetch_finished_tasks()
+  expect_data_table(data, nrows = 4)
+  expect_set_equal(data$keys, c(keys, keys_2[2]))
+  expect_equal(get_private(rush)$.n_consumed_tasks, 5)
+
+  # repeated fetch does not re-read or duplicate dropped tasks
+  data = rush$fetch_finished_tasks()
+  expect_data_table(data, nrows = 4)
+  expect_set_equal(data$keys, c(keys, keys_2[2]))
+
+  # new results are still picked up after a drop
+  rush$push_finished_tasks(list(list(x1 = 11, x2 = 12)), list(list(y = 23)))
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 5)
+
+  # resetting the cache rebuilds it without the dropped task
+  rush$reset_cache()
+  expect_equal(get_private(rush)$.n_consumed_tasks, 0)
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 5)
+})
+
+test_that("fetching new tasks with missing hashes works", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  rush$push_finished_tasks(list(list(x1 = 1, x2 = 2)), list(list(y = 3)))
+  expect_data_table(rush$fetch_new_tasks(), nrows = 1)
+
+  xss = list(list(x1 = 3, x2 = 4), list(x1 = 5, x2 = 6))
+  yss = list(list(y = 7), list(y = 11))
+  keys_2 = rush$push_finished_tasks(xss, yss)
+  rush$connector$DEL(keys_2[1])
+
+  data = rush$fetch_new_tasks()
+  expect_data_table(data, nrows = 1)
+  expect_equal(data$keys, keys_2[2])
+
+  # blocking fetch is not unblocked by the dropped task
+  expect_data_table(rush$fetch_new_tasks(timeout = 0.2), nrows = 0)
+
+  keys_3 = rush$push_finished_tasks(list(list(x1 = 7, x2 = 8)), list(list(y = 15)))
+  data = rush$fetch_new_tasks(timeout = 1)
+  expect_data_table(data, nrows = 1)
+  expect_equal(data$keys, keys_3)
+})
 
 test_that("reconnecting rush instance works", {
   rush = start_rush(n_workers = 1)

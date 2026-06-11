@@ -750,6 +750,7 @@ Rush = R6::R6Class(
       # reset counters and caches
       private$.cached_tasks = data.table()
       private$.n_seen_results = 0
+      private$.n_consumed_tasks = 0
 
       invisible(self)
     },
@@ -1145,9 +1146,9 @@ Rush = R6::R6Class(
     #' @return `data.table()`\cr
     #' Table of finished tasks.
     fetch_finished_tasks = function(fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")) {
-      keys = if (self$n_finished_tasks > nrow(private$.cached_tasks)) {
+      keys = if (self$n_finished_tasks > private$.n_consumed_tasks) {
         r = private$.connector
-        r$command(c("LRANGE", private$.get_key("finished_tasks"), nrow(private$.cached_tasks), -1))
+        r$command(c("LRANGE", private$.get_key("finished_tasks"), private$.n_consumed_tasks, -1))
       }
       private$.fetch_cached_tasks(keys, fields)
     },
@@ -1211,7 +1212,11 @@ Rush = R6::R6Class(
         lg$debug("Wait for new tasks for at most %s seconds", as.character(timeout))
         start_time = Sys.time()
         while (start_time + timeout > Sys.time()) {
-          if (self$n_finished_tasks > private$.n_seen_results) {
+          # unblock when there are cached but unseen rows or unconsumed entries in the finished tasks list
+          if (
+            nrow(private$.cached_tasks) > private$.n_seen_results ||
+              self$n_finished_tasks > private$.n_consumed_tasks
+          ) {
             break
           }
           Sys.sleep(0.01)
@@ -1240,6 +1245,7 @@ Rush = R6::R6Class(
     reset_cache = function() {
       private$.cached_tasks = data.table()
       private$.n_seen_results = 0
+      private$.n_consumed_tasks = 0
 
       invisible(self)
     },
@@ -1709,6 +1715,11 @@ Rush = R6::R6Class(
     # counter of the seen results for the latest results methods
     .n_seen_results = 0,
 
+    # number of entries of the finished tasks list already read from redis
+    # advances even when a task is dropped because its hash is missing,
+    # so it can be larger than nrow(.cached_tasks)
+    .n_consumed_tasks = 0,
+
     # counter for printed logs
     # zero based
     .log_counter = list(),
@@ -1778,8 +1789,8 @@ Rush = R6::R6Class(
     .tasks_with_state = function(states, only_new_keys = FALSE) {
       r = private$.connector
 
-      # optionally limit finished tasks to uncached tasks
-      start_finished_tasks = if (only_new_keys) nrow(private$.cached_tasks) else 0
+      # optionally limit finished tasks to unconsumed tasks
+      start_finished_tasks = if (only_new_keys) private$.n_consumed_tasks else 0
 
       # get keys of tasks with different states in one transaction
       r$MULTI()
@@ -1839,6 +1850,7 @@ Rush = R6::R6Class(
 
       if (reset_cache) {
         private$.cached_tasks = data.table()
+        private$.n_consumed_tasks = 0
       }
 
       lg$debug("Reading %i cached task(s)", nrow(private$.cached_tasks))
@@ -1846,13 +1858,26 @@ Rush = R6::R6Class(
       if (length(new_keys)) {
         lg$debug("Caching %i new task(s)", length(new_keys))
 
-        # rbindlist only the new results and append to cached data.table
         data = self$read_hashes(new_keys, fields)
-        new_tab = rbindlist(data, use.names = TRUE, fill = TRUE)
-        if (nrow(new_tab)) {
-          new_tab[, keys := unlist(new_keys)]
+
+        # the consumed counter advances even for dropped tasks so they are never read again
+        private$.n_consumed_tasks = private$.n_consumed_tasks + length(new_keys)
+
+        # tasks can disappear from the database e.g. when redis evicts keys under memory pressure
+        # drop them so keys and rows stay aligned
+        missing = map_lgl(data, is.null)
+        if (any(missing)) {
+          lg$warn("Removing %i task(s) with missing data", sum(missing))
+          data = data[!missing]
+          new_keys = new_keys[!missing]
         }
-        private$.cached_tasks = rbindlist(list(private$.cached_tasks, new_tab), use.names = TRUE, fill = TRUE)
+
+        if (length(data)) {
+          # rbindlist only the new results and append to cached data.table
+          new_tab = rbindlist(data, use.names = TRUE, fill = TRUE)
+          new_tab[, keys := unlist(new_keys)]
+          private$.cached_tasks = rbindlist(list(private$.cached_tasks, new_tab), use.names = TRUE, fill = TRUE)
+        }
       }
 
       lg$debug("Fetching %i task(s)", nrow(private$.cached_tasks))
