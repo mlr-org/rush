@@ -158,17 +158,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               worker_id          x         y               keys
                   &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1:    candid_redstart 0.73055767 0.8547267 a6fa37b0-0987-4...
-   2:    candid_redstart 0.60611042 0.7785309 ff5712c5-f0e5-4...
-   3:    candid_redstart 0.01501035 0.1225167 e62ce3eb-dd97-4...
-   4:    candid_redstart 0.90721679 0.9524793 6e7e7f9a-d39c-4...
-   5:    candid_redstart 0.12232708 0.3497529 e3626dd3-3215-4...
+   1: riotous_praying... 0.98324258 0.9915859 03ad68a4-4c51-4...
+   2: riotous_praying... 0.32517417 0.5702404 90964148-1a8d-4...
+   3: riotous_praying... 0.85995082 0.9273353 76470d4c-bd42-4...
+   4: riotous_praying... 0.79548150 0.8918977 67abba88-2528-4...
+   5: riotous_praying... 0.09541388 0.3088914 9606836e-1bec-4...
   ---
-6634:    candid_redstart 0.05355089 0.2314107 95507f0c-81f8-4...
-6635:    candid_redstart 0.26627734 0.5160207 a7993cba-aec6-4...
-6636: antimonarchical... 0.22387316 0.4731524 e06a413e-17e7-4...
-6637:    candid_redstart 0.84204482 0.9176300 536a578a-759c-4...
-6638: antimonarchical... 0.45143989 0.6718928 17d982d1-7f76-4...</code></pre>
+5823: subhexagonal_so... 0.68854099 0.8297837 61f45daf-ed38-4...
+5824: riotous_praying... 0.71294453 0.8443604 2e6ce1c4-37fe-4...
+5825: subhexagonal_so... 0.66963060 0.8183096 9d4d4e80-c3dc-4...
+5826: riotous_praying... 0.54054884 0.7352203 1f123096-45af-4...
+5827: subhexagonal_so... 0.72631054 0.8522385 9318145d-0aae-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -214,19 +214,19 @@
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               x         y          worker_id               keys
-           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.95625208 0.9778814 antimonarchical... 0f686c82-3652-4...
-   2: 0.73055767 0.8547267    candid_redstart a6fa37b0-0987-4...
-   3: 0.60611042 0.7785309    candid_redstart ff5712c5-f0e5-4...
-   4: 0.01501035 0.1225167    candid_redstart e62ce3eb-dd97-4...
-   5: 0.90721679 0.9524793    candid_redstart 6e7e7f9a-d39c-4...
+<pre><code>              x         y          worker_id               keys
+          &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+   1: 0.9832426 0.9915859 riotous_praying... 03ad68a4-4c51-4...
+   2: 0.5293767 0.7275828 subhexagonal_so... 88a572e9-52ad-4...
+   3: 0.3251742 0.5702404 riotous_praying... 90964148-1a8d-4...
+   4: 0.8599508 0.9273353 riotous_praying... 76470d4c-bd42-4...
+   5: 0.7954815 0.8918977 riotous_praying... 67abba88-2528-4...
   ---
-7064: 0.46503230 0.6819328    candid_redstart 6703759a-d3fa-4...
-7065: 0.80271115 0.8959415 antimonarchical... d55d7762-ac2b-4...
-7066: 0.91857208 0.9584217    candid_redstart 1ad636a0-ee11-4...
-7067: 0.81399559 0.9022170 antimonarchical... eb409e6c-4dad-4...
-7068: 0.28245273        NA    candid_redstart 52199f06-26b2-4...</code></pre>
+6209: 0.8233994 0.9074136 riotous_praying... 1ec36db5-74d0-4...
+6210: 0.7883416 0.8878860 subhexagonal_so... 01ac72f9-a53a-4...
+6211: 0.6377668 0.7986030 riotous_praying... 9cf45fbf-2ebe-4...
+6212: 0.0181148 0.1345912 subhexagonal_so... 7a3d3904-4590-4...
+6213: 0.4209900        NA riotous_praying... a74b2b21-828c-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,9 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           x       worker_id               keys
-       &lt;num&gt;          &lt;char&gt;             &lt;char&gt;
-1: 0.2824527 candid_redstart 52199f06-26b2-4...</code></pre>
+<pre><code>         x          worker_id               keys
+     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.42099 riotous_praying... a74b2b21-828c-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -250,17 +250,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id          x               keys         y
         &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running    candid_redstart 0.28245273 52199f06-26b2-4...        NA
-   2: finished    candid_redstart 0.73055767 a6fa37b0-0987-4... 0.8547267
-   3: finished    candid_redstart 0.60611042 ff5712c5-f0e5-4... 0.7785309
-   4: finished    candid_redstart 0.01501035 e62ce3eb-dd97-4... 0.1225167
-   5: finished    candid_redstart 0.90721679 6e7e7f9a-d39c-4... 0.9524793
+   1:  running riotous_praying... 0.42099002 a74b2b21-828c-4...        NA
+   2: finished riotous_praying... 0.98324258 03ad68a4-4c51-4... 0.9915859
+   3: finished riotous_praying... 0.32517417 90964148-1a8d-4... 0.5702404
+   4: finished riotous_praying... 0.85995082 76470d4c-bd42-4... 0.9273353
+   5: finished riotous_praying... 0.79548150 67abba88-2528-4... 0.8918977
   ---
-7064: finished antimonarchical... 0.55314707 2f7a8edb-c627-4... 0.7437386
-7065: finished    candid_redstart 0.46503230 6703759a-d3fa-4... 0.6819328
-7066: finished antimonarchical... 0.80271115 d55d7762-ac2b-4... 0.8959415
-7067: finished    candid_redstart 0.91857208 1ad636a0-ee11-4... 0.9584217
-7068: finished antimonarchical... 0.81399559 eb409e6c-4dad-4... 0.9022170</code></pre>
+6209: finished subhexagonal_so... 0.05233528 08a6c772-4b22-4... 0.2287691
+6210: finished riotous_praying... 0.82339938 1ec36db5-74d0-4... 0.9074136
+6211: finished subhexagonal_so... 0.78834155 01ac72f9-a53a-4... 0.8878860
+6212: finished riotous_praying... 0.63776675 9cf45fbf-2ebe-4... 0.7986030
+6213: finished subhexagonal_so... 0.01811480 7a3d3904-4590-4... 0.1345912</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7067</code></pre>
+<pre><code>[1] 6212</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -304,11 +304,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.3385776
+[1] 0.4717276
 
 
 $key
-[1] "c74e8e91-ff6a-4719-9059-67dbdadc03dd"</code></pre>
+[1] "b8e559c0-3ebb-4e30-ac22-faf9a3a1e50b"</code></pre>
 </div>
 </div>
 <div class="cell">
