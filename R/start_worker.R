@@ -49,7 +49,10 @@ start_worker = function(
   if (!is.null(message_log)) {
     message_log_path = file.path(message_log, sprintf("message_%s.log", worker_id))
     message_log_con = file(message_log_path, open = "a")
-    on.exit(close(message_log_con), add = TRUE)
+    on.exit({
+      sink(type = "message")
+      close(message_log_con)
+    }, add = TRUE)
     sink(message_log_con, type = "message", append = TRUE)
     mlr3misc::messagef("Debug message logging on worker %s started", worker_id)
   }
@@ -57,7 +60,10 @@ start_worker = function(
   if (!is.null(output_log)) {
     output_log_path = file.path(output_log, sprintf("output_%s.log", worker_id))
     output_log_con = file(output_log_path, open = "a")
-    on.exit(close(output_log_con), add = TRUE)
+    on.exit({
+      sink(type = "output")
+      close(output_log_con)
+    }, add = TRUE)
     sink(output_log_con, type = "output", append = TRUE)
     print(sprintf("Debug output logging on worker %s started", worker_id))
   }

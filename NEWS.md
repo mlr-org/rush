@@ -13,8 +13,10 @@
 * `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to `RushWorker` because they require a worker identity.
   Calling them on a `Rush` manager previously stored an empty `worker_id` in the task hashes.
 * `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
-* `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`. An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
-* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.
+* `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
+  An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
+* `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
+  The sinks are now reverted before the log connections are closed.
 
 # rush 1.1.0
 
