@@ -26,8 +26,6 @@ are lists that can contain arbitrary data.
 
 Methods to create a task:
 
-- `$push_running_tasks(xss)`: Create running tasks
-
 - `$push_finished_tasks(xss, yss)`: Create finished tasks.
 
 - `$push_failed_tasks(xss, conditions)`: Create failed tasks.
@@ -46,7 +44,9 @@ Methods to change the state of an existing task:
 - `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
   save the condition objects.
 
-- `$pop_task()`: Pop a task from the queue and mark it as running.
+The methods `$pop_task()` and `$push_running_tasks(xss)` require a
+worker identity and are therefore only available on
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md).
 
 The following methods are used to fetch tasks:
 
@@ -261,15 +261,11 @@ of `$start_workers()`.
 
 - [`Rush$print_log()`](#method-Rush-print_log)
 
-- [`Rush$pop_task()`](#method-Rush-pop_task)
-
 - [`Rush$finish_tasks()`](#method-Rush-finish_tasks)
 
 - [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
 
 - [`Rush$push_tasks()`](#method-Rush-push_tasks)
-
-- [`Rush$push_running_tasks()`](#method-Rush-push_running_tasks)
 
 - [`Rush$push_finished_tasks()`](#method-Rush-push_finished_tasks)
 
@@ -828,28 +824,6 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### `Rush$pop_task()`
-
-Pop a task from the queue and mark it as running.
-
-#### Usage
-
-    Rush$pop_task(timeout = 1, fields = "xs")
-
-#### Arguments
-
-- `timeout`:
-
-  (`numeric(1)`)  
-  Time to wait for task in seconds.
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be returned.
-
-------------------------------------------------------------------------
-
 ### `Rush$finish_tasks()`
 
 Save output of tasks and mark them as finished.
@@ -928,35 +902,6 @@ Create queued tasks and add them to the queue.
 - `extra`:
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
-
-#### Returns
-
-([`character()`](https://rdrr.io/r/base/character.html))  
-Keys of the tasks.
-
-------------------------------------------------------------------------
-
-### `Rush$push_running_tasks()`
-
-Create running tasks.
-
-#### Usage
-
-    Rush$push_running_tasks(xss, extra = NULL)
-
-#### Arguments
-
-- `xss`:
-
-  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
-  Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
-
-- `extra`:
-
-  (`list`)  
   List of additional information stored along with the task e.g.
   `list(list(timestamp), list(timestamp)))`.
 

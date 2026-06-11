@@ -6,6 +6,13 @@ initialization, the worker registers itself in the Redis database as a
 running worker. This class is usually not constructed directly by the
 user.
 
+In addition to the inherited methods, the worker provides methods that
+require a worker identity:
+
+- `$pop_task()`: Pop a task from the queue and mark it as running.
+
+- `$push_running_tasks(xss)`: Create running tasks owned by the worker.
+
 ## Value
 
 Object of class
@@ -43,6 +50,10 @@ Object of class
 
 - [`RushWorker$new()`](#method-RushWorker-initialize)
 
+- [`RushWorker$pop_task()`](#method-RushWorker-pop_task)
+
+- [`RushWorker$push_running_tasks()`](#method-RushWorker-push_running_tasks)
+
 - [`RushWorker$set_terminated()`](#method-RushWorker-set_terminated)
 
 - [`RushWorker$clone()`](#method-RushWorker-clone)
@@ -63,14 +74,12 @@ Inherited methods
 - [`Rush$format()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-format)
 - [`Rush$is_failed_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_failed_task)
 - [`Rush$is_running_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_running_task)
-- [`Rush$pop_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-pop_task)
 - [`Rush$print()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print)
 - [`Rush$print_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print_log)
 - [`Rush$push_failed()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed)
 - [`Rush$push_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed_tasks)
 - [`Rush$push_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_finished_tasks)
 - [`Rush$push_results()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_results)
-- [`Rush$push_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_running_tasks)
 - [`Rush$push_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_tasks)
 - [`Rush$read_hash()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hash)
 - [`Rush$read_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hashes)
@@ -142,6 +151,57 @@ Creates a new instance of this
   (`integer(1)`)  
   Time to live of the heartbeat in seconds. The heartbeat key is set to
   expire after `heartbeat_expire` seconds.
+
+------------------------------------------------------------------------
+
+### `RushWorker$pop_task()`
+
+Pop a task from the queue and mark it as running.
+
+#### Usage
+
+    RushWorker$pop_task(timeout = 1, fields = "xs")
+
+#### Arguments
+
+- `timeout`:
+
+  (`numeric(1)`)  
+  Time to wait for task in seconds.
+
+- `fields`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Fields to be returned.
+
+------------------------------------------------------------------------
+
+### `RushWorker$push_running_tasks()`
+
+Create running tasks.
+
+#### Usage
+
+    RushWorker$push_running_tasks(xss, extra = NULL)
+
+#### Arguments
+
+- `xss`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  Lists of arguments for the function e.g.
+  `list(list(x1, x2), list(x1, x2)))`.
+
+- `extra`:
+
+  (`list`)  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp), list(timestamp)))`.
+
+#### Returns
+
+([`character()`](https://rdrr.io/r/base/character.html))  
+Keys of the tasks.
 
 ------------------------------------------------------------------------
 

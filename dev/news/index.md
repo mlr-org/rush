@@ -9,6 +9,10 @@
 - `$fetch_tasks()` and related methods no longer fail when task hashes
   have been removed from the database. Affected tasks are dropped with a
   warning.
+- `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to
+  `RushWorker` because they require a worker identity. Calling them on a
+  `Rush` manager previously stored an empty `worker_id` in the task
+  hashes.
 - [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   gains the `start_worker_timeout` argument, which sets the default
   timeout used by `$wait_for_workers()`. An explicit `timeout` passed to
