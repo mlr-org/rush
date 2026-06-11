@@ -767,6 +767,7 @@ Rush = R6::R6Class(
       private$.cached_tasks = data.table()
       private$.n_seen_results = 0
       private$.n_consumed_tasks = 0
+      private$.log_counter = list()
 
       invisible(self)
     },

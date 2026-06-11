@@ -345,6 +345,30 @@ test_that("reset data works", {
   expect_data_table(rush$worker_info, nrows = 1)
 })
 
+test_that("reset clears the log counter", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  worker_ids = rush$start_workers(
+    worker_loop = wl_queue,
+    n_workers = 1,
+    lgr_thresholds = c("mlr3/rush" = "debug"),
+    lgr_buffer_size = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  Sys.sleep(1)
+
+  rush$print_log()
+  expect_list(get_private(rush)$.log_counter, min.len = 1)
+
+  rush$reset()
+  expect_equal(get_private(rush)$.log_counter, list())
+})
+
 # kill workers -----------------------------------------------------------------
 
 test_that("a worker is killed", {
