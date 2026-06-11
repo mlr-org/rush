@@ -31,10 +31,9 @@
   gains the `start_worker_timeout` argument, which sets the default
   timeout used by `$wait_for_workers()`. An explicit `timeout` passed to
   `$wait_for_workers()` is no longer overridden by the configuration.
-- `$start_local_workers()` no longer generates unparseable worker
-  startup code on Windows or when the temporary directory path contains
-  quotes. The temporary arguments file is now deleted after the worker
-  reads it.
+- [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
+  no longer errors on exit when `message_log` or `output_log` is set.
+  The sinks are now reverted before the log connections are closed.
 
 ## rush 1.1.0
 

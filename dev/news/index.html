@@ -74,7 +74,7 @@
 <li>
 <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
 <li>
-<code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
+<code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.0" id="rush-110">rush 1.1.0<a class="anchor" aria-label="anchor" href="#rush-110"></a></h2><p class="text-muted">CRAN release: 2026-04-24</p>
