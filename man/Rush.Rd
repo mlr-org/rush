@@ -22,7 +22,6 @@ The input \code{xs} and output \code{ys} are lists that can contain arbitrary da
 
 Methods to create a task:
 \itemize{
-\item \verb{$push_running_tasks(xss)}: Create running tasks
 \item \verb{$push_finished_tasks(xss, yss)}: Create finished tasks.
 \item \verb{$push_failed_tasks(xss, conditions)}: Create failed tasks.
 \item \verb{$push_tasks(xss)}: Create queued tasks.
@@ -35,8 +34,10 @@ Methods to change the state of an existing task:
 \itemize{
 \item \verb{$finish_tasks(keys, yss)}: Save the output of tasks and mark them as finished.
 \item \verb{$fail_tasks(keys, conditions)}: Mark tasks as failed and optionally save the condition objects.
-\item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
 }
+
+The methods \verb{$pop_task()} and \verb{$push_running_tasks(xss)} require a worker identity
+and are therefore only available on \link{RushWorker}.
 
 The following methods are used to fetch tasks:
 \itemize{
@@ -191,11 +192,9 @@ Contains information about the workers.}
     \item \href{#method-Rush-reset}{\code{Rush$reset()}}
     \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
     \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
-    \item \href{#method-Rush-pop_task}{\code{Rush$pop_task()}}
     \item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
     \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
-    \item \href{#method-Rush-push_running_tasks}{\code{Rush$push_running_tasks()}}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
     \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
@@ -645,28 +644,6 @@ Invisible self.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-pop_task"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-pop_task}{}}}
-\subsection{\code{Rush$pop_task()}}{
-  Pop a task from the queue and mark it as running.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$pop_task(timeout = 1, fields = "xs")}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{timeout}}{(\code{numeric(1)})\cr
-Time to wait for task in seconds.}
-      \item{\code{fields}}{(\code{character()})\cr
-Fields to be returned.}
-    }
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-finish_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-finish_tasks}{}}}
 \subsection{\code{Rush$finish_tasks()}}{
@@ -738,32 +715,6 @@ Invisible self.
       \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
       \item{\code{extra}}{(\code{list()})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{character()})\cr
-Keys of the tasks.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-push_running_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-push_running_tasks}{}}}
-\subsection{\code{Rush$push_running_tasks()}}{
-  Create running tasks.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_running_tasks(xss, extra = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-      \item{\code{extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
     }
     \if{html}{\out{</div>}}
