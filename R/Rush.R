@@ -706,6 +706,7 @@ Rush = R6::R6Class(
         cmds,
         list(
           c("DEL", private$.get_key("queued_tasks")),
+          c("DEL", private$.get_key("processing_tasks")),
           c("DEL", private$.get_key("running_tasks")),
           c("DEL", private$.get_key("finished_tasks")),
           c("DEL", private$.get_key("failed_tasks")),
@@ -800,7 +801,13 @@ Rush = R6::R6Class(
     #' Fields to be returned.
     pop_task = function(timeout = 1, fields = "xs") {
       r = private$.connector
-      processing_tasks_key = private$.get_worker_key("processing_tasks")
+
+      # the manager has no worker id and uses a network-level processing list
+      processing_tasks_key = if (is.null(self$worker_id)) {
+        private$.get_key("processing_tasks")
+      } else {
+        private$.get_worker_key("processing_tasks")
+      }
 
       # move task atomically from the queue to the processing list
       # the task survives in the processing list if the worker crashes before the SADD to running tasks

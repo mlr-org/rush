@@ -610,6 +610,25 @@ test_that("pushing multiple tasks with extras to the queue works", {
   expect_false(any(rush$is_failed_task(keys)))
 })
 
+test_that("popping a task on the manager works", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+  })
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  task = rush$pop_task()
+
+  expect_list(task)
+  expect_equal(task$key, keys)
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_running_tasks, 1)
+
+  # task is removed from the network-level processing list
+  expect_equal(rush$connector$LLEN(sprintf("%s:processing_tasks", rush$network_id)), 0)
+})
+
 test_that("fetching tasks with vector parameters works", {
   rush = start_rush(n_workers = 1)
   on.exit({
