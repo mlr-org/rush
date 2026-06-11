@@ -443,12 +443,12 @@ Rush = R6::R6Class(
     #' If `NULL`, wait for any `n` workers to be registered.
     #' @param timeout (`numeric(1)`)\cr
     #' Timeout in seconds.
-    #' Default is `Inf`.
-    wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = Inf) {
+    #' Defaults to the `start_worker_timeout` set with [rush_plan()], or `Inf` if none is set.
+    wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = NULL) {
       assert_count(n, null.ok = TRUE)
       assert_character(worker_ids, null.ok = TRUE)
-      assert_number(timeout)
-      timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout %??% Inf
+      assert_number(timeout, lower = 0, null.ok = TRUE)
+      timeout = timeout %??% rush_config()$start_worker_timeout %??% Inf
       start_time = Sys.time()
 
       if (is.null(n) && is.null(worker_ids)) {

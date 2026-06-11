@@ -14,6 +14,21 @@ test_that("rush_plan family works", {
   expect_true(rush_available())
 })
 
+test_that("start_worker_timeout is stored and used as default", {
+  on.exit({
+    rush$reset()
+    remove_rush_plan()
+  })
+
+  config = redis_configuration()
+  rush_plan(n_workers = 2, config, start_worker_timeout = 0.1)
+  expect_equal(rush_config()$start_worker_timeout, 0.1)
+
+  rush = rsh("test-rush")
+  expect_error(rush$wait_for_workers(1), class = "Mlr3ErrorTimeout")
+  expect_error(rush$wait_for_workers(1, timeout = 0.1), class = "Mlr3ErrorTimeout")
+})
+
 test_that("rush_plan throws and error if redis is not available", {
   on.exit(remove_rush_plan())
 
