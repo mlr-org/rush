@@ -5,6 +5,11 @@
 #' Upon initialization, the worker registers itself in the Redis database as a running worker.
 #' This class is usually not constructed directly by the user.
 #'
+#' In addition to the inherited methods, the worker provides methods that require a worker identity:
+#'
+#' * `$pop_task()`: Pop a task from the queue and mark it as running.
+#' * `$push_running_tasks(xss)`: Create running tasks owned by the worker.
+#'
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_id
@@ -105,6 +110,55 @@ RushWorker = R6::R6Class(
         heartbeat_key
       ))
       r$EXEC()
+    },
+
+    #' @description
+    #' Pop a task from the queue and mark it as running.
+    #'
+    #' @param timeout (`numeric(1)`)\cr
+    #' Time to wait for task in seconds.
+    #' @param fields (`character()`)\cr
+    #' Fields to be returned.
+    pop_task = function(timeout = 1, fields = "xs") {
+      r = self$connector
+
+      key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
+
+      if (is.null(key)) {
+        return(NULL)
+      }
+      self$write_hashes(worker_id = list(self$worker_id), keys = key)
+
+      # move key from queued to running
+      r$command(c("SADD", private$.get_key("running_tasks"), key))
+
+      task = self$read_hash(key = key, fields = fields)
+      task$key = key
+      task
+    },
+
+    #' @description
+    #' Create running tasks.
+    #'
+    #' @param xss (list of named `list()`)\cr
+    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' @param extra (`list`)\cr
+    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #'
+    #' @return (`character()`)\cr
+    #' Keys of the tasks.
+    push_running_tasks = function(xss, extra = NULL) {
+      assert_list(xss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      r = self$connector
+
+      lg$debug("Pushing %i running task(s).", length(xss))
+
+      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
+      r$command(c("SADD", private$.get_key("running_tasks"), keys))
+      r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
+
+      return(invisible(keys))
     },
 
     #' @description
