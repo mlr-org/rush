@@ -493,7 +493,6 @@ Rush = R6::R6Class(
       }
 
       error_timeout()
-      invisible(self)
     },
 
     #' @description
