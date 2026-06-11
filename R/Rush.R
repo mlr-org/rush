@@ -356,9 +356,13 @@ Rush = R6::R6Class(
     #' @description
     #' Generate a script to start workers.
     #' Run this script `n` times to start `n` workers.
+    #' The logged variant of the script redacts the Redis password.
     #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
+    #'
+    #' @return (`character(1)`)\cr
+    #' Shell command to start a worker.
     worker_script = function(
       worker_loop,
       ...,
@@ -389,14 +393,14 @@ Rush = R6::R6Class(
       )
 
       # convert arguments to character
+      format_config = function(config) {
+        fields = imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh")))
+        paste0("list(", paste(fields, collapse = ", "), ")")
+      }
       args = list(network_id = shQuote(private$.network_id, type = "sh"))
       config = mlr3misc::discard(unclass(self$config), is.null)
       config$url = NULL
-      config = paste(
-        imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh"))),
-        collapse = ", "
-      )
-      args[["config"]] = paste0("list(", config, ")")
+      args[["config"]] = format_config(config)
       if (!is.null(lgr_thresholds)) {
         lgr_thresholds = paste(
           imap(lgr_thresholds, function(value, name) {
@@ -419,12 +423,20 @@ Rush = R6::R6Class(
       if (!is.null(output_log)) {
         args[["output_log"]] = shQuote(output_log, type = "sh")
       }
-      args = paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
+      format_args = function(args) {
+        paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
+      }
+      script = sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args))
 
       lg$info("Creating worker script")
-      lg$info("Rscript -e \"rush::start_worker(%s)\"", args)
+      # log a variant with the password redacted to keep credentials out of log streams
+      if (!is.null(config$password)) {
+        config$password = "<redacted>"
+        args[["config"]] = format_config(config)
+      }
+      lg$info("%s", sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args)))
 
-      invisible(sprintf("Rscript -e \"rush::start_worker(%s)\"", args))
+      script
     },
 
     #' @description
