@@ -26,6 +26,8 @@ are lists that can contain arbitrary data.
 
 Methods to create a task:
 
+- `$push_running_tasks(xss)`: Create running tasks
+
 - `$push_finished_tasks(xss, yss)`: Create finished tasks.
 
 - `$push_failed_tasks(xss, conditions)`: Create failed tasks.
@@ -43,6 +45,8 @@ Methods to change the state of an existing task:
 
 - `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
   save the condition objects.
+
+- `$pop_task()`: Pop a task from the queue and mark it as running.
 
 The methods `$pop_task()` and `$push_running_tasks(xss)` require a
 worker identity and are therefore only available on

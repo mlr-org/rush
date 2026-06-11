@@ -83,13 +83,15 @@ The main components of a task are the key, computational state, input (<code>xs<
 The key is a unique identifier for the task in the Redis database.
 The four possible computational states are <code>"running"</code>, <code>"finished"</code>, <code>"failed"</code>, and <code>"queued"</code>.
 The input <code>xs</code> and output <code>ys</code> are lists that can contain arbitrary data.</p>
-<p>Methods to create a task:</p><ul><li><p><code>$push_finished_tasks(xss, yss)</code>: Create finished tasks.</p></li>
+<p>Methods to create a task:</p><ul><li><p><code>$push_running_tasks(xss)</code>: Create running tasks</p></li>
+<li><p><code>$push_finished_tasks(xss, yss)</code>: Create finished tasks.</p></li>
 <li><p><code>$push_failed_tasks(xss, conditions)</code>: Create failed tasks.</p></li>
 <li><p><code>$push_tasks(xss)</code>: Create queued tasks.</p></li>
 </ul><p>These methods return the key of the created tasks.
 The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.</p>
 <p>Methods to change the state of an existing task:</p><ul><li><p><code>$finish_tasks(keys, yss)</code>: Save the output of tasks and mark them as finished.</p></li>
 <li><p><code>$fail_tasks(keys, conditions)</code>: Mark tasks as failed and optionally save the condition objects.</p></li>
+<li><p><code>$pop_task()</code>: Pop a task from the queue and mark it as running.</p></li>
 </ul><p>The methods <code>$pop_task()</code> and <code>$push_running_tasks(xss)</code> require a worker identity
 and are therefore only available on <a href="RushWorker.html">RushWorker</a>.</p>
 <p>The following methods are used to fetch tasks:</p><ul><li><p><code>$fetch_tasks()</code>: Fetch all tasks.</p></li>

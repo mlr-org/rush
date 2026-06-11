@@ -4,7 +4,7 @@ Starts a worker. The function loads packages, initializes the
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)
 instance and invokes the worker loop. This function is called by
 `$start_local_workers()` or by the user after creating the worker script
-with `$create_worker_script()`.
+with `$worker_script()`.
 
 ## Usage
 
@@ -98,10 +98,7 @@ instance and starts the worker loop.
 # This example is not executed since Redis must be installed
 if (FALSE) { # \dontrun{
   rush::start_worker(
-   network_id = 'test-rush',
-   url = 'redis://127.0.0.1:6379',
-   scheme = 'redis',
-   host = '127.0.0.1',
-   port = '6379')
+    network_id = "test-rush",
+    config = list(host = "127.0.0.1", port = "6379"))
 } # }
 ```
