@@ -10,6 +10,12 @@ Object of class \link[R6:R6Class]{R6::R6Class} and \code{RushWorker}.
 \link{RushWorker} inherits all methods from \link{Rush}.
 Upon initialization, the worker registers itself in the Redis database as a running worker.
 This class is usually not constructed directly by the user.
+
+In addition to the inherited methods, the worker provides methods that require a worker identity:
+\itemize{
+\item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
+\item \verb{$push_running_tasks(xss)}: Create running tasks owned by the worker.
+}
 }
 \section{Super class}{
 \code{\link[rush:Rush]{Rush}} -> \code{RushWorker}
@@ -38,6 +44,8 @@ Used in the worker loop to determine whether to continue.}
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RushWorker-initialize}{\code{RushWorker$new()}}
+    \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
+    \item \href{#method-RushWorker-push_running_tasks}{\code{RushWorker$push_running_tasks()}}
     \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
     \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
   }
@@ -58,14 +66,12 @@ Used in the worker loop to determine whether to continue.}
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>Rush$format()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>Rush$is_failed_task()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>Rush$is_running_task()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="pop_task"><a href='../../rush/html/Rush.html#method-Rush-pop_task'><code>Rush$pop_task()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>Rush$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>Rush$print_log()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>Rush$push_failed()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_failed_tasks'><code>Rush$push_failed_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>Rush$push_finished_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_results"><a href='../../rush/html/Rush.html#method-Rush-push_results'><code>Rush$push_results()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_running_tasks'><code>Rush$push_running_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>Rush$push_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>Rush$read_hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>Rush$read_hashes()</code></a></span></li>
@@ -118,12 +124,62 @@ Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
       \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
-The heartbeat is updated every \code{heartbeat_period} seconds.}
+The heartbeat is updated every \code{heartbeat_period} seconds.
+Must be at least 1 second.}
       \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
+Must be at least 1 second.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-pop_task"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-pop_task}{}}}
+\subsection{\code{RushWorker$pop_task()}}{
+  Pop a task from the queue and mark it as running.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{timeout}}{(\code{numeric(1)})\cr
+Time to wait for task in seconds.}
+      \item{\code{fields}}{(\code{character()})\cr
+Fields to be returned.}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-push_running_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-push_running_tasks}{}}}
+\subsection{\code{RushWorker$push_running_tasks()}}{
+  Create running tasks.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$push_running_tasks(xss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{xss}}{(list of named \code{list()})\cr
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+      \item{\code{extra}}{(\code{list})\cr
+List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
+Keys of the tasks.
   }
 }
 

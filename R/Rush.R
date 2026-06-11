@@ -29,6 +29,10 @@
 #' * `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally save the condition objects.
 #' * `$pop_task()`: Pop a task from the queue and mark it as running.
 #'
+#'
+#' The methods `$pop_task()` and `$push_running_tasks(xss)` require a worker identity
+#' and are therefore only available on [RushWorker].
+#'
 #' The following methods are used to fetch tasks:
 #'
 #' * `$fetch_tasks()`: Fetch all tasks.
@@ -451,12 +455,12 @@ Rush = R6::R6Class(
     #' If `NULL`, wait for any `n` workers to be registered.
     #' @param timeout (`numeric(1)`)\cr
     #' Timeout in seconds.
-    #' Default is `Inf`.
-    wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = Inf) {
+    #' Defaults to the `start_worker_timeout` set with [rush_plan()], or `Inf` if none is set.
+    wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = NULL) {
       assert_count(n, null.ok = TRUE)
       assert_character(worker_ids, null.ok = TRUE)
-      assert_number(timeout)
-      timeout = if (is.finite(timeout)) timeout else rush_config()$start_worker_timeout %??% Inf
+      assert_number(timeout, lower = 0, null.ok = TRUE)
+      timeout = timeout %??% rush_config()$start_worker_timeout %??% Inf
       start_time = Sys.time()
 
       if (is.null(n) && is.null(worker_ids)) {
@@ -837,31 +841,6 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Pop a task from the queue and mark it as running.
-    #'
-    #' @param timeout (`numeric(1)`)\cr
-    #' Time to wait for task in seconds.
-    #' @param fields (`character()`)\cr
-    #' Fields to be returned.
-    pop_task = function(timeout = 1, fields = "xs") {
-      r = private$.connector
-
-      key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
-
-      if (is.null(key)) {
-        return(NULL)
-      }
-      self$write_hashes(worker_id = list(self$worker_id), keys = key)
-
-      # move key from queued to running
-      r$command(c("SADD", private$.get_key("running_tasks"), key))
-
-      task = self$read_hash(key = key, fields = fields)
-      task$key = key
-      task
-    },
-
-    #' @description
     #' Save output of tasks and mark them as finished.
     #'
     #' @param keys (`character(1)`)\cr
@@ -978,30 +957,6 @@ Rush = R6::R6Class(
         c("LPUSH", private$.get_key("queued_tasks"), keys)
       )
       r$pipeline(.commands = cmds)
-
-      return(invisible(keys))
-    },
-
-    #' @description
-    #' Create running tasks.
-    #'
-    #' @param xss (list of named `list()`)\cr
-    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' @param extra (`list`)\cr
-    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
-    #'
-    #' @return (`character()`)\cr
-    #' Keys of the tasks.
-    push_running_tasks = function(xss, extra = NULL) {
-      assert_list(xss, types = "list")
-      assert_list(extra, types = "list", null.ok = TRUE)
-      r = private$.connector
-
-      lg$debug("Pushing %i running task(s).", length(xss))
-
-      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
-      r$command(c("SADD", private$.get_key("running_tasks"), keys))
-      r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
       return(invisible(keys))
     },

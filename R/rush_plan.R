@@ -14,6 +14,9 @@
 #' The type of worker to use.
 #' Options are `"mirai"` to start with \CRANpkg{mirai}, `"processx"` to use \CRANpkg{processx} or `"script"`
 #' to get a script to run.
+#' @param start_worker_timeout (`numeric(1)`)\cr
+#' Default timeout in seconds used by `$wait_for_workers()` of [Rush] when no `timeout` is passed.
+#' If `NULL`, `$wait_for_workers()` waits indefinitely by default.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds
@@ -36,13 +39,15 @@ rush_plan = function(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "mirai"
+  worker_type = "mirai",
+  start_worker_timeout = NULL
 ) {
   assert_count(n_workers, null.ok = TRUE)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
+  assert_number(start_worker_timeout, lower = 0, null.ok = TRUE)
 
   if (worker_type == "local") {
     warn_deprecated("local")
@@ -65,6 +70,7 @@ rush_plan = function(
   assign("lgr_buffer_size", lgr_buffer_size, rush_env)
   assign("large_objects_path", large_objects_path, rush_env)
   assign("worker_type", worker_type, rush_env)
+  assign("start_worker_timeout", start_worker_timeout, rush_env)
   invisible(as.list(rush_env))
 }
 

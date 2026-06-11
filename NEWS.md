@@ -9,6 +9,11 @@
 * `$worker_script()` no longer logs the Redis password.
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.
+* `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
+* `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to `RushWorker` because they require a worker identity.
+  Calling them on a `Rush` manager previously stored an empty `worker_id` in the task hashes.
+* `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`. An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
+* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.
 
 # rush 1.1.0
 

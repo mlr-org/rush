@@ -115,8 +115,12 @@ rush$push_tasks(xss = xss)
 
 # Pop Task from Queue
 
+Only a `RushWorker` can pop tasks from the queue.
+
 ```{r rush-012}
-task = rush$pop_task()
+rush_worker = RushWorker$new("my_network")
+
+task = rush_worker$pop_task()
 task
 ```
 
