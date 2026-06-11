@@ -187,6 +187,25 @@ test_that("additional local workers are started", {
   expect_set_equal(rush$worker_info$state, "running")
 })
 
+test_that("local workers remove the arguments file after start", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rds_files = list.files(tempdir(), pattern = "\\.rds$")
+
+  rush$start_local_workers(
+    worker_loop = wl_queue,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  expect_set_equal(list.files(tempdir(), pattern = "\\.rds$"), rds_files)
+})
+
 # start workers with script ----------------------------------------------------
 
 test_that("heartbeat process is started", {

@@ -1,5 +1,7 @@
 # rush (development version)
 
+* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.
+
 # rush 1.1.0
 
 * `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).
