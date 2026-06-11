@@ -557,7 +557,8 @@ If <code>NULL</code>, no output is stored.</p></dd>
 <p></p><hr><a id="method-Rush-worker_script"></a><div class="section">
 <h3 id="rush-worker-script-"><code>Rush$worker_script()</code><a class="anchor" aria-label="anchor" href="#rush-worker-script-"></a></h3>
 <p>Generate a script to start workers.
-Run this script <code>n</code> times to start <code>n</code> workers.</p><div class="section">
+Run this script <code>n</code> times to start <code>n</code> workers.
+The logged variant of the script redacts the Redis password.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
@@ -620,6 +621,10 @@ If <code>NULL</code>, no output is stored.</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>(<code>character(1)</code>)<br>
+Shell command to start a worker.</p>
 </div>
 
 </div>
@@ -686,7 +691,7 @@ The state of the worker is changed to <code>"terminated"</code>.</p><div class="
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids of detected lost workers.</p>
 </div>
@@ -730,7 +735,7 @@ Whether to calculate the time difference between log messages.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p><code>data.table()</code><br>
 Table with level, timestamp, logger, caller and message, and optionally time difference.</p>
 </div>
@@ -744,7 +749,7 @@ Log messages are printed with the original logger.</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">print_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -773,7 +778,7 @@ List of lists of additional information stored along with the results.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -800,7 +805,7 @@ Defaults to <code>list(message = "Failed")</code>.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -825,7 +830,7 @@ List of additional information stored along with the task e.g. <code>list(list(t
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
@@ -859,7 +864,7 @@ List of additional information stored along with the results e.g. <code>list(lis
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
@@ -889,7 +894,7 @@ List of lists of conditions.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
@@ -916,7 +921,7 @@ List of lists of conditions.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -940,7 +945,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition"
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p><code>data.table()</code><br>
 Table of all tasks.</p>
 </div>
@@ -962,7 +967,7 @@ Defaults to <code>c("xs", "xs_extra")</code>.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p><code>data.table()</code><br>
 Table of queued tasks.</p>
 </div>
@@ -984,7 +989,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_id")</code>.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p><code>data.table()</code><br>
 Table of running tasks.</p>
 </div>
@@ -1006,7 +1011,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_id", "condition"</code>.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p><code>data.table()</code><br>
 Table of failed tasks.</p>
 </div>
@@ -1031,7 +1036,7 @@ Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra")</code>.</p>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p><code>data.table()</code><br>
 Table of finished tasks.</p>
 </div>
@@ -1092,7 +1097,7 @@ Defaults to <code>0</code> (no waiting).</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
 <p><code>data.table()</code><br>
 Table of latest results.</p>
 </div>
@@ -1105,7 +1110,7 @@ Table of latest results.</p>
 <h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset_cache</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -1172,7 +1177,7 @@ If <code>NULL</code> new keys are generated.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the hashes.</p>
 </div>
@@ -1208,7 +1213,7 @@ Whether to flatten the list.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
 <p>(list of <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
@@ -1234,7 +1239,7 @@ Fields to be read from the hash.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
 <p>(list of <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
@@ -1290,7 +1295,7 @@ States of the tasks.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
 <p>(Named list of <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>).</p>
 </div>
 
@@ -1319,7 +1324,7 @@ List of lists of additional information stored along with the results.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
+<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
@@ -1345,7 +1350,7 @@ List of conditions.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
+<h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>

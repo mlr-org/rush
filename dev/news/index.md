@@ -9,6 +9,13 @@
 - `$fetch_tasks()` and related methods no longer fail when task hashes
   have been removed from the database. Affected tasks are dropped with a
   warning.
+- `$start_local_workers()` no longer generates unparseable worker
+  startup code on Windows or when the temporary directory path contains
+  quotes. The temporary arguments file is now deleted after the worker
+  reads it.
+- `$worker_script()` no longer logs the Redis password. The logged
+  script shows `<redacted>` instead. The method now returns the script
+  visibly.
 - `RushWorker$new()` now errors when the heartbeat process fails to set
   the heartbeat key within the startup timeout instead of silently
   registering a dead heartbeat. `heartbeat_period` and

@@ -614,7 +614,8 @@ each process and starts the worker loop.
 ### `Rush$worker_script()`
 
 Generate a script to start workers. Run this script `n` times to start
-`n` workers.
+`n` workers. The logged variant of the script redacts the Redis
+password.
 
 #### Usage
 
@@ -686,6 +687,11 @@ Generate a script to start workers. Run this script `n` times to start
   Path to the output log files e.g. `/tmp/output_logs/` The output log
   files are named `output_<worker_id>.log`. If `NULL`, no output is
   stored.
+
+#### Returns
+
+(`character(1)`)  
+Shell command to start a worker.
 
 ------------------------------------------------------------------------
 
