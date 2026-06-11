@@ -192,12 +192,14 @@ Keys in redis specific to the worker are prefixed with the worker id.</p></dd>
       <dt><code>heartbeat_period</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Period of the heartbeat in seconds.
-The heartbeat is updated every <code>heartbeat_period</code> seconds.</p></dd>
+The heartbeat is updated every <code>heartbeat_period</code> seconds.
+Must be at least 1 second.</p></dd>
 
       <dt><code>heartbeat_expire</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.</p></dd>
+The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
+Must be at least 1 second.</p></dd>
 
 
 </dl><p></p></div>
