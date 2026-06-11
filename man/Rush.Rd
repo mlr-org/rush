@@ -99,206 +99,214 @@ if (redux::redis_available()) {
 }
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{processes_processx}}{(\link[processx:process]{processx::process})\cr
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{processes_processx}}{(\link[processx:process]{processx::process})\cr
 List of processes started with \verb{$start_local_workers()}.}
 
-\item{\code{processes_mirai}}{(\link[mirai:mirai]{mirai::mirai})\cr
+    \item{\code{processes_mirai}}{(\link[mirai:mirai]{mirai::mirai})\cr
 List of mirai processes started with \verb{$start_remote_workers()}.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{network_id}}{(\code{character(1)})\cr
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.}
 
-\item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
+    \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.}
 
-\item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
+    \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
 Returns a connection to Redis.}
 
-\item{\code{n_workers}}{(\code{integer(1)})\cr
+    \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers.}
 
-\item{\code{n_running_workers}}{(\code{integer(1)})\cr
+    \item{\code{n_running_workers}}{(\code{integer(1)})\cr
 Number of running workers.}
 
-\item{\code{n_terminated_workers}}{(\code{integer(1)})\cr
+    \item{\code{n_terminated_workers}}{(\code{integer(1)})\cr
 Number of terminated workers.}
 
-\item{\code{worker_ids}}{(\code{character()})\cr
+    \item{\code{worker_ids}}{(\code{character()})\cr
 Ids of workers.}
 
-\item{\code{running_worker_ids}}{(\code{character()})\cr
+    \item{\code{running_worker_ids}}{(\code{character()})\cr
 Ids of running workers.}
 
-\item{\code{terminated_worker_ids}}{(\code{character()})\cr
+    \item{\code{terminated_worker_ids}}{(\code{character()})\cr
 Ids of terminated workers.}
 
-\item{\code{tasks}}{(\code{character()})\cr
+    \item{\code{tasks}}{(\code{character()})\cr
 Keys of all tasks.}
 
-\item{\code{queued_tasks}}{(\code{character()})\cr
+    \item{\code{queued_tasks}}{(\code{character()})\cr
 Keys of queued tasks.}
 
-\item{\code{running_tasks}}{(\code{character()})\cr
+    \item{\code{running_tasks}}{(\code{character()})\cr
 Keys of running tasks.}
 
-\item{\code{finished_tasks}}{(\code{character()})\cr
+    \item{\code{finished_tasks}}{(\code{character()})\cr
 Keys of finished tasks.}
 
-\item{\code{failed_tasks}}{(\code{character()})\cr
+    \item{\code{failed_tasks}}{(\code{character()})\cr
 Keys of failed tasks.}
 
-\item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
+    \item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
 Number of queued tasks.}
 
-\item{\code{n_running_tasks}}{(\code{integer(1)})\cr
+    \item{\code{n_running_tasks}}{(\code{integer(1)})\cr
 Number of running tasks.}
 
-\item{\code{n_finished_tasks}}{(\code{integer(1)})\cr
+    \item{\code{n_finished_tasks}}{(\code{integer(1)})\cr
 Number of finished tasks.}
 
-\item{\code{n_failed_tasks}}{(\code{integer(1)})\cr
+    \item{\code{n_failed_tasks}}{(\code{integer(1)})\cr
 Number of failed tasks.}
 
-\item{\code{n_tasks}}{(\code{integer(1)})\cr
+    \item{\code{n_tasks}}{(\code{integer(1)})\cr
 Number of all tasks.}
 
-\item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
+    \item{\code{worker_info}}{(\code{\link[data.table:data.table]{data.table::data.table()}})\cr
 Contains information about the workers.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Rush-new}{\code{Rush$new()}}
-\item \href{#method-Rush-format}{\code{Rush$format()}}
-\item \href{#method-Rush-print}{\code{Rush$print()}}
-\item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
-\item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
-\item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
-\item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
-\item \href{#method-Rush-worker_script}{\code{Rush$worker_script()}}
-\item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
-\item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
-\item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
-\item \href{#method-Rush-reset}{\code{Rush$reset()}}
-\item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
-\item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
-\item \href{#method-Rush-pop_task}{\code{Rush$pop_task()}}
-\item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
-\item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
-\item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
-\item \href{#method-Rush-push_running_tasks}{\code{Rush$push_running_tasks()}}
-\item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
-\item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
-\item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
-\item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
-\item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
-\item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
-\item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
-\item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
-\item \href{#method-Rush-fetch_tasks_with_state}{\code{Rush$fetch_tasks_with_state()}}
-\item \href{#method-Rush-fetch_new_tasks}{\code{Rush$fetch_new_tasks()}}
-\item \href{#method-Rush-reset_cache}{\code{Rush$reset_cache()}}
-\item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
-\item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
-\item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
-\item \href{#method-Rush-read_hash}{\code{Rush$read_hash()}}
-\item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
-\item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
-\item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
-\item \href{#method-Rush-push_results}{\code{Rush$push_results()}}
-\item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
-\item \href{#method-Rush-clone}{\code{Rush$clone()}}
-}
+  \itemize{
+    \item \href{#method-Rush-initialize}{\code{Rush$new()}}
+    \item \href{#method-Rush-format}{\code{Rush$format()}}
+    \item \href{#method-Rush-print}{\code{Rush$print()}}
+    \item \href{#method-Rush-reconnect}{\code{Rush$reconnect()}}
+    \item \href{#method-Rush-start_workers}{\code{Rush$start_workers()}}
+    \item \href{#method-Rush-start_local_workers}{\code{Rush$start_local_workers()}}
+    \item \href{#method-Rush-start_remote_workers}{\code{Rush$start_remote_workers()}}
+    \item \href{#method-Rush-worker_script}{\code{Rush$worker_script()}}
+    \item \href{#method-Rush-wait_for_workers}{\code{Rush$wait_for_workers()}}
+    \item \href{#method-Rush-stop_workers}{\code{Rush$stop_workers()}}
+    \item \href{#method-Rush-detect_lost_workers}{\code{Rush$detect_lost_workers()}}
+    \item \href{#method-Rush-reset}{\code{Rush$reset()}}
+    \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
+    \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
+    \item \href{#method-Rush-pop_task}{\code{Rush$pop_task()}}
+    \item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
+    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
+    \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
+    \item \href{#method-Rush-push_running_tasks}{\code{Rush$push_running_tasks()}}
+    \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
+    \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
+    \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
+    \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
+    \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
+    \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
+    \item \href{#method-Rush-fetch_failed_tasks}{\code{Rush$fetch_failed_tasks()}}
+    \item \href{#method-Rush-fetch_finished_tasks}{\code{Rush$fetch_finished_tasks()}}
+    \item \href{#method-Rush-fetch_tasks_with_state}{\code{Rush$fetch_tasks_with_state()}}
+    \item \href{#method-Rush-fetch_new_tasks}{\code{Rush$fetch_new_tasks()}}
+    \item \href{#method-Rush-reset_cache}{\code{Rush$reset_cache()}}
+    \item \href{#method-Rush-wait_for_tasks}{\code{Rush$wait_for_tasks()}}
+    \item \href{#method-Rush-write_hashes}{\code{Rush$write_hashes()}}
+    \item \href{#method-Rush-read_hashes}{\code{Rush$read_hashes()}}
+    \item \href{#method-Rush-read_hash}{\code{Rush$read_hash()}}
+    \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
+    \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
+    \item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
+    \item \href{#method-Rush-push_results}{\code{Rush$push_results()}}
+    \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
+    \item \href{#method-Rush-clone}{\code{Rush$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-new"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new instance of this \link[R6:R6Class]{R6} class.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$new(network_id = NULL, config = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{network_id}}{(\code{character(1)})\cr
+\if{html}{\out{<a id="method-Rush-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-initialize}{}}}
+\subsection{\code{Rush$new()}}{
+  Creates a new instance of this \link[R6:R6Class]{R6} class.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$new(network_id = NULL, config = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
-
-\item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
+      \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.
 If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is used.
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-format"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-format}{}}}
-\subsection{Method \code{format()}}{
-Helper for print outputs.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$format(...)}\if{html}{\out{</div>}}
+\subsection{\code{Rush$format()}}{
+  Helper for print outputs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$format(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{(ignored).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()}).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{(ignored).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()}).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-print"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-print}{}}}
-\subsection{Method \code{print()}}{
-Print method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$print()}\if{html}{\out{</div>}}
+\subsection{\code{Rush$print()}}{
+  Print method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$print()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()}).
+  }
 }
 
-\subsection{Returns}{
-(\code{character()}).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-reconnect"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-reconnect}{}}}
-\subsection{Method \code{reconnect()}}{
-Reconnect to Redis.
+\subsection{\code{Rush$reconnect()}}{
+  Reconnect to Redis.
 The connection breaks when the Rush object is saved to disk.
 Call this method to reconnect after loading the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reconnect()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$reconnect()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-start_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_workers}{}}}
-\subsection{Method \code{start_workers()}}{
-Start workers to run the worker loop in \code{mirai::daemons()}.
+\subsection{\code{Rush$start_workers()}}{
+  Start workers to run the worker loop in \code{mirai::daemons()}.
 Initializes a \link{RushWorker} in each process and starts the worker loop.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_workers(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$start_workers(
   worker_loop,
   ...,
   n_workers = NULL,
@@ -307,54 +315,49 @@ Initializes a \link{RushWorker} in each process and starts the worker loop.
   lgr_buffer_size = NULL,
   message_log = NULL,
   output_log = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_loop}}{(\code{function})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
-
-\item{\code{...}}{(\code{any})\cr
+      \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
-
-\item{\code{n_workers}}{(\code{integer(1)})\cr
+      \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
-
-\item{\code{packages}}{(\code{character()})\cr
+      \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+      \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+      \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
+      \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
+      \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-start_local_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_local_workers}{}}}
-\subsection{Method \code{start_local_workers()}}{
-Start workers locally with \code{processx}.
+\subsection{\code{Rush$start_local_workers()}}{
+  Start workers locally with \code{processx}.
 Initializes a \link{RushWorker} in each process and starts the worker loop.
 Use \verb{$wait_for_workers()} to wait until the workers are registered in the network.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_local_workers(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$start_local_workers(
   worker_loop,
   ...,
   n_workers = NULL,
@@ -364,56 +367,50 @@ Use \verb{$wait_for_workers()} to wait until the workers are registered in the n
   supervise = TRUE,
   message_log = NULL,
   output_log = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_loop}}{(\code{function})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
-
-\item{\code{...}}{(\code{any})\cr
+      \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
-
-\item{\code{n_workers}}{(\code{integer(1)})\cr
+      \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
-
-\item{\code{packages}}{(\code{character()})\cr
+      \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+      \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+      \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{supervise}}{(\code{logical(1)})\cr
+      \item{\code{supervise}}{(\code{logical(1)})\cr
 Whether to kill the workers when the main R process is shut down.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
+      \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
+      \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-start_remote_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-start_remote_workers}{}}}
-\subsection{Method \code{start_remote_workers()}}{
-Start workers to run the worker loop in \code{mirai::daemons()}.
+\subsection{\code{Rush$start_remote_workers()}}{
+  Start workers to run the worker loop in \code{mirai::daemons()}.
 Initializes a \link{RushWorker} in each process and starts the worker loop.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$start_remote_workers(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$start_remote_workers(
   worker_loop,
   ...,
   n_workers = NULL,
@@ -422,54 +419,49 @@ Initializes a \link{RushWorker} in each process and starts the worker loop.
   lgr_buffer_size = NULL,
   message_log = NULL,
   output_log = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_loop}}{(\code{function})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
-
-\item{\code{...}}{(\code{any})\cr
+      \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
-
-\item{\code{n_workers}}{(\code{integer(1)})\cr
+      \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
-
-\item{\code{packages}}{(\code{character()})\cr
+      \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+      \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+      \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
+      \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
+      \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-worker_script"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-worker_script}{}}}
-\subsection{Method \code{worker_script()}}{
-Generate a script to start workers.
+\subsection{\code{Rush$worker_script()}}{
+  Generate a script to start workers.
 Run this script \code{n} times to start \code{n} workers.
 The logged variant of the script redacts the Redis password.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$worker_script(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$worker_script(
   worker_loop,
   ...,
   packages = NULL,
@@ -479,620 +471,640 @@ The logged variant of the script redacts the Redis password.
   heartbeat_expire = NULL,
   message_log = NULL,
   output_log = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_loop}}{(\code{function})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{worker_loop}}{(\code{function})\cr
 Loop run on the workers.}
-
-\item{\code{...}}{(\code{any})\cr
+      \item{\code{...}}{(\code{any})\cr
 Arguments passed to \code{worker_loop}.}
-
-\item{\code{packages}}{(\code{character()})\cr
+      \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
-
-\item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
+      \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
-
-\item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
+      \item{\code{lgr_buffer_size}}{(\code{integer(1)})\cr
 By default (\code{lgr_buffer_size = 0}), the log messages are directly saved in the Redis data store.
 If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.}
-
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+      \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
 The heartbeat is updated every \code{heartbeat_period} seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+      \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
-
-\item{\code{message_log}}{(\code{character(1)})\cr
+      \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
 If \code{NULL}, no messages, warnings or errors are stored.}
-
-\item{\code{output_log}}{(\code{character(1)})\cr
+      \item{\code{output_log}}{(\code{character(1)})\cr
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character(1)})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character(1)})\cr
 Shell command to start a worker.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-wait_for_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-wait_for_workers}{}}}
-\subsection{Method \code{wait_for_workers()}}{
-Wait until workers are registered in the network.
+\subsection{\code{Rush$wait_for_workers()}}{
+  Wait until workers are registered in the network.
 Either \code{n}, \code{worker_ids} or both must be provided.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n}}{(\code{integer(1)})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n}}{(\code{integer(1)})\cr
 Number of workers to wait for.
 If \code{NULL}, wait for all workers in \code{worker_ids}.}
-
-\item{\code{worker_ids}}{(\code{character()})\cr
+      \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to wait for.
 If \code{NULL}, wait for any \code{n} workers to be registered.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
+      \item{\code{timeout}}{(\code{numeric(1)})\cr
 Timeout in seconds.
 Default is \code{Inf}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-stop_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-stop_workers}{}}}
-\subsection{Method \code{stop_workers()}}{
-Stop workers.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$stop_workers(type = "kill", worker_ids = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{type}}{(\code{character(1)})\cr
+\subsection{\code{Rush$stop_workers()}}{
+  Stop workers.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$stop_workers(type = "kill", worker_ids = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{type}}{(\code{character(1)})\cr
 Type of stopping.
 Either \code{"terminate"} or \code{"kill"}.
 If \code{"kill"} the workers are stopped immediately.
 If \code{"terminate"} the workers evaluate the currently running task and then terminate.
 The \code{"terminate"} option must be implemented in the worker loop.}
-
-\item{\code{worker_ids}}{(\code{character()})\cr
+      \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
 If \code{NULL} all workers are stopped.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-detect_lost_workers"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-detect_lost_workers}{}}}
-\subsection{Method \code{detect_lost_workers()}}{
-Detect lost workers.
+\subsection{\code{Rush$detect_lost_workers()}}{
+  Detect lost workers.
 The state of the worker is changed to \code{"terminated"}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$detect_lost_workers()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$detect_lost_workers()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
+Worker ids of detected lost workers.
+  }
 }
 
-\subsection{Returns}{
-(\code{character()})\cr
-Worker ids of detected lost workers.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-reset}{}}}
-\subsection{Method \code{reset()}}{
-Stop workers and delete data stored in redis.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reset(workers = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{workers}}{(\code{logical(1)})\cr
+\subsection{\code{Rush$reset()}}{
+  Stop workers and delete data stored in redis.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$reset(workers = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{workers}}{(\code{logical(1)})\cr
 Whether to stop the workers or only delete the data.
 Default is \code{TRUE}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_log"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_log}{}}}
-\subsection{Method \code{read_log()}}{
-Read log messages written with the \code{lgr} package by the workers.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_log(worker_ids = NULL, time_difference = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{worker_ids}}{(\code{character()})\cr
+\subsection{\code{Rush$read_log()}}{
+  Read log messages written with the \code{lgr} package by the workers.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$read_log(worker_ids = NULL, time_difference = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be read log messages from.
 Defaults to all worker ids.}
-
-\item{\code{time_difference}}{(\code{logical(1)})\cr
+      \item{\code{time_difference}}{(\code{logical(1)})\cr
 Whether to calculate the time difference between log messages.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table with level, timestamp, logger, caller and message, and optionally time difference.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-print_log"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-print_log}{}}}
-\subsection{Method \code{print_log()}}{
-Print log messages written with the \code{lgr} package by the workers.
+\subsection{\code{Rush$print_log()}}{
+  Print log messages written with the \code{lgr} package by the workers.
 Log messages are printed with the original logger.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$print_log()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$print_log()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
+Invisible self.
+  }
 }
 
-\subsection{Returns}{
-(\code{Rush})\cr
-Invisible self.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-pop_task"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-pop_task}{}}}
-\subsection{Method \code{pop_task()}}{
-Pop a task from the queue and mark it as running.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$pop_task(timeout = 1, fields = "xs")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{timeout}}{(\code{numeric(1)})\cr
+\subsection{\code{Rush$pop_task()}}{
+  Pop a task from the queue and mark it as running.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$pop_task(timeout = 1, fields = "xs")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for task in seconds.}
-
-\item{\code{fields}}{(\code{character()})\cr
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be returned.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-finish_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-finish_tasks}{}}}
-\subsection{Method \code{finish_tasks()}}{
-Save output of tasks and mark them as finished.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$finish_tasks(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character(1)})\cr
+\subsection{\code{Rush$finish_tasks()}}{
+  Save output of tasks and mark them as finished.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$finish_tasks(keys, yss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character(1)})\cr
 Keys of the associated tasks.}
-
-\item{\code{yss}}{(named \code{list()})\cr
+      \item{\code{yss}}{(named \code{list()})\cr
 List of lists of named results.}
-
-\item{\code{extra}}{(named \code{list()})\cr
+      \item{\code{extra}}{(named \code{list()})\cr
 List of lists of additional information stored along with the results.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
 Invisible self.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
-\subsection{Method \code{fail_tasks()}}{
-Mark tasks as failed and optionally save the condition objects
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fail_tasks(keys, conditions = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+\subsection{\code{Rush$fail_tasks()}}{
+  Mark tasks as failed and optionally save the condition objects
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fail_tasks(keys, conditions = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to be moved.
 Defaults to all queued tasks.}
-
-\item{\code{conditions}}{(named \code{list()})\cr
+      \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.
 Defaults to \code{list(message = "Failed")}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
 Invisible self.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
-\subsection{Method \code{push_tasks()}}{
-Create queued tasks and add them to the queue.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{xss}}{(list of named \code{list()})\cr
+\subsection{\code{Rush$push_tasks()}}{
+  Create queued tasks and add them to the queue.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_tasks(xss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-
-\item{\code{extra}}{(\code{list()})\cr
+      \item{\code{extra}}{(\code{list()})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
 Keys of the tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_running_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_running_tasks}{}}}
-\subsection{Method \code{push_running_tasks()}}{
-Create running tasks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_running_tasks(xss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{xss}}{(list of named \code{list()})\cr
+\subsection{\code{Rush$push_running_tasks()}}{
+  Create running tasks.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_running_tasks(xss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-
-\item{\code{extra}}{(\code{list})\cr
+      \item{\code{extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
 Keys of the tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_finished_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_finished_tasks}{}}}
-\subsection{Method \code{push_finished_tasks()}}{
-Create finished tasks.
+\subsection{\code{Rush$push_finished_tasks()}}{
+  Create finished tasks.
 See \verb{$finish_tasks()} for moving existing tasks from running to finished.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{xss}}{(list of named \code{list()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_finished_tasks(xss, yss, xss_extra = NULL, yss_extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-
-\item{\code{yss}}{(list of named \code{list()})\cr
+      \item{\code{yss}}{(list of named \code{list()})\cr
 Lists of results for the function e.g. \verb{list(list(y1, y2), list(y1, y2)))}.}
-
-\item{\code{xss_extra}}{(\code{list})\cr
+      \item{\code{xss_extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-
-\item{\code{yss_extra}}{(\code{list})\cr
+      \item{\code{yss_extra}}{(\code{list})\cr
 List of additional information stored along with the results e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
 Keys of the tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_failed_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_failed_tasks}{}}}
-\subsection{Method \code{push_failed_tasks()}}{
-Create failed tasks.
+\subsection{\code{Rush$push_failed_tasks()}}{
+  Create failed tasks.
 See \verb{$fail_tasks()} for moving existing tasks from queued and running to failed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{xss}}{(list of named \code{list()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
-
-\item{\code{xss_extra}}{(\code{list})\cr
+      \item{\code{xss_extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-
-\item{\code{conditions}}{(named \code{list()})\cr
+      \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
 Keys of the tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-empty_queue"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-empty_queue}{}}}
-\subsection{Method \code{empty_queue()}}{
-Remove all tasks from the queue.
+\subsection{\code{Rush$empty_queue()}}{
+  Remove all tasks from the queue.
 The state of the tasks is set to failed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to be moved.
 Defaults to all queued tasks.}
-
-\item{\code{conditions}}{(named \code{list()})\cr
+      \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
 Invisible self.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_tasks}{}}}
-\subsection{Method \code{fetch_tasks()}}{
-Fetch all tasks from the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks(
+\subsection{\code{Rush$fetch_tasks()}}{
+  Fetch all tasks from the data base.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of all tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_queued_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_queued_tasks}{}}}
-\subsection{Method \code{fetch_queued_tasks()}}{
-Fetch queued tasks from the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+\subsection{\code{Rush$fetch_queued_tasks()}}{
+  Fetch queued tasks from the data base.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra")}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of queued tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_running_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_running_tasks}{}}}
-\subsection{Method \code{fetch_running_tasks()}}{
-Fetch running tasks from the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_id"))}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+\subsection{\code{Rush$fetch_running_tasks()}}{
+  Fetch running tasks from the data base.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_id"))}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_id")}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of running tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_failed_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_failed_tasks}{}}}
-\subsection{Method \code{fetch_failed_tasks()}}{
-Fetch failed tasks from the data base.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_failed_tasks(fields = c("xs", "xs_extra", "worker_id", "condition"))}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+\subsection{\code{Rush$fetch_failed_tasks()}}{
+  Fetch failed tasks from the data base.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_failed_tasks(fields = c("xs", "xs_extra", "worker_id", "condition"))}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \verb{c("xs", "xs_extra", "worker_id", "condition"}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of failed tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_finished_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_finished_tasks}{}}}
-\subsection{Method \code{fetch_finished_tasks()}}{
-Fetch finished tasks from the data base.
+\subsection{\code{Rush$fetch_finished_tasks()}}{
+  Fetch finished tasks from the data base.
 Finished tasks are cached.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_finished_tasks(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_finished_tasks(
   fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of finished tasks.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_tasks_with_state"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_tasks_with_state}{}}}
-\subsection{Method \code{fetch_tasks_with_state()}}{
-Fetch tasks with different states from the data base.
+\subsection{\code{Rush$fetch_tasks_with_state()}}{
+  Fetch tasks with different states from the data base.
 If tasks with different states are to be queried at the same time,
 this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
 Finished tasks are cached.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_tasks_with_state(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_tasks_with_state(
   fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition"),
   states = c("queued", "running", "finished", "failed")
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
 Defaults to \code{c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")}.}
-
-\item{\code{states}}{(\code{character()})\cr
+      \item{\code{states}}{(\code{character()})\cr
 States of the tasks to be fetched.
 Defaults to \code{c("queued", "running", "finished", "failed")}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-fetch_new_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_new_tasks}{}}}
-\subsection{Method \code{fetch_new_tasks()}}{
-Fetch new tasks that finished after the last call of this function.
+\subsection{\code{Rush$fetch_new_tasks()}}{
+  Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks.
 If \code{timeout} is set, blocks until new tasks are available or the timeout is reached.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$fetch_new_tasks(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fetch_new_tasks(
   fields = c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition"),
   timeout = 0
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{fields}}{(\code{character()})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
-
-\item{\code{timeout}}{(\code{numeric(1)})\cr
+      \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for new results in seconds.
 Defaults to \code{0} (no waiting).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{data.table()}\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data.table()}\cr
 Table of latest results.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-reset_cache"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-reset_cache}{}}}
-\subsection{Method \code{reset_cache()}}{
-Reset the cache of the finished tasks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$reset_cache()}\if{html}{\out{</div>}}
+\subsection{\code{Rush$reset_cache()}}{
+  Reset the cache of the finished tasks.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$reset_cache()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
+Invisible self.
+  }
 }
 
-\subsection{Returns}{
-(\code{Rush})\cr
-Invisible self.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-wait_for_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-wait_for_tasks}{}}}
-\subsection{Method \code{wait_for_tasks()}}{
-Wait until tasks are finished.
+\subsection{\code{Rush$wait_for_tasks()}}{
+  Wait until tasks are finished.
 The function also unblocks when no worker is running or all tasks failed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$wait_for_tasks(keys, detect_lost_workers = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$wait_for_tasks(keys, detect_lost_workers = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to wait for.}
-
-\item{\code{detect_lost_workers}}{(\code{logical(1)})\cr
+      \item{\code{detect_lost_workers}}{(\code{logical(1)})\cr
 Whether to detect failed tasks.
 Comes with an overhead.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-write_hashes"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-write_hashes}{}}}
-\subsection{Method \code{write_hashes()}}{
-Writes R objects to Redis hashes.
+\subsection{\code{Rush$write_hashes()}}{
+  Writes R objects to Redis hashes.
 The function takes the vectors in \code{...} as input and writes each element as a field-value pair to a new hash.
 The name of the argument defines the field into which the serialized element is written.
 For example, \code{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))} writes
@@ -1105,37 +1117,37 @@ in which case the value is broadcast across all hashes.
 Other length mismatches raise an error.
 Both lists and atomic vectors are supported.
 Arguments that are \code{NULL} are ignored.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$write_hashes(..., .values = list(), keys = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{(named \code{list()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$write_hashes(..., .values = list(), keys = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{(named \code{list()})\cr
 Lists to be written to the hashes.
 The names of the arguments are used as fields.}
-
-\item{\code{.values}}{(named \code{list()})\cr
+      \item{\code{.values}}{(named \code{list()})\cr
 Lists to be written to the hashes.
 The names of the list are used as fields.}
-
-\item{\code{keys}}{(character())\cr
+      \item{\code{keys}}{(character())\cr
 Keys of the hashes.
 If \code{NULL} new keys are generated.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{character()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{character()})\cr
 Keys of the hashes.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_hashes"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_hashes}{}}}
-\subsection{Method \code{read_hashes()}}{
-Reads R Objects from Redis hashes.
+\subsection{\code{Rush$read_hashes()}}{
+  Reads R Objects from Redis hashes.
 The function reads the field-value pairs of the hashes stored at \code{keys}.
 The values of a hash are deserialized and combined to a list.
 If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g.
@@ -1143,183 +1155,193 @@ If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes
 \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_hashes(keys, fields, flatten = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$read_hashes(keys, fields, flatten = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the hashes.}
-
-\item{\code{fields}}{(\code{character()})\cr
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.}
-
-\item{\code{flatten}}{(\code{logical(1)})\cr
+      \item{\code{flatten}}{(\code{logical(1)})\cr
 Whether to flatten the list.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(list of \code{list()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (list of \code{list()})\cr
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-read_hash"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-read_hash}{}}}
-\subsection{Method \code{read_hash()}}{
-Reads a single Redis hash and returns the values as a list named by the fields.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$read_hash(key, fields)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{(\code{character(1)})\cr
+\subsection{\code{Rush$read_hash()}}{
+  Reads a single Redis hash and returns the values as a list named by the fields.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$read_hash(key, fields)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{(\code{character(1)})\cr
 Key of the hash.}
-
-\item{\code{fields}}{(\code{character()})\cr
+      \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hash.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(list of \code{list()})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (list of \code{list()})\cr
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-is_running_task"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-is_running_task}{}}}
-\subsection{Method \code{is_running_task()}}{
-Checks whether tasks have the status \code{"running"}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$is_running_task(keys)}\if{html}{\out{</div>}}
+\subsection{\code{Rush$is_running_task()}}{
+  Checks whether tasks have the status \code{"running"}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$is_running_task(keys)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-is_failed_task"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-is_failed_task}{}}}
-\subsection{Method \code{is_failed_task()}}{
-Checks whether tasks have the status \code{"failed"}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$is_failed_task(keys)}\if{html}{\out{</div>}}
+\subsection{\code{Rush$is_failed_task()}}{
+  Checks whether tasks have the status \code{"failed"}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$is_failed_task(keys)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-tasks_with_state"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-tasks_with_state}{}}}
-\subsection{Method \code{tasks_with_state()}}{
-Returns keys of requested states.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$tasks_with_state(states)}\if{html}{\out{</div>}}
+\subsection{\code{Rush$tasks_with_state()}}{
+  Returns keys of requested states.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$tasks_with_state(states)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{states}}{(\code{character()})\cr
+States of the tasks.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (Named list of \code{character()}).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{states}}{(\code{character()})\cr
-States of the tasks.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(Named list of \code{character()}).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_results"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_results}{}}}
-\subsection{Method \code{push_results()}}{
-Deprecated method.
+\subsection{\code{Rush$push_results()}}{
+  Deprecated method.
 Use \verb{$finish_tasks()} instead.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_results(keys, yss, extra = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_results(keys, yss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the associated tasks.}
-
-\item{\code{yss}}{(named \code{list()})\cr
+      \item{\code{yss}}{(named \code{list()})\cr
 List of lists of named results.}
-
-\item{\code{extra}}{(named \code{list()})\cr
+      \item{\code{extra}}{(named \code{list()})\cr
 List of lists of additional information stored along with the results.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
 Invisible self.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_failed"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_failed}{}}}
-\subsection{Method \code{push_failed()}}{
-Deprecated method.
+\subsection{\code{Rush$push_failed()}}{
+  Deprecated method.
 Use \verb{$fail_tasks()} instead.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$push_failed(keys, conditions)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{keys}}{(\code{character()})\cr
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$push_failed(keys, conditions)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
 Keys of the associated tasks.}
-
-\item{\code{conditions}}{(\code{list()})\cr
+      \item{\code{conditions}}{(\code{list()})\cr
 List of conditions.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-(\code{Rush})\cr
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
 Invisible self.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Rush$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Rush$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
