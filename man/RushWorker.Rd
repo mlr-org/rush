@@ -118,10 +118,12 @@ Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
       \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
-The heartbeat is updated every \code{heartbeat_period} seconds.}
+The heartbeat is updated every \code{heartbeat_period} seconds.
+Must be at least 1 second.}
       \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
+Must be at least 1 second.}
     }
     \if{html}{\out{</div>}}
   }

@@ -490,10 +490,12 @@ If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Re
 This improves the performance of the logging.}
       \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
-The heartbeat is updated every \code{heartbeat_period} seconds.}
+The heartbeat is updated every \code{heartbeat_period} seconds.
+Must be at least 1 second.}
       \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
+Must be at least 1 second.}
       \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.

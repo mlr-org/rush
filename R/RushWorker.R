@@ -43,8 +43,8 @@ RushWorker = R6::R6Class(
       heartbeat_key = NA_character_
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
-        assert_number(heartbeat_period)
-        assert_number(heartbeat_expire, null.ok = TRUE)
+        assert_number(heartbeat_period, lower = 1)
+        assert_number(heartbeat_expire, lower = 1, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% (heartbeat_period * 3)
 
         # set heartbeat key
@@ -67,9 +67,20 @@ RushWorker = R6::R6Class(
         # the key is created with SET (no TTL), the heartbeat loop adds a TTL via EXPIRE
         timeout = 5
         start_time = Sys.time()
-        while (difftime(Sys.time(), start_time, units = "secs") < timeout) {
-          if (r$command(c("TTL", heartbeat_key)) > 0) {
-            break
+        while (r$command(c("TTL", heartbeat_key)) <= 0) {
+          if (!self$heartbeat$is_alive()) {
+            error_config(
+              "Heartbeat process of worker '%s' terminated during startup: %s",
+              self$worker_id,
+              str_collapse(self$heartbeat$read_all_error_lines(), sep = "\n")
+            )
+          }
+          if (difftime(Sys.time(), start_time, units = "secs") > timeout) {
+            error_config(
+              "Heartbeat process of worker '%s' failed to set a TTL on the heartbeat key within %s seconds",
+              self$worker_id,
+              timeout
+            )
           }
           Sys.sleep(0.1)
         }

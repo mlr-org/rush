@@ -42,6 +42,28 @@ test_that("a worker is registered", {
   expect_equal(rush$worker_info$state, "running")
 })
 
+test_that("heartbeat process is started", {
+  skip_if_not_installed("callr")
+  config = redis_configuration()
+
+  rush = RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1)
+
+  expect_true(rush$heartbeat$is_alive())
+  r = redux::hiredis(config)
+  expect_gt(r$command(c("TTL", sprintf("test-rush:%s:heartbeat", rush$worker_id))), 0)
+})
+
+test_that("heartbeat_period and heartbeat_expire are validated", {
+  skip_if_not_installed("callr")
+  config = redis_configuration()
+
+  expect_error(RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 0), ">= 1")
+  expect_error(
+    RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1, heartbeat_expire = 0),
+    ">= 1"
+  )
+})
+
 test_that("a worker is terminated", {
   rush = start_rush_worker()
 
