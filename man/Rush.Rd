@@ -22,6 +22,7 @@ The input \code{xs} and output \code{ys} are lists that can contain arbitrary da
 
 Methods to create a task:
 \itemize{
+\item \verb{$push_running_tasks(xss)}: Create running tasks
 \item \verb{$push_finished_tasks(xss, yss)}: Create finished tasks.
 \item \verb{$push_failed_tasks(xss, conditions)}: Create failed tasks.
 \item \verb{$push_tasks(xss)}: Create queued tasks.
@@ -34,6 +35,7 @@ Methods to change the state of an existing task:
 \itemize{
 \item \verb{$finish_tasks(keys, yss)}: Save the output of tasks and mark them as finished.
 \item \verb{$fail_tasks(keys, conditions)}: Mark tasks as failed and optionally save the condition objects.
+\item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
 }
 
 The methods \verb{$pop_task()} and \verb{$push_running_tasks(xss)} require a worker identity

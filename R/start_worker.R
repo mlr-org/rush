@@ -4,7 +4,7 @@
 #' Starts a worker.
 #' The function loads packages, initializes the [RushWorker] instance and invokes the worker loop.
 #' This function is called by `$start_local_workers()` or
-#' by the user after creating the worker script with `$create_worker_script()`.
+#' by the user after creating the worker script with `$worker_script()`.
 #'
 #' @note
 #' The function initializes the connection to the Redis data base.
@@ -29,11 +29,8 @@
 #' # This example is not executed since Redis must be installed
 #' \dontrun{
 #'   rush::start_worker(
-#'    network_id = 'test-rush',
-#'    url = 'redis://127.0.0.1:6379',
-#'    scheme = 'redis',
-#'    host = '127.0.0.1',
-#'    port = '6379')
+#'     network_id = "test-rush",
+#'     config = list(host = "127.0.0.1", port = "6379"))
 #' }
 start_worker = function(
   worker_id = NULL,

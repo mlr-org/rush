@@ -64,7 +64,7 @@ If \code{NULL}, no output is stored.}
 Starts a worker.
 The function loads packages, initializes the \link{RushWorker} instance and invokes the worker loop.
 This function is called by \verb{$start_local_workers()} or
-by the user after creating the worker script with \verb{$create_worker_script()}.
+by the user after creating the worker script with \verb{$worker_script()}.
 }
 \note{
 The function initializes the connection to the Redis data base.
@@ -75,10 +75,7 @@ The function initialize the \link{RushWorker} instance and starts the worker loo
 # This example is not executed since Redis must be installed
 \dontrun{
   rush::start_worker(
-   network_id = 'test-rush',
-   url = 'redis://127.0.0.1:6379',
-   scheme = 'redis',
-   host = '127.0.0.1',
-   port = '6379')
+    network_id = "test-rush",
+    config = list(host = "127.0.0.1", port = "6379"))
 }
 }
