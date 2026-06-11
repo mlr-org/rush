@@ -537,7 +537,7 @@ test_that("pushing a task with extras to the queue works", {
   expect_set_equal(rush$finished_tasks, keys)
   expect_null(rush$failed_tasks)
 
-  # check fetchingtest-Rush.R:280:3'
+  # check fetching
   expect_false(rush$is_failed_task(keys))
 })
 
