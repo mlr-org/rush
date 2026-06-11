@@ -12,155 +12,155 @@ Upon initialization, the worker registers itself in the Redis database as a runn
 This class is usually not constructed directly by the user.
 }
 \section{Super class}{
-\code{\link[rush:Rush]{rush::Rush}} -> \code{RushWorker}
+\code{\link[rush:Rush]{Rush}} -> \code{RushWorker}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{worker_id}}{(\code{character(1)})\cr
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
-\item{\code{heartbeat}}{(\code{callr::r_bg})\cr
+    \item{\code{heartbeat}}{(\code{callr::r_bg})\cr
 Background process for the heartbeat.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{terminated}}{(\code{logical(1)})\cr
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{terminated}}{(\code{logical(1)})\cr
 Whether to shutdown the worker.
 Used in the worker loop to determine whether to continue.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RushWorker-new}{\code{RushWorker$new()}}
-\item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
-\item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
+  \itemize{
+    \item \href{#method-RushWorker-initialize}{\code{RushWorker$new()}}
+    \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
+    \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>rush::Rush$detect_lost_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href='../../rush/html/Rush.html#method-Rush-empty_queue'><code>rush::Rush$empty_queue()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fail_tasks"><a href='../../rush/html/Rush.html#method-Rush-fail_tasks'><code>rush::Rush$fail_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>rush::Rush$fetch_failed_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>rush::Rush$fetch_finished_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_new_tasks'><code>rush::Rush$fetch_new_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_queued_tasks'><code>rush::Rush$fetch_queued_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>rush::Rush$fetch_running_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>rush::Rush$fetch_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks_with_state'><code>rush::Rush$fetch_tasks_with_state()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="finish_tasks"><a href='../../rush/html/Rush.html#method-Rush-finish_tasks'><code>rush::Rush$finish_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>rush::Rush$format()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>rush::Rush$is_failed_task()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>rush::Rush$is_running_task()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="pop_task"><a href='../../rush/html/Rush.html#method-Rush-pop_task'><code>rush::Rush$pop_task()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>rush::Rush$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>rush::Rush$print_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>rush::Rush$push_failed()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_failed_tasks'><code>rush::Rush$push_failed_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>rush::Rush$push_finished_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_results"><a href='../../rush/html/Rush.html#method-Rush-push_results'><code>rush::Rush$push_results()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_running_tasks'><code>rush::Rush$push_running_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>rush::Rush$push_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>rush::Rush$read_hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>rush::Rush$read_hashes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>rush::Rush$read_log()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>rush::Rush$reconnect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>rush::Rush$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_cache"><a href='../../rush/html/Rush.html#method-Rush-reset_cache'><code>rush::Rush$reset_cache()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>rush::Rush$start_local_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>rush::Rush$start_remote_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>rush::Rush$start_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>rush::Rush$stop_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-tasks_with_state'><code>rush::Rush$tasks_with_state()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>rush::Rush$wait_for_tasks()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href='../../rush/html/Rush.html#method-Rush-wait_for_workers'><code>rush::Rush$wait_for_workers()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="worker_script"><a href='../../rush/html/Rush.html#method-Rush-worker_script'><code>rush::Rush$worker_script()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>rush::Rush$write_hashes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>Rush$detect_lost_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href='../../rush/html/Rush.html#method-Rush-empty_queue'><code>Rush$empty_queue()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fail_tasks"><a href='../../rush/html/Rush.html#method-Rush-fail_tasks'><code>Rush$fail_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>Rush$fetch_failed_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>Rush$fetch_finished_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_new_tasks'><code>Rush$fetch_new_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_queued_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_queued_tasks'><code>Rush$fetch_queued_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>Rush$fetch_running_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>Rush$fetch_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks_with_state'><code>Rush$fetch_tasks_with_state()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="finish_tasks"><a href='../../rush/html/Rush.html#method-Rush-finish_tasks'><code>Rush$finish_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>Rush$format()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>Rush$is_failed_task()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>Rush$is_running_task()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="pop_task"><a href='../../rush/html/Rush.html#method-Rush-pop_task'><code>Rush$pop_task()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href='../../rush/html/Rush.html#method-Rush-print'><code>Rush$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href='../../rush/html/Rush.html#method-Rush-print_log'><code>Rush$print_log()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href='../../rush/html/Rush.html#method-Rush-push_failed'><code>Rush$push_failed()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_failed_tasks'><code>Rush$push_failed_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_finished_tasks'><code>Rush$push_finished_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_results"><a href='../../rush/html/Rush.html#method-Rush-push_results'><code>Rush$push_results()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_running_tasks'><code>Rush$push_running_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href='../../rush/html/Rush.html#method-Rush-push_tasks'><code>Rush$push_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href='../../rush/html/Rush.html#method-Rush-read_hash'><code>Rush$read_hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href='../../rush/html/Rush.html#method-Rush-read_hashes'><code>Rush$read_hashes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_log"><a href='../../rush/html/Rush.html#method-Rush-read_log'><code>Rush$read_log()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reconnect"><a href='../../rush/html/Rush.html#method-Rush-reconnect'><code>Rush$reconnect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset"><a href='../../rush/html/Rush.html#method-Rush-reset'><code>Rush$reset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="reset_cache"><a href='../../rush/html/Rush.html#method-Rush-reset_cache'><code>Rush$reset_cache()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_local_workers"><a href='../../rush/html/Rush.html#method-Rush-start_local_workers'><code>Rush$start_local_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_remote_workers"><a href='../../rush/html/Rush.html#method-Rush-start_remote_workers'><code>Rush$start_remote_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="start_workers"><a href='../../rush/html/Rush.html#method-Rush-start_workers'><code>Rush$start_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="stop_workers"><a href='../../rush/html/Rush.html#method-Rush-stop_workers'><code>Rush$stop_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-tasks_with_state'><code>Rush$tasks_with_state()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_tasks"><a href='../../rush/html/Rush.html#method-Rush-wait_for_tasks'><code>Rush$wait_for_tasks()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="wait_for_workers"><a href='../../rush/html/Rush.html#method-Rush-wait_for_workers'><code>Rush$wait_for_workers()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="worker_script"><a href='../../rush/html/Rush.html#method-Rush-worker_script'><code>Rush$worker_script()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="write_hashes"><a href='../../rush/html/Rush.html#method-Rush-write_hashes'><code>Rush$write_hashes()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RushWorker-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RushWorker-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new instance of this \link[R6:R6Class]{R6} class.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$new(
+\if{html}{\out{<a id="method-RushWorker-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-initialize}{}}}
+\subsection{\code{RushWorker$new()}}{
+  Creates a new instance of this \link[R6:R6Class]{R6} class.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$new(
   network_id,
   config = NULL,
   worker_id = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{network_id}}{(\code{character(1)})\cr
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{network_id}}{(\code{character(1)})\cr
 Identifier of the rush network.
 Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.}
-
-\item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
+      \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.
 If \code{NULL}, configuration set by \code{\link[=rush_plan]{rush_plan()}} is used.
 If \code{rush_plan()} has not been called, the \code{REDIS_URL} environment variable is parsed.
 If \code{REDIS_URL} is not set, a default configuration is used.
 See \link[redux:redis_config]{redux::redis_config} for details.}
-
-\item{\code{worker_id}}{(\code{character(1)})\cr
+      \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
-
-\item{\code{heartbeat_period}}{(\code{integer(1)})\cr
+      \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
 The heartbeat is updated every \code{heartbeat_period} seconds.}
-
-\item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
+      \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-set_terminated"></a>}}
 \if{latex}{\out{\hypertarget{method-RushWorker-set_terminated}{}}}
-\subsection{Method \code{set_terminated()}}{
-Mark the worker as terminated.
+\subsection{\code{RushWorker$set_terminated()}}{
+  Mark the worker as terminated.
 Last step in the worker loop before the worker terminates.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$set_terminated()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$set_terminated()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{RushWorker})\cr
+Invisible self.
+  }
 }
 
-\subsection{Returns}{
-(\code{RushWorker})\cr
-Invisible self.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RushWorker-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-RushWorker-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RushWorker$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{RushWorker$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
