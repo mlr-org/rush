@@ -81,20 +81,17 @@ AppenderRedis = R6::R6Class(
     #' @description
     #' Sends the buffer's contents to the Redis data store, and then clears the buffer.
     flush = function() {
-      lo = get(".layout", envir = private)
-      buffer = get("buffer_events", envir = self)
-      r = get(".connector", envir = private)
-      key = get(".key", envir = private)
-
       # convert event to JSON and push to Redis
-      cmds = map(buffer, function(event) {
-        json_event = lo$format_event(event)
-        c("RPUSH", key, json_event)
+      cmds = map(private$.buffer_events, function(event) {
+        json_event = private$.layout$format_event(event)
+        c("RPUSH", private$.key, json_event)
       })
-      r$pipeline(.commands = cmds)
+      # no error handling needed: lgr's Logger$log() wraps appender calls in tryCatch
+      # and demotes errors to warnings, so a Redis failure cannot crash the computation
+      private$.connector$pipeline(.commands = cmds)
 
-      assign("insert_pos", 0L, envir = private)
-      private$.buffer_events <- list()
+      private$insert_pos = 0L
+      private$.buffer_events = list()
       invisible(self)
     }
   ),
