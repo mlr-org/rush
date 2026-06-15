@@ -584,23 +584,28 @@ Rush = R6::R6Class(
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            # identify lost tasks
-            if (nrow(running_tasks)) {
-              keys = running_tasks[list(id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+            # Replace interrupt error message
+            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-                # Replace interrupt error message
-                message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+            private$.fail_lost_tasks(id, running_tasks, message)
 
-                # push failed tasks
-                conditions = list(list(message = message))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", id)
-              }
-            }
+            # # identify lost tasks
+            # if (nrow(running_tasks)) {
+            #   keys = running_tasks[list(id), keys, on = "worker_id"]
+            #   keys = keys[!is.na(keys)]
+            #   if (length(keys)) {
+            #     lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+
+            #     # Replace interrupt error message
+            #     message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+
+            #     # push failed tasks
+            #     conditions = list(list(message = message))
+            #     self$fail_tasks(keys, conditions = conditions)
+            #   } else {
+            #     lg$error("Worker '%s' crashed before evaluating a task", id)
+            #   }
+            # }
           }
         })
       }
@@ -616,20 +621,22 @@ Rush = R6::R6Class(
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            # identify lost tasks
-            if (nrow(running_tasks)) {
-              keys = running_tasks[list(id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+            private$.fail_lost_tasks(id, running_tasks, "Worker has crashed or was killed")
 
-                # push failed tasks
-                conditions = list(list(message = "Worker has crashed or was killed"))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", id)
-              }
-            }
+            # # identify lost tasks
+            # if (nrow(running_tasks)) {
+            #   keys = running_tasks[list(id), keys, on = "worker_id"]
+            #   keys = keys[!is.na(keys)]
+            #   if (length(keys)) {
+            #     lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+
+            #     # push failed tasks
+            #     conditions = list(list(message = "Worker has crashed or was killed"))
+            #     self$fail_tasks(keys, conditions = conditions)
+            #   } else {
+            #     lg$error("Worker '%s' crashed before evaluating a task", id)
+            #   }
+            # }
           }
         })
       }
@@ -657,20 +664,24 @@ Rush = R6::R6Class(
 
           r$pipeline(.commands = cmds)
 
-          # identify and fail lost tasks
-          if (nrow(running_tasks) && length(lost_workers)) {
-            walk(lost_workers, function(worker_id) {
-              keys = running_tasks[list(worker_id), keys, on = "worker_id"]
-              keys = keys[!is.na(keys)]
-              if (length(keys)) {
-                lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-                conditions = list(list(message = "Worker has crashed or was killed"))
-                self$fail_tasks(keys, conditions = conditions)
-              } else {
-                lg$error("Worker '%s' crashed before evaluating a task", worker_id)
-              }
-            })
-          }
+          walk(lost_workers, function(worker_id) {
+            private$.fail_lost_tasks(worker_id, running_tasks, "Worker has crashed or was killed")
+          })
+
+          # # identify and fail lost tasks
+          # if (nrow(running_tasks) && length(lost_workers)) {
+          #   walk(lost_workers, function(worker_id) {
+          #     keys = running_tasks[list(worker_id), keys, on = "worker_id"]
+          #     keys = keys[!is.na(keys)]
+          #     if (length(keys)) {
+          #       lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+          #       conditions = list(list(message = "Worker has crashed or was killed"))
+          #       self$fail_tasks(keys, conditions = conditions)
+          #     } else {
+          #       lg$error("Worker '%s' crashed before evaluating a task", worker_id)
+          #     }
+          #   })
+          # }
         }
       }
 
@@ -858,7 +869,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Mark tasks as failed and optionally save the condition objects
+    #' Mark tasks as failed and optionally save the condition objects.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the tasks to be moved.
@@ -878,29 +889,21 @@ Rush = R6::R6Class(
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
 
-      is_running_task = as.logical(r$pipeline(
-        .commands = map(keys, function(key) c("SISMEMBER", private$.get_key("running_tasks"), key))
-      ))
-      running_tasks = keys[is_running_task]
-      queued_tasks = keys[!is_running_task]
-
-      # move keys from running to failed
-      commands_running = map(running_tasks, function(key) {
-        c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
-      })
-
-      # move keys from queued to failed
-      commands_queued = unlist(
-        map(queued_tasks, function(key) {
+      # move each key to failed regardless of its current state
+      # running LREM and SREM on keys not present is a nop
+      move_commands = unlist(
+        map(keys, function(key) {
           list(
             c("LREM", private$.get_key("queued_tasks"), 1, key),
+            c("SREM", private$.get_key("running_tasks"), key),
+            c("SREM", private$.get_key("finished_tasks"), key),
             c("SADD", private$.get_key("failed_tasks"), key)
           )
         }),
         recursive = FALSE
       )
 
-      r$pipeline(.commands = c(commands_running, commands_queued))
+      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
 
       invisible(self)
     },
@@ -1826,6 +1829,24 @@ Rush = R6::R6Class(
       lg$debug("Fetching %i task(s)", nrow(private$.cached_tasks))
 
       private$.cached_tasks[]
-    }
+    },
+
+    # fail all tasks of a lost worker
+    .fail_lost_tasks = function(worker_id, running_tasks, message) {
+      r = private$.connector
+      keys = if (nrow(running_tasks)) running_tasks[list(worker_id), keys, on = "worker_id"]
+      keys = keys[!is.na(keys)]
+      keys = union(keys, unlist(r$command(c("LRANGE", private$.get_worker_key("evaluated_tasks", worker_id), 0, -1))))
+
+      if (length(keys)) {
+        lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
+        self$fail_tasks(keys, conditions = list(list(message = message)))
+      } else {
+        lg$error("Worker '%s' crashed before evaluating a task", worker_id)
+      }
+
+      r$command(c("DEL", processing_tasks_key))
+      invisible(NULL)
+    },
   )
 )

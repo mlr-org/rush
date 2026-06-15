@@ -155,6 +155,7 @@ RushWorker = R6::R6Class(
       lg$debug("Pushing %i running task(s).", length(xss))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
+      r$command(c("LPUSH", private$.get_key("worker_ids"), self$worker_id))
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
