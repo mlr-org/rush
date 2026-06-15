@@ -66,3 +66,19 @@ assert_rush_workers = function(workers, null_ok = FALSE) {
   }
   invisible(map(workers, assert_rush_worker))
 }
+
+assert_lgr_thresholds = function(lgr_thresholds) {
+  assert_vector(
+    lgr_thresholds %??% rush_env$lgr_thresholds,
+    names = "named",
+    null.ok = TRUE,
+    .var.name = "lgr_thresholds"
+  )
+}
+
+assert_lgr_buffer_size = function(lgr_buffer_size) {
+  assert_count(
+    lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0,
+    .var.name = "lgr_buffer_size"
+  )
+}

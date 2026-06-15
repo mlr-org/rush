@@ -170,16 +170,8 @@ Rush = R6::R6Class(
       output_log = NULL
     ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
-      lgr_thresholds = assert_vector(
-        lgr_thresholds %??% rush_env$lgr_thresholds,
-        names = "named",
-        null.ok = TRUE,
-        .var.name = "lgr_thresholds"
-      )
-      lgr_buffer_size = assert_count(
-        lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0,
-        .var.name = "lgr_buffer_size"
-      )
+      lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
+      lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
 
       mirai_status = status()
       # check number of daemons
@@ -258,16 +250,8 @@ Rush = R6::R6Class(
       output_log = NULL
     ) {
       n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
-      lgr_thresholds = assert_vector(
-        lgr_thresholds %??% rush_env$lgr_thresholds,
-        names = "named",
-        null.ok = TRUE,
-        .var.name = "lgr_thresholds"
-      )
-      lgr_buffer_size = assert_count(
-        lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0,
-        .var.name = "lgr_buffer_size"
-      )
+      lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
+      lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
       assert_flag(supervise)
 
       r = private$.connector
@@ -378,16 +362,8 @@ Rush = R6::R6Class(
       message_log = NULL,
       output_log = NULL
     ) {
-      lgr_thresholds = assert_vector(
-        lgr_thresholds %??% rush_env$lgr_thresholds,
-        names = "named",
-        null.ok = TRUE,
-        .var.name = "lgr_thresholds"
-      )
-      lgr_buffer_size = assert_count(
-        lgr_buffer_size %??% rush_env$lgr_buffer_size %??% 0,
-        .var.name = "lgr_buffer_size"
-      )
+      lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
+      lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
 
       # push worker config to redis
       private$.push_worker_config(
