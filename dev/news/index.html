@@ -69,6 +69,8 @@
 <li>
 <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 <li>
+<code>$wait_for_tasks()</code> no longer reads the full finished and failed task structures on every poll. The expensive membership check now runs only when the cheap completion counters report a newly completed task.</li>
+<li>
 <code>$worker_script()</code> no longer logs the Redis password. The logged script shows <code>&lt;redacted&gt;</code> instead. The method now returns the script visibly.</li>
 <li>
 <code>RushWorker$new()</code> now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. <code>heartbeat_period</code> and <code>heartbeat_expire</code> must now be at least 1 second.</li>
