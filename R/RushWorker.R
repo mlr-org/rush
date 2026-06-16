@@ -47,7 +47,8 @@ RushWorker = R6::R6Class(
       r = self$connector
 
       # setup heartbeat
-      heartbeat_key = NA_character_
+      # empty string marks the absence of a heartbeat; a non-empty value is the heartbeat key
+      heartbeat_key = ""
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
         assert_number(heartbeat_period, lower = 1)

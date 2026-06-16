@@ -760,7 +760,7 @@ Rush = R6::R6Class(
       r = private$.connector
 
       if (!self$n_workers) {
-        return(invisible(NULL))
+        return(invisible(self))
       }
 
       walk(self$worker_ids, function(worker_id) {
@@ -1029,7 +1029,6 @@ Rush = R6::R6Class(
       fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition"),
       states = c("queued", "running", "finished", "failed")
     ) {
-      # nolint
       r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
 
@@ -1361,14 +1360,14 @@ Rush = R6::R6Class(
 
     #' @field config ([redux::redis_config])\cr
     #' Redis configuration options.
-    #' Assigning a new configuration immediately reconnects to Redis with the new settings.
+    #' Assigning a new configuration does not affect the live connection.
+    #' Call `$reconnect()` afterwards to connect with the new configuration.
     config = function(rhs) {
       if (missing(rhs)) {
         return(private$.config)
       }
       assert_class(rhs, "redis_config")
       private$.config = rhs
-      self$reconnect()
     },
 
     #' @field connector ([redux::redis_api])\cr
@@ -1512,7 +1511,7 @@ Rush = R6::R6Class(
 
       # fix type
       worker_info[, pid := as.integer(pid)][]
-      worker_info[, heartbeat := heartbeat != "NA"][]
+      worker_info[, heartbeat := nzchar(heartbeat)][]
 
       # get worker states as atomic operation
       r$MULTI()
