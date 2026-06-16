@@ -38,8 +38,8 @@ Methods to change the state of an existing task:
 \item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
 }
 
-The methods \verb{$pop_task()} and \verb{$push_running_tasks(xss)} require a worker identity
-and are therefore only available on \link{RushWorker}.
+The methods \verb{$pop_task()}, \verb{$push_running_tasks(xss)}, \verb{$finish_tasks(keys, yss)}, and
+\verb{$fail_tasks(keys, conditions)} are only available on \link{RushWorker}.
 
 The following methods are used to fetch tasks:
 \itemize{
@@ -194,12 +194,11 @@ Contains information about the workers.}
     \item \href{#method-Rush-reset}{\code{Rush$reset()}}
     \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
     \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
-    \item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
-    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
     \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
+    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
     \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
     \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
@@ -215,8 +214,6 @@ Contains information about the workers.}
     \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
     \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
     \item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
-    \item \href{#method-Rush-push_results}{\code{Rush$push_results()}}
-    \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
     \item \href{#method-Rush-clone}{\code{Rush$clone()}}
   }
 }
@@ -653,62 +650,6 @@ Invisible self.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-finish_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-finish_tasks}{}}}
-\subsection{\code{Rush$finish_tasks()}}{
-  Save output of tasks and mark them as finished.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$finish_tasks(keys, yss, extra = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character(1)})\cr
-Keys of the associated tasks.}
-      \item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
-      \item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
-\subsection{\code{Rush$fail_tasks()}}{
-  Mark tasks as failed and optionally save the condition objects
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fail_tasks(keys, conditions = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks to be moved.
-Defaults to all queued tasks.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.
-Defaults to \code{list(message = "Failed")}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{\code{Rush$push_tasks()}}{
@@ -802,7 +743,32 @@ Keys of the tasks.
 The state of the tasks is set to failed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}
+    \preformatted{Rush$empty_queue(conditions = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.
+If \code{NULL}, the condition message is set to \code{"Removed from queue"}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
+Invisible self.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
+\subsection{\code{Rush$fail_tasks()}}{
+  Deprecated method to move tasks from queued and running to failed.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fail_tasks(keys, conditions)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -1221,62 +1187,6 @@ States of the tasks.}
   }
   \subsection{Returns}{
     (Named list of \code{character()}).
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-push_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-push_results}{}}}
-\subsection{\code{Rush$push_results()}}{
-  Deprecated method.
-Use \verb{$finish_tasks()} instead.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_results(keys, yss, extra = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the associated tasks.}
-      \item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
-      \item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-push_failed"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-push_failed}{}}}
-\subsection{\code{Rush$push_failed()}}{
-  Deprecated method.
-Use \verb{$fail_tasks()} instead.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_failed(keys, conditions)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the associated tasks.}
-      \item{\code{conditions}}{(\code{list()})\cr
-List of conditions.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
   }
 }
 
