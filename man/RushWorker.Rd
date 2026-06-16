@@ -193,6 +193,8 @@ Keys of the tasks.
 \subsection{\code{RushWorker$finish_tasks()}}{
   Save the output of tasks and mark them as finished.
 Only the worker that processes the tasks should call this method.
+If the worker was terminated while processing the tasks,
+the tasks are marked as failed with condition message "Worker was terminated".
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$finish_tasks(keys, yss, extra = NULL)}

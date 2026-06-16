@@ -66,3 +66,11 @@ wl_segfault = function(rush) {
   Sys.sleep(1)
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
+
+wl_nop = function(rush) {
+  while (!rush$terminated) {
+    Sys.sleep(1)
+  }
+
+  NULL
+}

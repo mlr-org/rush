@@ -300,18 +300,6 @@ test_that("popping a task works", {
   expect_false(rush$is_failed_task(task$key))
 })
 
-test_that("pushing running tasks works", {
-  rush = start_rush_worker()
-
-  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
-
-  expect_string(keys)
-  expect_equal(rush$n_running_tasks, 1)
-  expect_set_equal(rush$running_tasks, keys)
-  expect_true(rush$worker_id %in% rush$worker_ids)
-  expect_data_table(rush$fetch_running_tasks(), nrows = 1)
-})
-
 test_that("finishing a task works", {
   rush = start_rush_worker()
 

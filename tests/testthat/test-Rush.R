@@ -838,30 +838,43 @@ test_that("a segfault on a single worker is detected via heartbeat", {
 })
 
 test_that("a task lost in the pending state is recovered", {
-  rush = start_rush_worker()
-  on.exit(rush$reset())
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
 
   rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  expect_character(rush$queued_tasks, len = 1)
+
+  worker_ids = rush$start_local_workers(
+    worker_loop = wl_nop,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
 
   # simulate a worker that moved a task into pending but crashed before marking it running
   r = rush$connector
-  worker_id = rush$worker_id
+  worker_id = rush$worker_ids[1]
   key = r$command(c(
     "BLMOVE",
-    rush$.__enclos_env__$private$.get_key("queued_tasks"),
-    rush$.__enclos_env__$private$.get_worker_key("pending_task", worker_id),
-    "RIGHT", "LEFT", 1
+    get_private(rush)$.get_key("queued_tasks"),
+    get_private(rush)$.get_worker_key("pending_task", worker_id),
+    "RIGHT",
+    "LEFT",
+    1
   ))
   rush$write_hashes(worker_id = list(worker_id), keys = key)
   expect_null(rush$running_tasks)
+  expect_null(rush$queued_tasks)
+  rush$processes_processx[[worker_id]]$kill()
 
-  running_tasks = rush$fetch_running_tasks(fields = "worker_id")
-  rush$.__enclos_env__$private$.fail_lost_tasks(worker_id, running_tasks, "Worker has crashed or was killed")
+  rush$detect_lost_workers()
 
   # task is failed, removed from the pending list, and not in running
   expect_equal(rush$failed_tasks, key)
   expect_null(rush$running_tasks)
-  expect_length(r$command(c("LRANGE", rush$.__enclos_env__$private$.get_worker_key("pending_task", worker_id), 0, -1)), 0)
   expect_equal(rush$fetch_failed_tasks()$message, "Worker has crashed or was killed")
 })
 

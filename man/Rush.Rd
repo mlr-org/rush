@@ -200,6 +200,7 @@ Contains information about the workers.}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
     \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
+    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
     \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
     \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
@@ -744,7 +745,32 @@ Keys of the tasks.
 The state of the tasks is set to failed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}
+    \preformatted{Rush$empty_queue(conditions = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.
+If \code{NULL}, the condition message is set to \code{"Removed from queue"}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
+Invisible self.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
+\subsection{\code{Rush$fail_tasks()}}{
+  Deprecated method to move tasks from queued and running to failed.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$fail_tasks(keys, conditions)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
