@@ -2,6 +2,7 @@
 
 * `$fail_tasks()` and `$finish_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
   The manager fails the tasks of a worker only after the worker has been stopped, which avoids a task ending up in two states at once.
+* `$push_failed()` and `$push_results()` are removed. Use `$fail_tasks()` and `$finish_tasks()` instead.
 * `$push_running_tasks()` no longer errors with a `WRONGTYPE` error.
   The redundant registration of the worker id, which used a list operation on the worker id set, is removed.
 * `$pop_task()` no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running.

@@ -215,8 +215,6 @@ Contains information about the workers.}
     \item \href{#method-Rush-is_running_task}{\code{Rush$is_running_task()}}
     \item \href{#method-Rush-is_failed_task}{\code{Rush$is_failed_task()}}
     \item \href{#method-Rush-tasks_with_state}{\code{Rush$tasks_with_state()}}
-    \item \href{#method-Rush-push_results}{\code{Rush$push_results()}}
-    \item \href{#method-Rush-push_failed}{\code{Rush$push_failed()}}
     \item \href{#method-Rush-clone}{\code{Rush$clone()}}
   }
 }
@@ -1165,62 +1163,6 @@ States of the tasks.}
   }
   \subsection{Returns}{
     (Named list of \code{character()}).
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-push_results"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-push_results}{}}}
-\subsection{\code{Rush$push_results()}}{
-  Deprecated method.
-Use \verb{$finish_tasks()} instead.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_results(keys, yss, extra = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the associated tasks.}
-      \item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
-      \item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-push_failed"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-push_failed}{}}}
-\subsection{\code{Rush$push_failed()}}{
-  Deprecated method.
-Use \verb{$fail_tasks()} instead.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_failed(keys, conditions)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the associated tasks.}
-      \item{\code{conditions}}{(\code{list()})\cr
-List of conditions.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
   }
 }
 

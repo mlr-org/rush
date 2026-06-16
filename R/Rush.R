@@ -1356,39 +1356,6 @@ Rush = R6::R6Class(
       r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"))
       private$.tasks_with_state(states)
-    },
-
-    #' @description
-    #' Deprecated method.
-    #' Use `$finish_tasks()` instead.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the associated tasks.
-    #' @param yss (named `list()`)\cr
-    #' List of lists of named results.
-    #' @param extra (named `list()`)\cr
-    #' List of lists of additional information stored along with the results.
-    #'
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    push_results = function(keys, yss, extra = NULL) {
-      warn_deprecated("$push_results() is deprecated. Use $finish_tasks() instead.")
-      private$.finish_tasks(keys, yss, extra = extra)
-    },
-
-    #' @description
-    #' Deprecated method.
-    #' Use `$fail_tasks()` instead.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the associated tasks.
-    #' @param conditions (`list()`)\cr
-    #' List of conditions.
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    push_failed = function(keys, conditions) {
-      warn_deprecated("$push_failed() is deprecated. Use $fail_tasks() instead.")
-      private$.fail_tasks(keys, conditions = conditions)
     }
   ),
 
