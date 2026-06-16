@@ -11,7 +11,14 @@ require a worker identity:
 
 - `$pop_task()`: Pop a task from the queue and mark it as running.
 
-- `$push_running_tasks(xss)`: Create running tasks owned by the worker.
+- `$push_running_tasks(xss)`: Create running tasks evaluated by the
+  worker.
+
+- `$finish_tasks(keys, yss)`: Save the output of tasks and mark them as
+  finished.
+
+- `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
+  save the condition objects.
 
 ## Value
 
@@ -54,6 +61,10 @@ Object of class
 
 - [`RushWorker$push_running_tasks()`](#method-RushWorker-push_running_tasks)
 
+- [`RushWorker$finish_tasks()`](#method-RushWorker-finish_tasks)
+
+- [`RushWorker$fail_tasks()`](#method-RushWorker-fail_tasks)
+
 - [`RushWorker$set_terminated()`](#method-RushWorker-set_terminated)
 
 - [`RushWorker$clone()`](#method-RushWorker-clone)
@@ -62,7 +73,6 @@ Inherited methods
 
 - [`Rush$detect_lost_workers()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-detect_lost_workers)
 - [`Rush$empty_queue()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-empty_queue)
-- [`Rush$fail_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fail_tasks)
 - [`Rush$fetch_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_failed_tasks)
 - [`Rush$fetch_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_finished_tasks)
 - [`Rush$fetch_new_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_new_tasks)
@@ -70,16 +80,13 @@ Inherited methods
 - [`Rush$fetch_running_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_running_tasks)
 - [`Rush$fetch_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks)
 - [`Rush$fetch_tasks_with_state()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-fetch_tasks_with_state)
-- [`Rush$finish_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-finish_tasks)
 - [`Rush$format()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-format)
 - [`Rush$is_failed_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_failed_task)
 - [`Rush$is_running_task()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-is_running_task)
 - [`Rush$print()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print)
 - [`Rush$print_log()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-print_log)
-- [`Rush$push_failed()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed)
 - [`Rush$push_failed_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_failed_tasks)
 - [`Rush$push_finished_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_finished_tasks)
-- [`Rush$push_results()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_results)
 - [`Rush$push_tasks()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-push_tasks)
 - [`Rush$read_hash()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hash)
 - [`Rush$read_hashes()`](https://rush.mlr-org.com/dev/reference/Rush.html#method-read_hashes)
@@ -202,6 +209,66 @@ Create running tasks.
 
 ([`character()`](https://rdrr.io/r/base/character.html))  
 Keys of the tasks.
+
+------------------------------------------------------------------------
+
+### `RushWorker$finish_tasks()`
+
+Save the output of tasks and mark them as finished.
+
+#### Usage
+
+    RushWorker$finish_tasks(keys, yss, extra = NULL)
+
+#### Arguments
+
+- `keys`:
+
+  (`character(1)`)  
+  Keys of the associated tasks.
+
+- `yss`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of named results.
+
+- `extra`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of additional information stored along with the results.
+
+#### Returns
+
+(`RushWorker`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### `RushWorker$fail_tasks()`
+
+Move running tasks to failed and optionally save the condition objects.
+
+#### Usage
+
+    RushWorker$fail_tasks(keys, conditions = NULL)
+
+#### Arguments
+
+- `keys`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Keys of the running tasks to be moved.
+
+- `conditions`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of conditions. Defaults to
+  `list(message = "Task failed")`.
+
+#### Returns
+
+(`RushWorker`)  
+Invisible self.
 
 ------------------------------------------------------------------------
 

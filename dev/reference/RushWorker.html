@@ -10,14 +10,18 @@ Upon initialization, the worker registers itself in the Redis database as a runn
 This class is usually not constructed directly by the user.
 In addition to the inherited methods, the worker provides methods that require a worker identity:
 $pop_task(): Pop a task from the queue and mark it as running.
-$push_running_tasks(xss): Create running tasks owned by the worker.
+$push_running_tasks(xss): Create running tasks evaluated by the worker.
+$finish_tasks(keys, yss): Save the output of tasks and mark them as finished.
+$fail_tasks(keys, conditions): Mark tasks as failed and optionally save the condition objects.
 
 "><meta property="og:description" content="RushWorker inherits all methods from Rush.
 Upon initialization, the worker registers itself in the Redis database as a running worker.
 This class is usually not constructed directly by the user.
 In addition to the inherited methods, the worker provides methods that require a worker identity:
 $pop_task(): Pop a task from the queue and mark it as running.
-$push_running_tasks(xss): Create running tasks owned by the worker.
+$push_running_tasks(xss): Create running tasks evaluated by the worker.
+$finish_tasks(keys, yss): Save the output of tasks and mark them as finished.
+$fail_tasks(keys, conditions): Mark tasks as failed and optionally save the condition objects.
 
 "><meta name="robots" content="noindex"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -75,7 +79,9 @@ $push_running_tasks(xss): Create running tasks owned by the worker.
 Upon initialization, the worker registers itself in the Redis database as a running worker.
 This class is usually not constructed directly by the user.</p>
 <p>In addition to the inherited methods, the worker provides methods that require a worker identity:</p><ul><li><p><code>$pop_task()</code>: Pop a task from the queue and mark it as running.</p></li>
-<li><p><code>$push_running_tasks(xss)</code>: Create running tasks owned by the worker.</p></li>
+<li><p><code>$push_running_tasks(xss)</code>: Create running tasks evaluated by the worker.</p></li>
+<li><p><code>$finish_tasks(keys, yss)</code>: Save the output of tasks and mark them as finished.</p></li>
+<li><p><code>$fail_tasks(keys, conditions)</code>: Mark tasks as failed and optionally save the condition objects.</p></li>
 </ul></div>
 
 
@@ -119,11 +125,12 @@ Used in the worker loop to determine whether to continue.</p></dd>
 <p></p><ul><li><p><a href="#method-RushWorker-initialize"><code>RushWorker$new()</code></a></p></li>
 <li><p><a href="#method-RushWorker-pop_task"><code>RushWorker$pop_task()</code></a></p></li>
 <li><p><a href="#method-RushWorker-push_running_tasks"><code>RushWorker$push_running_tasks()</code></a></p></li>
+<li><p><a href="#method-RushWorker-finish_tasks"><code>RushWorker$finish_tasks()</code></a></p></li>
+<li><p><a href="#method-RushWorker-fail_tasks"><code>RushWorker$fail_tasks()</code></a></p></li>
 <li><p><a href="#method-RushWorker-set_terminated"><code>RushWorker$set_terminated()</code></a></p></li>
 <li><p><a href="#method-RushWorker-clone"><code>RushWorker$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href="Rush.html#method-detect_lost_workers"><code>Rush$detect_lost_workers()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href="Rush.html#method-empty_queue"><code>Rush$empty_queue()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fail_tasks"><a href="Rush.html#method-fail_tasks"><code>Rush$fail_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href="Rush.html#method-fetch_failed_tasks"><code>Rush$fetch_failed_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href="Rush.html#method-fetch_finished_tasks"><code>Rush$fetch_finished_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href="Rush.html#method-fetch_new_tasks"><code>Rush$fetch_new_tasks()</code></a></span></li>
@@ -131,16 +138,13 @@ Used in the worker loop to determine whether to continue.</p></dd>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href="Rush.html#method-fetch_running_tasks"><code>Rush$fetch_running_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href="Rush.html#method-fetch_tasks"><code>Rush$fetch_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href="Rush.html#method-fetch_tasks_with_state"><code>Rush$fetch_tasks_with_state()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="finish_tasks"><a href="Rush.html#method-finish_tasks"><code>Rush$finish_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href="Rush.html#method-format"><code>Rush$format()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href="Rush.html#method-is_failed_task"><code>Rush$is_failed_task()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href="Rush.html#method-is_running_task"><code>Rush$is_running_task()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print"><a href="Rush.html#method-print"><code>Rush$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="print_log"><a href="Rush.html#method-print_log"><code>Rush$print_log()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed"><a href="Rush.html#method-push_failed"><code>Rush$push_failed()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_failed_tasks"><a href="Rush.html#method-push_failed_tasks"><code>Rush$push_failed_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_finished_tasks"><a href="Rush.html#method-push_finished_tasks"><code>Rush$push_finished_tasks()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_results"><a href="Rush.html#method-push_results"><code>Rush$push_results()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="push_tasks"><a href="Rush.html#method-push_tasks"><code>Rush$push_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hash"><a href="Rush.html#method-read_hash"><code>Rush$read_hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="read_hashes"><a href="Rush.html#method-read_hashes"><code>Rush$read_hashes()</code></a></span></li>
@@ -253,14 +257,69 @@ Keys of the tasks.</p>
 
 </div>
 
+<p></p><hr><a id="method-RushWorker-finish_tasks"></a><div class="section">
+<h3 id="rushworker-finish-tasks-"><code>RushWorker$finish_tasks()</code><a class="anchor" aria-label="anchor" href="#rushworker-finish-tasks-"></a></h3>
+<p>Save the output of tasks and mark them as finished.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RushWorker</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">keys</span>, <span class="va">yss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Keys of the associated tasks.</p></dd>
+
+      <dt><code>yss</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of lists of named results.</p></dd>
+
+      <dt><code>extra</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of lists of additional information stored along with the results.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>(<code>RushWorker</code>)<br>
+Invisible self.</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-RushWorker-fail_tasks"></a><div class="section">
+<h3 id="rushworker-fail-tasks-"><code>RushWorker$fail_tasks()</code><a class="anchor" aria-label="anchor" href="#rushworker-fail-tasks-"></a></h3>
+<p>Move running tasks to failed and optionally save the condition objects.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RushWorker</span><span class="op">$</span><span class="fu">fail_tasks</span><span class="op">(</span><span class="va">keys</span>, conditions <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Keys of the running tasks to be moved.</p></dd>
+
+      <dt><code>conditions</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of lists of conditions.
+Defaults to <code>list(message = "Task failed")</code>.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>(<code>RushWorker</code>)<br>
+Invisible self.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-RushWorker-set_terminated"></a><div class="section">
 <h3 id="rushworker-set-terminated-"><code>RushWorker$set_terminated()</code><a class="anchor" aria-label="anchor" href="#rushworker-set-terminated-"></a></h3>
 <p>Mark the worker as terminated.
 Last step in the worker loop before the worker terminates.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RushWorker</span><span class="op">$</span><span class="fu">set_terminated</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>(<code>RushWorker</code>)<br>
 Invisible self.</p>
 </div>
@@ -270,10 +329,10 @@ Invisible self.</p>
 <p></p><hr><a id="method-RushWorker-clone"></a><div class="section">
 <h3 id="rushworker-clone-"><code>RushWorker$clone()</code><a class="anchor" aria-label="anchor" href="#rushworker-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RushWorker</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

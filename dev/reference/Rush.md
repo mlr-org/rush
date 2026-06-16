@@ -48,8 +48,9 @@ Methods to change the state of an existing task:
 
 - `$pop_task()`: Pop a task from the queue and mark it as running.
 
-The methods `$pop_task()` and `$push_running_tasks(xss)` require a
-worker identity and are therefore only available on
+The methods `$pop_task()`, `$push_running_tasks(xss)`,
+`$finish_tasks(keys, yss)`, and `$fail_tasks(keys, conditions)` are only
+available on
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md).
 
 The following methods are used to fetch tasks:
@@ -265,10 +266,6 @@ of `$start_workers()`.
 
 - [`Rush$print_log()`](#method-Rush-print_log)
 
-- [`Rush$finish_tasks()`](#method-Rush-finish_tasks)
-
-- [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
-
 - [`Rush$push_tasks()`](#method-Rush-push_tasks)
 
 - [`Rush$push_finished_tasks()`](#method-Rush-push_finished_tasks)
@@ -276,6 +273,8 @@ of `$start_workers()`.
 - [`Rush$push_failed_tasks()`](#method-Rush-push_failed_tasks)
 
 - [`Rush$empty_queue()`](#method-Rush-empty_queue)
+
+- [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
 
 - [`Rush$fetch_tasks()`](#method-Rush-fetch_tasks)
 
@@ -306,10 +305,6 @@ of `$start_workers()`.
 - [`Rush$is_failed_task()`](#method-Rush-is_failed_task)
 
 - [`Rush$tasks_with_state()`](#method-Rush-tasks_with_state)
-
-- [`Rush$push_results()`](#method-Rush-push_results)
-
-- [`Rush$push_failed()`](#method-Rush-push_failed)
 
 - [`Rush$clone()`](#method-Rush-clone)
 
@@ -834,65 +829,6 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### `Rush$finish_tasks()`
-
-Save output of tasks and mark them as finished.
-
-#### Usage
-
-    Rush$finish_tasks(keys, yss, extra = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  (`character(1)`)  
-  Keys of the associated tasks.
-
-- `yss`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of named results.
-
-- `extra`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of additional information stored along with the results.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### `Rush$fail_tasks()`
-
-Mark tasks as failed and optionally save the condition objects
-
-#### Usage
-
-    Rush$fail_tasks(keys, conditions = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the tasks to be moved. Defaults to all queued tasks.
-
-- `conditions`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions. Defaults to `list(message = "Failed")`.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
 ### `Rush$push_tasks()`
 
 Create queued tasks and add them to the queue.
@@ -1006,7 +942,30 @@ failed.
 
 #### Usage
 
-    Rush$empty_queue(keys = NULL, conditions = NULL)
+    Rush$empty_queue(conditions = NULL)
+
+#### Arguments
+
+- `conditions`:
+
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of lists of conditions. If `NULL`, the condition message is set
+  to `"Removed from queue"`.
+
+#### Returns
+
+(`Rush`)  
+Invisible self.
+
+------------------------------------------------------------------------
+
+### `Rush$fail_tasks()`
+
+Deprecated method to move tasks from queued and running to failed.
+
+#### Usage
+
+    Rush$fail_tasks(keys, conditions)
 
 #### Arguments
 
@@ -1416,65 +1375,6 @@ Returns keys of requested states.
 #### Returns
 
 (Named list of [`character()`](https://rdrr.io/r/base/character.html)).
-
-------------------------------------------------------------------------
-
-### `Rush$push_results()`
-
-Deprecated method. Use `$finish_tasks()` instead.
-
-#### Usage
-
-    Rush$push_results(keys, yss, extra = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the associated tasks.
-
-- `yss`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of named results.
-
-- `extra`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of additional information stored along with the results.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### `Rush$push_failed()`
-
-Deprecated method. Use `$fail_tasks()` instead.
-
-#### Usage
-
-    Rush$push_failed(keys, conditions)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the associated tasks.
-
-- `conditions`:
-
-  ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of conditions.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
 
 ------------------------------------------------------------------------
 
