@@ -38,8 +38,10 @@ Methods to change the state of an existing task:
 \item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
 }
 
-The methods \verb{$pop_task()} and \verb{$push_running_tasks(xss)} require a worker identity
-and are therefore only available on \link{RushWorker}.
+The methods \verb{$pop_task()}, \verb{$push_running_tasks(xss)}, \verb{$finish_tasks(keys, yss)}, and
+\verb{$fail_tasks(keys, conditions)} are only available on \link{RushWorker}.
+A task must only be set to finished or failed by the worker that processes it, or by the manager once the
+worker has been stopped, otherwise the task can end up in two states at once.
 
 The following methods are used to fetch tasks:
 \itemize{
@@ -194,8 +196,6 @@ Contains information about the workers.}
     \item \href{#method-Rush-reset}{\code{Rush$reset()}}
     \item \href{#method-Rush-read_log}{\code{Rush$read_log()}}
     \item \href{#method-Rush-print_log}{\code{Rush$print_log()}}
-    \item \href{#method-Rush-finish_tasks}{\code{Rush$finish_tasks()}}
-    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-push_tasks}{\code{Rush$push_tasks()}}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
@@ -644,62 +644,6 @@ Log messages are printed with the original logger.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$print_log()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-finish_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-finish_tasks}{}}}
-\subsection{\code{Rush$finish_tasks()}}{
-  Save output of tasks and mark them as finished.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$finish_tasks(keys, yss, extra = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character(1)})\cr
-Keys of the associated tasks.}
-      \item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
-      \item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
-\subsection{\code{Rush$fail_tasks()}}{
-  Mark tasks as failed and optionally save the condition objects
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fail_tasks(keys, conditions = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks to be moved.
-Defaults to all queued tasks.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.
-Defaults to \code{list(message = "Failed")}.}
-    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

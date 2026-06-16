@@ -30,8 +30,10 @@
 #' * `$pop_task()`: Pop a task from the queue and mark it as running.
 #'
 #'
-#' The methods `$pop_task()` and `$push_running_tasks(xss)` require a worker identity
-#' and are therefore only available on [RushWorker].
+#' The methods `$pop_task()`, `$push_running_tasks(xss)`, `$finish_tasks(keys, yss)`, and
+#' `$fail_tasks(keys, conditions)` are only available on [RushWorker].
+#' A task must only be set to finished or failed by the worker that processes it, or by the manager once the
+#' worker has been stopped, otherwise the task can end up in two states at once.
 #'
 #' The following methods are used to fetch tasks:
 #'
@@ -828,87 +830,6 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Save output of tasks and mark them as finished.
-    #'
-    #' @param keys (`character(1)`)\cr
-    #' Keys of the associated tasks.
-    #' @param yss (named `list()`)\cr
-    #' List of lists of named results.
-    #' @param extra (named `list()`)\cr
-    #' List of lists of additional information stored along with the results.
-    #'
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    finish_tasks = function(keys, yss, extra = NULL) {
-      assert_character(keys)
-      assert_list(yss, types = "list")
-      assert_list(extra, types = "list", null.ok = TRUE)
-      r = private$.connector
-
-      # write results to hashes
-      self$write_hashes(
-        ys = yss,
-        ys_extra = extra,
-        keys = keys
-      )
-
-      # move key from running to finished
-      # keys of finished tasks are stored in a list i.e. the are ordered by time
-      # each rush instance only needs to record how many results it has already seen
-      # to cheaply get the latest results and cache the finished tasks
-      # under some conditions a set would be more advantageous e.g. to check if a task is finished,
-      # but at the moment a list seems to be the better option
-      r$pipeline(
-        .commands = list(
-          c("SREM", private$.get_key("running_tasks"), keys),
-          c("RPUSH", private$.get_key("finished_tasks"), keys)
-        )
-      )
-
-      invisible(self)
-    },
-
-    #' @description
-    #' Mark tasks as failed and optionally save the condition objects.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the tasks to be moved.
-    #' Defaults to all queued tasks.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #' Defaults to `list(message = "Failed")`.
-    #'
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    fail_tasks = function(keys, conditions = NULL) {
-      assert_character(keys)
-      assert_list(conditions, types = "list", null.ok = TRUE)
-      r = private$.connector
-      conditions = conditions %??% list(list(message = "Task failed"))
-
-      # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
-
-      # move each key to failed regardless of its current state
-      # running LREM and SREM on keys not present is a nop
-      move_commands = unlist(
-        map(keys, function(key) {
-          list(
-            c("LREM", private$.get_key("queued_tasks"), 1, key),
-            c("SREM", private$.get_key("running_tasks"), key),
-            c("SREM", private$.get_key("finished_tasks"), key),
-            c("SADD", private$.get_key("failed_tasks"), key)
-          )
-        }),
-        recursive = FALSE
-      )
-
-      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
-
-      invisible(self)
-    },
-
-    #' @description
     #' Create queued tasks and add them to the queue.
     #'
     #' @param xss (list of named `list()`)\cr
@@ -1019,7 +940,7 @@ Rush = R6::R6Class(
 
       if (length(keys)) {
         conditions = conditions %??% list(list(message = "Removed from queue"))
-        self$fail_tasks(keys, conditions = conditions)
+        private$.fail_tasks(keys, conditions = conditions)
       }
 
       return(invisible(self))
@@ -1452,7 +1373,7 @@ Rush = R6::R6Class(
     #' Invisible self.
     push_results = function(keys, yss, extra = NULL) {
       warn_deprecated("$push_results() is deprecated. Use $finish_tasks() instead.")
-      self$finish_tasks(keys, yss, extra = extra)
+      private$.finish_tasks(keys, yss, extra = extra)
     },
 
     #' @description
@@ -1467,7 +1388,7 @@ Rush = R6::R6Class(
     #' Invisible self.
     push_failed = function(keys, conditions) {
       warn_deprecated("$push_failed() is deprecated. Use $fail_tasks() instead.")
-      self$fail_tasks(keys, conditions = conditions)
+      private$.fail_tasks(keys, conditions = conditions)
     }
   ),
 
@@ -1831,22 +1752,80 @@ Rush = R6::R6Class(
       private$.cached_tasks[]
     },
 
+    # move tasks to the finished state and store the results
+    # only called by a worker for its own tasks (RushWorker$finish_tasks())
+    .finish_tasks = function(keys, yss, extra = NULL) {
+      r = private$.connector
+
+      # write results to hashes
+      self$write_hashes(
+        ys = yss,
+        ys_extra = extra,
+        keys = keys
+      )
+
+      # move key from running to finished
+      # keys of finished tasks are stored in a list i.e. the are ordered by time
+      # each rush instance only needs to record how many results it has already seen
+      # to cheaply get the latest results and cache the finished tasks
+      # under some conditions a set would be more advantageous e.g. to check if a task is finished,
+      # but at the moment a list seems to be the better option
+      r$pipeline(
+        .commands = list(
+          c("SREM", private$.get_key("running_tasks"), keys),
+          c("RPUSH", private$.get_key("finished_tasks"), keys)
+        )
+      )
+
+      invisible(self)
+    },
+
+    # move tasks to the failed state and store the condition objects
+    # only called by a worker for its own tasks (RushWorker$fail_tasks()), when emptying the queue,
+    # or by the manager to recover the tasks of a stopped worker (.fail_lost_tasks())
+    .fail_tasks = function(keys, conditions = NULL) {
+      r = private$.connector
+      conditions = conditions %??% list(list(message = "Task failed"))
+
+      # write condition to hash
+      self$write_hashes(condition = conditions, keys = keys)
+
+      # move each key to failed regardless of its current state
+      # a failed task is never in the finished list, so only queued and running are touched
+      # LREM and SREM on keys not present are a nop
+      move_commands = unlist(
+        map(keys, function(key) {
+          list(
+            c("LREM", private$.get_key("queued_tasks"), 1, key),
+            c("SREM", private$.get_key("running_tasks"), key),
+            c("SADD", private$.get_key("failed_tasks"), key)
+          )
+        }),
+        recursive = FALSE
+      )
+
+      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
+
+      invisible(self)
+    },
+
     # fail all tasks of a lost worker
     .fail_lost_tasks = function(worker_id, running_tasks, message) {
       r = private$.connector
       keys = if (nrow(running_tasks)) running_tasks[list(worker_id), keys, on = "worker_id"]
       keys = keys[!is.na(keys)]
-      keys = union(keys, unlist(r$command(c("LRANGE", private$.get_worker_key("evaluated_tasks", worker_id), 0, -1))))
+      keys = union(keys, unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1))))
 
       if (length(keys)) {
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-        self$fail_tasks(keys, conditions = list(list(message = message)))
+        private$.fail_tasks(keys, conditions = list(list(message = message)))
       } else {
         lg$error("Worker '%s' crashed before evaluating a task", worker_id)
       }
 
-      r$command(c("DEL", processing_tasks_key))
+      # drop the pending list so recovered tasks are not left in two states
+      r$command(c("DEL", private$.get_worker_key("pending_task", worker_id)))
       invisible(NULL)
-    },
+    }
   )
 )

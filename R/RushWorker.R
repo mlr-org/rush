@@ -9,6 +9,12 @@
 #'
 #' * `$pop_task()`: Pop a task from the queue and mark it as running.
 #' * `$push_running_tasks(xss)`: Create running tasks owned by the worker.
+#' * `$finish_tasks(keys, yss)`: Save the output of tasks and mark them as finished.
+#' * `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally save the condition objects.
+#'
+#' `$finish_tasks()` and `$fail_tasks()` are only available on the worker so that a task is finished or failed
+#' by the worker that processes it.
+#' The manager fails the tasks of a worker only after the worker has been stopped, see [Rush] `$detect_lost_workers()`.
 #'
 #' @template param_network_id
 #' @template param_config
@@ -122,15 +128,29 @@ RushWorker = R6::R6Class(
     pop_task = function(timeout = 1, fields = "xs") {
       r = self$connector
 
-      key = r$command(c("BLMPOP", timeout, 1, private$.get_key("queued_tasks"), "RIGHT"))[[2]][[1]]
+      # move task from queued to pending
+      # pending is a very short state between queued and running
+      # if the worker crashes between popping the task and marking it as running,
+      # $detect_lost_workers() can find the task in the pending list and mark it as failed
+      key = r$command(c(
+        "BLMOVE",
+        private$.get_key("queued_tasks"),
+        private$.get_worker_key("pending_task"),
+        "RIGHT",
+        "LEFT",
+        timeout
+      ))
 
       if (is.null(key)) {
         return(NULL)
       }
       self$write_hashes(worker_id = list(self$worker_id), keys = key)
 
-      # move key from queued to running
+      # mark key as running
+      r$MULTI()
+      r$command(c("LPOP", private$.get_worker_key("pending_task")))
       r$command(c("SADD", private$.get_key("running_tasks"), key))
+      r$EXEC()
 
       task = self$read_hash(key = key, fields = fields)
       task$key = key
@@ -155,11 +175,50 @@ RushWorker = R6::R6Class(
       lg$debug("Pushing %i running task(s).", length(xss))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
-      r$command(c("LPUSH", private$.get_key("worker_ids"), self$worker_id))
       r$command(c("SADD", private$.get_key("running_tasks"), keys))
       r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
 
       return(invisible(keys))
+    },
+
+    #' @description
+    #' Save the output of tasks and mark them as finished.
+    #' Only the worker that processes the tasks should call this method.
+    #'
+    #' @param keys (`character(1)`)\cr
+    #' Keys of the associated tasks.
+    #' @param yss (named `list()`)\cr
+    #' List of lists of named results.
+    #' @param extra (named `list()`)\cr
+    #' List of lists of additional information stored along with the results.
+    #'
+    #' @return (`RushWorker`)\cr
+    #' Invisible self.
+    finish_tasks = function(keys, yss, extra = NULL) {
+      assert_character(keys)
+      assert_list(yss, types = "list")
+      assert_list(extra, types = "list", null.ok = TRUE)
+      private$.finish_tasks(keys, yss, extra = extra)
+      invisible(self)
+    },
+
+    #' @description
+    #' Mark tasks as failed and optionally save the condition objects.
+    #' Only the worker that processes the tasks should call this method.
+    #'
+    #' @param keys (`character()`)\cr
+    #' Keys of the tasks to be moved.
+    #' @param conditions (named `list()`)\cr
+    #' List of lists of conditions.
+    #' Defaults to `list(message = "Task failed")`.
+    #'
+    #' @return (`RushWorker`)\cr
+    #' Invisible self.
+    fail_tasks = function(keys, conditions = NULL) {
+      assert_character(keys)
+      assert_list(conditions, types = "list", null.ok = TRUE)
+      private$.fail_tasks(keys, conditions = conditions)
+      invisible(self)
     },
 
     #' @description

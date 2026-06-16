@@ -837,6 +837,34 @@ test_that("a segfault on a single worker is detected via heartbeat", {
   expect_equal(data$message, "Worker has crashed or was killed")
 })
 
+test_that("a task lost in the pending state is recovered", {
+  rush = start_rush_worker()
+  on.exit(rush$reset())
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+
+  # simulate a worker that moved a task into pending but crashed before marking it running
+  r = rush$connector
+  worker_id = rush$worker_id
+  key = r$command(c(
+    "BLMOVE",
+    rush$.__enclos_env__$private$.get_key("queued_tasks"),
+    rush$.__enclos_env__$private$.get_worker_key("pending_task", worker_id),
+    "RIGHT", "LEFT", 1
+  ))
+  rush$write_hashes(worker_id = list(worker_id), keys = key)
+  expect_null(rush$running_tasks)
+
+  running_tasks = rush$fetch_running_tasks(fields = "worker_id")
+  rush$.__enclos_env__$private$.fail_lost_tasks(worker_id, running_tasks, "Worker has crashed or was killed")
+
+  # task is failed, removed from the pending list, and not in running
+  expect_equal(rush$failed_tasks, key)
+  expect_null(rush$running_tasks)
+  expect_length(r$command(c("LRANGE", rush$.__enclos_env__$private$.get_worker_key("pending_task", worker_id), 0, -1)), 0)
+  expect_equal(rush$fetch_failed_tasks()$message, "Worker has crashed or was killed")
+})
+
 test_that("segfaults on multiple workers are detected via the heartbeat", {
   skip_if_not_installed("callr")
   config = redis_configuration()

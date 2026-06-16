@@ -300,6 +300,18 @@ test_that("popping a task works", {
   expect_false(rush$is_failed_task(task$key))
 })
 
+test_that("pushing running tasks works", {
+  rush = start_rush_worker()
+
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+
+  expect_string(keys)
+  expect_equal(rush$n_running_tasks, 1)
+  expect_set_equal(rush$running_tasks, keys)
+  expect_true(rush$worker_id %in% rush$worker_ids)
+  expect_data_table(rush$fetch_running_tasks(), nrows = 1)
+})
+
 test_that("finishing a task works", {
   rush = start_rush_worker()
 
@@ -440,6 +452,17 @@ test_that("moving and fetching tasks works", {
   all_tasks = rush$fetch_tasks()
   expect_data_table(all_tasks, nrows = 4)
   expect_character(all_tasks$keys, unique = TRUE)
+})
+
+test_that("finish_tasks and fail_tasks are only available on the worker", {
+  config = redis_configuration()
+  manager = rush::rsh(network_id = uuid::UUIDgenerate(), config = config)
+  worker = start_rush_worker()
+
+  expect_null(manager$finish_tasks)
+  expect_null(manager$fail_tasks)
+  expect_function(worker$finish_tasks)
+  expect_function(worker$fail_tasks)
 })
 
 test_that("moving a queued task to failed works", {

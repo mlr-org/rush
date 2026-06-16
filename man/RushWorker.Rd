@@ -15,7 +15,13 @@ In addition to the inherited methods, the worker provides methods that require a
 \itemize{
 \item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
 \item \verb{$push_running_tasks(xss)}: Create running tasks owned by the worker.
+\item \verb{$finish_tasks(keys, yss)}: Save the output of tasks and mark them as finished.
+\item \verb{$fail_tasks(keys, conditions)}: Mark tasks as failed and optionally save the condition objects.
 }
+
+\verb{$finish_tasks()} and \verb{$fail_tasks()} are only available on the worker so that a task is finished or failed
+by the worker that processes it.
+The manager fails the tasks of a worker only after the worker has been stopped, see \link{Rush} \verb{$detect_lost_workers()}.
 }
 \section{Super class}{
 \code{\link[rush:Rush]{Rush}} -> \code{RushWorker}
@@ -46,6 +52,8 @@ Used in the worker loop to determine whether to continue.}
     \item \href{#method-RushWorker-initialize}{\code{RushWorker$new()}}
     \item \href{#method-RushWorker-pop_task}{\code{RushWorker$pop_task()}}
     \item \href{#method-RushWorker-push_running_tasks}{\code{RushWorker$push_running_tasks()}}
+    \item \href{#method-RushWorker-finish_tasks}{\code{RushWorker$finish_tasks()}}
+    \item \href{#method-RushWorker-fail_tasks}{\code{RushWorker$fail_tasks()}}
     \item \href{#method-RushWorker-set_terminated}{\code{RushWorker$set_terminated()}}
     \item \href{#method-RushWorker-clone}{\code{RushWorker$clone()}}
   }
@@ -54,7 +62,6 @@ Used in the worker loop to determine whether to continue.}
 <ul>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="detect_lost_workers"><a href='../../rush/html/Rush.html#method-Rush-detect_lost_workers'><code>Rush$detect_lost_workers()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="empty_queue"><a href='../../rush/html/Rush.html#method-Rush-empty_queue'><code>Rush$empty_queue()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fail_tasks"><a href='../../rush/html/Rush.html#method-Rush-fail_tasks'><code>Rush$fail_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_failed_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_failed_tasks'><code>Rush$fetch_failed_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_finished_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_finished_tasks'><code>Rush$fetch_finished_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_new_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_new_tasks'><code>Rush$fetch_new_tasks()</code></a></span></li>
@@ -62,7 +69,6 @@ Used in the worker loop to determine whether to continue.}
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_running_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_running_tasks'><code>Rush$fetch_running_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks'><code>Rush$fetch_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="fetch_tasks_with_state"><a href='../../rush/html/Rush.html#method-Rush-fetch_tasks_with_state'><code>Rush$fetch_tasks_with_state()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="finish_tasks"><a href='../../rush/html/Rush.html#method-Rush-finish_tasks'><code>Rush$finish_tasks()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="format"><a href='../../rush/html/Rush.html#method-Rush-format'><code>Rush$format()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_failed_task"><a href='../../rush/html/Rush.html#method-Rush-is_failed_task'><code>Rush$is_failed_task()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="rush" data-topic="Rush" data-id="is_running_task"><a href='../../rush/html/Rush.html#method-Rush-is_running_task'><code>Rush$is_running_task()</code></a></span></li>
@@ -180,6 +186,63 @@ List of additional information stored along with the task e.g. \verb{list(list(t
   \subsection{Returns}{
     (\code{character()})\cr
 Keys of the tasks.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-finish_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-finish_tasks}{}}}
+\subsection{\code{RushWorker$finish_tasks()}}{
+  Save the output of tasks and mark them as finished.
+Only the worker that processes the tasks should call this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$finish_tasks(keys, yss, extra = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character(1)})\cr
+Keys of the associated tasks.}
+      \item{\code{yss}}{(named \code{list()})\cr
+List of lists of named results.}
+      \item{\code{extra}}{(named \code{list()})\cr
+List of lists of additional information stored along with the results.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{RushWorker})\cr
+Invisible self.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RushWorker-fail_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-RushWorker-fail_tasks}{}}}
+\subsection{\code{RushWorker$fail_tasks()}}{
+  Mark tasks as failed and optionally save the condition objects.
+Only the worker that processes the tasks should call this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RushWorker$fail_tasks(keys, conditions = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{keys}}{(\code{character()})\cr
+Keys of the tasks to be moved.}
+      \item{\code{conditions}}{(named \code{list()})\cr
+List of lists of conditions.
+Defaults to \code{list(message = "Task failed")}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{RushWorker})\cr
+Invisible self.
   }
 }
 
