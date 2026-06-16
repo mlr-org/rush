@@ -1123,7 +1123,19 @@ Rush = R6::R6Class(
 
       lg$debug("Wait for %i task(s)", length(keys))
 
-      while (any(keys %nin% c(self$finished_tasks, self$failed_tasks)) && self$n_running_workers > 0) {
+      keys = unique(keys)
+      # number of completed (finished or failed) tasks already checked against the awaited keys
+      # initialized to -1 so the first iteration always performs a full membership check
+      n_seen = -1L
+
+      while (self$n_running_workers > 0) {
+        # reading `$finished_tasks` (LRANGE) and `$failed_tasks` (SMEMBERS) is expensive on large runs,
+        # so only re-check membership when the cheap counters report a newly completed task
+        n_completed = self$n_finished_tasks + self$n_failed_tasks
+        if (n_completed > n_seen) {
+          n_seen = n_completed
+          if (!any(keys %nin% c(self$finished_tasks, self$failed_tasks))) break
+        }
         if (detect_lost_workers) {
           self$detect_lost_workers()
         }

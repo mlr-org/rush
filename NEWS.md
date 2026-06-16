@@ -11,6 +11,8 @@
   Affected tasks are dropped with a warning.
 * `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
   The temporary arguments file is now deleted after the worker reads it.
+* `$wait_for_tasks()` no longer reads the full finished and failed task structures on every poll.
+  The expensive membership check now runs only when the cheap completion counters report a newly completed task.
 * `$worker_script()` no longer logs the Redis password.
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.
