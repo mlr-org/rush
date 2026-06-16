@@ -142,7 +142,8 @@ of `$start_workers()`.
 - `config`:
 
   ([redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html))  
-  Redis configuration options.
+  Redis configuration options. Assigning a new configuration immediately
+  reconnects to Redis with the new settings.
 
 - `connector`:
 
@@ -942,7 +943,7 @@ failed.
 
 #### Usage
 
-    Rush$empty_queue(conditions = NULL)
+    Rush$empty_queue(keys = NULL, conditions = NULL)
 
 #### Arguments
 
@@ -965,7 +966,7 @@ Deprecated method to move tasks from queued and running to failed.
 
 #### Usage
 
-    Rush$fail_tasks(keys, conditions)
+    Rush$fail_tasks(keys, conditions = NULL)
 
 #### Arguments
 
