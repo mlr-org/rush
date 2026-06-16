@@ -112,6 +112,8 @@ AppenderRedis = R6::R6Class(
 #'
 #' @export
 filter_custom_fields = function(event) {
+  # this mutates the shared LogEvent in place, so the custom fields are stripped for every appender, not just the Redis
+  # one. This is safe as long as the console appender that would print these fields is removed from the worker logger.
   extra_cols = setdiff(names(event$values), c("level", "timestamp", "logger", "caller", "msg", "rawMsg"))
   rm(list = extra_cols, envir = event)
   TRUE
