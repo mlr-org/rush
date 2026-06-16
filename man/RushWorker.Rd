@@ -220,7 +220,7 @@ Invisible self.
 \if{html}{\out{<a id="method-RushWorker-fail_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-RushWorker-fail_tasks}{}}}
 \subsection{\code{RushWorker$fail_tasks()}}{
-  Mark tasks as failed and optionally save the condition objects.
+  Move running tasks to failed and optionally save the condition objects.
 Only the worker that processes the tasks should call this method.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -231,7 +231,7 @@ Only the worker that processes the tasks should call this method.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks to be moved.}
+Keys of the running tasks to be moved.}
       \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.
 Defaults to \code{list(message = "Task failed")}.}

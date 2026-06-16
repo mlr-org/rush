@@ -184,6 +184,8 @@ RushWorker = R6::R6Class(
     #' @description
     #' Save the output of tasks and mark them as finished.
     #' Only the worker that processes the tasks should call this method.
+    #' If the worker was terminated while processing the tasks,
+    #' the tasks are marked as failed with condition message "Worker was terminated".
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
@@ -199,6 +201,13 @@ RushWorker = R6::R6Class(
       assert_list(yss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
+
+      # check if worker was terminated while processing the tasks
+      if (r$EXISTS(private$.get_worker_key("terminate"))) {
+        conditions = list(list(message = "Worker was terminated"))
+        private$.fail_running_tasks(keys, conditions = conditions)
+        return(invisible(self))
+      }
 
       # write results to hashes
       self$write_hashes(
@@ -224,11 +233,11 @@ RushWorker = R6::R6Class(
     },
 
     #' @description
-    #' Mark tasks as failed and optionally save the condition objects.
+    #' Move running tasks to failed and optionally save the condition objects.
     #' Only the worker that processes the tasks should call this method.
     #'
     #' @param keys (`character()`)\cr
-    #' Keys of the tasks to be moved.
+    #' Keys of the running tasks to be moved.
     #' @param conditions (named `list()`)\cr
     #' List of lists of conditions.
     #' Defaults to `list(message = "Task failed")`.
@@ -238,7 +247,11 @@ RushWorker = R6::R6Class(
     fail_tasks = function(keys, conditions = NULL) {
       assert_character(keys)
       assert_list(conditions, types = "list", null.ok = TRUE)
-      private$.fail_tasks(keys, conditions = conditions)
+      r = self$connector
+      conditions = conditions %??% list(list(message = "Task failed"))
+
+      private$.fail_running_tasks(keys, conditions = conditions)
+
       invisible(self)
     },
 

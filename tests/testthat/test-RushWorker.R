@@ -465,48 +465,27 @@ test_that("finish_tasks and fail_tasks are only available on the worker", {
   expect_function(worker$fail_tasks)
 })
 
-test_that("moving a queued task to failed works", {
+test_that("moving a running task to failed works", {
   rush = start_rush_worker()
 
-  xss = list(list(x1 = 1, x2 = 2))
-  rush$push_tasks(xss)
-  queued_tasks = rush$queued_tasks
-  rush$fail_tasks(queued_tasks, conditions = list(list(message = "error")))
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$fail_tasks(keys, conditions = list(list(message = "error")))
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
+  expect_set_equal(rush$failed_tasks, keys)
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3))
-  rush$push_tasks(xss)
-  task = rush$pop_task()
-
-  rush$fail_tasks(task$key, conditions = list(list(message = "error")))
-
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 1)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
-  expect_set_equal(rush$failed_tasks, c(task$key, queued_tasks))
-
-  queued_tasks = rush$queued_tasks
-  rush$fail_tasks(queued_tasks, conditions = list(list(message = "error")))
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5)))
+  rush$fail_tasks(keys, conditions = replicate(2, list(message = "error"), simplify = FALSE))
+  expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
-
-  xss = list(list(x1 = 1, x2 = 4), list(x1 = 1, x2 = 5))
-  rush$push_tasks(xss)
-  queued_tasks = rush$queued_tasks
-  rush$fail_tasks(queued_tasks, conditions = replicate(2, list(message = "error"), simplify = FALSE))
-
-  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
-  expect_data_table(rush$fetch_failed_tasks(), nrows = 5)
 })
 
 test_that("fail_tasks broadcasts a length-1 condition across all keys", {
   rush = start_rush_worker()
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4))
-  rush$push_tasks(xss)
-  queued_tasks = rush$queued_tasks
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4)))
 
-  rush$fail_tasks(queued_tasks, conditions = list(list(message = "boom")))
+  rush$fail_tasks(keys, conditions = list(list(message = "boom")))
   data = rush$fetch_failed_tasks()
   expect_data_table(data, nrows = 3)
   expect_set_equal(data$message, "boom")
@@ -515,12 +494,10 @@ test_that("fail_tasks broadcasts a length-1 condition across all keys", {
 test_that("fail_tasks rejects conditions whose length is neither 1 nor length(keys)", {
   rush = start_rush_worker()
 
-  xss = list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4))
-  rush$push_tasks(xss)
-  queued_tasks = rush$queued_tasks
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 1, x2 = 3), list(x1 = 1, x2 = 4)))
 
   expect_error(
-    rush$fail_tasks(queued_tasks, conditions = replicate(2, list(message = "error"), simplify = FALSE)),
+    rush$fail_tasks(keys, conditions = replicate(2, list(message = "error"), simplify = FALSE)),
     "length"
   )
 })
