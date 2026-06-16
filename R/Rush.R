@@ -597,7 +597,8 @@ Rush = R6::R6Class(
           if (!self$processes_processx[[id]]$is_alive()) {
             lg$error("Lost worker '%s'", id)
             # print error messages
-            #walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error)
+            # reading the error lines of a killed process may fail, so we guard against it
+            try(walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error), silent = TRUE)
 
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
@@ -882,9 +883,15 @@ Rush = R6::R6Class(
     #'
     #' @return (`Rush`)\cr
     #' Invisible self.
-    empty_queue = function(conditions = NULL) {
+    empty_queue = function(keys = NULL, conditions = NULL) {
       r = private$.connector
       conditions = conditions %??% list(list(message = "Removed from queue"))
+
+      if (!is.null(keys)) {
+        warn_deprecated(
+          "The `keys` argument of `$empty_queue()` is deprecated. The method now empties the entire queue."
+        )
+      }
 
       # empty queue
       keys = unlist(r$pipeline(
@@ -920,9 +927,9 @@ Rush = R6::R6Class(
     #'
     #' @return (`Rush`)\cr
     #' Invisible self.
-    fail_tasks = function(keys, conditions) {
+    fail_tasks = function(keys, conditions = NULL) {
       warn_deprecated(
-        "$fail_task() called from the manager is deprecated."
+        "$fail_tasks() called from the manager is deprecated. This method does nothing."
       )
 
       invisible(self)
