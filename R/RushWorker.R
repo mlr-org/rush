@@ -202,13 +202,6 @@ RushWorker = R6::R6Class(
       assert_list(extra, types = "list", null.ok = TRUE)
       r = self$connector
 
-      # check if worker was terminated while processing the tasks
-      if (r$EXISTS(private$.get_worker_key("terminate"))) {
-        conditions = list(list(message = "Worker was terminated"))
-        private$.fail_running_tasks(keys, conditions = conditions)
-        return(invisible(self))
-      }
-
       # write results to hashes
       self$write_hashes(
         ys = yss,
@@ -250,7 +243,20 @@ RushWorker = R6::R6Class(
       r = self$connector
       conditions = conditions %??% list(list(message = "Task failed"))
 
-      private$.fail_running_tasks(keys, conditions = conditions)
+      # write condition to hash
+      self$write_hashes(condition = conditions, keys = keys)
+
+      cmds = unlist(
+        map(keys, function(key) {
+          list(
+            c("SREM", private$.get_key("running_tasks"), key),
+            c("SADD", private$.get_key("failed_tasks"), key)
+          )
+        }),
+        recursive = FALSE
+      )
+
+      r$pipeline(.commands = cmds)
 
       invisible(self)
     },

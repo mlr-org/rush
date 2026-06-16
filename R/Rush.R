@@ -475,7 +475,6 @@ Rush = R6::R6Class(
 
     #' @description
     #' Stop workers.
-    #' Running tasks are marked as failed with a condition message "Worker was terminated".
     #'
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be stopped.
@@ -483,8 +482,9 @@ Rush = R6::R6Class(
     #' @param type (`character(1)`)\cr
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
-    #' If `"kill"` the processes that run the workers are killed immediately.
+    #' If `"kill"` the workers are stopped immediately.
     #' If `"terminate"` the workers evaluate the currently running task and then terminate.
+    #' The `"terminate"` option must be implemented in the worker loop.
     stop_workers = function(type = "kill", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
       worker_ids = assert_subset(worker_ids, self$running_worker_ids) %??% self$running_worker_ids
@@ -492,13 +492,6 @@ Rush = R6::R6Class(
         return(invisible(self))
       }
       r = private$.connector
-
-      # push terminate signal to workers
-      # running tasks are marked as failed in $finished_tasks() when the terminate signal is set
-      cmds = map(worker_ids, function(worker_id) {
-        c("SET", private$.get_worker_key("terminate", worker_id), "1")
-      })
-      r$pipeline(.commands = cmds)
 
       if (type == "kill") {
         worker_ids_processx = intersect(worker_ids, names(self$processes_processx))
@@ -556,12 +549,15 @@ Rush = R6::R6Class(
         }
       }
 
-      # move tasks to failed with condition "Worker was terminated"
-      running_tasks = self$fetch_running_tasks()
+      if (type == "terminate") {
+        lg$debug("Terminating %i worker(s) '%s'", length(worker_ids), as_short_string(worker_ids))
 
-      walk(worker_ids, function(worker_id) {
-        private$.fail_lost_tasks(worker_id, running_tasks, "Worker was terminated")
-      })
+        # Push terminate signal to worker
+        cmds = map(worker_ids, function(worker_id) {
+          c("SET", private$.get_worker_key("terminate", worker_id), "1")
+        })
+        r$pipeline(.commands = cmds)
+      }
 
       invisible(self)
     },
@@ -893,19 +889,24 @@ Rush = R6::R6Class(
       conditions = conditions %??% list(list(message = "Removed from queue"))
 
       # empty queue
-      cmds = list(
-        c("LRANGE", private$.get_key("queued_tasks"), 0, -1L),
-        c("DEL", private$.get_key("queued_tasks"))
-      )
-
-      keys = unlist(r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))[[4]][[1]])
+      keys = unlist(r$pipeline(
+        .commands = list(
+          c("MULTI"),
+          c("LRANGE", private$.get_key("queued_tasks"), 0, -1L),
+          c("DEL", private$.get_key("queued_tasks")),
+          c("EXEC")
+        )
+      )[[4]][[1]])
 
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
 
-      # move queued tasks to failed state
-      # keys are not running but SREM is a no-op for non-members so we can use this method
-      private$.fail_running_tasks(keys, conditions)
+      # add to failed tasks
+      cmds = map(keys, function(key) {
+        c("SADD", private$.get_key("failed_tasks"), key)
+      })
+
+      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
 
       invisible(self)
     },
@@ -923,31 +924,10 @@ Rush = R6::R6Class(
     #' Invisible self.
     fail_tasks = function(keys, conditions) {
       warn_deprecated(
-        "This function is not save to use. Replace with `$empty_queue()` and `$stop_workers(type = 'terminate')`."
+        "$fail_task() called from the manager is deprecated.",
       )
 
-      assert_character(keys)
-      assert_list(conditions, types = "list")
-      r = private$.connector
-      conditions = conditions %??% list(list(message = "Task failed"))
-
-      # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
-
-      move_commands = unlist(
-        map(keys, function(key) {
-          list(
-            c("LREM", private$.get_key("queued_tasks"), 1, key),
-            c("SREM", private$.get_key("running_tasks"), key),
-            c("SADD", private$.get_key("failed_tasks"), key)
-          )
-        }),
-        recursive = FALSE
-      )
-
-      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
-
-      return(invisible(self))
+      invisible(self)
     },
 
     #' @description
@@ -1723,32 +1703,6 @@ Rush = R6::R6Class(
       private$.cached_tasks[]
     },
 
-    # move running tasks to failed state
-    # when this function is called from the manager,
-    # the workers of the running tasks must have been terminated already
-    # otherwise the tasks could be end up in finished and failed state at the same time
-    .fail_running_tasks = function(keys, conditions = NULL) {
-      r = private$.connector
-      conditions = conditions %??% list(list(message = "Task failed"))
-
-      # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
-
-      move_commands = unlist(
-        map(keys, function(key) {
-          list(
-            c("SREM", private$.get_key("running_tasks"), key),
-            c("SADD", private$.get_key("failed_tasks"), key)
-          )
-        }),
-        recursive = FALSE
-      )
-
-      r$pipeline(.commands = c(list("MULTI"), move_commands, list("EXEC")))
-
-      invisible(self)
-    },
-
     # move pending and running tasks of a lost worker to failed state
     .fail_lost_tasks = function(worker_id, running_tasks, message) {
       r = private$.connector
@@ -1760,7 +1714,21 @@ Rush = R6::R6Class(
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
         conditions = list(list(message = message))
 
-        private$.fail_running_tasks(keys, conditions = conditions)
+        # write condition to hash
+        self$write_hashes(condition = conditions, keys = keys)
+
+        cmds = unlist(
+          map(keys, function(key) {
+            list(
+              c("SREM", private$.get_key("running_tasks"), key),
+              c("SADD", private$.get_key("failed_tasks"), key)
+            )
+          }),
+          recursive = FALSE
+        )
+
+        r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
+
         r$command(c("DEL", private$.get_worker_key("pending_task", worker_id)))
       } else {
         lg$error("Worker '%s' crashed before evaluating a task", worker_id)
