@@ -929,8 +929,10 @@ Rush = R6::R6Class(
     #' Invisible self.
     fail_tasks = function(keys, conditions = NULL) {
       warn_deprecated(
-        "$fail_tasks() called from the manager is deprecated. This method does nothing."
+        "$fail_tasks()"
       )
+
+      self$empty_queue()
 
       invisible(self)
     },
