@@ -6,7 +6,7 @@
 #' @importFrom R6 R6Class
 #' @importFrom processx process
 #' @importFrom uuid UUIDgenerate
-#' @importFrom utils str object.size
+#' @importFrom utils object.size
 #' @importFrom jsonlite fromJSON
 #' @importFrom ids adjective_animal
 "_PACKAGE"

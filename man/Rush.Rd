@@ -120,7 +120,8 @@ Identifier of the rush network.}
 
     \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
 Redis configuration options.
-Assigning a new configuration immediately reconnects to Redis with the new settings.}
+Assigning a new configuration does not affect the live connection.
+Call \verb{$reconnect()} afterwards to connect with the new configuration.}
 
     \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
 Returns a connection to Redis.}
