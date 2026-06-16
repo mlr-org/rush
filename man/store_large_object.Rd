@@ -11,13 +11,16 @@ store_large_object(obj, path)
 Object to store.}
 
 \item{path}{(\code{character(1)})\cr
-Path to store the object.}
+Path to an existing directory to store the object in.}
 }
 \value{
 \code{list()} of class \code{"rush_large_object"} with the name and path of the stored object.
 }
 \description{
 Store large objects to disk and return a reference to the object.
+The written \code{.rds} files are not cleaned up automatically.
+The caller is responsible for removing them, e.g. by storing them below \code{\link[=tempdir]{tempdir()}} or by calling \code{\link[=unlink]{unlink()}} on the
+returned \code{path}.
 }
 \examples{
 obj = list(a = 1, b = 2)
