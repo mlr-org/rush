@@ -14,14 +14,10 @@ This class is usually not constructed directly by the user.
 In addition to the inherited methods, the worker provides methods that require a worker identity:
 \itemize{
 \item \verb{$pop_task()}: Pop a task from the queue and mark it as running.
-\item \verb{$push_running_tasks(xss)}: Create running tasks owned by the worker.
+\item \verb{$push_running_tasks(xss)}: Create running tasks evaluated by the worker.
 \item \verb{$finish_tasks(keys, yss)}: Save the output of tasks and mark them as finished.
 \item \verb{$fail_tasks(keys, conditions)}: Mark tasks as failed and optionally save the condition objects.
 }
-
-\verb{$finish_tasks()} and \verb{$fail_tasks()} are only available on the worker so that a task is finished or failed
-by the worker that processes it.
-The manager fails the tasks of a worker only after the worker has been stopped, see \link{Rush} \verb{$detect_lost_workers()}.
 }
 \section{Super class}{
 \code{\link[rush:Rush]{Rush}} -> \code{RushWorker}

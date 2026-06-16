@@ -8,13 +8,9 @@
 #' In addition to the inherited methods, the worker provides methods that require a worker identity:
 #'
 #' * `$pop_task()`: Pop a task from the queue and mark it as running.
-#' * `$push_running_tasks(xss)`: Create running tasks owned by the worker.
+#' * `$push_running_tasks(xss)`: Create running tasks evaluated by the worker.
 #' * `$finish_tasks(keys, yss)`: Save the output of tasks and mark them as finished.
 #' * `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally save the condition objects.
-#'
-#' `$finish_tasks()` and `$fail_tasks()` are only available on the worker so that a task is finished or failed
-#' by the worker that processes it.
-#' The manager fails the tasks of a worker only after the worker has been stopped, see [Rush] `$detect_lost_workers()`.
 #'
 #' @template param_network_id
 #' @template param_config

@@ -40,8 +40,6 @@ Methods to change the state of an existing task:
 
 The methods \verb{$pop_task()}, \verb{$push_running_tasks(xss)}, \verb{$finish_tasks(keys, yss)}, and
 \verb{$fail_tasks(keys, conditions)} are only available on \link{RushWorker}.
-A task must only be set to finished or failed by the worker that processes it, or by the manager once the
-worker has been stopped, otherwise the task can end up in two states at once.
 
 The following methods are used to fetch tasks:
 \itemize{

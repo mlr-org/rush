@@ -1,9 +1,6 @@
 # rush (development version)
 
-* `$finish_tasks()` moves tasks to the failed state when the worker was terminated while processing them.
 * `$fail_tasks()` and `$finish_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
-* `$fail_tasks()` called from the manager is now deprecated.
-  Use `$empty_queue()` and `$stop_workers(type = 'terminate')` instead to move all queued and running tasks to the failed state.
 * The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
 * `$pop_task()` no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running.

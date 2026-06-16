@@ -29,11 +29,8 @@
 #' * `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally save the condition objects.
 #' * `$pop_task()`: Pop a task from the queue and mark it as running.
 #'
-#'
 #' The methods `$pop_task()`, `$push_running_tasks(xss)`, `$finish_tasks(keys, yss)`, and
 #' `$fail_tasks(keys, conditions)` are only available on [RushWorker].
-#' A task must only be set to finished or failed by the worker that processes it, or by the manager once the
-#' worker has been stopped, otherwise the task can end up in two states at once.
 #'
 #' The following methods are used to fetch tasks:
 #'
