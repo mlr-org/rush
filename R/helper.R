@@ -21,7 +21,9 @@ get_hostname = function() {
     host = Sys.info()["nodename"]
     host = host[host != ""]
     if (length(host) == 0) {
-      host = readLines(pipe("/usr/bin/env uname -n"))
+      con = pipe("/usr/bin/env uname -n")
+      on.exit(close(con))
+      host = readLines(con)
     }
   }
   host[1]
