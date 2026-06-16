@@ -161,7 +161,8 @@ Identifier of the rush network.</p></dd>
     <dt><code>config</code></dt>
 <dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.
-Assigning a new configuration immediately reconnects to Redis with the new settings.</p></dd>
+Assigning a new configuration does not affect the live connection.
+Call <code>$reconnect()</code> afterwards to connect with the new configuration.</p></dd>
 
 
     <dt><code>connector</code></dt>

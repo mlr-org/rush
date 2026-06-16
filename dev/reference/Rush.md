@@ -142,8 +142,9 @@ of `$start_workers()`.
 - `config`:
 
   ([redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html))  
-  Redis configuration options. Assigning a new configuration immediately
-  reconnects to Redis with the new settings.
+  Redis configuration options. Assigning a new configuration does not
+  affect the live connection. Call `$reconnect()` afterwards to connect
+  with the new configuration.
 
 - `connector`:
 
