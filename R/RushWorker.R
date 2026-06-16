@@ -179,9 +179,6 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Save the output of tasks and mark them as finished.
-    #' Only the worker that processes the tasks should call this method.
-    #' If the worker was terminated while processing the tasks,
-    #' the tasks are marked as failed with condition message "Worker was terminated".
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
@@ -223,7 +220,6 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Move running tasks to failed and optionally save the condition objects.
-    #' Only the worker that processes the tasks should call this method.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the running tasks to be moved.
