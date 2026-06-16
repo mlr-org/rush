@@ -198,7 +198,28 @@ RushWorker = R6::R6Class(
       assert_character(keys)
       assert_list(yss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      private$.finish_tasks(keys, yss, extra = extra)
+      r = self$connector
+
+      # write results to hashes
+      self$write_hashes(
+        ys = yss,
+        ys_extra = extra,
+        keys = keys
+      )
+
+      # move key from running to finished
+      # keys of finished tasks are stored in a list i.e. the are ordered by time
+      # each rush instance only needs to record how many results it has already seen
+      # to cheaply get the latest results and cache the finished tasks
+      # under some conditions a set would be more advantageous e.g. to check if a task is finished,
+      # but at the moment a list seems to be the better option
+      r$pipeline(
+        .commands = list(
+          c("SREM", private$.get_key("running_tasks"), keys),
+          c("RPUSH", private$.get_key("finished_tasks"), keys)
+        )
+      )
+
       invisible(self)
     },
 

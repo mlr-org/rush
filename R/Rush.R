@@ -1719,34 +1719,6 @@ Rush = R6::R6Class(
       private$.cached_tasks[]
     },
 
-    # move tasks to the finished state and store the results
-    # only called by a worker for its own tasks (RushWorker$finish_tasks())
-    .finish_tasks = function(keys, yss, extra = NULL) {
-      r = private$.connector
-
-      # write results to hashes
-      self$write_hashes(
-        ys = yss,
-        ys_extra = extra,
-        keys = keys
-      )
-
-      # move key from running to finished
-      # keys of finished tasks are stored in a list i.e. the are ordered by time
-      # each rush instance only needs to record how many results it has already seen
-      # to cheaply get the latest results and cache the finished tasks
-      # under some conditions a set would be more advantageous e.g. to check if a task is finished,
-      # but at the moment a list seems to be the better option
-      r$pipeline(
-        .commands = list(
-          c("SREM", private$.get_key("running_tasks"), keys),
-          c("RPUSH", private$.get_key("finished_tasks"), keys)
-        )
-      )
-
-      invisible(self)
-    },
-
     # move tasks to the failed state and store the condition objects
     # only called by a worker for its own tasks (RushWorker$fail_tasks()), when emptying the queue,
     # or by the manager to recover the tasks of a stopped worker (.fail_lost_tasks())
