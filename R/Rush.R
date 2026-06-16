@@ -892,9 +892,6 @@ Rush = R6::R6Class(
     empty_queue = function(conditions = NULL) {
       conditions = conditions %??% list(list(message = "Removed from queue"))
 
-      # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
-
       # empty queue
       cmds = list(
         c("LRANGE", private$.get_key("queued_tasks"), 0, -1L),
@@ -902,6 +899,9 @@ Rush = R6::R6Class(
       )
 
       keys = unlist(r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))[[4]][[1]])
+
+      # write condition to hash
+      self$write_hashes(condition = conditions, keys = keys)
 
       # move queued tasks to failed state
       # keys are not running but SREM is a no-op for non-members so we can use this method

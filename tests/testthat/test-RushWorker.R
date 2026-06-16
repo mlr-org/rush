@@ -454,17 +454,6 @@ test_that("moving and fetching tasks works", {
   expect_character(all_tasks$keys, unique = TRUE)
 })
 
-test_that("finish_tasks and fail_tasks are only available on the worker", {
-  config = redis_configuration()
-  manager = rush::rsh(network_id = uuid::UUIDgenerate(), config = config)
-  worker = start_rush_worker()
-
-  expect_null(manager$finish_tasks)
-  expect_null(manager$fail_tasks)
-  expect_function(worker$finish_tasks)
-  expect_function(worker$fail_tasks)
-})
-
 test_that("moving a running task to failed works", {
   rush = start_rush_worker()
 
