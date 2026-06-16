@@ -637,7 +637,8 @@ Rush = R6::R6Class(
         }
       }
 
-      self$terminated_worker_ids[self$terminated_worker_ids %in% running_worker_ids]
+      terminated_worker_ids = self$terminated_worker_ids
+      terminated_worker_ids[terminated_worker_ids %in% running_worker_ids]
     },
 
     #' @description
