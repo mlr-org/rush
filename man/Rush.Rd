@@ -119,7 +119,8 @@ List of mirai processes started with \verb{$start_remote_workers()}.}
 Identifier of the rush network.}
 
     \item{\code{config}}{(\link[redux:redis_config]{redux::redis_config})\cr
-Redis configuration options.}
+Redis configuration options.
+Assigning a new configuration immediately reconnects to Redis with the new settings.}
 
     \item{\code{connector}}{(\link[redux:redis_api]{redux::redis_api})\cr
 Returns a connection to Redis.}
@@ -743,7 +744,7 @@ Keys of the tasks.
 The state of the tasks is set to failed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$empty_queue(conditions = NULL)}
+    \preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -768,7 +769,7 @@ Invisible self.
   Deprecated method to move tasks from queued and running to failed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fail_tasks(keys, conditions)}
+    \preformatted{Rush$fail_tasks(keys, conditions = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

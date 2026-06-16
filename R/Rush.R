@@ -1361,12 +1361,14 @@ Rush = R6::R6Class(
 
     #' @field config ([redux::redis_config])\cr
     #' Redis configuration options.
+    #' Assigning a new configuration immediately reconnects to Redis with the new settings.
     config = function(rhs) {
       if (missing(rhs)) {
         return(private$.config)
       }
       assert_class(rhs, "redis_config")
       private$.config = rhs
+      self$reconnect()
     },
 
     #' @field connector ([redux::redis_api])\cr
