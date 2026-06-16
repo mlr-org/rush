@@ -282,7 +282,7 @@ test_that("a worker is terminated", {
 
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "terminate")
-  Sys.sleep(3)
+  wait_until(!unresolved(rush$processes_mirai[[worker_id_1]]) && worker_id_1 %in% rush$terminated_worker_ids)
   expect_false(unresolved(rush$processes_mirai[[worker_id_1]]))
   expect_true(unresolved(rush$processes_mirai[[worker_id_2]]))
   expect_equal(rush$running_worker_ids, worker_id_2)
@@ -290,7 +290,7 @@ test_that("a worker is terminated", {
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "terminate")
-  Sys.sleep(3)
+  wait_until(!unresolved(rush$processes_mirai[[worker_id_2]]) && worker_id_2 %in% rush$terminated_worker_ids)
   expect_false(unresolved(rush$processes_mirai[[worker_id_2]]))
   expect_false(unresolved(rush$processes_mirai[[worker_id_1]]))
   expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
@@ -310,7 +310,7 @@ test_that("reset workers works", {
   )
   rush$wait_for_workers(1, timeout = 5)
 
-  Sys.sleep(1)
+  wait_until(rush$n_finished_tasks > 0)
 
   rush$reset(workers = TRUE)
   expect_data_table(rush$worker_info, nrows = 0)
@@ -333,7 +333,7 @@ test_that("reset data works", {
   )
   rush$wait_for_workers(1, timeout = 5)
 
-  Sys.sleep(1)
+  wait_until(rush$n_finished_tasks > 0)
 
   expect_character(rush$finished_tasks)
   keys = rush$finished_tasks
@@ -360,7 +360,7 @@ test_that("reset clears the log counter", {
   )
   rush$wait_for_workers(1, timeout = 5)
 
-  Sys.sleep(1)
+  wait_until(nrow(rush$read_log()) > 0)
 
   rush$print_log()
   expect_list(get_private(rush)$.log_counter, min.len = 1)
@@ -391,7 +391,7 @@ test_that("a worker is killed", {
 
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
-  Sys.sleep(1)
+  wait_until(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
   expect_equal(worker_id_1, rush$terminated_worker_ids)
   expect_equal(rush$running_worker_ids, worker_id_2)
 
@@ -400,7 +400,7 @@ test_that("a worker is killed", {
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
-  Sys.sleep(1)
+  wait_until(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
   expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
 
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_1]]$data))
@@ -428,14 +428,14 @@ test_that("a local worker is killed", {
 
   # worker 1
   rush$stop_workers(worker_ids = worker_id_1, type = "kill")
-  Sys.sleep(1)
+  wait_until(!rush$processes_processx[[worker_id_1]]$is_alive())
   expect_equal(worker_id_1, rush$terminated_worker_ids)
   expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
   expect_true(rush$processes_processx[[worker_id_2]]$is_alive())
 
   # worker 2
   rush$stop_workers(worker_ids = worker_id_2, type = "kill")
-  Sys.sleep(1)
+  wait_until(!rush$processes_processx[[worker_id_2]]$is_alive())
   expect_set_equal(c(worker_id_1, worker_id_2), rush$terminated_worker_ids)
   expect_false(rush$processes_processx[[worker_id_1]]$is_alive())
   expect_false(rush$processes_processx[[worker_id_2]]$is_alive())
@@ -474,7 +474,7 @@ test_that("worker is killed with a heartbeat process", {
 
   rush$stop_workers(type = "kill")
 
-  Sys.sleep(1)
+  wait_until(!tools::pskill(worker_info$pid, signal = 0L))
 
   expect_false(tools::pskill(worker_info$pid, signal = 0L))
   expect_true(rush$worker_info$state == "terminated")
@@ -721,7 +721,7 @@ test_that("empty queue works", {
   xss = list(list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  Sys.sleep(1)
+  wait_until(rush$n_queued_tasks == length(keys))
 
   rush$empty_queue()
   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
@@ -730,7 +730,7 @@ test_that("empty queue works", {
   xss = list(list(x1 = 2, x2 = 2), list(x1 = 3, x2 = 2))
   keys = rush$push_tasks(xss)
 
-  Sys.sleep(1)
+  wait_until(rush$n_queued_tasks == length(keys))
 
   rush$empty_queue()
   expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
@@ -958,12 +958,10 @@ test_that("saving lgr logs works", {
   )
   rush$wait_for_workers(1, timeout = 5)
 
-  Sys.sleep(5)
-
   xss = list(list(x1 = 2, x2 = 2))
   keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys)
-  Sys.sleep(5)
+  wait_until(nrow(rush$read_log()) >= 1L)
 
   log = rush$read_log()
   expect_data_table(log, min.rows = 1L)
@@ -977,7 +975,7 @@ test_that("saving lgr logs works", {
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2), list(x1 = 1, x2 = 2))
   keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys)
-  Sys.sleep(5)
+  wait_until(nrow(rush$read_log()) >= 2L)
 
   log = rush$read_log()
   expect_data_table(log, min.rows = 2L)
@@ -1184,7 +1182,7 @@ test_that("large objects limit works", {
   )
   rush$wait_for_workers(1, timeout = 5)
 
-  Sys.sleep(1)
+  wait_until(nrow(rush$fetch_tasks()) > 0)
 
   expect_equal(rush$fetch_tasks()$x2, 1e6)
 })
@@ -1228,7 +1226,7 @@ test_that("simple errors are pushed as failed tasks", {
   xss = list(list(x1 = 1, x2 = 2), list(x1 = 0, x2 = 2))
   keys = rush$push_tasks(xss)
   rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
-  Sys.sleep(2)
+  wait_until(rush$n_finished_tasks == 1 && rush$n_failed_tasks == 1)
 
   # check task count
   expect_equal(rush$n_tasks, 2)

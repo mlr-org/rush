@@ -3,6 +3,25 @@ mlr3misc::walk(
   source
 )
 
+# Poll `condition` until it evaluates to `TRUE` or `timeout` seconds elapse.
+# Returns as soon as the condition holds and errors on timeout, replacing fixed `Sys.sleep()` calls
+# used to wait for asynchronous worker state to settle.
+wait_until = function(condition, timeout = 10, interval = 0.05) {
+  condition = substitute(condition)
+  env = parent.frame()
+  start_time = Sys.time()
+  while (difftime(Sys.time(), start_time, units = "secs") < timeout) {
+    if (isTRUE(eval(condition, env))) {
+      return(invisible(TRUE))
+    }
+    Sys.sleep(interval)
+  }
+  stop(sprintf(
+    "`wait_until()` timed out after %g seconds waiting for: %s",
+    timeout, paste(deparse(condition), collapse = " ")
+  ))
+}
+
 
 wl_default = function(rush) {
   while (TRUE) {
