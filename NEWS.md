@@ -23,6 +23,7 @@
 * `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
 * `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to `RushWorker` because they require a worker identity.
   Calling them on a `Rush` manager previously stored an empty `worker_id` in the task hashes.
+* `$reset()` now also deletes the per-worker pending task lists, so a task stranded in a pending list by a mid-pop crash no longer survives a reset as an orphaned key.
 * `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
 * `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.

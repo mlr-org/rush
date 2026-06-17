@@ -665,7 +665,8 @@ Rush = R6::R6Class(
               c("DEL", private$.get_key(worker_id)),
               c("DEL", private$.get_worker_key("terminate", worker_id)),
               c("DEL", private$.get_worker_key("kill", worker_id)),
-              c("DEL", private$.get_worker_key("events", worker_id))
+              c("DEL", private$.get_worker_key("events", worker_id)),
+              c("DEL", private$.get_worker_key("pending_task", worker_id))
             )
           }),
           recursive = FALSE
