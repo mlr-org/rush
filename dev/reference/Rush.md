@@ -955,6 +955,11 @@ failed.
 
 #### Arguments
 
+- `keys`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Deprecated argument.
+
 - `conditions`:
 
   (named [`list()`](https://rdrr.io/r/base/list.html))  

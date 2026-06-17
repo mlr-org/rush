@@ -27,7 +27,7 @@ store_large_object(obj, path)
 ## Value
 
 [`list()`](https://rdrr.io/r/base/list.html) of class
-`"rush_large_object"` with the name and path of the stored object.
+`"rush_large_object"` with the path of the stored object.
 
 ## Examples
 

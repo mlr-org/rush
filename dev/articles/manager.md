@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: flamy_amet...  8812 runnervm7b...     FALSE running
-    2: weakened_g...  8814 runnervm7b...     FALSE running
+    1: cosmetolog...  8780 runnervm7b...     FALSE running
+    2: humanitari...  8782 runnervm7b...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: weakened_g...  8814 runnervm7b...     FALSE    running
-    2: flamy_amet...  8812 runnervm7b...     FALSE terminated
+    1: humanitari...  8782 runnervm7b...     FALSE    running
+    2: cosmetolog...  8780 runnervm7b...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -145,17 +145,17 @@ rush$fetch_finished_tasks()
 
              worker_id         x1        x2          y          keys
                 <char>      <num>     <num>      <num>        <char>
-      1: kinetic_pa...  2.6073325  2.991412   1.805096 d02c03c9-4...
-      2: kinetic_pa...  5.3855976 11.537272 123.353053 04bfb5cf-b...
-      3: kinetic_pa...  4.3062927  3.167826   8.850419 8e7cd9a6-e...
-      4: kinetic_pa...  5.2002663  4.907758  28.122509 d36290d3-d...
-      5: kinetic_pa...  1.7182465  6.642572  17.564385 51319730-c...
+      1: turtleshel...  2.4788418  2.708684   2.450204 49b6b092-3...
+      2: turtleshel...  7.3630293  5.893128  35.761825 6806f4d2-e...
+      3: turtleshel...  7.4243499  9.886937  87.656890 a7cd94bc-7...
+      4: turtleshel...  0.9108356 13.110195  87.334392 702d476c-0...
+      5: turtleshel...  0.5239321 14.081431  97.165507 133bef51-1...
      ---
-    101: effortless...  9.0174261 11.970721  97.574651 b2b52d32-6...
-    102: kinetic_pa... -4.8682222  8.517821  80.244474 8d091604-b...
-    103: effortless...  1.0519560  2.003817  20.837167 0cb029e2-b...
-    104: kinetic_pa...  1.8192407  6.536882  16.667337 7bbc934d-e...
-    105: effortless...  0.3298104  3.336522  23.718370 796b900a-7...
+    102: stagnant_r... -2.2346854  6.798725  15.663813 7acfcb10-0...
+    103: turtleshel...  6.9818465  7.181325  53.304726 8d8d11c1-b...
+    104: stagnant_r... -3.1437137  4.768275  56.825398 1c2d0b61-6...
+    105: turtleshel...  1.2040733 11.924615  72.021524 b49bbccb-4...
+    106: stagnant_r...  4.0589343 11.888999 108.624962 4eea1d34-7...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: effortless...  8814 runnervm7b...     FALSE terminated
-    2: kinetic_pa...  8812 runnervm7b...     FALSE terminated
+    1: turtleshel...  8780 runnervm7b...     FALSE terminated
+    2: stagnant_r...  8782 runnervm7b...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "extinguished_birdofparadise" "vermillion_englishpointer"  
+    [1] "apian_basenji"          "amputated_hylaeosaurus"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: autographi...  9065 runnervm7b...     FALSE running
-    2: insurrecti...  9067 runnervm7b...     FALSE running
+    1: hydrophobi...  9033 runnervm7b...     FALSE running
+    2: microbic_e...  9035 runnervm7b...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: autographi...  9065 runnervm7b...     FALSE running
-    2: insurrecti...  9067 runnervm7b...     FALSE running
+    1: hydrophobi...  9033 runnervm7b...     FALSE running
+    2: microbic_e...  9035 runnervm7b...     FALSE running
 
 ``` r
 
