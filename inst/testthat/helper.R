@@ -26,7 +26,7 @@ start_rush = function(n_workers = 2) {
   rush
 }
 
-start_rush_worker = function(n_workers = 2) {
+start_rush_worker = function() {
   config = redis_configuration()
 
   network_id = uuid::UUIDgenerate()
