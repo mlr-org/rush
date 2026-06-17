@@ -366,6 +366,42 @@ test_that("reset data works", {
   expect_data_table(rush$worker_info, nrows = 1)
 })
 
+test_that("reset data clears pending tasks so no phantom failed task is resurrected", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$start_local_workers(worker_loop = wl_nop, n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
+
+  # simulate a worker that moved a task into pending but has not marked it running
+  r = rush$connector
+  worker_id = rush$worker_ids[1]
+  key = r$command(c(
+    "BLMOVE",
+    get_private(rush)$.get_key("queued_tasks"),
+    get_private(rush)$.get_worker_key("pending_task", worker_id),
+    "RIGHT",
+    "LEFT",
+    1
+  ))
+  rush$write_hashes(worker_id = list(worker_id), keys = key)
+
+  # a data-only reset clears the pending list along with the task hashes
+  rush$reset(workers = FALSE)
+  expect_length(r$command(c("LRANGE", get_private(rush)$.get_worker_key("pending_task", worker_id), 0, -1)), 0)
+  expect_equal(rush$n_running_workers, 1)
+
+  # a subsequent lost-worker detection must not resurrect the wiped task
+  rush$processes_processx[[worker_id]]$kill()
+  rush$detect_lost_workers()
+  expect_null(rush$failed_tasks)
+})
+
 test_that("reset clears the log counter", {
   rush = start_rush(n_workers = 1)
   on.exit({

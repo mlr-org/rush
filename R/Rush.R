@@ -685,8 +685,7 @@ Rush = R6::R6Class(
               c("DEL", private$.get_key(worker_id)),
               c("DEL", private$.get_worker_key("terminate", worker_id)),
               c("DEL", private$.get_worker_key("kill", worker_id)),
-              c("DEL", private$.get_worker_key("events", worker_id)),
-              c("DEL", private$.get_worker_key("pending_task", worker_id))
+              c("DEL", private$.get_worker_key("events", worker_id))
             )
           }),
           recursive = FALSE
@@ -708,6 +707,8 @@ Rush = R6::R6Class(
 
       # remove all tasks, lists, and sets
       cmds = c(cmds, map(self$tasks, function(key) c("DEL", key)))
+      # pending tasks hold task data referencing the deleted hashes, so clear them on every reset (also workers = FALSE)
+      cmds = c(cmds, map(self$worker_ids, function(worker_id) c("DEL", private$.get_worker_key("pending_task", worker_id))))
       cmds = c(
         cmds,
         list(
