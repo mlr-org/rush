@@ -293,6 +293,7 @@ test_that("popping a task works", {
   data = rush$fetch_running_tasks()
   expect_names(names(data), must.include = c("x1", "x2", "worker_id", "keys"))
   expect_data_table(data, nrows = 1)
+  expect_equal(data$worker_id, rush$worker_id)
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   # status checks

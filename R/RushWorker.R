@@ -141,12 +141,12 @@ RushWorker = R6::R6Class(
       if (is.null(key)) {
         return(NULL)
       }
-      self$write_hashes(worker_id = list(self$worker_id), keys = key)
 
       # mark key as running
       r$pipeline(
         .commands = list(
           "MULTI",
+          list("HSET", key, "worker_id", redux::object_to_bin(self$worker_id)),
           c("LPOP", private$.get_worker_key("pending_task")),
           c("SADD", private$.get_key("running_tasks"), key),
           "EXEC"
@@ -172,7 +172,9 @@ RushWorker = R6::R6Class(
     push_running_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      if (!length(xss)) return(invisible(character()))
+      if (!length(xss)) {
+        return(invisible(character()))
+      }
       r = self$connector
 
       lg$debug("Pushing %i running task(s).", length(xss))
