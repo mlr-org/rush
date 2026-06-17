@@ -903,6 +903,11 @@ Rush = R6::R6Class(
         )
       )[[4]][[1]])
 
+      # nothing to do if the queue was already empty
+      if (!length(keys)) {
+        return(invisible(self))
+      }
+
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
 

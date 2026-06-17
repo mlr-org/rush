@@ -737,6 +737,20 @@ test_that("empty queue works", {
   expect_data_table(rush$fetch_failed_tasks(), nrows = 3)
 })
 
+test_that("empty queue on an empty queue does not leak a hash", {
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+  on.exit({
+    rush$reset()
+  })
+
+  rush = rsh(network_id = "test-rush", config = config)
+  rush$empty_queue()
+
+  expect_equal(r$DBSIZE(), 0)
+})
+
 # segfault detection -----------------------------------------------------------
 
 test_that("segfaults on mirai workers are detected", {

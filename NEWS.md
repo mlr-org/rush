@@ -4,6 +4,7 @@
 * `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
 * The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
+* `$empty_queue()` no longer creates an orphaned hash in the Redis database when the queue is already empty.
 * `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task, when a worker finishes a task or starts a new one after the detection begins but before the worker is flagged as lost.
   The running tasks of a lost worker are now read after the worker has been flagged as lost, and a running task is moved to the failed state with `SMOVE`, which is a no-op when the task has already left the running state.
 * `$pop_task()` no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running.
