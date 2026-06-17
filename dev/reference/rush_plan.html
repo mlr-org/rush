@@ -110,7 +110,10 @@ This improves the performance of the logging.</p></dd>
 
 <dt id="arg-large-objects-path">large_objects_path<a class="anchor" aria-label="anchor" href="#arg-large-objects-path"></a></dt>
 <dd><p>(<code>character(1)</code>)<br>
-The path to the directory where large objects are stored.</p></dd>
+The path to the directory where large objects are stored.
+These files are not removed automatically
+and the caller is responsible for cleaning them up,
+e.g. by pointing this at a subdirectory of <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>.</p></dd>
 
 
 <dt id="arg-worker-type">worker_type<a class="anchor" aria-label="anchor" href="#arg-worker-type"></a></dt>
