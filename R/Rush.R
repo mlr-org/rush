@@ -831,7 +831,7 @@ Rush = R6::R6Class(
       )
       r$pipeline(.commands = cmds)
 
-      return(invisible(keys))
+      invisible(keys)
     },
 
     #' @description
@@ -867,7 +867,7 @@ Rush = R6::R6Class(
       )
       r$pipeline(.commands = cmds)
 
-      return(invisible(keys))
+      invisible(keys)
     },
 
     #' @description
@@ -901,7 +901,7 @@ Rush = R6::R6Class(
       )
       r$pipeline(.commands = cmds)
 
-      return(invisible(keys))
+      invisible(keys)
     },
 
     #' @description

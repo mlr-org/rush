@@ -191,7 +191,7 @@ RushWorker = R6::R6Class(
         )
       )
 
-      return(invisible(keys))
+      invisible(keys)
     },
 
     #' @description
