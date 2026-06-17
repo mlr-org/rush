@@ -2,6 +2,7 @@
 
 ## rush (development version)
 
+- Remove deprecated worker types `"local"` and `"remote"`.
 - `$fail_tasks()` and `$finish_tasks()` are moved from `Rush` to
   `RushWorker` so that a task is only marked as failed or finished by
   the worker that processes it.

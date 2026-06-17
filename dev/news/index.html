@@ -57,7 +57,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
-<ul><li>
+<ul><li>Remove deprecated worker types <code>"local"</code> and <code>"remote"</code>.</li>
+<li>
 <code>$fail_tasks()</code> and <code>$finish_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> so that a task is only marked as failed or finished by the worker that processes it.</li>
 <li>
 <code>$fail_tasks()</code> and <code>$finish_tasks()</code> now move a task between states atomically with <code>MULTI</code>/<code>EXEC</code> so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.</li>
