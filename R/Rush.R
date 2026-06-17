@@ -468,7 +468,9 @@ Rush = R6::R6Class(
           return(invisible(self))
         }
 
-        if (difftime(Sys.time(), start_time, units = "secs") >= timeout) break
+        if (difftime(Sys.time(), start_time, units = "secs") >= timeout) {
+          break
+        }
         Sys.sleep(0.1)
       }
 
@@ -701,8 +703,6 @@ Rush = R6::R6Class(
             c("DEL", private$.get_key("running_worker_ids")),
             c("DEL", private$.get_key("terminated_worker_ids")),
             c("DEL", private$.get_key("start_args")),
-            c("DEL", private$.get_key("terminate_on_idle")),
-            c("DEL", private$.get_key("local_workers")),
             c("DEL", private$.get_key("heartbeat_keys"))
           )
         )
