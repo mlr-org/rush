@@ -1,52 +1,47 @@
 # rush (development version)
 
-* Remove deprecated worker types `"local"` and `"remote"`.
-* `$fail_tasks()` and `$finish_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
-* `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
-* The deprecated methods `$push_failed()` and `$push_results()` are removed.
+* chore: The minimum R version is now 3.6.0, and Redis (>= 7.0) is declared as a system requirement.
+* refactor: Remove deprecated worker types `"local"` and `"remote"`.
+* refactor: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$push_running_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
+* fix: `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
+* refactor: The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
-* `$empty_queue()` no longer creates an orphaned hash in the Redis database when the queue is already empty.
-* `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task, when a worker finishes a task or starts a new one after the detection begins but before the worker is flagged as lost.
-  The running tasks of a lost worker are now read after the worker has been flagged as lost, and a running task is moved to the failed state with `SMOVE`, which is a no-op when the task has already left the running state.
-* `$pop_task()` no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running.
+* fix: `$empty_queue()` no longer creates an orphaned hash in the Redis database when the queue is already empty.
+* fix: `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task.
+* fix: `$pop_task()` no longer loses a task when a worker crashes between popping the task from the queue and marking it as running.
   The task is now moved atomically into a per-worker pending list and recovered as a failed task by `$detect_lost_workers()`.
-* `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks instead of sending an invalid Redis command whose error was silently discarded.
-* `$fetch_finished_tasks()` and `$fetch_new_tasks()` no longer crash or return duplicated results when finished task hashes have been removed from the database.
-  The cache now tracks consumed entries of the finished tasks list separately from cached rows.
-* `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.
+* fix: `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks.
+* fix: `$fetch_tasks()`, `$fetch_finished_tasks()`, and `$fetch_new_tasks()` no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
-* `$reset(workers = FALSE)` now also clears the per-worker pending task lists so that a task popped but not yet marked as running can no longer be resurrected as a phantom failed task by a later `$detect_lost_workers()` after its hash was deleted.
-* `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
+* fix: `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
   The temporary arguments file is now deleted after the worker reads it.
-* `$stop_workers()` no longer errors when a requested worker id is not running.
-  Such ids are now skipped with a warning so that stopping a known set of workers is idempotent.
-* `$wait_for_tasks()` no longer reads the full finished and failed task structures on every poll.
-  The expensive membership check now runs only when the cheap completion counters report a newly completed task.
-* `$wait_for_tasks()` now reads the running-worker, finished-task, and failed-task counters in a single pipeline per poll instead of three separate round-trips.
-* `$worker_script()` no longer logs the Redis password.
+* fix: `$stop_workers()` no longer errors when a requested worker id is not running.
+  Such ids are now skipped with a warning.
+* perf: `$wait_for_tasks()` no longer reads the full finished list and failed task set on every poll.
+* fix: `$worker_script()` no longer logs the Redis password.
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.
-* `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
-* `$pop_task()` and `$push_running_tasks()` are moved from `Rush` to `RushWorker` because they require a worker identity.
-  Calling them on a `Rush` manager previously stored an empty `worker_id` in the task hashes.
-* `$reset()` now also deletes the per-worker pending task lists, so a task stranded in a pending list by a mid-pop crash no longer survives a reset as an orphaned key.
-* `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
-* `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
+* fix: `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat.
+  `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
+* fix: `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
+* feat: `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
-* `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
+* fix: `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
   The sinks are now reverted before the log connections are closed.
+* perf: `$worker_info` reads all workers in one pipelined round trip.
+* refactor: Large objects are now stored under UUID keys.
 
 # rush 1.1.0
 
-* `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).
-* `$fetch_new_tasks()` now correctly tracks seen results by using the actual cache size instead of the Redis counter, fixing cases where new results could be missed or duplicated.
-* `$write_hashes()` now requires all value lists to have the same length or length 1 instead of recycling. Length mismatches raise an error (#87).
-* `rsh()` no longer accepts `...` (which was ignored).
+* fix: `$detect_lost_workers()` no longer creates phantom failed tasks when a worker crashes between task evaluations (#89).
+* fix: `$fetch_new_tasks()` now correctly tracks seen results by using the actual cache size instead of the Redis counter, fixing cases where new results could be missed or duplicated.
+* fix: `$write_hashes()` now requires all value lists to have the same length or length 1 instead of recycling. Length mismatches raise an error (#87).
+* fix: `rsh()` no longer accepts `...` (which was ignored).
 
 # rush 1.0.1
 
-* `$start_workers()` now strips the enclosing environment from `worker_loop` before serialization, avoiding bloated Redis payloads when the function is a closure.
-* `$fetch_tasks()` and related methods no longer fail when task parameters contain vector values instead of scalars.
+* fix: `$start_workers()` now strips the enclosing environment from `worker_loop` before serialization, avoiding bloated Redis payloads when the function is a closure.
+* fix: `$fetch_tasks()` and related methods no longer fail when task parameters contain vector values instead of scalars.
 
 # rush 1.0.0
 
@@ -87,12 +82,12 @@
 
 # rush 0.4.0
 
-feat: Add `$empty_queue()` method.
-fix: Queued tasks can be moved to failed now.
+* feat: Add `$empty_queue()` method.
+* fix: Queued tasks can be moved to failed now.
 
 # rush 0.3.1
 
-feat: Change default of `n_workers`.
+* feat: Change default of `n_workers`.
 
 # rush 0.3.0
 
