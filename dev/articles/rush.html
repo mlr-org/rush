@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          worker_id           x          y               keys
-             &lt;char&gt;       &lt;num&gt;      &lt;num&gt;             &lt;char&gt;
-   1:  handmade_pug 0.429305965 0.65521444 ffcbf31a-2256-4...
-   2:  handmade_pug 0.894670770 0.94587038 450af631-629b-4...
-   3:  handmade_pug 0.036750538 0.19170430 c306d0bf-8720-4...
-   4:  handmade_pug 0.796400798 0.89241291 cb52a7fa-1da9-4...
-   5:  handmade_pug 0.165488122 0.40680231 28964c45-fa5d-4...
+<pre><code>               worker_id         x         y               keys
+                  &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1: undespondent_or... 0.6968623 0.8347828 806ad799-932c-4...
+   2: undespondent_or... 0.9667971 0.9832584 cc020291-ef4c-4...
+   3: undespondent_or... 0.8520761 0.9230797 c530758b-e2f3-4...
+   4: undespondent_or... 0.3368620 0.5803982 8dccef58-c4af-4...
+   5: undespondent_or... 0.5410021 0.7355285 810c996c-30f5-4...
   ---
-7408: plastic_gecko 0.636475933 0.79779442 0da91078-bf50-4...
-7409:  handmade_pug 0.852511690 0.92331560 92ff4fef-78b6-4...
-7410: plastic_gecko 0.001842657 0.04292618 bd1ad0bc-ee9a-4...
-7411:  handmade_pug 0.800212262 0.89454584 a58fc065-c6d3-4...
-7412: plastic_gecko 0.556646887 0.74608772 50f244f3-5f6b-4...</code></pre>
+6131: prismatic_hecto... 0.1716146 0.4142640 5cc82f0b-cd1f-4...
+6132: prismatic_hecto... 0.9204643 0.9594083 96e2e602-3643-4...
+6133: undespondent_or... 0.1586086 0.3982570 d2c5a250-fd0f-4...
+6134: undespondent_or... 0.5575695 0.7467057 aaf0bc35-652b-4...
+6135: prismatic_hecto... 0.1968033 0.4436252 5c62e7b4-5a67-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -214,19 +214,19 @@
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                x         y     worker_id               keys
-            &lt;num&gt;     &lt;num&gt;        &lt;char&gt;             &lt;char&gt;
-   1: 0.429305965 0.6552144  handmade_pug ffcbf31a-2256-4...
-   2: 0.325455914 0.5704874 plastic_gecko f9726b0f-a498-4...
-   3: 0.894670770 0.9458704  handmade_pug 450af631-629b-4...
-   4: 0.036750538 0.1917043  handmade_pug c306d0bf-8720-4...
-   5: 0.796400798 0.8924129  handmade_pug cb52a7fa-1da9-4...
+<pre><code>              x         y          worker_id               keys
+          &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+   1: 0.6968623 0.8347828 undespondent_or... 806ad799-932c-4...
+   2: 0.5729035 0.7569039 prismatic_hecto... d8ff9da8-d71a-4...
+   3: 0.9667971 0.9832584 undespondent_or... cc020291-ef4c-4...
+   4: 0.8520761 0.9230797 undespondent_or... c530758b-e2f3-4...
+   5: 0.3368620 0.5803982 undespondent_or... 8dccef58-c4af-4...
   ---
-7892: 0.747172925 0.8643916  handmade_pug 67fefc65-5751-4...
-7893: 0.192814295 0.4391062 plastic_gecko 7655c70f-6e78-4...
-7894: 0.798969153 0.8938507  handmade_pug cf5ba37f-c869-4...
-7895: 0.006926568        NA plastic_gecko 46911439-1623-4...
-7896: 0.188229661        NA  handmade_pug be66b9c7-fd32-4...</code></pre>
+6545: 0.3589090 0.5990901 prismatic_hecto... 9bdde2f6-d591-4...
+6546: 0.9538628 0.9766590 undespondent_or... 285a5323-8bb8-4...
+6547: 0.5098418 0.7140321 prismatic_hecto... 4dad545b-d856-4...
+6548: 0.9051747 0.9514067 undespondent_or... 9e24db7a-0ee8-4...
+6549: 0.6699385        NA prismatic_hecto... 7883a39c-5e26-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,10 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             x     worker_id               keys
-         &lt;num&gt;        &lt;char&gt;             &lt;char&gt;
-1: 0.006926568 plastic_gecko 46911439-1623-4...
-2: 0.188229661  handmade_pug be66b9c7-fd32-4...</code></pre>
+<pre><code>           x          worker_id               keys
+       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.6699385 prismatic_hecto... 7883a39c-5e26-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -249,19 +248,19 @@
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         state     worker_id           x               keys         y
-        &lt;char&gt;        &lt;char&gt;       &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running plastic_gecko 0.006926568 46911439-1623-4...        NA
-   2:  running  handmade_pug 0.188229661 be66b9c7-fd32-4...        NA
-   3: finished  handmade_pug 0.429305965 ffcbf31a-2256-4... 0.6552144
-   4: finished  handmade_pug 0.894670770 450af631-629b-4... 0.9458704
-   5: finished  handmade_pug 0.036750538 c306d0bf-8720-4... 0.1917043
+<pre><code>         state          worker_id         x               keys         y
+        &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
+   1:  running prismatic_hecto... 0.6699385 7883a39c-5e26-4...        NA
+   2: finished undespondent_or... 0.6968623 806ad799-932c-4... 0.8347828
+   3: finished undespondent_or... 0.9667971 cc020291-ef4c-4... 0.9832584
+   4: finished undespondent_or... 0.8520761 c530758b-e2f3-4... 0.9230797
+   5: finished undespondent_or... 0.3368620 8dccef58-c4af-4... 0.5803982
   ---
-7892: finished  handmade_pug 0.973467582 44c44400-7fa4-4... 0.9866446
-7893: finished plastic_gecko 0.120897098 772d44d6-3c58-4... 0.3477026
-7894: finished  handmade_pug 0.747172925 67fefc65-5751-4... 0.8643916
-7895: finished plastic_gecko 0.192814295 7655c70f-6e78-4... 0.4391062
-7896: finished  handmade_pug 0.798969153 cf5ba37f-c869-4... 0.8938507</code></pre>
+6545: finished undespondent_or... 0.7689574 2b42f25b-6856-4... 0.8769022
+6546: finished prismatic_hecto... 0.3589090 9bdde2f6-d591-4... 0.5990901
+6547: finished undespondent_or... 0.9538628 285a5323-8bb8-4... 0.9766590
+6548: finished prismatic_hecto... 0.5098418 4dad545b-d856-4... 0.7140321
+6549: finished undespondent_or... 0.9051747 9e24db7a-0ee8-4... 0.9514067</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -275,12 +274,12 @@
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_running_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+<pre><code>[1] 1</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7894</code></pre>
+<pre><code>[1] 6548</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -308,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.1811741
+[1] 0.2955619
 
 
 $key
-[1] "e9e2a147-6983-4da0-a5bd-f65c1eee29fb"</code></pre>
+[1] "24d7f35c-cf24-479f-b79e-ef9b2406532a"</code></pre>
 </div>
 </div>
 <div class="cell">

@@ -50,6 +50,9 @@
 - `$wait_for_tasks()` no longer reads the full finished and failed task
   structures on every poll. The expensive membership check now runs only
   when the cheap completion counters report a newly completed task.
+- `$wait_for_tasks()` now reads the running-worker, finished-task, and
+  failed-task counters in a single pipeline per poll instead of three
+  separate round-trips.
 - `$worker_script()` no longer logs the Redis password. The logged
   script shows `<redacted>` instead. The method now returns the script
   visibly.
