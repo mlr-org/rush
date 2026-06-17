@@ -910,7 +910,10 @@ Finished tasks are cached.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.}
+Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.
+If the fields change between calls,
+fields requested only by a later call remain \code{NA} for the already cached tasks.
+Use \verb{$reset_cache()} to reset the cache in this case.}
     }
     \if{html}{\out{</div>}}
   }
@@ -942,7 +945,10 @@ Finished tasks are cached.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")}.}
+Defaults to \code{c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")}.
+If the fields change between calls,
+fields requested only by a later call remain \code{NA} for the already cached tasks.
+Use \verb{$reset_cache()} to reset the cache in this case.}
       \item{\code{states}}{(\code{character()})\cr
 States of the tasks to be fetched.
 Defaults to \code{c("queued", "running", "finished", "failed")}.}
@@ -970,7 +976,10 @@ If \code{timeout} is set, blocks until new tasks are available or the timeout is
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
-Fields to be read from the hashes.}
+Fields to be read from the hashes.
+If the fields change between calls,
+fields requested only by a later call remain \code{NA} for the already cached tasks.
+Use \verb{$reset_cache()} to reset the cache in this case.}
       \item{\code{timeout}}{(\code{numeric(1)})\cr
 Time to wait for new results in seconds.
 Defaults to \code{0} (no waiting).}

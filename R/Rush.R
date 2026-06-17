@@ -1006,6 +1006,9 @@ Rush = R6::R6Class(
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
     #' Defaults to `c("xs", "xs_extra", "worker_id", "ys", "ys_extra")`.
+    #' If the fields change between calls,
+    #' fields requested only by a later call remain `NA` for the already cached tasks.
+    #' Use `$reset_cache()` to reset the cache in this case.
     #'
     #' @return `data.table()`\cr
     #' Table of finished tasks.
@@ -1027,6 +1030,9 @@ Rush = R6::R6Class(
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
     #' Defaults to `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`.
+    #' If the fields change between calls,
+    #' fields requested only by a later call remain `NA` for the already cached tasks.
+    #' Use `$reset_cache()` to reset the cache in this case.
     #' @param states (`character()`)\cr
     #' States of the tasks to be fetched.
     #' Defaults to `c("queued", "running", "finished", "failed")`.
@@ -1058,6 +1064,9 @@ Rush = R6::R6Class(
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
+    #' If the fields change between calls,
+    #' fields requested only by a later call remain `NA` for the already cached tasks.
+    #' Use `$reset_cache()` to reset the cache in this case.
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for new results in seconds.
     #' Defaults to `0` (no waiting).
