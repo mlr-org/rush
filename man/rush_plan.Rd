@@ -33,7 +33,10 @@ If \code{lgr_buffer_size > 0}, the log messages are buffered and saved in the Re
 This improves the performance of the logging.}
 
 \item{large_objects_path}{(\code{character(1)})\cr
-The path to the directory where large objects are stored.}
+The path to the directory where large objects are stored.
+These files are not removed automatically
+and the caller is responsible for cleaning them up,
+e.g. by pointing this at a subdirectory of \code{\link[=tempdir]{tempdir()}}.}
 
 \item{worker_type}{(\code{character(1)})\cr
 The type of worker to use.
