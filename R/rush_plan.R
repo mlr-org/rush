@@ -48,16 +48,8 @@ rush_plan = function(
   assert_count(lgr_buffer_size, null.ok = TRUE)
   assert_string(large_objects_path, null.ok = TRUE)
   assert_number(start_worker_timeout, lower = 0, null.ok = TRUE)
-
-  if (worker_type == "local") {
-    warn_deprecated("local")
-    worker_type = "processx"
-  } else if (worker_type == "remote") {
-    warn_deprecated("remote")
-    worker_type = "mirai"
-  }
-
   assert_choice(worker_type, c("mirai", "processx", "script"))
+
   if (is.null(config)) {
     config = redux::redis_config()
   }
