@@ -1547,12 +1547,8 @@ Rush = R6::R6Class(
       r = private$.connector
 
       fields = c("worker_id", "pid", "hostname", "heartbeat")
-      worker_info = set_names(
-        rbindlist(map(self$worker_ids, function(worker_id) {
-          r$command(c("HMGET", private$.get_key(worker_id), fields))
-        })),
-        fields
-      )
+      cmds = map(self$worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), fields))
+      worker_info = set_names(rbindlist(r$pipeline(.commands = cmds)), fields)
 
       # fix type
       worker_info[, pid := as.integer(pid)][]
