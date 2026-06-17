@@ -798,6 +798,7 @@ Rush = R6::R6Class(
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param extra (`list()`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
     #'
@@ -806,6 +807,7 @@ Rush = R6::R6Class(
     push_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
+      if (!length(xss)) return(invisible(character()))
       r = private$.connector
 
       lg$debug("Pushing %i task(s) to the queue", length(xss))
@@ -831,6 +833,7 @@ Rush = R6::R6Class(
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param yss (list of named `list()`)\cr
     #' Lists of results for the function e.g. `list(list(y1, y2), list(y1, y2)))`.
     #' @param xss_extra (`list`)\cr
@@ -845,6 +848,7 @@ Rush = R6::R6Class(
       assert_list(yss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(yss_extra, types = "list", null.ok = TRUE)
+      if (!length(xss)) return(invisible(character()))
       r = private$.connector
 
       keys = self$write_hashes(xs = xss, ys = yss, xs_extra = xss_extra, ys_extra = yss_extra)
@@ -863,6 +867,7 @@ Rush = R6::R6Class(
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param xss_extra (`list`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
     #' @param conditions (named `list()`)\cr
@@ -874,6 +879,7 @@ Rush = R6::R6Class(
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(conditions, types = "list")
+      if (!length(xss)) return(invisible(character()))
       r = private$.connector
 
       # write condition to hash

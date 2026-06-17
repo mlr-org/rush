@@ -171,7 +171,8 @@ Fields to be returned.}
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.}
+Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.
+If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
       \item{\code{extra}}{(\code{list})\cr
 List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
     }

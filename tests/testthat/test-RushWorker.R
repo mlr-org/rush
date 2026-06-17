@@ -442,6 +442,15 @@ test_that("moving and fetching tasks works", {
   expect_character(all_tasks$keys, unique = TRUE)
 })
 
+test_that("pushing an empty list of running tasks is a no-op", {
+  rush = start_rush_worker()
+
+  before = rush$connector$DBSIZE()
+  expect_equal(rush$push_running_tasks(list()), character())
+  expect_equal(rush$n_tasks, 0)
+  expect_equal(rush$connector$DBSIZE(), before)
+})
+
 test_that("moving a running task to failed works", {
   rush = start_rush_worker()
 

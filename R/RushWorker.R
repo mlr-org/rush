@@ -163,6 +163,7 @@ RushWorker = R6::R6Class(
     #'
     #' @param xss (list of named `list()`)\cr
     #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
+    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param extra (`list`)\cr
     #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
     #'
@@ -171,6 +172,7 @@ RushWorker = R6::R6Class(
     push_running_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
+      if (!length(xss)) return(invisible(character()))
       r = self$connector
 
       lg$debug("Pushing %i running task(s).", length(xss))

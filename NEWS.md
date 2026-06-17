@@ -9,6 +9,7 @@
   The running tasks of a lost worker are now read after the worker has been flagged as lost, and a running task is moved to the failed state with `SMOVE`, which is a no-op when the task has already left the running state.
 * `$pop_task()` no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running.
   The task is now moved atomically into a per-worker pending list and recovered as a failed task by `$detect_lost_workers()`.
+* `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks instead of sending an invalid Redis command whose error was silently discarded.
 * `$fetch_finished_tasks()` and `$fetch_new_tasks()` no longer crash or return duplicated results when finished task hashes have been removed from the database.
   The cache now tracks consumed entries of the finished tasks list separately from cached rows.
 * `$fetch_tasks()` and related methods no longer fail when task hashes have been removed from the database.

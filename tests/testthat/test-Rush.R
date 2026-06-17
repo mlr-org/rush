@@ -560,6 +560,22 @@ test_that("pushing a task to the queue works", {
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 })
 
+test_that("pushing an empty list of tasks is a no-op", {
+  rush = start_rush(n_workers = 2)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  before = rush$connector$DBSIZE()
+  expect_equal(rush$push_tasks(list()), character())
+  expect_equal(rush$push_finished_tasks(list(), list()), character())
+  expect_equal(rush$push_failed_tasks(list(), conditions = list()), character())
+
+  expect_equal(rush$n_tasks, 0)
+  expect_equal(rush$connector$DBSIZE(), before)
+})
+
 test_that("pushing multiple tasks to the queue works", {
   rush = start_rush(n_workers = 2)
   on.exit({
