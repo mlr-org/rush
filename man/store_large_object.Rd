@@ -14,7 +14,7 @@ Object to store.}
 Path to an existing directory to store the object in.}
 }
 \value{
-\code{list()} of class \code{"rush_large_object"} with the name and path of the stored object.
+\code{list()} of class \code{"rush_large_object"} with the path of the stored object.
 }
 \description{
 Store large objects to disk and return a reference to the object.

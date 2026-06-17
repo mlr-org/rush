@@ -11,7 +11,7 @@
 #' @param path (`character(1)`)\cr
 #' Path to an existing directory to store the object in.
 #'
-#' @return `list()` of class `"rush_large_object"` with the name and path of the stored object.
+#' @return `list()` of class `"rush_large_object"` with the path of the stored object.
 #' @export
 #' @examples
 #' obj = list(a = 1, b = 2)
@@ -19,10 +19,8 @@
 store_large_object = function(obj, path) {
   assert_directory_exists(path)
 
-  name = deparse(substitute(obj))
-  id = uuid::UUIDgenerate()
-  path = file.path(path, paste0(id, ".rds"))
+  path = file.path(path, paste0(uuid::UUIDgenerate(), ".rds"))
   saveRDS(obj, path)
-  res = list(name = name, id = id, path = path)
+  res = list(path = path)
   set_class(res, "rush_large_object")
 }

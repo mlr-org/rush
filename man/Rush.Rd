@@ -755,6 +755,8 @@ The state of the tasks is set to failed.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
+      \item{\code{keys}}{(\code{character()})\cr
+Deprecated argument.}
       \item{\code{conditions}}{(named \code{list()})\cr
 List of lists of conditions.
 If \code{NULL}, the condition message is set to \code{"Removed from queue"}.}

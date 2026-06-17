@@ -494,7 +494,9 @@ Rush = R6::R6Class(
       if (length(missing_worker_ids)) {
         lg$warn(
           "Cannot stop %i worker(s) that are not running: %s",
-          length(missing_worker_ids), str_collapse(missing_worker_ids))
+          length(missing_worker_ids),
+          str_collapse(missing_worker_ids)
+        )
         worker_ids = intersect(worker_ids, running_worker_ids)
       }
 
@@ -807,7 +809,9 @@ Rush = R6::R6Class(
     push_tasks = function(xss, extra = NULL) {
       assert_list(xss, types = "list")
       assert_list(extra, types = "list", null.ok = TRUE)
-      if (!length(xss)) return(invisible(character()))
+      if (!length(xss)) {
+        return(invisible(character()))
+      }
       r = private$.connector
 
       lg$debug("Pushing %i task(s) to the queue", length(xss))
@@ -848,7 +852,9 @@ Rush = R6::R6Class(
       assert_list(yss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(yss_extra, types = "list", null.ok = TRUE)
-      if (!length(xss)) return(invisible(character()))
+      if (!length(xss)) {
+        return(invisible(character()))
+      }
       r = private$.connector
 
       keys = self$write_hashes(xs = xss, ys = yss, xs_extra = xss_extra, ys_extra = yss_extra)
@@ -879,7 +885,9 @@ Rush = R6::R6Class(
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(conditions, types = "list")
-      if (!length(xss)) return(invisible(character()))
+      if (!length(xss)) {
+        return(invisible(character()))
+      }
       r = private$.connector
 
       # write condition to hash
@@ -897,6 +905,8 @@ Rush = R6::R6Class(
     #' Remove all tasks from the queue.
     #' The state of the tasks is set to failed.
     #'
+    #' @param keys (`character()`)\cr
+    #' Deprecated argument.
     #' @param conditions (named `list()`)\cr
     #' List of lists of conditions.
     #' If `NULL`, the condition message is set to `"Removed from queue"`.
