@@ -1712,14 +1712,8 @@ Rush = R6::R6Class(
     },
 
     # fetch and cache tasks
-    .fetch_cached_tasks = function(new_keys, fields, reset_cache = FALSE) {
+    .fetch_cached_tasks = function(new_keys, fields) {
       r = private$.connector
-      assert_flag(reset_cache)
-
-      if (reset_cache) {
-        private$.cached_tasks = data.table()
-        private$.n_consumed_tasks = 0
-      }
 
       lg$debug("Reading %i cached task(s)", nrow(private$.cached_tasks))
 
