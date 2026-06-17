@@ -569,7 +569,6 @@ Rush = R6::R6Class(
       r = private$.connector
       running_worker_ids = self$running_worker_ids
       heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
-      running_tasks = self$fetch_running_tasks(fields = "worker_id")
 
       # check mirai workers
       if (length(self$processes_mirai)) {
@@ -586,7 +585,7 @@ Rush = R6::R6Class(
             # Replace interrupt error message
             message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-            private$.fail_lost_tasks(id, running_tasks, message)
+            private$.fail_lost_tasks(id, message)
           }
         })
       }
@@ -603,7 +602,7 @@ Rush = R6::R6Class(
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            private$.fail_lost_tasks(id, running_tasks, "Worker has crashed or was killed")
+            private$.fail_lost_tasks(id, "Worker has crashed or was killed")
           }
         })
       }
@@ -632,7 +631,7 @@ Rush = R6::R6Class(
           r$pipeline(.commands = cmds)
 
           walk(lost_workers, function(worker_id) {
-            private$.fail_lost_tasks(worker_id, running_tasks, "Worker has crashed or was killed")
+            private$.fail_lost_tasks(worker_id, "Worker has crashed or was killed")
           })
         }
       }
@@ -1725,11 +1724,18 @@ Rush = R6::R6Class(
     },
 
     # move pending and running tasks of a lost worker to failed state
-    .fail_lost_tasks = function(worker_id, running_tasks, message) {
+    .fail_lost_tasks = function(worker_id, message) {
       r = private$.connector
-      keys = if (nrow(running_tasks)) running_tasks[list(worker_id), keys, on = "worker_id"]
-      keys = keys[!is.na(keys)]
-      keys = union(keys, unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1))))
+
+      # read the running tasks only now, after the worker has been flagged lost and moved to terminated
+      running_tasks = self$fetch_running_tasks(fields = "worker_id")
+      running_keys = if (nrow(running_tasks)) running_tasks[list(worker_id), keys, on = "worker_id"]
+      running_keys = running_keys[!is.na(running_keys)]
+
+      # popped from the queue into the pending list but not yet marked as running when the worker was lost
+      pending_key = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
+
+      keys = c(running_keys, pending_key)
 
       if (length(keys)) {
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
@@ -1738,14 +1744,11 @@ Rush = R6::R6Class(
         # write condition to hash
         self$write_hashes(condition = conditions, keys = keys)
 
-        cmds = unlist(
-          map(keys, function(key) {
-            list(
-              c("SREM", private$.get_key("running_tasks"), key),
-              c("SADD", private$.get_key("failed_tasks"), key)
-            )
+        cmds = c(
+          map(running_keys, function(key) {
+            c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
           }),
-          recursive = FALSE
+          if (length(pending_key)) list(c("SADD", private$.get_key("failed_tasks"), pending_key))
         )
 
         r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
