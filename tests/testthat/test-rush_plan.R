@@ -88,5 +88,5 @@ test_that("set threshold", {
     "Pushing.*"
   )
 
-  Sys.sleep(2)
+  wait_until(rush$n_running_workers == 2)
 })
