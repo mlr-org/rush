@@ -1,6 +1,6 @@
 # Log to Redis Database
 
-AppenderRedis writes log messages to a Redis data base. This
+AppenderRedis writes log messages to a Redis database. This
 [lgr::Appender](https://s-fleck.github.io/lgr/reference/Appender.html)
 is created internally by
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) when
@@ -11,7 +11,7 @@ logger thresholds are passed via
 
 Object of class
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) and
-`AppenderRedis` with methods for writing log events to Redis data bases.
+`AppenderRedis` with methods for writing log events to Redis databases.
 
 ## Super classes
 

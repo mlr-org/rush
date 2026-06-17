@@ -1003,7 +1003,7 @@ Invisible self.
 
 ### `Rush$fetch_tasks()`
 
-Fetch all tasks from the data base.
+Fetch all tasks from the database.
 
 #### Usage
 
@@ -1028,7 +1028,7 @@ Table of all tasks.
 
 ### `Rush$fetch_queued_tasks()`
 
-Fetch queued tasks from the data base.
+Fetch queued tasks from the database.
 
 #### Usage
 
@@ -1050,7 +1050,7 @@ Table of queued tasks.
 
 ### `Rush$fetch_running_tasks()`
 
-Fetch running tasks from the data base.
+Fetch running tasks from the database.
 
 #### Usage
 
@@ -1073,7 +1073,7 @@ Table of running tasks.
 
 ### `Rush$fetch_failed_tasks()`
 
-Fetch failed tasks from the data base.
+Fetch failed tasks from the database.
 
 #### Usage
 
@@ -1096,7 +1096,7 @@ Table of failed tasks.
 
 ### `Rush$fetch_finished_tasks()`
 
-Fetch finished tasks from the data base. Finished tasks are cached.
+Fetch finished tasks from the database. Finished tasks are cached.
 
 #### Usage
 
@@ -1124,7 +1124,7 @@ Table of finished tasks.
 
 ### `Rush$fetch_tasks_with_state()`
 
-Fetch tasks with different states from the data base. If tasks with
+Fetch tasks with different states from the database. If tasks with
 different states are to be queried at the same time, this function
 prevents tasks from appearing twice. This could be the case if a worker
 changes the state of a task while the tasks are being fetched. Finished

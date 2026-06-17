@@ -87,7 +87,7 @@ start_worker(
 
 ## Note
 
-The function initializes the connection to the Redis data base. It loads
+The function initializes the connection to the Redis database. It loads
 the packages required by the worker loop. The function initialize the
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)
 instance and starts the worker loop.

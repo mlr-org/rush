@@ -906,7 +906,7 @@ Invisible self.</p>
 
 <p></p><hr><a id="method-Rush-fetch_tasks"></a><div class="section">
 <h3 id="rush-fetch-tasks-"><code>Rush$fetch_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-tasks-"></a></h3>
-<p>Fetch all tasks from the data base.</p><div class="section">
+<p>Fetch all tasks from the database.</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span></span>
@@ -930,7 +930,7 @@ Table of all tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_queued_tasks"></a><div class="section">
 <h3 id="rush-fetch-queued-tasks-"><code>Rush$fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-queued-tasks-"></a></h3>
-<p>Fetch queued tasks from the data base.</p><div class="section">
+<p>Fetch queued tasks from the database.</p><div class="section">
 <h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -952,7 +952,7 @@ Table of queued tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_running_tasks"></a><div class="section">
 <h3 id="rush-fetch-running-tasks-"><code>Rush$fetch_running_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-running-tasks-"></a></h3>
-<p>Fetch running tasks from the data base.</p><div class="section">
+<p>Fetch running tasks from the database.</p><div class="section">
 <h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -974,7 +974,7 @@ Table of running tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_failed_tasks"></a><div class="section">
 <h3 id="rush-fetch-failed-tasks-"><code>Rush$fetch_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-failed-tasks-"></a></h3>
-<p>Fetch failed tasks from the data base.</p><div class="section">
+<p>Fetch failed tasks from the database.</p><div class="section">
 <h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"condition"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -996,7 +996,7 @@ Table of failed tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_finished_tasks"></a><div class="section">
 <h3 id="rush-fetch-finished-tasks-"><code>Rush$fetch_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-finished-tasks-"></a></h3>
-<p>Fetch finished tasks from the data base.
+<p>Fetch finished tasks from the database.
 Finished tasks are cached.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span></span>
@@ -1024,7 +1024,7 @@ Table of finished tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_tasks_with_state"></a><div class="section">
 <h3 id="rush-fetch-tasks-with-state-"><code>Rush$fetch_tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-tasks-with-state-"></a></h3>
-<p>Fetch tasks with different states from the data base.
+<p>Fetch tasks with different states from the database.
 If tasks with different states are to be queried at the same time,
 this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
