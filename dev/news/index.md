@@ -36,6 +36,10 @@
 - `$fetch_tasks()` and related methods no longer fail when task hashes
   have been removed from the database. Affected tasks are dropped with a
   warning.
+- `$reset(workers = FALSE)` now also clears the per-worker pending task
+  lists so that a task popped but not yet marked as running can no
+  longer be resurrected as a phantom failed task by a later
+  `$detect_lost_workers()` after its hash was deleted.
 - `$start_local_workers()` no longer generates unparseable worker
   startup code on Windows or when the temporary directory path contains
   quotes. The temporary arguments file is now deleted after the worker

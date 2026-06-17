@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: frugivorou...  8815 runnervm1l...     FALSE running
-    2: goodhearte...  8813 runnervm1l...     FALSE running
+    1: depressibl...  8920 runnervm7b...     FALSE running
+    2: untrigonom...  8918 runnervm7b...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: frugivorou...  8815 runnervm1l...     FALSE    running
-    2: goodhearte...  8813 runnervm1l...     FALSE terminated
+    1: untrigonom...  8918 runnervm7b...     FALSE    running
+    2: depressibl...  8920 runnervm7b...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1         x2          y          keys
-                <char>      <num>      <num>      <num>        <char>
-      1: chauvinist...  3.2293813  7.0939986  24.312412 41226af0-a...
-      2: chauvinist...  2.5093988  1.7028931   3.500812 67019dfc-b...
-      3: childproof... -3.9398029 10.2006843  19.902757 85d3c36b-1...
-      4: chauvinist... -2.8996368  0.4399783 127.490108 256554cf-7...
-      5: childproof... -4.9358649 14.2093125  19.932516 c88c80cb-7...
+             worker_id         x1        x2         y          keys
+                <char>      <num>     <num>     <num>        <char>
+      1: premolar_i...  1.1435398 10.026025  46.20827 f149f51c-a...
+      2: premolar_i... -0.2586301  1.120511  47.37013 41c7dc09-5...
+      3: premolar_i...  3.7808976 10.767417  82.18536 f7a280a5-8...
+      4: premolar_i... -0.1304025  4.616848  22.05789 a0f27d99-b...
+      5: premolar_i...  0.2663496  6.282069  19.74907 3a809f03-0...
      ---
-    126: chauvinist...  5.6101871 12.1366546 138.498878 aca0407a-2...
-    127: childproof...  6.3831953 13.2918939 168.087299 f6c3c42f-f...
-    128: chauvinist...  0.2129834 11.6966798  55.743557 c8a8865e-6...
-    129: childproof... -0.4078654 13.5116244  65.613674 47f246d8-f...
-    130: chauvinist... -2.9885784  2.9426469  80.928785 1f11c808-0...
+    105: premolar_i... -1.4227586  2.900863  43.05724 af00857e-3...
+    106: effaceable...  4.2754947 12.548538 126.75509 740110dd-7...
+    107: premolar_i...  8.0681023 13.194614 143.12879 d6bf7319-0...
+    108: effaceable...  5.2122175  1.359084  14.62308 71796a8f-e...
+    109: premolar_i... -1.5804731 10.198215  11.75702 bdb692d8-e...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: childproof...  8815 runnervm1l...     FALSE terminated
-    2: chauvinist...  8813 runnervm1l...     FALSE terminated
+    1: effaceable...  8918 runnervm7b...     FALSE terminated
+    2: premolar_i...  8920 runnervm7b...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "quasinationalistic_worm" "dainty_arcticduck"      
+    [1] "educatory_tayra"   "piperaceous_molly"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: anticlimac...  9065 runnervm1l...     FALSE running
-    2: existent_c...  9067 runnervm1l...     FALSE running
+    1: jealous_cl...  9170 runnervm7b...     FALSE running
+    2: digressive...  9172 runnervm7b...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: anticlimac...  9065 runnervm1l...     FALSE running
-    2: existent_c...  9067 runnervm1l...     FALSE running
+    1: jealous_cl...  9170 runnervm7b...     FALSE running
+    2: digressive...  9172 runnervm7b...     FALSE running
 
 ``` r
 

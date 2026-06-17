@@ -76,6 +76,8 @@
 <li>
 <code>$fetch_tasks()</code> and related methods no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
 <li>
+<code>$reset(workers = FALSE)</code> now also clears the per-worker pending task lists so that a task popped but not yet marked as running can no longer be resurrected as a phantom failed task by a later <code>$detect_lost_workers()</code> after its hash was deleted.</li>
+<li>
 <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 <li>
 <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning so that stopping a known set of workers is idempotent.</li>
