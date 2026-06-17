@@ -407,6 +407,40 @@ test_that("a worker is killed", {
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 })
 
+test_that("stop_workers warns about and ignores workers that are not running", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  worker_ids = rush$start_workers(
+    worker_loop = wl_queue,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  worker_id = rush$running_worker_ids
+
+  lg_rush = lgr::get_logger("mlr3/rush")
+  old_threshold_rush = lg_rush$threshold
+  on.exit(lg_rush$set_threshold(old_threshold_rush), add = TRUE)
+  lg_rush$set_threshold("warn")
+
+  # a mix of a running and a non-running worker warns but still stops the running one
+  log = capture.output(
+    rush$stop_workers(worker_ids = c(worker_id, "ghost"), type = "kill"))
+  expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
+
+  wait_until(worker_id %in% rush$terminated_worker_ids)
+  expect_equal(rush$terminated_worker_ids, worker_id)
+
+  # stopping only a non-running worker warns and is a no-op without error
+  log = capture.output(
+    expect_invisible(rush$stop_workers(worker_ids = "ghost", type = "kill")))
+  expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
+})
+
 test_that("a local worker is killed", {
   config = redis_configuration()
   rush = rsh(config = config)

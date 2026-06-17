@@ -563,7 +563,8 @@ If \code{"terminate"} the workers evaluate the currently running task and then t
 The \code{"terminate"} option must be implemented in the worker loop.}
       \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
-If \code{NULL} all workers are stopped.}
+If \code{NULL} all workers are stopped.
+Ids that are not currently running are skipped with a warning.}
     }
     \if{html}{\out{</div>}}
   }

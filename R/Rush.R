@@ -476,6 +476,7 @@ Rush = R6::R6Class(
     #' @param worker_ids (`character()`)\cr
     #' Worker ids to be stopped.
     #' If `NULL` all workers are stopped.
+    #' Ids that are not currently running are skipped with a warning.
     #' @param type (`character(1)`)\cr
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
@@ -484,8 +485,20 @@ Rush = R6::R6Class(
     #' The `"terminate"` option must be implemented in the worker loop.
     stop_workers = function(type = "kill", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
-      worker_ids = assert_subset(worker_ids, self$running_worker_ids) %??% self$running_worker_ids
-      if (is.null(worker_ids)) {
+      worker_ids = assert_character(worker_ids, null.ok = TRUE)
+      running_worker_ids = self$running_worker_ids
+      worker_ids = worker_ids %??% running_worker_ids
+
+      # warn about and ignore requested workers that are not running
+      missing_worker_ids = setdiff(worker_ids, running_worker_ids)
+      if (length(missing_worker_ids)) {
+        lg$warn(
+          "Cannot stop %i worker(s) that are not running: %s",
+          length(missing_worker_ids), str_collapse(missing_worker_ids))
+        worker_ids = intersect(worker_ids, running_worker_ids)
+      }
+
+      if (!length(worker_ids)) {
         return(invisible(self))
       }
       r = private$.connector
