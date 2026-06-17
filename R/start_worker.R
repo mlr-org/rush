@@ -112,6 +112,16 @@ start_worker = function(
   # get start arguments
   bin_start_args = r$command(list("GET", sprintf("%s:start_args", network_id)))
 
+  if (is.null(bin_start_args)) {
+    error_config(
+      paste(
+        "No start arguments found for network '%s'.",
+        "The worker was likely started before the configuration was pushed or the network was reset."
+      ),
+      network_id
+    )
+  }
+
   lg$debug("Start arguments %s bytes downloaded", format(object.size(bin_start_args), units = "MB"))
 
   start_args = unserialize(bin_start_args)
