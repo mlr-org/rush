@@ -1439,7 +1439,7 @@ Rush = R6::R6Class(
     n_workers = function(rhs) {
       assert_ro_binding(rhs)
       r = private$.connector
-      as.integer(r$SCARD(private$.get_key("worker_ids"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("worker_ids")))
     },
 
     #' @field n_running_workers (`integer(1)`)\cr
@@ -1447,7 +1447,7 @@ Rush = R6::R6Class(
     n_running_workers = function(rhs) {
       assert_ro_binding(rhs)
       r = private$.connector
-      as.integer(r$SCARD(private$.get_key("running_worker_ids"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("running_worker_ids")))
     },
 
     #' @field n_terminated_workers (`integer(1)`)\cr
@@ -1455,7 +1455,7 @@ Rush = R6::R6Class(
     n_terminated_workers = function(rhs) {
       assert_ro_binding(rhs)
       r = private$.connector
-      as.integer(r$SCARD(private$.get_key("terminated_worker_ids"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("terminated_worker_ids")))
     },
 
     #' @field worker_ids (`character()`)\cr
@@ -1518,35 +1518,35 @@ Rush = R6::R6Class(
     #' Number of queued tasks.
     n_queued_tasks = function() {
       r = private$.connector
-      as.integer(r$LLEN(private$.get_key("queued_tasks"))) %??% 0
+      as.integer(r$LLEN(private$.get_key("queued_tasks")))
     },
 
     #' @field n_running_tasks (`integer(1)`)\cr
     #' Number of running tasks.
     n_running_tasks = function() {
       r = private$.connector
-      as.integer(r$SCARD(private$.get_key("running_tasks"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("running_tasks")))
     },
 
     #' @field n_finished_tasks (`integer(1)`)\cr
     #' Number of finished tasks.
     n_finished_tasks = function() {
       r = private$.connector
-      as.integer(r$LLEN(private$.get_key("finished_tasks"))) %??% 0
+      as.integer(r$LLEN(private$.get_key("finished_tasks")))
     },
 
     #' @field n_failed_tasks (`integer(1)`)\cr
     #' Number of failed tasks.
     n_failed_tasks = function() {
       r = private$.connector
-      as.integer(r$SCARD(private$.get_key("failed_tasks"))) %??% 0
+      as.integer(r$SCARD(private$.get_key("failed_tasks")))
     },
 
     #' @field n_tasks (`integer(1)`)\cr
     #' Number of all tasks.
     n_tasks = function() {
       r = private$.connector
-      as.integer(r$LLEN(private$.get_key("all_tasks"))) %??% 0
+      as.integer(r$LLEN(private$.get_key("all_tasks")))
     },
 
     #' @field worker_info ([data.table::data.table()])\cr
