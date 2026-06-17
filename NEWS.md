@@ -1,6 +1,7 @@
 # rush (development version)
 
 * `$fail_tasks()` and `$finish_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
+* `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
 * The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
 * `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task, when a worker finishes a task or starts a new one after the detection begins but before the worker is flagged as lost.

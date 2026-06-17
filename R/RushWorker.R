@@ -211,8 +211,10 @@ RushWorker = R6::R6Class(
       # but at the moment a list seems to be the better option
       r$pipeline(
         .commands = list(
+          "MULTI",
           c("SREM", private$.get_key("running_tasks"), keys),
-          c("RPUSH", private$.get_key("finished_tasks"), keys)
+          c("RPUSH", private$.get_key("finished_tasks"), keys),
+          "EXEC"
         )
       )
 
@@ -249,7 +251,7 @@ RushWorker = R6::R6Class(
         recursive = FALSE
       )
 
-      r$pipeline(.commands = cmds)
+      r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
 
       invisible(self)
     },
