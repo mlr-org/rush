@@ -144,10 +144,14 @@ RushWorker = R6::R6Class(
       self$write_hashes(worker_id = list(self$worker_id), keys = key)
 
       # mark key as running
-      r$MULTI()
-      r$command(c("LPOP", private$.get_worker_key("pending_task")))
-      r$command(c("SADD", private$.get_key("running_tasks"), key))
-      r$EXEC()
+      r$pipeline(
+        .commands = list(
+          "MULTI",
+          c("LPOP", private$.get_worker_key("pending_task")),
+          c("SADD", private$.get_key("running_tasks"), key),
+          "EXEC"
+        )
+      )
 
       task = self$read_hash(key = key, fields = fields)
       task$key = key
@@ -172,8 +176,16 @@ RushWorker = R6::R6Class(
       lg$debug("Pushing %i running task(s).", length(xss))
 
       keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
-      r$command(c("SADD", private$.get_key("running_tasks"), keys))
-      r$command(c("RPUSH", private$.get_key("all_tasks"), keys))
+
+      # mark key as running
+      r$pipeline(
+        .commands = list(
+          "MULTI",
+          c("SADD", private$.get_key("running_tasks"), keys),
+          c("RPUSH", private$.get_key("all_tasks"), keys),
+          "EXEC"
+        )
+      )
 
       return(invisible(keys))
     },
@@ -241,17 +253,15 @@ RushWorker = R6::R6Class(
       # write condition to hash
       self$write_hashes(condition = conditions, keys = keys)
 
-      cmds = unlist(
-        map(keys, function(key) {
-          list(
-            c("SREM", private$.get_key("running_tasks"), key),
-            c("SADD", private$.get_key("failed_tasks"), key)
-          )
-        }),
-        recursive = FALSE
+      # move key from running to failed
+      r$pipeline(
+        .commands = list(
+          "MULTI",
+          c("SREM", private$.get_key("running_tasks"), keys),
+          c("SADD", private$.get_key("failed_tasks"), keys),
+          "EXEC"
+        )
       )
-
-      r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
 
       invisible(self)
     },
