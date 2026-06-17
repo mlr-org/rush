@@ -998,7 +998,10 @@ Finished tasks are cached.</p><div class="section">
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra")</code>.</p></dd>
+Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra")</code>.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
 
 </dl><p></p></div>
@@ -1027,7 +1030,10 @@ Finished tasks are cached.</p><div class="section">
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")</code>.</p></dd>
+Defaults to <code>c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")</code>.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
       <dt><code>states</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
@@ -1054,7 +1060,10 @@ If <code>timeout</code> is set, blocks until new tasks are available or the time
 <h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Fields to be read from the hashes.</p></dd>
+Fields to be read from the hashes.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
       <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>

@@ -49,6 +49,9 @@
   `RushWorker` because they require a worker identity. Calling them on a
   `Rush` manager previously stored an empty `worker_id` in the task
   hashes.
+- `$reset()` now also deletes the per-worker pending task lists, so a
+  task stranded in a pending list by a mid-pop crash no longer survives
+  a reset as an orphaned key.
 - `$reset()` now also resets the internal log counter, so `$print_log()`
   no longer skips messages when the same network id is reused after a
   reset.
