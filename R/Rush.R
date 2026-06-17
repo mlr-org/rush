@@ -739,7 +739,7 @@ Rush = R6::R6Class(
     #' Whether to calculate the time difference between log messages.
     #'
     #' @return `data.table()`\cr
-    #' Table with level, timestamp, logger, caller and message, and optionally time difference.
+    #' Table with columns `worker_id`, `level`, `timestamp`, `logger`, `caller` and `msg`, and optionally `time_difference`.
     read_log = function(worker_ids = NULL, time_difference = FALSE) {
       assert_flag(time_difference)
       worker_ids = worker_ids %??% self$worker_ids

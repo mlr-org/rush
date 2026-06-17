@@ -632,7 +632,7 @@ Whether to calculate the time difference between log messages.}
   }
   \subsection{Returns}{
     \code{data.table()}\cr
-Table with level, timestamp, logger, caller and message, and optionally time difference.
+Table with columns \code{worker_id}, \code{level}, \code{timestamp}, \code{logger}, \code{caller} and \code{msg}, and optionally \code{time_difference}.
   }
 }
 
