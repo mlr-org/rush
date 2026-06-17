@@ -53,6 +53,23 @@ test_that("heartbeat process is started", {
   expect_gt(r$command(c("TTL", sprintf("test-rush:%s:heartbeat", rush$worker_id))), 0)
 })
 
+test_that("set_terminated cleans up the heartbeat key eagerly", {
+  skip_if_not_installed("callr")
+  config = redis_configuration()
+
+  rush = RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1)
+  r = redux::hiredis(config)
+  heartbeat_key = sprintf("test-rush:%s:heartbeat", rush$worker_id)
+
+  expect_equal(r$command(c("EXISTS", heartbeat_key)), 1L)
+  expect_equal(r$command(c("SISMEMBER", "test-rush:heartbeat_keys", heartbeat_key)), 1L)
+
+  rush$set_terminated()
+
+  expect_equal(r$command(c("EXISTS", heartbeat_key)), 0L)
+  expect_equal(r$command(c("SISMEMBER", "test-rush:heartbeat_keys", heartbeat_key)), 0L)
+})
+
 test_that("heartbeat_period and heartbeat_expire are validated", {
   skip_if_not_installed("callr")
   config = redis_configuration()
