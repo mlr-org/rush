@@ -57,66 +57,38 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
-<ul><li>Remove deprecated worker types <code>"local"</code> and <code>"remote"</code>.</li>
-<li>
-<code>$fail_tasks()</code> and <code>$finish_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> so that a task is only marked as failed or finished by the worker that processes it.</li>
-<li>
-<code>$fail_tasks()</code> and <code>$finish_tasks()</code> now move a task between states atomically with <code>MULTI</code>/<code>EXEC</code> so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.</li>
-<li>The deprecated methods <code>$push_failed()</code> and <code>$push_results()</code> are removed. Use <code>$fail_tasks()</code> and <code>$finish_tasks()</code> instead.</li>
-<li>
-<code>$empty_queue()</code> no longer creates an orphaned hash in the Redis database when the queue is already empty.</li>
-<li>
-<code>$detect_lost_workers()</code> no longer marks a task as both finished and failed, or loses a task, when a worker finishes a task or starts a new one after the detection begins but before the worker is flagged as lost. The running tasks of a lost worker are now read after the worker has been flagged as lost, and a running task is moved to the failed state with <code>SMOVE</code>, which is a no-op when the task has already left the running state.</li>
-<li>
-<code>$pop_task()</code> no longer permanently loses a task when a worker crashes between popping the task from the queue and marking it as running. The task is now moved atomically into a per-worker pending list and recovered as a failed task by <code>$detect_lost_workers()</code>.</li>
-<li>
-<code>$push_tasks()</code>, <code>$push_finished_tasks()</code>, <code>$push_failed_tasks()</code>, and <code>$push_running_tasks()</code> now return early when called with an empty list of tasks instead of sending an invalid Redis command whose error was silently discarded.</li>
-<li>
-<code>$fetch_finished_tasks()</code> and <code>$fetch_new_tasks()</code> no longer crash or return duplicated results when finished task hashes have been removed from the database. The cache now tracks consumed entries of the finished tasks list separately from cached rows.</li>
-<li>
-<code>$fetch_tasks()</code> and related methods no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
-<li>
-<code>$reset(workers = FALSE)</code> now also clears the per-worker pending task lists so that a task popped but not yet marked as running can no longer be resurrected as a phantom failed task by a later <code>$detect_lost_workers()</code> after its hash was deleted.</li>
-<li>
-<code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
-<li>
-<code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning so that stopping a known set of workers is idempotent.</li>
-<li>
-<code>$wait_for_tasks()</code> no longer reads the full finished and failed task structures on every poll. The expensive membership check now runs only when the cheap completion counters report a newly completed task.</li>
-<li>
-<code>$wait_for_tasks()</code> now reads the running-worker, finished-task, and failed-task counters in a single pipeline per poll instead of three separate round-trips.</li>
-<li>
-<code>$worker_script()</code> no longer logs the Redis password. The logged script shows <code>&lt;redacted&gt;</code> instead. The method now returns the script visibly.</li>
-<li>
-<code>RushWorker$new()</code> now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. <code>heartbeat_period</code> and <code>heartbeat_expire</code> must now be at least 1 second.</li>
-<li>
-<code>$pop_task()</code> and <code>$push_running_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> because they require a worker identity. Calling them on a <code>Rush</code> manager previously stored an empty <code>worker_id</code> in the task hashes.</li>
-<li>
-<code>$reset()</code> now also deletes the per-worker pending task lists, so a task stranded in a pending list by a mid-pop crash no longer survives a reset as an orphaned key.</li>
-<li>
-<code>$reset()</code> now also resets the internal log counter, so <code>$print_log()</code> no longer skips messages when the same network id is reused after a reset.</li>
-<li>
-<code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
-<li>
-<code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
+<ul><li>chore: The minimum R version is now 3.6.0, and Redis (&gt;= 7.0) is declared as a system requirement.</li>
+<li>refactor: Remove deprecated worker types <code>"local"</code> and <code>"remote"</code>.</li>
+<li>refactor: <code>$fail_tasks()</code>, <code>$finish_tasks()</code>, <code>$pop_task()</code>, and <code>$push_running_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> so that a task is only marked as failed or finished by the worker that processes it.</li>
+<li>fix: <code>$fail_tasks()</code> and <code>$finish_tasks()</code> now move a task between states atomically with <code>MULTI</code>/<code>EXEC</code> so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.</li>
+<li>refactor: The deprecated methods <code>$push_failed()</code> and <code>$push_results()</code> are removed. Use <code>$fail_tasks()</code> and <code>$finish_tasks()</code> instead.</li>
+<li>fix: <code>$empty_queue()</code> no longer creates an orphaned hash in the Redis database when the queue is already empty.</li>
+<li>fix: <code>$detect_lost_workers()</code> no longer marks a task as both finished and failed, or loses a task.</li>
+<li>fix: <code>$pop_task()</code> no longer loses a task when a worker crashes between popping the task from the queue and marking it as running. The task is now moved atomically into a per-worker pending list and recovered as a failed task by <code>$detect_lost_workers()</code>.</li>
+<li>fix: <code>$push_tasks()</code>, <code>$push_finished_tasks()</code>, <code>$push_failed_tasks()</code>, and <code>$push_running_tasks()</code> now return early when called with an empty list of tasks.</li>
+<li>fix: <code>$fetch_tasks()</code>, <code>$fetch_finished_tasks()</code>, and <code>$fetch_new_tasks()</code> no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
+<li>fix: <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
+<li>fix: <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning.</li>
+<li>perf: <code>$wait_for_tasks()</code> no longer reads the full finished list and failed task set on every poll.</li>
+<li>fix: <code>$worker_script()</code> no longer logs the Redis password. The logged script shows <code>&lt;redacted&gt;</code> instead. The method now returns the script visibly.</li>
+<li>fix: <code>RushWorker$new()</code> now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. <code>heartbeat_period</code> and <code>heartbeat_expire</code> must now be at least 1 second.</li>
+<li>fix: <code>$reset()</code> now also resets the internal log counter, so <code>$print_log()</code> no longer skips messages when the same network id is reused after a reset.</li>
+<li>feat: <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
+<li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
+<li>perf: <code>$worker_info</code> reads all workers in one pipelined round trip.</li>
+<li>refactor: Large objects are now stored under UUID keys.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.0" id="rush-110">rush 1.1.0<a class="anchor" aria-label="anchor" href="#rush-110"></a></h2><p class="text-muted">CRAN release: 2026-04-24</p>
-<ul><li>
-<code>$detect_lost_workers()</code> no longer creates phantom failed tasks when a worker crashes between task evaluations (<a href="https://github.com/mlr-org/rush/issues/89" class="external-link">#89</a>).</li>
-<li>
-<code>$fetch_new_tasks()</code> now correctly tracks seen results by using the actual cache size instead of the Redis counter, fixing cases where new results could be missed or duplicated.</li>
-<li>
-<code>$write_hashes()</code> now requires all value lists to have the same length or length 1 instead of recycling. Length mismatches raise an error (<a href="https://github.com/mlr-org/rush/issues/87" class="external-link">#87</a>).</li>
-<li>
-<code><a href="../reference/rsh.html">rsh()</a></code> no longer accepts <code>...</code> (which was ignored).</li>
+<ul><li>fix: <code>$detect_lost_workers()</code> no longer creates phantom failed tasks when a worker crashes between task evaluations (<a href="https://github.com/mlr-org/rush/issues/89" class="external-link">#89</a>).</li>
+<li>fix: <code>$fetch_new_tasks()</code> now correctly tracks seen results by using the actual cache size instead of the Redis counter, fixing cases where new results could be missed or duplicated.</li>
+<li>fix: <code>$write_hashes()</code> now requires all value lists to have the same length or length 1 instead of recycling. Length mismatches raise an error (<a href="https://github.com/mlr-org/rush/issues/87" class="external-link">#87</a>).</li>
+<li>fix: <code><a href="../reference/rsh.html">rsh()</a></code> no longer accepts <code>...</code> (which was ignored).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.1" id="rush-101">rush 1.0.1<a class="anchor" aria-label="anchor" href="#rush-101"></a></h2><p class="text-muted">CRAN release: 2026-04-04</p>
-<ul><li>
-<code>$start_workers()</code> now strips the enclosing environment from <code>worker_loop</code> before serialization, avoiding bloated Redis payloads when the function is a closure.</li>
-<li>
-<code>$fetch_tasks()</code> and related methods no longer fail when task parameters contain vector values instead of scalars.</li>
+<ul><li>fix: <code>$start_workers()</code> now strips the enclosing environment from <code>worker_loop</code> before serialization, avoiding bloated Redis payloads when the function is a closure.</li>
+<li>fix: <code>$fetch_tasks()</code> and related methods no longer fail when task parameters contain vector values instead of scalars.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="rush-100">rush 1.0.0<a class="anchor" aria-label="anchor" href="#rush-100"></a></h2><p class="text-muted">CRAN release: 2026-03-18</p>
@@ -156,12 +128,13 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="rush-040">rush 0.4.0<a class="anchor" aria-label="anchor" href="#rush-040"></a></h2><p class="text-muted">CRAN release: 2025-10-08</p>
-<p>feat: Add <code>$empty_queue()</code> method. fix: Queued tasks can be moved to failed now.</p>
-</div>
+<ul><li>feat: Add <code>$empty_queue()</code> method.</li>
+<li>fix: Queued tasks can be moved to failed now.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.1" id="rush-031">rush 0.3.1<a class="anchor" aria-label="anchor" href="#rush-031"></a></h2><p class="text-muted">CRAN release: 2025-09-16</p>
-<p>feat: Change default of <code>n_workers</code>.</p>
-</div>
+<ul><li>feat: Change default of <code>n_workers</code>.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="rush-030">rush 0.3.0<a class="anchor" aria-label="anchor" href="#rush-030"></a></h2><p class="text-muted">CRAN release: 2025-07-31</p>
 <ul><li>feat: Output and message logs can be written to files now via the <code>message_log</code> and <code>output_log</code> arguments.</li>
