@@ -677,7 +677,8 @@ The <code>"terminate"</code> option must be implemented in the worker loop.</p><
       <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids to be stopped.
-If <code>NULL</code> all workers are stopped.</p></dd>
+If <code>NULL</code> all workers are stopped.
+Ids that are not currently running are skipped with a warning.</p></dd>
 
 
 </dl><p></p></div>
@@ -766,7 +767,8 @@ Invisible self.</p>
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
+Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
       <dt><code>extra</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
@@ -792,7 +794,8 @@ See <code>$finish_tasks()</code> for moving existing tasks from running to finis
 <h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
+Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
       <dt><code>yss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
@@ -826,7 +829,8 @@ See <code>$fail_tasks()</code> for moving existing tasks from queued and running
 <h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
+Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
       <dt><code>xss_extra</code></dt>
 <dd><p>(<code>list</code>)<br>

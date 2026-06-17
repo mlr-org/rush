@@ -197,7 +197,9 @@ Create running tasks.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
+  created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `extra`:
 

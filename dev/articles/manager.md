@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: blameworth...  9034 runnervm1l...     FALSE running
-    2: androgenou...  9036 runnervm1l...     FALSE running
+    1: unsafe_aur...  8814 runnervm7b...     FALSE running
+    2: deflectabl...  8812 runnervm7b...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: blameworth...  9034 runnervm1l...     FALSE    running
-    2: androgenou...  9036 runnervm1l...     FALSE terminated
+    1: deflectabl...  8812 runnervm7b...     FALSE    running
+    2: unsafe_aur...  8814 runnervm7b...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1         x2          y          keys
-                <char>      <num>      <num>      <num>        <char>
-      1: separate_p...  3.8368560 11.3686108  94.276127 4ee56749-b...
-      2: separate_p...  8.8643774 10.6330008  75.657117 ca23f341-9...
-      3: separate_p...  4.4726492  6.8168998  36.353810 fa653108-9...
-      4: separate_p...  6.4335501 12.7842244 155.834825 44eed1e7-a...
-      5: separate_p...  5.4482241  0.3685871  17.076862 f6d84944-7...
+             worker_id         x1          x2          y          keys
+                <char>      <num>       <num>      <num>        <char>
+      1: haptephobi...  5.6841412 14.45477664 195.552040 25b6697a-9...
+      2: haptephobi...  5.2218335  2.70946561  16.926064 069a30b2-b...
+      3: haptephobi...  7.1317405  0.07487582  17.659025 2198b815-2...
+      4: haptephobi... -3.3272150 14.24083222   2.858929 b07d651e-0...
+      5: haptephobi... -1.5814608 10.81808981  13.810179 2626b47f-3...
      ---
-    106: caressive_... -0.3099297  7.6928438  20.553984 15b1f0ff-f...
-    107: separate_p...  4.6785349  0.8241796   9.985664 b3b70d90-3...
-    108: caressive_...  2.1790518 12.9656391 100.951396 a4cedeec-5...
-    109: separate_p...  5.7216832 11.4980115 125.771605 46458a32-d...
-    110: caressive_... -4.2679518 10.5423611  27.063273 3d9f5ef7-8...
+    101: mindful_de... -0.3208685  6.44899951  19.117661 3218cd16-2...
+    102: haptephobi... -2.7321730 11.92611626   1.567737 d1c1b6bd-4...
+    103: mindful_de...  0.5993259  4.07471090  18.964605 dc22ffef-4...
+    104: mindful_de... -3.8630892  2.06657943 147.020992 298274cd-5...
+    105: haptephobi...  8.0556304  5.58773916  24.281326 ba9de25e-b...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: separate_p...  9036 runnervm1l...     FALSE terminated
-    2: caressive_...  9034 runnervm1l...     FALSE terminated
+    1: haptephobi...  8814 runnervm7b...     FALSE terminated
+    2: mindful_de...  8812 runnervm7b...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "nonchalant_adder" "chubby_redhead"  
+    [1] "pseudospiritual_bettong" "unirritable_guineafowl" 
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: daring_vir...  9287 runnervm1l...     FALSE running
-    2: sinless_st...  9289 runnervm1l...     FALSE running
+    1: lygophilic...  9083 runnervm7b...     FALSE running
+    2: commiserab...  9085 runnervm7b...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: daring_vir...  9287 runnervm1l...     FALSE running
-    2: sinless_st...  9289 runnervm1l...     FALSE running
+    1: lygophilic...  9083 runnervm7b...     FALSE running
+    2: commiserab...  9085 runnervm7b...     FALSE running
 
 ``` r
 

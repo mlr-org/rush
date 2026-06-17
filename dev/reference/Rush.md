@@ -749,7 +749,8 @@ Stop workers.
 - `worker_ids`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Worker ids to be stopped. If `NULL` all workers are stopped.
+  Worker ids to be stopped. If `NULL` all workers are stopped. Ids that
+  are not currently running are skipped with a warning.
 
 ------------------------------------------------------------------------
 
@@ -845,7 +846,9 @@ Create queued tasks and add them to the queue.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
+  created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `extra`:
 
@@ -875,7 +878,9 @@ from running to finished.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
+  created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `yss`:
 
@@ -917,7 +922,9 @@ queued and running to failed.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
+  created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `xss_extra`:
 

@@ -158,17 +158,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               worker_id         x         y               keys
                   &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: lexicological_k... 0.8173172 0.9040560 393bd2c6-6c86-4...
-   2: helminthologic_... 0.7784897 0.8823206 0efb3280-b831-4...
-   3: lexicological_k... 0.3685868 0.6071135 3be379cd-68e9-4...
-   4: helminthologic_... 0.6520462 0.8074938 498c7d57-f625-4...
-   5: lexicological_k... 0.6663518 0.8163037 5e4fe8e7-e184-4...
+   1:     ketonic_hoopoe 0.3851759 0.6206254 dad416c2-ff29-4...
+   2:     ketonic_hoopoe 0.5654938 0.7519932 d1cba198-cea3-4...
+   3:     ketonic_hoopoe 0.1297749 0.3602429 af656b83-bc12-4...
+   4:     ketonic_hoopoe 0.7208498 0.8490288 2180b640-8d11-4...
+   5:     ketonic_hoopoe 0.4066428 0.6376855 c58cecc1-ed26-4...
   ---
-7303: helminthologic_... 0.8251239 0.9083633 a4756c63-747a-4...
-7304: lexicological_k... 0.6184538 0.7864183 0e7bca2c-482b-4...
-7305: helminthologic_... 0.5745856 0.7580142 8450d0b9-ad18-4...
-7306: lexicological_k... 0.4594880 0.6778554 82049d9e-9722-4...
-7307: helminthologic_... 0.7602726 0.8719361 eebc7911-5ed3-4...</code></pre>
+7218:     ketonic_hoopoe 0.3618546 0.6015435 62a9efe3-8a02-4...
+7219: precarnival_afr... 0.7876710 0.8875083 345e0c1a-ff9c-4...
+7220:     ketonic_hoopoe 0.2734345 0.5229097 5ed994f2-c033-4...
+7221: precarnival_afr... 0.7368663 0.8584091 323f4bb5-4b70-4...
+7222:     ketonic_hoopoe 0.9507351 0.9750564 348cff9b-97be-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -216,17 +216,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               x         y          worker_id               keys
            &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.77848967 0.8823206 helminthologic_... 0efb3280-b831-4...
-   2: 0.81731718 0.9040560 lexicological_k... 393bd2c6-6c86-4...
-   3: 0.36858681 0.6071135 lexicological_k... 3be379cd-68e9-4...
-   4: 0.65204621 0.8074938 helminthologic_... 498c7d57-f625-4...
-   5: 0.66635181 0.8163037 lexicological_k... 5e4fe8e7-e184-4...
+   1: 0.38517586 0.6206254     ketonic_hoopoe dad416c2-ff29-4...
+   2: 0.33042202 0.5748235 precarnival_afr... b4f1a472-d0b4-4...
+   3: 0.56549380 0.7519932     ketonic_hoopoe d1cba198-cea3-4...
+   4: 0.12977495 0.3602429     ketonic_hoopoe af656b83-bc12-4...
+   5: 0.72084982 0.8490288     ketonic_hoopoe 2180b640-8d11-4...
   ---
-7808: 0.03182825 0.1784047 lexicological_k... 264fffeb-63f4-4...
-7809: 0.10844699 0.3293129 helminthologic_... d2ec4cb2-346d-4...
-7810: 0.08359630 0.2891302 lexicological_k... 2fe0b82e-e593-4...
-7811: 0.92995136 0.9643399 helminthologic_... 23dc128c-f9d5-4...
-7812: 0.03165952        NA helminthologic_... e115282e-465d-4...</code></pre>
+7718: 0.66814111 0.8173990 precarnival_afr... 246e7705-fc7e-4...
+7719: 0.65574775 0.8097825     ketonic_hoopoe caf53a0e-79fa-4...
+7720: 0.02832562 0.1683022 precarnival_afr... 2dba4a2e-413f-4...
+7721: 0.28473496 0.5336056     ketonic_hoopoe 1dcffc94-5e22-4...
+7722: 0.49002723        NA precarnival_afr... ab221c99-07df-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,9 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x          worker_id               keys
-        &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.03165952 helminthologic_... e115282e-465d-4...</code></pre>
+<pre><code>           x          worker_id               keys
+       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.4900272 precarnival_afr... ab221c99-07df-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -250,17 +250,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id          x               keys         y
         &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running helminthologic_... 0.03165952 e115282e-465d-4...        NA
-   2: finished lexicological_k... 0.81731718 393bd2c6-6c86-4... 0.9040560
-   3: finished helminthologic_... 0.77848967 0efb3280-b831-4... 0.8823206
-   4: finished lexicological_k... 0.36858681 3be379cd-68e9-4... 0.6071135
-   5: finished helminthologic_... 0.65204621 498c7d57-f625-4... 0.8074938
+   1:  running precarnival_afr... 0.49002723 ab221c99-07df-4...        NA
+   2: finished     ketonic_hoopoe 0.38517586 dad416c2-ff29-4... 0.6206254
+   3: finished     ketonic_hoopoe 0.56549380 d1cba198-cea3-4... 0.7519932
+   4: finished     ketonic_hoopoe 0.12977495 af656b83-bc12-4... 0.3602429
+   5: finished     ketonic_hoopoe 0.72084982 2180b640-8d11-4... 0.8490288
   ---
-7808: finished helminthologic_... 0.50916079 91c095d8-56a4-4... 0.7135550
-7809: finished lexicological_k... 0.03182825 264fffeb-63f4-4... 0.1784047
-7810: finished helminthologic_... 0.10844699 d2ec4cb2-346d-4... 0.3293129
-7811: finished helminthologic_... 0.92995136 23dc128c-f9d5-4... 0.9643399
-7812: finished lexicological_k... 0.08359630 2fe0b82e-e593-4... 0.2891302</code></pre>
+7718: finished     ketonic_hoopoe 0.56033880 712a6a78-e237-4... 0.7485578
+7719: finished precarnival_afr... 0.66814111 246e7705-fc7e-4... 0.8173990
+7720: finished     ketonic_hoopoe 0.65574775 caf53a0e-79fa-4... 0.8097825
+7721: finished precarnival_afr... 0.02832562 2dba4a2e-413f-4... 0.1683022
+7722: finished     ketonic_hoopoe 0.28473496 1dcffc94-5e22-4... 0.5336056</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7811</code></pre>
+<pre><code>[1] 7721</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -307,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.5204017
+[1] 0.1845962
 
 
 $key
-[1] "0cddecc9-f984-424e-b483-138c29aee7be"</code></pre>
+[1] "11a07820-c3e3-45f4-9828-2f04a8f005fa"</code></pre>
 </div>
 </div>
 <div class="cell">

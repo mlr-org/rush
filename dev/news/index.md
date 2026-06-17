@@ -24,6 +24,10 @@
   between popping the task from the queue and marking it as running. The
   task is now moved atomically into a per-worker pending list and
   recovered as a failed task by `$detect_lost_workers()`.
+- `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and
+  `$push_running_tasks()` now return early when called with an empty
+  list of tasks instead of sending an invalid Redis command whose error
+  was silently discarded.
 - `$fetch_finished_tasks()` and `$fetch_new_tasks()` no longer crash or
   return duplicated results when finished task hashes have been removed
   from the database. The cache now tracks consumed entries of the
@@ -35,6 +39,9 @@
   startup code on Windows or when the temporary directory path contains
   quotes. The temporary arguments file is now deleted after the worker
   reads it.
+- `$stop_workers()` no longer errors when a requested worker id is not
+  running. Such ids are now skipped with a warning so that stopping a
+  known set of workers is idempotent.
 - `$wait_for_tasks()` no longer reads the full finished and failed task
   structures on every poll. The expensive membership check now runs only
   when the cheap completion counters report a newly completed task.
