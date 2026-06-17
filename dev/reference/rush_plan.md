@@ -70,7 +70,8 @@ rush_plan(
   Default timeout in seconds used by `$wait_for_workers()` of
   [Rush](https://rush.mlr-org.com/dev/reference/Rush.md) when no
   `timeout` is passed. If `NULL`, `$wait_for_workers()` waits
-  indefinitely by default.
+  indefinitely by default. A timeout of `0` checks once and errors
+  immediately if the workers are not yet registered.
 
 ## Value
 

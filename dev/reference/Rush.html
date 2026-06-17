@@ -651,7 +651,8 @@ If <code>NULL</code>, wait for any <code>n</code> workers to be registered.</p><
       <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>
 Timeout in seconds.
-Defaults to the <code>start_worker_timeout</code> set with <code><a href="rush_plan.html">rush_plan()</a></code>, or <code>Inf</code> if none is set.</p></dd>
+Defaults to the <code>start_worker_timeout</code> set with <code><a href="rush_plan.html">rush_plan()</a></code>, or <code>Inf</code> if none is set.
+A <code>timeout</code> of <code>0</code> checks once and errors immediately if the workers are not yet registered.</p></dd>
 
 
 </dl><p></p></div>

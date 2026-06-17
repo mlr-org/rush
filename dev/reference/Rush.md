@@ -724,7 +724,8 @@ Wait until workers are registered in the network. Either `n`,
   (`numeric(1)`)  
   Timeout in seconds. Defaults to the `start_worker_timeout` set with
   [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md),
-  or `Inf` if none is set.
+  or `Inf` if none is set. A `timeout` of `0` checks once and errors
+  immediately if the workers are not yet registered.
 
 ------------------------------------------------------------------------
 
