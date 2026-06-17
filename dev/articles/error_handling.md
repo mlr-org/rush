@@ -66,19 +66,19 @@ reevaluation of failed tasks.
 rush$fetch_failed_tasks()
 ```
 
-                 x1        x2     worker_id       message          keys
-              <num>     <num>        <char>        <char>        <char>
-      1:  9.1837441  3.277860 profascist... Random Err... 9fc6af0d-a...
-      2: -2.3586089  4.670128 coltish_en... Random Err... 0ec4b335-c...
-      3:  0.7824603 12.856443 profascist... Random Err... d7ebb5f3-a...
-      4:  6.9179634 13.936318 coltish_en... Random Err... 19359552-4...
-      5: -1.0211457 14.884283 crawly_mou... Random Err... 65e05ba8-5...
-     ---
-     98:  8.8663365  2.979027 profascist... Random Err... edd79995-a...
-     99:  4.0075635  9.862124 coltish_en... Random Err... 7e896eab-b...
-    100: -3.4690899  7.758273 experience... Random Err... 6b19143f-1...
-    101: -4.0543234 14.429371 coltish_en... Random Err... 59d1019a-2...
-    102:  3.4318304 11.967823 profascist... Random Err... 84816585-f...
+                 x1         x2     worker_id       message          keys
+              <num>      <num>        <char>        <char>        <char>
+     1:  5.66349953  1.4615246 sightly_in... Random Err... d41c0aa8-4...
+     2: -4.86136026  0.7477757 uninfested... Random Err... a39dc32a-9...
+     3:  8.34911017 12.2910000 uninfested... Random Err... 87aba00b-b...
+     4: -0.40091183  0.1709310 uninfested... Random Err... 885ded85-5...
+     5:  2.36444815  0.7256281 upper_mous... Random Err... f95ee533-8...
+    ---
+    90:  4.10263331  4.5303695 unritualis... Random Err... f9a0c758-e...
+    91:  5.00746540  3.9078837 uninfested... Random Err... e974b726-4...
+    92: -2.13817610  6.2754355 unritualis... Random Err... 665fd165-6...
+    93:  2.78918960  3.9169842 upper_mous... Random Err... 5d2f595b-0...
+    94:  0.01269553  4.8819369 sightly_in... Random Err... 87d0837e-2...
 
 ## Handling Failing Workers
 
@@ -119,7 +119,7 @@ vignette](https://rush.mlr-org.com/dev/articles/manager.html#sec-script-error-ha
 rush$detect_lost_workers()
 ```
 
-    [1] "sarcastic_africanbushviper"  "arborous_woodnymphbutterfly"
+    [1] "unmarried_andeancondor"  "hypersceptical_aardvark"
 
 When a worker fails, the state of any task it was evaluating is set to
 `"failed"`.
@@ -129,10 +129,10 @@ When a worker fails, the state of any task it was evaluating is set to
 rush$fetch_failed_tasks()
 ```
 
-              x1        x2     worker_id       message          keys
-           <num>     <num>        <char>        <char>        <char>
-    1: -1.731141 2.8543062 sarcastic_... Worker has... 4f4c155e-2...
-    2:  6.261082 0.6216548 arborous_w... Worker has... 0ecc5fa9-2...
+              x1       x2     worker_id       message          keys
+           <num>    <num>        <char>        <char>        <char>
+    1: 4.7055020 9.744226 unmarried_... Worker has... 34d0a222-d...
+    2: 0.4622308 1.057590 hyperscept... Worker has... b80c5156-e...
 
 ## Debugging
 
@@ -201,7 +201,7 @@ rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "monochrome_bufeo"
+    [1] "confirmed_ivorybackedwoodswallow"
 
 Output and message logs can be written to files via the `message_log`
 and `output_log` arguments.
@@ -228,11 +228,11 @@ Sys.sleep(5)
 readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
 ```
 
-    [1] "Debug message logging on worker popular_hairstreak started"
+    [1] "Debug message logging on worker unirritable_egg started"
 
 ``` r
 
 readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))
 ```
 
-    [1] "[1] \"Debug output logging on worker popular_hairstreak started\""
+    [1] "[1] \"Debug output logging on worker unirritable_egg started\""

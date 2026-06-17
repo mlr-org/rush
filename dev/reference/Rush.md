@@ -812,8 +812,8 @@ Read log messages written with the `lgr` package by the workers.
 #### Returns
 
 `data.table()`  
-Table with level, timestamp, logger, caller and message, and optionally
-time difference.
+Table with columns `worker_id`, `level`, `timestamp`, `logger`, `caller`
+and `msg`, and optionally `time_difference`.
 
 ------------------------------------------------------------------------
 
