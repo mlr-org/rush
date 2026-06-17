@@ -279,12 +279,26 @@ RushWorker = R6::R6Class(
     set_terminated = function() {
       r = self$connector
       lg$debug("Worker %s terminated", self$worker_id)
-      r$command(c(
+
+      cmds = list(c(
         "SMOVE",
         private$.get_key("running_worker_ids"),
         private$.get_key("terminated_worker_ids"),
         self$worker_id
       ))
+
+      if (!is.null(self$heartbeat)) {
+        heartbeat_key = private$.get_worker_key("heartbeat")
+        cmds = c(
+          cmds,
+          list(
+            c("DEL", heartbeat_key),
+            c("SREM", private$.get_key("heartbeat_keys"), heartbeat_key)
+          )
+        )
+      }
+
+      r$pipeline(.commands = cmds)
       invisible(self)
     }
   ),
