@@ -596,16 +596,14 @@ Rush = R6::R6Class(
       if (length(self$processes_mirai)) {
         iwalk(self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))], function(m, id) {
           if (is_mirai_error(m$data) || is_error_value(m$data)) {
-            lg$error("Lost worker '%s'", id)
+            # for a crashed or interrupted mirai m$data is a scalar errorValue, so derive a human-readable message
+            # interrupt (19) has no message
+            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-            # print error messages
-            walk(self$processes_mirai[[id]]$data, lg$error)
+            lg$error("Lost worker '%s': %s", id, message)
 
             # move worker to terminated
             r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
-
-            # Replace interrupt error message
-            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
             private$.fail_lost_tasks(id, message)
           }
