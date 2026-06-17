@@ -17,6 +17,7 @@
 #' @param start_worker_timeout (`numeric(1)`)\cr
 #' Default timeout in seconds used by `$wait_for_workers()` of [Rush] when no `timeout` is passed.
 #' If `NULL`, `$wait_for_workers()` waits indefinitely by default.
+#' A timeout of `0` checks once and errors immediately if the workers are not yet registered.
 #'
 #' @template param_n_workers
 #' @template param_lgr_thresholds

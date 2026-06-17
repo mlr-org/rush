@@ -127,6 +127,27 @@ test_that("wait for workers works with both n and worker ids", {
   expect_equal(rush$n_running_workers, 1)
 })
 
+test_that("wait for workers with timeout zero checks once before failing", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  worker_ids = rush$start_workers(
+    worker_loop = wl_queue,
+    n_workers = 1
+  )
+  rush$wait_for_workers(n = 1, timeout = 5)
+
+  # already registered workers succeed even with a zero timeout
+  rush$wait_for_workers(n = 1, timeout = 0)
+  expect_equal(rush$n_running_workers, 1)
+
+  # missing workers error immediately
+  expect_error(rush$wait_for_workers(n = 2, timeout = 0), class = "Mlr3ErrorTimeout")
+})
+
 # local workers ----------------------------------------------------------------
 
 test_that("local workers are started", {

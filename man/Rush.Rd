@@ -536,7 +536,8 @@ Worker ids to wait for.
 If \code{NULL}, wait for any \code{n} workers to be registered.}
       \item{\code{timeout}}{(\code{numeric(1)})\cr
 Timeout in seconds.
-Defaults to the \code{start_worker_timeout} set with \code{\link[=rush_plan]{rush_plan()}}, or \code{Inf} if none is set.}
+Defaults to the \code{start_worker_timeout} set with \code{\link[=rush_plan]{rush_plan()}}, or \code{Inf} if none is set.
+A \code{timeout} of \code{0} checks once and errors immediately if the workers are not yet registered.}
     }
     \if{html}{\out{</div>}}
   }

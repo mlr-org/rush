@@ -42,7 +42,8 @@ to get a script to run.}
 
 \item{start_worker_timeout}{(\code{numeric(1)})\cr
 Default timeout in seconds used by \verb{$wait_for_workers()} of \link{Rush} when no \code{timeout} is passed.
-If \code{NULL}, \verb{$wait_for_workers()} waits indefinitely by default.}
+If \code{NULL}, \verb{$wait_for_workers()} waits indefinitely by default.
+A timeout of \code{0} checks once and errors immediately if the workers are not yet registered.}
 }
 \value{
 \code{list()} with the stored configuration.

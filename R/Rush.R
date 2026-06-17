@@ -431,6 +431,7 @@ Rush = R6::R6Class(
     #' @param timeout (`numeric(1)`)\cr
     #' Timeout in seconds.
     #' Defaults to the `start_worker_timeout` set with [rush_plan()], or `Inf` if none is set.
+    #' A `timeout` of `0` checks once and errors immediately if the workers are not yet registered.
     wait_for_workers = function(n = NULL, worker_ids = NULL, timeout = NULL) {
       assert_count(n, null.ok = TRUE)
       assert_character(worker_ids, null.ok = TRUE)
@@ -448,7 +449,9 @@ Rush = R6::R6Class(
 
       n = n %??% length(worker_ids)
       i = 0
-      while (difftime(Sys.time(), start_time, units = "secs") < timeout) {
+      # check at least once before comparing against the timeout so `timeout = 0` means
+      # "check once and fail immediately if not ready" instead of never checking
+      repeat {
         n_registered_workers = if (is.null(worker_ids)) {
           self$n_workers
         } else {
@@ -464,6 +467,8 @@ Rush = R6::R6Class(
         if (n_registered_workers >= n) {
           return(invisible(self))
         }
+
+        if (difftime(Sys.time(), start_time, units = "secs") >= timeout) break
         Sys.sleep(0.1)
       }
 
@@ -1339,7 +1344,6 @@ Rush = R6::R6Class(
         map(hashes, function(hash) {
           setNames(
             map(hash, function(bin_value) {
-              #nolint
               safe_bin_to_object(bin_value)
             }),
             fields
