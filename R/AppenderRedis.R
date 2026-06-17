@@ -1,7 +1,7 @@
 #' @title Log to Redis Database
 #'
 #' @description
-#' [AppenderRedis] writes log messages to a Redis data base.
+#' [AppenderRedis] writes log messages to a Redis database.
 #' This [lgr::Appender] is created internally by [RushWorker] when logger thresholds are passed via [rush_plan()].
 #'
 #' @param config ([redux::redis_config])\cr
@@ -25,7 +25,7 @@
 #' @param filters (`list`)\cr
 #' List of filters.
 #'
-#' @return Object of class [R6::R6Class] and `AppenderRedis` with methods for writing log events to Redis data bases.
+#' @return Object of class [R6::R6Class] and `AppenderRedis` with methods for writing log events to Redis databases.
 #' @export
 #' @examples
 #' if (redux::redis_available()) {

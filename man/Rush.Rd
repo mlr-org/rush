@@ -801,7 +801,7 @@ Invisible self.
 \if{html}{\out{<a id="method-Rush-fetch_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_tasks}{}}}
 \subsection{\code{Rush$fetch_tasks()}}{
-  Fetch all tasks from the data base.
+  Fetch all tasks from the database.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$fetch_tasks(
@@ -828,7 +828,7 @@ Table of all tasks.
 \if{html}{\out{<a id="method-Rush-fetch_queued_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_queued_tasks}{}}}
 \subsection{\code{Rush$fetch_queued_tasks()}}{
-  Fetch queued tasks from the data base.
+  Fetch queued tasks from the database.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}
@@ -853,7 +853,7 @@ Table of queued tasks.
 \if{html}{\out{<a id="method-Rush-fetch_running_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_running_tasks}{}}}
 \subsection{\code{Rush$fetch_running_tasks()}}{
-  Fetch running tasks from the data base.
+  Fetch running tasks from the database.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$fetch_running_tasks(fields = c("xs", "xs_extra", "worker_id"))}
@@ -878,7 +878,7 @@ Table of running tasks.
 \if{html}{\out{<a id="method-Rush-fetch_failed_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_failed_tasks}{}}}
 \subsection{\code{Rush$fetch_failed_tasks()}}{
-  Fetch failed tasks from the data base.
+  Fetch failed tasks from the database.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$fetch_failed_tasks(fields = c("xs", "xs_extra", "worker_id", "condition"))}
@@ -903,7 +903,7 @@ Table of failed tasks.
 \if{html}{\out{<a id="method-Rush-fetch_finished_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_finished_tasks}{}}}
 \subsection{\code{Rush$fetch_finished_tasks()}}{
-  Fetch finished tasks from the data base.
+  Fetch finished tasks from the database.
 Finished tasks are cached.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -934,7 +934,7 @@ Table of finished tasks.
 \if{html}{\out{<a id="method-Rush-fetch_tasks_with_state"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-fetch_tasks_with_state}{}}}
 \subsection{\code{Rush$fetch_tasks_with_state()}}{
-  Fetch tasks with different states from the data base.
+  Fetch tasks with different states from the database.
 If tasks with different states are to be queried at the same time,
 this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.

@@ -4,10 +4,10 @@
 \alias{AppenderRedis}
 \title{Log to Redis Database}
 \value{
-Object of class \link[R6:R6Class]{R6::R6Class} and \code{AppenderRedis} with methods for writing log events to Redis data bases.
+Object of class \link[R6:R6Class]{R6::R6Class} and \code{AppenderRedis} with methods for writing log events to Redis databases.
 }
 \description{
-\link{AppenderRedis} writes log messages to a Redis data base.
+\link{AppenderRedis} writes log messages to a Redis database.
 This \link[lgr:Appender]{lgr::Appender} is created internally by \link{RushWorker} when logger thresholds are passed via \code{\link[=rush_plan]{rush_plan()}}.
 }
 \examples{

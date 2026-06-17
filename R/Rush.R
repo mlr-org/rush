@@ -977,7 +977,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch all tasks from the data base.
+    #' Fetch all tasks from the database.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
@@ -991,7 +991,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch queued tasks from the data base.
+    #' Fetch queued tasks from the database.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
@@ -1005,7 +1005,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch running tasks from the data base.
+    #' Fetch running tasks from the database.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
@@ -1019,7 +1019,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch failed tasks from the data base.
+    #' Fetch failed tasks from the database.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
@@ -1033,7 +1033,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch finished tasks from the data base.
+    #' Fetch finished tasks from the database.
     #' Finished tasks are cached.
     #'
     #' @param fields (`character()`)\cr
@@ -1054,7 +1054,7 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Fetch tasks with different states from the data base.
+    #' Fetch tasks with different states from the database.
     #' If tasks with different states are to be queried at the same time,
     #' this function prevents tasks from appearing twice.
     #' This could be the case if a worker changes the state of a task while the tasks are being fetched.

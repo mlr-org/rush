@@ -67,7 +67,7 @@ This function is called by \verb{$start_local_workers()} or
 by the user after creating the worker script with \verb{$worker_script()}.
 }
 \note{
-The function initializes the connection to the Redis data base.
+The function initializes the connection to the Redis database.
 It loads the packages required by the worker loop.
 The function initialize the \link{RushWorker} instance and starts the worker loop.
 }
