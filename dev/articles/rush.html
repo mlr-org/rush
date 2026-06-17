@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id          x         y               keys
-                  &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: inflammable_per... 0.10147027 0.3185440 481c6917-9110-4...
-   2: lovecraftian_hy... 0.24660645 0.4965949 a4b409aa-5f9f-4...
-   3: inflammable_per... 0.26036732 0.5102620 5283698c-60d8-4...
-   4: lovecraftian_hy... 0.72502796 0.8514857 2da30365-e748-4...
-   5: inflammable_per... 0.32895275 0.5735440 f48a40f2-d66c-4...
+<pre><code>           worker_id         x         y               keys
+              &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1: jocund_whapuku 0.7190515 0.8479690 33804842-a60e-4...
+   2:  deathful_deer 0.7382791 0.8592317 3a500418-9a8f-4...
+   3: jocund_whapuku 0.3302085 0.5746377 ce1f415e-0aab-4...
+   4:  deathful_deer 0.7330019 0.8561553 8f61ee21-ce5e-4...
+   5: jocund_whapuku 0.8750066 0.9354179 2c8c2c5f-8d84-4...
   ---
-6818: inflammable_per... 0.49798544 0.7056808 8ccddc1c-a4d3-4...
-6819: lovecraftian_hy... 0.24358684 0.4935452 c8c47e0d-2449-4...
-6820: inflammable_per... 0.51213327 0.7156349 794978a1-9788-4...
-6821: lovecraftian_hy... 0.01592543 0.1261960 874c2dd7-c77f-4...
-6822: inflammable_per... 0.98570483 0.9928267 5ad3541b-2793-4...</code></pre>
+8518: jocund_whapuku 0.4478556 0.6692201 eb1caed3-6b9d-4...
+8519:  deathful_deer 0.8275167 0.9096795 dc0d7ca2-0f60-4...
+8520: jocund_whapuku 0.6735821 0.8207205 216e4037-dc8a-4...
+8521:  deathful_deer 0.3945993 0.6281714 0b75f705-a84a-4...
+8522: jocund_whapuku 0.6109590 0.7816387 3b8b03d2-e60e-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -214,19 +214,19 @@
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              x         y          worker_id               keys
-          &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.1014703 0.3185440 inflammable_per... 481c6917-9110-4...
-   2: 0.2466064 0.4965949 lovecraftian_hy... a4b409aa-5f9f-4...
-   3: 0.2603673 0.5102620 inflammable_per... 5283698c-60d8-4...
-   4: 0.7250280 0.8514857 lovecraftian_hy... 2da30365-e748-4...
-   5: 0.3289527 0.5735440 inflammable_per... f48a40f2-d66c-4...
+<pre><code>                x          y      worker_id               keys
+            &lt;num&gt;      &lt;num&gt;         &lt;char&gt;             &lt;char&gt;
+   1: 0.719051497 0.84796904 jocund_whapuku 33804842-a60e-4...
+   2: 0.738279129 0.85923171  deathful_deer 3a500418-9a8f-4...
+   3: 0.330208465 0.57463768 jocund_whapuku ce1f415e-0aab-4...
+   4: 0.733001891 0.85615530  deathful_deer 8f61ee21-ce5e-4...
+   5: 0.875006602 0.93541788 jocund_whapuku 2c8c2c5f-8d84-4...
   ---
-7242: 0.3675780 0.6062821 lovecraftian_hy... af3f613e-84ad-4...
-7243: 0.2040311 0.4516980 inflammable_per... d0321639-4671-4...
-7244: 0.1344793 0.3667142 lovecraftian_hy... 62f28c66-a247-4...
-7245: 0.9932558        NA lovecraftian_hy... fe5669b4-e1e0-4...
-7246: 0.6195916        NA inflammable_per... 122a278d-3916-4...</code></pre>
+9096: 0.318863129 0.56467967  deathful_deer 6aecc341-feb5-4...
+9097: 0.003718078 0.06097605 jocund_whapuku 510e67fd-a129-4...
+9098: 0.046756196 0.21623181  deathful_deer 1b7bc4ea-acb6-4...
+9099: 0.485539059 0.69680633 jocund_whapuku 439bc4f0-fc50-4...
+9100: 0.543053596         NA  deathful_deer 97b6a0b1-cc40-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,10 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           x          worker_id               keys
-       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.9932558 lovecraftian_hy... fe5669b4-e1e0-4...
-2: 0.6195916 inflammable_per... 122a278d-3916-4...</code></pre>
+<pre><code>           x     worker_id               keys
+       &lt;num&gt;        &lt;char&gt;             &lt;char&gt;
+1: 0.5430536 deathful_deer 97b6a0b1-cc40-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -249,19 +248,19 @@
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         state          worker_id         x               keys         y
-        &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running lovecraftian_hy... 0.9932558 fe5669b4-e1e0-4...        NA
-   2:  running inflammable_per... 0.6195916 122a278d-3916-4...        NA
-   3: finished inflammable_per... 0.1014703 481c6917-9110-4... 0.3185440
-   4: finished lovecraftian_hy... 0.2466064 a4b409aa-5f9f-4... 0.4965949
-   5: finished inflammable_per... 0.2603673 5283698c-60d8-4... 0.5102620
+<pre><code>         state      worker_id           x               keys          y
+        &lt;char&gt;         &lt;char&gt;       &lt;num&gt;             &lt;char&gt;      &lt;num&gt;
+   1:  running  deathful_deer 0.543053596 97b6a0b1-cc40-4...         NA
+   2: finished jocund_whapuku 0.719051497 33804842-a60e-4... 0.84796904
+   3: finished  deathful_deer 0.738279129 3a500418-9a8f-4... 0.85923171
+   4: finished jocund_whapuku 0.330208465 ce1f415e-0aab-4... 0.57463768
+   5: finished  deathful_deer 0.733001891 8f61ee21-ce5e-4... 0.85615530
   ---
-7242: finished lovecraftian_hy... 0.4444817 c8c64617-053d-4... 0.6666946
-7243: finished lovecraftian_hy... 0.3675780 af3f613e-84ad-4... 0.6062821
-7244: finished inflammable_per... 0.1358393 af6b75bc-555a-4... 0.3685639
-7245: finished lovecraftian_hy... 0.1344793 62f28c66-a247-4... 0.3667142
-7246: finished inflammable_per... 0.2040311 d0321639-4671-4... 0.4516980</code></pre>
+9096: finished jocund_whapuku 0.369934246 8989978d-a062-4... 0.60822220
+9097: finished  deathful_deer 0.318863129 6aecc341-feb5-4... 0.56467967
+9098: finished jocund_whapuku 0.003718078 510e67fd-a129-4... 0.06097605
+9099: finished  deathful_deer 0.046756196 1b7bc4ea-acb6-4... 0.21623181
+9100: finished jocund_whapuku 0.485539059 439bc4f0-fc50-4... 0.69680633</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -275,12 +274,12 @@
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_running_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+<pre><code>[1] 1</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7244</code></pre>
+<pre><code>[1] 9099</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -308,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.18864
+[1] 0.04614681
 
 
 $key
-[1] "34d8d44d-b117-412d-bcdd-85c79d82d8a1"</code></pre>
+[1] "261eb578-b901-4e17-9101-088580bb4f90"</code></pre>
 </div>
 </div>
 <div class="cell">
