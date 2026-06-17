@@ -1171,14 +1171,23 @@ Rush = R6::R6Class(
       lg$debug("Wait for %i task(s)", length(keys))
 
       keys = unique(keys)
+      r = private$.connector
       # number of completed (finished or failed) tasks already checked against the awaited keys
       # initialized to -1 so the first iteration always performs a full membership check
       n_seen = -1L
 
-      while (self$n_running_workers > 0) {
+      repeat {
+        # read the running-worker, finished-task and failed-task counters in a single pipeline (one round-trip per spin)
+        counters = r$pipeline(.commands = list(
+          c("SCARD", private$.get_key("running_worker_ids")),
+          c("LLEN", private$.get_key("finished_tasks")),
+          c("SCARD", private$.get_key("failed_tasks"))
+        ))
+        if (counters[[1]] == 0L) break
+
         # reading `$finished_tasks` (LRANGE) and `$failed_tasks` (SMEMBERS) is expensive on large runs,
         # so only re-check membership when the cheap counters report a newly completed task
-        n_completed = self$n_finished_tasks + self$n_failed_tasks
+        n_completed = counters[[2]] + counters[[3]]
         if (n_completed > n_seen) {
           n_seen = n_completed
           if (!any(keys %nin% c(self$finished_tasks, self$failed_tasks))) break
