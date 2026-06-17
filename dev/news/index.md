@@ -11,6 +11,8 @@
   failed or finished.
 - The deprecated methods `$push_failed()` and `$push_results()` are
   removed. Use `$fail_tasks()` and `$finish_tasks()` instead.
+- `$empty_queue()` no longer creates an orphaned hash in the Redis
+  database when the queue is already empty.
 - `$detect_lost_workers()` no longer marks a task as both finished and
   failed, or loses a task, when a worker finishes a task or starts a new
   one after the detection begins but before the worker is flagged as
