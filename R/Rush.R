@@ -708,7 +708,10 @@ Rush = R6::R6Class(
       # remove all tasks, lists, and sets
       cmds = c(cmds, map(self$tasks, function(key) c("DEL", key)))
       # pending tasks hold task data referencing the deleted hashes, so clear them on every reset (also workers = FALSE)
-      cmds = c(cmds, map(self$worker_ids, function(worker_id) c("DEL", private$.get_worker_key("pending_task", worker_id))))
+      cmds = c(
+        cmds,
+        map(self$worker_ids, function(worker_id) c("DEL", private$.get_worker_key("pending_task", worker_id)))
+      )
       cmds = c(
         cmds,
         list(
@@ -908,24 +911,12 @@ Rush = R6::R6Class(
     #' @description
     #' Remove all tasks from the queue.
     #' The state of the tasks is set to failed.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Deprecated argument.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #' If `NULL`, the condition message is set to `"Removed from queue"`.
+    #' The condition message is set to `"Removed from queue"`.
     #'
     #' @return (`Rush`)\cr
     #' Invisible self.
-    empty_queue = function(keys = NULL, conditions = NULL) {
+    empty_queue = function() {
       r = private$.connector
-      conditions = conditions %??% list(list(message = "Removed from queue"))
-
-      if (!is.null(keys)) {
-        warn_deprecated(
-          "The `keys` argument of `$empty_queue()` is deprecated. The method now empties the entire queue."
-        )
-      }
 
       # empty queue
       keys = unlist(r$pipeline(
@@ -943,7 +934,7 @@ Rush = R6::R6Class(
       }
 
       # write condition to hash
-      self$write_hashes(condition = conditions, keys = keys)
+      self$write_hashes(condition = list(list(message = "Removed from queue")), keys = keys)
 
       # add to failed tasks
       cmds = map(keys, function(key) {
@@ -1178,12 +1169,16 @@ Rush = R6::R6Class(
 
       repeat {
         # read the running-worker, finished-task and failed-task counters in a single pipeline (one round-trip per spin)
-        counters = r$pipeline(.commands = list(
-          c("SCARD", private$.get_key("running_worker_ids")),
-          c("LLEN", private$.get_key("finished_tasks")),
-          c("SCARD", private$.get_key("failed_tasks"))
-        ))
-        if (counters[[1]] == 0L) break
+        counters = r$pipeline(
+          .commands = list(
+            c("SCARD", private$.get_key("running_worker_ids")),
+            c("LLEN", private$.get_key("finished_tasks")),
+            c("SCARD", private$.get_key("failed_tasks"))
+          )
+        )
+        if (counters[[1]] == 0L) {
+          break
+        }
 
         # reading `$finished_tasks` (LRANGE) and `$failed_tasks` (SMEMBERS) is expensive on large runs,
         # so only re-check membership when the cheap counters report a newly completed task
