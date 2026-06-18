@@ -18,6 +18,9 @@
   `$finish_tasks()` instead.
 - fix: `$empty_queue()` no longer creates an orphaned hash in the Redis
   database when the queue is already empty.
+- BREAKING CHANGE: The `$empty_queue()` method now empties the entire
+  queue instead of a specified set of tasks. The `keys` and `conditions`
+  arguments are removed.
 - fix: `$detect_lost_workers()` no longer marks a task as both finished
   and failed, or loses a task.
 - fix: `$pop_task()` no longer loses a task when a worker crashes
