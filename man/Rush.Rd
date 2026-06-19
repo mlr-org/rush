@@ -748,20 +748,10 @@ Keys of the tasks.
 \subsection{\code{Rush$empty_queue()}}{
   Remove all tasks from the queue.
 The state of the tasks is set to failed.
+The condition message is set to \code{"Removed from queue"}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$empty_queue(keys = NULL, conditions = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Deprecated argument.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.
-If \code{NULL}, the condition message is set to \code{"Removed from queue"}.}
-    }
+    \preformatted{Rush$empty_queue()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
