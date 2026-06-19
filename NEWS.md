@@ -26,6 +26,7 @@
 * fix: `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat.
   `heartbeat_period` and `heartbeat_expire` must now be at least 1 second, and `heartbeat_expire` must be at least `heartbeat_period` seconds.
 * fix: `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
+* fix: `$reset()` now deletes all keys in a single `MULTI`/`EXEC` transaction so a concurrent reader can no longer observe a half-reset network.
 * feat: `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
 * fix: `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.

@@ -635,8 +635,10 @@ Rush = R6::R6Class(
         if (!all(running)) {
           # search for associated worker ids
           expired_heartbeat_keys = heartbeat_keys[!running]
+          # read the heartbeat fields of the the running workers
           cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
-          all_heartbeat_keys = unlist(r$pipeline(.commands = cmds))
+          # guard against a missing heartbeat field in an existing hash with %??% NA
+          all_heartbeat_keys = map_chr(r$pipeline(.commands = cmds), function(hash) hash[[1L]] %??% NA_character_)
           lost_workers = running_worker_ids[all_heartbeat_keys %in% expired_heartbeat_keys]
 
           # set worker state
@@ -722,7 +724,9 @@ Rush = R6::R6Class(
           c("DEL", private$.get_key("all_tasks"))
         )
       )
-      r$pipeline(.commands = cmds)
+      # wrap the deletions in MULTI/EXEC so a concurrent reader (e.g. $detect_lost_workers()) never observes a
+      # half-reset network, such as a worker still in `running_worker_ids` after its hash has been deleted
+      r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
 
       # reset counters and caches
       private$.cached_tasks = data.table()
