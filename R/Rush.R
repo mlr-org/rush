@@ -743,7 +743,8 @@ Rush = R6::R6Class(
     #' Whether to calculate the time difference between log messages.
     #'
     #' @return `data.table()`\cr
-    #' Table with columns `worker_id`, `level`, `timestamp`, `logger`, `caller` and `msg`, and optionally `time_difference`.
+    #' Table with columns `worker_id`, `level`, `timestamp`, `logger`, `caller` and `msg`,
+    #' and optionally `time_difference`.
     read_log = function(worker_ids = NULL, time_difference = FALSE) {
       assert_flag(time_difference)
       worker_ids = worker_ids %??% self$worker_ids
@@ -972,7 +973,7 @@ Rush = R6::R6Class(
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")`.
+    #' Defaults to `c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")`.
     #'
     #' @return `data.table()`\cr
     #' Table of all tasks.
@@ -1014,7 +1015,7 @@ Rush = R6::R6Class(
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_id", "condition"`.
+    #' Defaults to `c("xs", "xs_extra", "worker_id", "condition")`.
     #'
     #' @return `data.table()`\cr
     #' Table of failed tasks.
@@ -1029,7 +1030,7 @@ Rush = R6::R6Class(
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra", "worker_id", "ys", "ys_extra")`.
+    #' Defaults to `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`.
     #' If the fields change between calls,
     #' fields requested only by a later call remain `NA` for the already cached tasks.
     #' Use `$reset_cache()` to reset the cache in this case.

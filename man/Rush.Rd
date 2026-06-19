@@ -632,7 +632,8 @@ Whether to calculate the time difference between log messages.}
   }
   \subsection{Returns}{
     \code{data.table()}\cr
-Table with columns \code{worker_id}, \code{level}, \code{timestamp}, \code{logger}, \code{caller} and \code{msg}, and optionally \code{time_difference}.
+Table with columns \code{worker_id}, \code{level}, \code{timestamp}, \code{logger}, \code{caller} and \code{msg},
+and optionally \code{time_difference}.
   }
 }
 
@@ -804,7 +805,7 @@ Invisible self.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")}.}
+Defaults to \code{c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -879,7 +880,7 @@ Table of running tasks.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \verb{c("xs", "xs_extra", "worker_id", "condition"}.}
+Defaults to \code{c("xs", "xs_extra", "worker_id", "condition")}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -907,7 +908,7 @@ Finished tasks are cached.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra", "worker_id", "ys", "ys_extra")}.
+Defaults to \code{c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")}.
 If the fields change between calls,
 fields requested only by a later call remain \code{NA} for the already cached tasks.
 Use \verb{$reset_cache()} to reset the cache in this case.}
