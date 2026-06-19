@@ -101,7 +101,7 @@ Rush = R6::R6Class(
     processes_processx = NULL,
 
     #' @field processes_mirai ([mirai::mirai])\cr
-    #' List of mirai processes started with `$start_remote_workers()`.
+    #' List of mirai processes started with `$start_workers()`.
     processes_mirai = NULL,
 
     #' @description

@@ -108,7 +108,7 @@ if (redux::redis_available()) {
 List of processes started with \verb{$start_local_workers()}.}
 
     \item{\code{processes_mirai}}{(\link[mirai:mirai]{mirai::mirai})\cr
-List of mirai processes started with \verb{$start_remote_workers()}.}
+List of mirai processes started with \verb{$start_workers()}.}
   }
   \if{html}{\out{</div>}}
 }
