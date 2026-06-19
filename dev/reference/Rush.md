@@ -1004,7 +1004,7 @@ Fetch all tasks from the database.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")`.
+  `c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")`.
 
 #### Returns
 
@@ -1072,7 +1072,7 @@ Fetch failed tasks from the database.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "condition"`.
+  `c("xs", "xs_extra", "worker_id", "condition")`.
 
 #### Returns
 
@@ -1097,10 +1097,10 @@ Fetch finished tasks from the database. Finished tasks are cached.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra")`. If the fields
-  change between calls, fields requested only by a later call remain
-  `NA` for the already cached tasks. Use `$reset_cache()` to reset the
-  cache in this case.
+  `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`. If
+  the fields change between calls, fields requested only by a later call
+  remain `NA` for the already cached tasks. Use `$reset_cache()` to
+  reset the cache in this case.
 
 #### Returns
 
