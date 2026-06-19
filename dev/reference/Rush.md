@@ -130,7 +130,7 @@ of `$start_workers()`.
 - `processes_mirai`:
 
   ([mirai::mirai](https://mirai.r-lib.org/reference/mirai.html))  
-  List of mirai processes started with `$start_remote_workers()`.
+  List of mirai processes started with `$start_workers()`.
 
 ## Active bindings
 
