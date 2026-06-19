@@ -948,24 +948,11 @@ Keys of the tasks.
 ### `Rush$empty_queue()`
 
 Remove all tasks from the queue. The state of the tasks is set to
-failed.
+failed. The condition message is set to `"Removed from queue"`.
 
 #### Usage
 
-    Rush$empty_queue(keys = NULL, conditions = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Deprecated argument.
-
-- `conditions`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions. If `NULL`, the condition message is set
-  to `"Removed from queue"`.
+    Rush$empty_queue()
 
 #### Returns
 
