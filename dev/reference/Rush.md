@@ -673,7 +673,9 @@ password.
 
   (`integer(1)`)  
   Time to live of the heartbeat in seconds. The heartbeat key is set to
-  expire after `heartbeat_expire` seconds. Must be at least 1 second.
+  expire after `heartbeat_expire` seconds. Must be at least
+  `heartbeat_period`, otherwise a live worker is reaped as lost between
+  two heartbeats.
 
 - `message_log`:
 
