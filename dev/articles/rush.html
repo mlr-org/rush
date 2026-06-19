@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id          x          y               keys
-                  &lt;char&gt;      &lt;num&gt;      &lt;num&gt;             &lt;char&gt;
-   1: gnomological_lu... 0.03625529 0.19040823 4a90b988-b7aa-4...
-   2: gnomological_lu... 0.85988749 0.92730118 c8dd172c-b17e-4...
-   3: gnomological_lu... 0.36945998 0.60783219 ed7e098f-c709-4...
-   4: gnomological_lu... 0.30660489 0.55371914 ac5aa0d5-7ccb-4...
-   5: gnomological_lu... 0.79377316 0.89093948 0564ebb8-4092-4...
+<pre><code>            worker_id          x         y               keys
+               &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1:  inaccurate_eel 0.54003205 0.7348687 8cde3e8d-f2ec-4...
+   2: quartzitic_lamb 0.86403646 0.9295356 e2b9b657-b67e-4...
+   3:  inaccurate_eel 0.37303898 0.6107692 6c4749b3-df89-4...
+   4: quartzitic_lamb 0.90137017 0.9494052 a8853a20-3cf9-4...
+   5:  inaccurate_eel 0.42164317 0.6493406 b44edda5-9f9a-4...
   ---
-7304: gnomological_lu... 0.00682256 0.08259879 7b8166be-9379-4...
-7305: soured_riogrand... 0.04898453 0.22132449 57b59ba2-7bb8-4...
-7306: gnomological_lu... 0.82741592 0.90962405 aa688f70-9c3a-4...
-7307: soured_riogrand... 0.57895786 0.76089281 26104f33-6c12-4...
-7308: gnomological_lu... 0.83260590 0.91247241 fa1a434d-19db-4...</code></pre>
+6210: quartzitic_lamb 0.02415541 0.1554201 a14e2c06-0cb9-4...
+6211:  inaccurate_eel 0.84682165 0.9202291 9297c159-d716-4...
+6212: quartzitic_lamb 0.22434293 0.4736485 62a9606d-8c26-4...
+6213:  inaccurate_eel 0.07160866 0.2675979 f19cf47d-f214-4...
+6214: quartzitic_lamb 0.46225220 0.6798913 06192bdd-c90c-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -214,19 +214,19 @@
 <div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               x         y          worker_id               keys
-           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.03625529 0.1904082 gnomological_lu... 4a90b988-b7aa-4...
-   2: 0.02040422 0.1428433 soured_riogrand... 2daf2f18-0627-4...
-   3: 0.85988749 0.9273012 gnomological_lu... c8dd172c-b17e-4...
-   4: 0.36945998 0.6078322 gnomological_lu... ed7e098f-c709-4...
-   5: 0.30660489 0.5537191 gnomological_lu... ac5aa0d5-7ccb-4...
+<pre><code>               x         y       worker_id               keys
+           &lt;num&gt;     &lt;num&gt;          &lt;char&gt;             &lt;char&gt;
+   1: 0.54003205 0.7348687  inaccurate_eel 8cde3e8d-f2ec-4...
+   2: 0.86403646 0.9295356 quartzitic_lamb e2b9b657-b67e-4...
+   3: 0.37303898 0.6107692  inaccurate_eel 6c4749b3-df89-4...
+   4: 0.90137017 0.9494052 quartzitic_lamb a8853a20-3cf9-4...
+   5: 0.42164317 0.6493406  inaccurate_eel b44edda5-9f9a-4...
   ---
-7790: 0.55603477 0.7456774 soured_riogrand... 91af54fd-dbbd-4...
-7791: 0.49660668 0.7047033 gnomological_lu... 35896961-afc9-4...
-7792: 0.53357687 0.7304635 soured_riogrand... 6cc77b01-2491-4...
-7793: 0.41537525        NA gnomological_lu... b5278222-ccc4-4...
-7794: 0.55522301        NA soured_riogrand... 25865aa7-84c7-4...</code></pre>
+6653: 0.70217250 0.8379573 quartzitic_lamb f0a161af-bb44-4...
+6654: 0.67250281 0.8200627  inaccurate_eel ebd81290-e6d2-4...
+6655: 0.70788370 0.8413582 quartzitic_lamb d0da2e30-2636-4...
+6656: 0.04716122 0.2171664  inaccurate_eel 0996c561-3b4b-4...
+6657: 0.01564483        NA quartzitic_lamb 1d13b74d-63e5-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,10 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           x          worker_id               keys
-       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.4153753 gnomological_lu... b5278222-ccc4-4...
-2: 0.5552230 soured_riogrand... 25865aa7-84c7-4...</code></pre>
+<pre><code>            x       worker_id               keys
+        &lt;num&gt;          &lt;char&gt;             &lt;char&gt;
+1: 0.01564483 quartzitic_lamb 1d13b74d-63e5-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -249,19 +248,19 @@
 <div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span>states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"running"</span>, <span class="st">"finished"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         state          worker_id          x               keys         y
-        &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running gnomological_lu... 0.41537525 b5278222-ccc4-4...        NA
-   2:  running soured_riogrand... 0.55522301 25865aa7-84c7-4...        NA
-   3: finished gnomological_lu... 0.03625529 4a90b988-b7aa-4... 0.1904082
-   4: finished gnomological_lu... 0.85988749 c8dd172c-b17e-4... 0.9273012
-   5: finished gnomological_lu... 0.36945998 ed7e098f-c709-4... 0.6078322
+<pre><code>         state       worker_id          x               keys         y
+        &lt;char&gt;          &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
+   1:  running quartzitic_lamb 0.01564483 1d13b74d-63e5-4...        NA
+   2: finished  inaccurate_eel 0.54003205 8cde3e8d-f2ec-4... 0.7348687
+   3: finished quartzitic_lamb 0.86403646 e2b9b657-b67e-4... 0.9295356
+   4: finished  inaccurate_eel 0.37303898 6c4749b3-df89-4... 0.6107692
+   5: finished quartzitic_lamb 0.90137017 a8853a20-3cf9-4... 0.9494052
   ---
-7790: finished soured_riogrand... 0.93408205 c62ba471-6104-4... 0.9664792
-7791: finished gnomological_lu... 0.42252953 7d6193d0-226a-4... 0.6500227
-7792: finished soured_riogrand... 0.55603477 91af54fd-dbbd-4... 0.7456774
-7793: finished gnomological_lu... 0.49660668 35896961-afc9-4... 0.7047033
-7794: finished soured_riogrand... 0.53357687 6cc77b01-2491-4... 0.7304635</code></pre>
+6653: finished  inaccurate_eel 0.39007419 a8e8383d-0ea4-4... 0.6245592
+6654: finished quartzitic_lamb 0.70217250 f0a161af-bb44-4... 0.8379573
+6655: finished  inaccurate_eel 0.67250281 ebd81290-e6d2-4... 0.8200627
+6656: finished quartzitic_lamb 0.70788370 d0da2e30-2636-4... 0.8413582
+6657: finished  inaccurate_eel 0.04716122 0996c561-3b4b-4... 0.2171664</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -275,12 +274,12 @@
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_running_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+<pre><code>[1] 1</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7792</code></pre>
+<pre><code>[1] 6656</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -308,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.2498058
+[1] 0.6420547
 
 
 $key
-[1] "e4f06511-4767-4c3e-96ab-dfd1e97fb815"</code></pre>
+[1] "78d36315-92de-499a-b71f-380f24c2f99f"</code></pre>
 </div>
 </div>
 <div class="cell">

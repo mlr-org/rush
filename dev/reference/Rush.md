@@ -675,7 +675,10 @@ password.
   Time to live of the heartbeat in seconds. The heartbeat key is set to
   expire after `heartbeat_expire` seconds. Must be at least
   `heartbeat_period`, otherwise a live worker is reaped as lost between
-  two heartbeats.
+  two heartbeats. Set it larger than the longest pause a worker may
+  experience, for example from garbage collection or swapping, because a
+  live worker wrongly declared lost can leave a task in an inconsistent
+  state.
 
 - `message_log`:
 
@@ -761,6 +764,17 @@ Stop workers.
 
 Detect lost workers. The state of the worker is changed to
 `"terminated"`.
+
+Workers started with `mirai` or `processx` are monitored through their
+process handle, so a worker is only declared lost after its process has
+actually terminated. Workers started from `$worker_script()` are
+monitored through a heartbeat and are declared lost when the heartbeat
+key expires. Because this is a timeout, `heartbeat_expire` must be
+larger than the longest pause a worker may experience, for example from
+garbage collection or swapping. If a live worker is wrongly declared
+lost, a task it is processing can be recorded in two states at once, for
+example failed and finished. Set `heartbeat_expire` conservatively to
+avoid false positives.
 
 #### Usage
 

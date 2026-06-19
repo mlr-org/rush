@@ -117,7 +117,9 @@ Must be at least 1 second.</p></dd>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
-Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.</p></dd>
+Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.
+Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
+because a live worker wrongly declared lost can leave a task in an inconsistent state.</p></dd>
 
 
 <dt id="arg-pid">pid<a class="anchor" aria-label="anchor" href="#arg-pid"></a></dt>

@@ -606,7 +606,9 @@ Must be at least 1 second.</p></dd>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
-Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.</p></dd>
+Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.
+Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
+because a live worker wrongly declared lost can leave a task in an inconsistent state.</p></dd>
 
       <dt><code>message_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
@@ -690,7 +692,16 @@ Ids that are not currently running are skipped with a warning.</p></dd>
 <p></p><hr><a id="method-Rush-detect_lost_workers"></a><div class="section">
 <h3 id="rush-detect-lost-workers-"><code>Rush$detect_lost_workers()</code><a class="anchor" aria-label="anchor" href="#rush-detect-lost-workers-"></a></h3>
 <p>Detect lost workers.
-The state of the worker is changed to <code>"terminated"</code>.</p><div class="section">
+The state of the worker is changed to <code>"terminated"</code>.</p>
+<p>Workers started with <code>mirai</code> or <code>processx</code> are monitored through their process handle,
+so a worker is only declared lost after its process has actually terminated.
+Workers started from <code>$worker_script()</code> are monitored through a heartbeat and are declared lost
+when the heartbeat key expires.
+Because this is a timeout, <code>heartbeat_expire</code> must be larger than the longest pause a worker may
+experience, for example from garbage collection or swapping.
+If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
+for example failed and finished.
+Set <code>heartbeat_expire</code> conservatively to avoid false positives.</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
