@@ -52,6 +52,9 @@
 - fix: `$reset()` now also resets the internal log counter, so
   `$print_log()` no longer skips messages when the same network id is
   reused after a reset.
+- fix: `$reset()` now deletes all keys in a single `MULTI`/`EXEC`
+  transaction so a concurrent reader can no longer observe a half-reset
+  network.
 - feat:
   [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   gains the `start_worker_timeout` argument, which sets the default
