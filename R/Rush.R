@@ -1097,6 +1097,10 @@ Rush = R6::R6Class(
     #' Updates the cache of the finished tasks.
     #' If `timeout` is set, blocks until new tasks are available or the timeout is reached.
     #'
+    #' "New" is tracked relative to previous calls of this method only.
+    #' `$fetch_finished_tasks()` grows the same cache but does not advance this counter,
+    #' so a task already returned by `$fetch_finished_tasks()` is returned again by the next `$fetch_new_tasks()`.
+    #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
     #' If the fields change between calls,

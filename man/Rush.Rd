@@ -974,6 +974,10 @@ Defaults to \code{c("queued", "running", "finished", "failed")}.}
   Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks.
 If \code{timeout} is set, blocks until new tasks are available or the timeout is reached.
+
+"New" is tracked relative to previous calls of this method only.
+\verb{$fetch_finished_tasks()} grows the same cache but does not advance this counter,
+so a task already returned by \verb{$fetch_finished_tasks()} is returned again by the next \verb{$fetch_new_tasks()}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$fetch_new_tasks(
