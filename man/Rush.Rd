@@ -496,7 +496,9 @@ Must be at least 1 second.}
       \item{\code{heartbeat_expire}}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
-Must be at least \code{heartbeat_period}, otherwise a live worker is reaped as lost between two heartbeats.}
+Must be at least \code{heartbeat_period}, otherwise a live worker is reaped as lost between two heartbeats.
+Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
+because a live worker wrongly declared lost can leave a task in an inconsistent state.}
       \item{\code{message_log}}{(\code{character(1)})\cr
 Path to the message log files e.g. \verb{/tmp/message_logs/}
 The message log files are named \verb{message_<worker_id>.log}.
@@ -577,6 +579,16 @@ Ids that are not currently running are skipped with a warning.}
 \subsection{\code{Rush$detect_lost_workers()}}{
   Detect lost workers.
 The state of the worker is changed to \code{"terminated"}.
+
+Workers started with \code{mirai} or \code{processx} are monitored through their process handle,
+so a worker is only declared lost after its process has actually terminated.
+Workers started from \verb{$worker_script()} are monitored through a heartbeat and are declared lost
+when the heartbeat key expires.
+Because this is a timeout, \code{heartbeat_expire} must be larger than the longest pause a worker may
+experience, for example from garbage collection or swapping.
+If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
+for example failed and finished.
+Set \code{heartbeat_expire} conservatively to avoid false positives.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$detect_lost_workers()}

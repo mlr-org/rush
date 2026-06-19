@@ -585,6 +585,16 @@ Rush = R6::R6Class(
     #' Detect lost workers.
     #' The state of the worker is changed to `"terminated"`.
     #'
+    #' Workers started with `mirai` or `processx` are monitored through their process handle,
+    #' so a worker is only declared lost after its process has actually terminated.
+    #' Workers started from `$worker_script()` are monitored through a heartbeat and are declared lost
+    #' when the heartbeat key expires.
+    #' Because this is a timeout, `heartbeat_expire` must be larger than the longest pause a worker may
+    #' experience, for example from garbage collection or swapping.
+    #' If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
+    #' for example failed and finished.
+    #' Set `heartbeat_expire` conservatively to avoid false positives.
+    #'
     #' @return (`character()`)\cr
     #' Worker ids of detected lost workers.
     detect_lost_workers = function() {
