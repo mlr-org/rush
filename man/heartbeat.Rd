@@ -38,7 +38,7 @@ Must be at least 1 second.}
 \item{heartbeat_expire}{(\code{integer(1)})\cr
 Time to live of the heartbeat in seconds.
 The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
-Must be at least 1 second.}
+Must be at least \code{heartbeat_period}, otherwise a live worker is reaped as lost between two heartbeats.}
 
 \item{pid}{(\code{integer(1)})\cr
 Process ID of the worker.}

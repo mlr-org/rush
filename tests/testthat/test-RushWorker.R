@@ -79,6 +79,11 @@ test_that("heartbeat_period and heartbeat_expire are validated", {
     RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1, heartbeat_expire = 0),
     ">= 1"
   )
+  # heartbeat_expire must not be shorter than heartbeat_period
+  expect_error(
+    RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 2, heartbeat_expire = 1),
+    ">= 2"
+  )
 })
 
 test_that("a worker is terminated", {

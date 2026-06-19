@@ -24,7 +24,7 @@
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.
 * fix: `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat.
-  `heartbeat_period` and `heartbeat_expire` must now be at least 1 second.
+  `heartbeat_period` and `heartbeat_expire` must now be at least 1 second, and `heartbeat_expire` must be at least `heartbeat_period` seconds.
 * fix: `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
 * feat: `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.

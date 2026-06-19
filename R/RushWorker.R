@@ -52,7 +52,8 @@ RushWorker = R6::R6Class(
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
         assert_number(heartbeat_period, lower = 1)
-        assert_number(heartbeat_expire, lower = 1, null.ok = TRUE)
+        # expire must be >= period so the TTL outlasts the refresh interval
+        assert_number(heartbeat_expire, lower = heartbeat_period, null.ok = TRUE)
         heartbeat_expire = heartbeat_expire %??% (heartbeat_period * 3)
 
         # set heartbeat key
