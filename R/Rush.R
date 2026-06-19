@@ -942,11 +942,7 @@ Rush = R6::R6Class(
       self$write_hashes(condition = list(list(message = "Removed from queue")), keys = keys)
 
       # add to failed tasks
-      cmds = map(keys, function(key) {
-        c("SADD", private$.get_key("failed_tasks"), key)
-      })
-
-      r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
+      r$command(c("SADD", private$.get_key("failed_tasks"), keys))
 
       invisible(self)
     },
