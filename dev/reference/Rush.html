@@ -1059,7 +1059,10 @@ Defaults to <code>c("queued", "running", "finished", "failed")</code>.</p></dd>
 <h3 id="rush-fetch-new-tasks-"><code>Rush$fetch_new_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-new-tasks-"></a></h3>
 <p>Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks.
-If <code>timeout</code> is set, blocks until new tasks are available or the timeout is reached.</p><div class="section">
+If <code>timeout</code> is set, blocks until new tasks are available or the timeout is reached.</p>
+<p>"New" is tracked relative to previous calls of this method only.
+<code>$fetch_finished_tasks()</code> grows the same cache but does not advance this counter,
+so a task already returned by <code>$fetch_finished_tasks()</code> is returned again by the next <code>$fetch_new_tasks()</code>.</p><div class="section">
 <h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_new_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
