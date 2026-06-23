@@ -387,8 +387,9 @@ test_that("failing a tasks works", {
   expect_data_table(rush$fetch_running_tasks(), nrows = 0)
   expect_data_table(rush$fetch_finished_tasks(), nrows = 0)
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "condition", "keys"))
   expect_data_table(data, nrows = 1)
+  expect_equal(data$condition[[1]]$message, "error")
   expect_data_table(rush$fetch_tasks(), nrows = 1)
 
   # status checks
@@ -497,7 +498,7 @@ test_that("fail_tasks broadcasts a length-1 condition across all keys", {
   rush$fail_tasks(keys, conditions = list(list(message = "boom")))
   data = rush$fetch_failed_tasks()
   expect_data_table(data, nrows = 3)
-  expect_set_equal(data$message, "boom")
+  expect_set_equal(map_chr(data$condition, "message"), "boom")
 })
 
 test_that("fail_tasks rejects conditions whose length is neither 1 nor length(keys)", {

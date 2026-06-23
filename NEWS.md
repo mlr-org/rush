@@ -15,6 +15,7 @@
 * fix: `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks.
 * fix: `$fetch_tasks()`, `$fetch_finished_tasks()`, and `$fetch_new_tasks()` no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
+* fix: `$fetch_failed_tasks()` and related methods now return the documented `condition` column holding the whole condition object.
 * fix: `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
   The temporary arguments file is now deleted after the worker reads it.
 * fix: `$stop_workers()` no longer errors when a requested worker id is not running.

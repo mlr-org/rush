@@ -166,17 +166,19 @@ Fields to be returned.}
   Create running tasks.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RushWorker$push_running_tasks(xss, extra = NULL)}
+    \preformatted{RushWorker$push_running_tasks(xss, xss_extra = NULL, extra = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.
+Lists of arguments for the function e.g. \code{list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))}.
 If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
+      \item{\code{xss_extra}}{(\verb{list of named }list()\verb{)\\cr List of additional information stored along with the task e.g. }list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.}
       \item{\code{extra}}{(\code{list})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+Deprecated argument for additional information stored along with the task.
+Use \code{xs_extra} instead.}
     }
     \if{html}{\out{</div>}}
   }
@@ -193,7 +195,7 @@ Keys of the tasks.
   Save the output of tasks and mark them as finished.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RushWorker$finish_tasks(keys, yss, extra = NULL)}
+    \preformatted{RushWorker$finish_tasks(keys, yss, yss_extra = NULL, extra = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -201,10 +203,12 @@ Keys of the tasks.
     \describe{
       \item{\code{keys}}{(\code{character(1)})\cr
 Keys of the associated tasks.}
-      \item{\code{yss}}{(named \code{list()})\cr
-List of lists of named results.}
+      \item{\code{yss}}{(list of named \code{list()})\cr
+Lists of results for the function e.g. \code{list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))}.}
+      \item{\code{yss_extra}}{(\verb{list of named }list()\verb{)\\cr List of additional information stored along with the results e.g. }list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))`.}
       \item{\code{extra}}{(named \code{list()})\cr
-List of lists of additional information stored along with the results.}
+Deprecated argument for additional information stored along with the results.
+Use \code{ys_extra} instead.}
     }
     \if{html}{\out{</div>}}
   }
@@ -229,8 +233,8 @@ Invisible self.
     \describe{
       \item{\code{keys}}{(\code{character()})\cr
 Keys of the running tasks to be moved.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.
+      \item{\code{conditions}}{(\code{list()})\cr
+List conditions e.g. \code{list(simpleError("Error"), simpleError("Error"))}.
 Defaults to \code{list(message = "Task failed")}.}
     }
     \if{html}{\out{</div>}}

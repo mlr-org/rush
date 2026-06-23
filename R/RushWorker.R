@@ -17,6 +17,11 @@
 #' @template param_worker_id
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
+#' @template param_xss
+#' @template param_xss_extra
+#' @template param_yss
+#' @template param_yss_extra
+#' @template param_conditions
 #'
 #' @return Object of class [R6::R6Class] and `RushWorker`.
 #' @export
@@ -162,17 +167,18 @@ RushWorker = R6::R6Class(
     #' @description
     #' Create running tasks.
     #'
-    #' @param xss (list of named `list()`)\cr
-    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param extra (`list`)\cr
-    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' Deprecated argument for additional information stored along with the task.
+    #' Use `xs_extra` instead.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_running_tasks = function(xss, extra = NULL) {
+    push_running_tasks = function(xss, xss_extra = NULL, extra = NULL) {
       assert_list(xss, types = "list")
+      assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(extra, types = "list", null.ok = TRUE)
+      xss_extra = xss_extra %??% extra
+
       if (!length(xss)) {
         return(invisible(character()))
       }
@@ -180,7 +186,7 @@ RushWorker = R6::R6Class(
 
       lg$debug("Pushing %i running task(s).", length(xss))
 
-      keys = self$write_hashes(xs = xss, xs_extra = extra, worker_id = list(self$worker_id))
+      keys = self$write_hashes(xs = xss, xs_extra = xss_extra, worker_id = list(self$worker_id))
 
       # mark key as running
       r$pipeline(
@@ -200,23 +206,23 @@ RushWorker = R6::R6Class(
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
-    #' @param yss (named `list()`)\cr
-    #' List of lists of named results.
     #' @param extra (named `list()`)\cr
-    #' List of lists of additional information stored along with the results.
+    #' Deprecated argument for additional information stored along with the results.
+    #' Use `ys_extra` instead.
     #'
     #' @return (`RushWorker`)\cr
     #' Invisible self.
-    finish_tasks = function(keys, yss, extra = NULL) {
+    finish_tasks = function(keys, yss, yss_extra = NULL, extra = NULL) {
       assert_character(keys)
       assert_list(yss, types = "list")
-      assert_list(extra, types = "list", null.ok = TRUE)
+      assert_list(yss_extra, types = "list", null.ok = TRUE)
+      yss_extra = yss_extra %??% extra
       r = self$connector
 
       # write results to hashes
       self$write_hashes(
         ys = yss,
-        ys_extra = extra,
+        ys_extra = yss_extra,
         keys = keys
       )
 
@@ -243,9 +249,6 @@ RushWorker = R6::R6Class(
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the running tasks to be moved.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #' Defaults to `list(message = "Task failed")`.
     #'
     #' @return (`RushWorker`)\cr
     #' Invisible self.
@@ -255,7 +258,9 @@ RushWorker = R6::R6Class(
       r = self$connector
       conditions = conditions %??% list(list(message = "Task failed"))
 
-      # write condition to hash
+      # wrap each condition in an extra list so read_hashes() flattening keeps a single `condition` column
+      # instead of exploding its elements (e.g. `message`, `call`) into separate columns
+      conditions = map(conditions, function(condition) list(condition = list(condition)))
       self$write_hashes(condition = conditions, keys = keys)
 
       # move key from running to failed
