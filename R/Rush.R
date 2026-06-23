@@ -896,7 +896,7 @@ Rush = R6::R6Class(
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_failed_tasks = function(xss, conditions, xss_extra = NULL) {
+    push_failed_tasks = function(xss, xss_extra = NULL, conditions = NULL) {
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(conditions, types = "list", null.ok = TRUE)
@@ -907,10 +907,7 @@ Rush = R6::R6Class(
       conditions = conditions %??% list(list(message = "Task failed"))
       r = private$.connector
 
-      # wrap each condition in an extra list so read_hashes() flattening keeps a single `condition` column
-      # instead of exploding its elements (e.g. `message`, `call`) into separate columns
-      conditions = map(conditions, function(condition) list(condition = list(condition)))
-      keys = self$write_hashes(xs = xss, xs_extra = xss_extra, condition = conditions)
+      keys = self$write_hashes(xs = xss, xs_extra = xss_extra, condition = wrap_conditions(conditions))
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
         c("SADD", private$.get_key("failed_tasks"), keys)
@@ -945,7 +942,7 @@ Rush = R6::R6Class(
         return(invisible(self))
       }
 
-      self$write_hashes(condition = list(list(condition = list(list(message = "Removed from queue")))), keys = keys)
+      self$write_hashes(condition = wrap_conditions(list(list(message = "Removed from queue"))), keys = keys)
 
       # add to failed tasks
       r$command(c("SADD", private$.get_key("failed_tasks"), keys))
@@ -1791,9 +1788,7 @@ Rush = R6::R6Class(
 
       if (length(keys)) {
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-        # condition is wrapped in an extra list so read_hashes() flattening keeps a single `condition` column
-        conditions = list(list(condition = list(list(message = message))))
-        self$write_hashes(condition = conditions, keys = keys)
+        self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
 
         cmds = c(
           map(running_keys, function(key) {

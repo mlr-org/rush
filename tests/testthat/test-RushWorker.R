@@ -606,6 +606,10 @@ test_that("pushing failed tasks works", {
   rush$push_failed_tasks(list(list(x1 = 1, x2 = 2)), conditions = list(list(message = "error")))
   expect_equal(rush$n_failed_tasks, 1)
   expect_equal(rush$n_tasks, 1)
+  tab = rush$fetch_failed_tasks()
+  expect_names(names(tab), must.include = c("condition"))
+  expect_list(tab$condition, len = 1)
+  expect_equal(tab$condition[[1]]$message, "error")
 })
 
 # atomic operations -----------------------------------------------------------

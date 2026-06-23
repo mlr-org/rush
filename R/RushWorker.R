@@ -169,7 +169,7 @@ RushWorker = R6::R6Class(
     #'
     #' @param extra (`list`)\cr
     #' Deprecated argument for additional information stored along with the task.
-    #' Use `xs_extra` instead.
+    #' Use `xss_extra` instead.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
@@ -208,7 +208,7 @@ RushWorker = R6::R6Class(
     #' Keys of the associated tasks.
     #' @param extra (named `list()`)\cr
     #' Deprecated argument for additional information stored along with the results.
-    #' Use `ys_extra` instead.
+    #' Use `yss_extra` instead.
     #'
     #' @return (`RushWorker`)\cr
     #' Invisible self.
@@ -258,10 +258,7 @@ RushWorker = R6::R6Class(
       r = self$connector
       conditions = conditions %??% list(list(message = "Task failed"))
 
-      # wrap each condition in an extra list so read_hashes() flattening keeps a single `condition` column
-      # instead of exploding its elements (e.g. `message`, `call`) into separate columns
-      conditions = map(conditions, function(condition) list(condition = list(condition)))
-      self$write_hashes(condition = conditions, keys = keys)
+      self$write_hashes(condition = wrap_conditions(conditions), keys = keys)
 
       # move key from running to failed
       r$pipeline(

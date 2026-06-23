@@ -36,3 +36,8 @@ safe_bin_to_object = function(bin) {
   }
   redux::bin_to_object(bin)
 }
+
+# wrap each condition in an extra list so read_hashes() flattening keeps a single `condition` column
+wrap_conditions = function(conditions) {
+  map(conditions, function(condition) list(condition = list(condition)))
+}
