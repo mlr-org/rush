@@ -36,7 +36,12 @@ Methods to create a task:
 
 These methods return the key of the created tasks. The methods work on
 multiple tasks at once, so `xss` and `yss` are lists of inputs and
-outputs.
+outputs. When tasks are fetched, the `xss` and `yss` are unpacked so
+that the names of their inner elements become the columns of the
+returned table. For example, a `xss` stored as
+`list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))` yields `x1` and `x2`
+columns, not a `xs` column. The inner element names must therefore be
+unique across these fields.
 
 Methods to change the state of an existing task:
 
@@ -851,11 +856,11 @@ Invisible self.
 
 ### `Rush$push_tasks()`
 
-Create queued tasks and add them to the queue.
+Create tasks and add them to the queue.
 
 #### Usage
 
-    Rush$push_tasks(xss, extra = NULL)
+    Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)
 
 #### Arguments
 
@@ -863,15 +868,21 @@ Create queued tasks and add them to the queue.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
-  created and the method returns an empty
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
   [`character()`](https://rdrr.io/r/base/character.html).
+
+- `xss_extra`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `extra`:
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  Deprecated argument for additional information stored along with the
+  task. Use `xss_extra` instead.
 
 #### Returns
 
@@ -895,27 +906,27 @@ from running to finished.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
-  created and the method returns an empty
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
   [`character()`](https://rdrr.io/r/base/character.html).
 
 - `yss`:
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of results for the function e.g.
-  `list(list(y1, y2), list(y1, y2)))`.
+  `list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))`.
 
 - `xss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `yss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the results e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))`.
 
 #### Returns
 
@@ -931,7 +942,7 @@ queued and running to failed.
 
 #### Usage
 
-    Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)
+    Rush$push_failed_tasks(xss, xss_extra = NULL, conditions = NULL)
 
 #### Arguments
 
@@ -939,20 +950,22 @@ queued and running to failed.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
-  created and the method returns an empty
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
   [`character()`](https://rdrr.io/r/base/character.html).
 
 - `xss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `conditions`:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions.
+  ([`list()`](https://rdrr.io/r/base/list.html))  
+  List conditions e.g.
+  `list(simpleError("Error"), simpleError("Error"))`. Defaults to
+  `list(message = "Task failed")`.
 
 #### Returns
 
@@ -994,8 +1007,10 @@ Deprecated method to move tasks from queued and running to failed.
 
 - `conditions`:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions.
+  ([`list()`](https://rdrr.io/r/base/list.html))  
+  List conditions e.g.
+  `list(simpleError("Error"), simpleError("Error"))`. Defaults to
+  `list(message = "Task failed")`.
 
 #### Returns
 
@@ -1294,7 +1309,9 @@ are flattened to a single list e.g.
 to a table where the names of the inner lists are the column names. For
 example,
 `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))`
-becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`. Names
+must be unique across the flattened fields. Colliding names produce
+duplicate columns, of which only the first is reachable by name.
 
 #### Usage
 

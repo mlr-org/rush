@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,9 +65,12 @@
 <li>fix: <code>$empty_queue()</code> no longer creates an orphaned hash in the Redis database when the queue is already empty.</li>
 <li>BREAKING CHANGE: The <code>$empty_queue()</code> method now empties the entire queue instead of a specified set of tasks. The <code>keys</code> and <code>conditions</code> arguments are removed.</li>
 <li>fix: <code>$detect_lost_workers()</code> no longer marks a task as both finished and failed, or loses a task.</li>
+<li>fix: <code>$detect_lost_workers()</code> now returns only the worker ids it actually detected as lost during the call, instead of also including workers that terminated cleanly while the method was running.</li>
 <li>fix: <code>$pop_task()</code> no longer loses a task when a worker crashes between popping the task from the queue and marking it as running. The task is now moved atomically into a per-worker pending list and recovered as a failed task by <code>$detect_lost_workers()</code>.</li>
 <li>fix: <code>$push_tasks()</code>, <code>$push_finished_tasks()</code>, <code>$push_failed_tasks()</code>, and <code>$push_running_tasks()</code> now return early when called with an empty list of tasks.</li>
 <li>fix: <code>$fetch_tasks()</code>, <code>$fetch_finished_tasks()</code>, and <code>$fetch_new_tasks()</code> no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
+<li>fix: <code>$fetch_failed_tasks()</code> and related methods now return the documented <code>condition</code> column holding the whole condition object.</li>
+<li>feat: The <code>extra</code> argument of <code>$push_tasks()</code>, <code>$push_running_tasks()</code>, and <code>$finish_tasks()</code> methods is deprecated in favor of the consistently named <code>xss_extra</code> and <code>yss_extra</code> arguments.</li>
 <li>fix: <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 <li>fix: <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning.</li>
 <li>perf: <code>$wait_for_tasks()</code> no longer reads the full finished list and failed task set on every poll.</li>

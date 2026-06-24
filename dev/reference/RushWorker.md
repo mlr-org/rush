@@ -194,7 +194,7 @@ Create running tasks.
 
 #### Usage
 
-    RushWorker$push_running_tasks(xss, extra = NULL)
+    RushWorker$push_running_tasks(xss, xss_extra = NULL, extra = NULL)
 
 #### Arguments
 
@@ -202,15 +202,21 @@ Create running tasks.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`. If `xss` is empty, no tasks are
-  created and the method returns an empty
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
   [`character()`](https://rdrr.io/r/base/character.html).
+
+- `xss_extra`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `extra`:
 
   (`list`)  
-  List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  Deprecated argument for additional information stored along with the
+  task. Use `xss_extra` instead.
 
 #### Returns
 
@@ -225,7 +231,7 @@ Save the output of tasks and mark them as finished.
 
 #### Usage
 
-    RushWorker$finish_tasks(keys, yss, extra = NULL)
+    RushWorker$finish_tasks(keys, yss, yss_extra = NULL, extra = NULL)
 
 #### Arguments
 
@@ -236,13 +242,21 @@ Save the output of tasks and mark them as finished.
 
 - `yss`:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of named results.
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  Lists of results for the function e.g.
+  `list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))`.
+
+- `yss_extra`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of additional information stored along with the results e.g.
+  `list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))`.
 
 - `extra`:
 
   (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of additional information stored along with the results.
+  Deprecated argument for additional information stored along with the
+  results. Use `yss_extra` instead.
 
 #### Returns
 
@@ -268,8 +282,9 @@ Move running tasks to failed and optionally save the condition objects.
 
 - `conditions`:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions. Defaults to
+  ([`list()`](https://rdrr.io/r/base/list.html))  
+  List conditions e.g.
+  `list(simpleError("Error"), simpleError("Error"))`. Defaults to
   `list(message = "Task failed")`.
 
 #### Returns

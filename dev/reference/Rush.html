@@ -19,7 +19,7 @@ to connect to the Redis database via the redux package."><meta name="robots" con
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,12 @@ The input <code>xs</code> and output <code>ys</code> are lists that can contain 
 <li><p><code>$push_failed_tasks(xss, conditions)</code>: Create failed tasks.</p></li>
 <li><p><code>$push_tasks(xss)</code>: Create queued tasks.</p></li>
 </ul><p>These methods return the key of the created tasks.
-The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.</p>
+The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.
+When tasks are fetched, the <code>xss</code> and <code>yss</code> are unpacked
+so that the names of their inner elements become the columns of the returned table.
+For example, a <code>xss</code> stored as <code>list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))</code> yields <code>x1</code> and <code>x2</code> columns,
+not a <code>xs</code> column.
+The inner element names must therefore be unique across these fields.</p>
 <p>Methods to change the state of an existing task:</p><ul><li><p><code>$finish_tasks(keys, yss)</code>: Save the output of tasks and mark them as finished.</p></li>
 <li><p><code>$fail_tasks(keys, conditions)</code>: Mark tasks as failed and optionally save the condition objects.</p></li>
 <li><p><code>$pop_task()</code>: Pop a task from the queue and mark it as running.</p></li>
@@ -773,19 +778,25 @@ Invisible self.</p>
 
 <p></p><hr><a id="method-Rush-push_tasks"></a><div class="section">
 <h3 id="rush-push-tasks-"><code>Rush$push_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-push-tasks-"></a></h3>
-<p>Create queued tasks and add them to the queue.</p><div class="section">
+<p>Create tasks and add them to the queue.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
 If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
+
+      <dt><code>xss_extra</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
 
       <dt><code>extra</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+Deprecated argument for additional information stored along with the task.
+Use <code>xss_extra</code> instead.</p></dd>
 
 
 </dl><p></p></div>
@@ -807,20 +818,22 @@ See <code>$finish_tasks()</code> for moving existing tasks from running to finis
 <h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
 If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
       <dt><code>yss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of results for the function e.g. <code>list(list(y1, y2), list(y1, y2)))</code>.</p></dd>
+Lists of results for the function e.g. <code>list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))</code>.</p></dd>
 
       <dt><code>xss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
 
       <dt><code>yss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the results e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the results
+e.g. <code>list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -837,21 +850,23 @@ Keys of the tasks.</p>
 <p>Create failed tasks.
 See <code>$fail_tasks()</code> for moving existing tasks from queued and running to failed.</p><div class="section">
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">conditions</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, conditions <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
 If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
       <dt><code>xss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
 
       <dt><code>conditions</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of conditions.</p></dd>
+<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List conditions e.g. <code>list(simpleError("Error"), simpleError("Error"))</code>.
+Defaults to <code>list(message = "Task failed")</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -891,8 +906,9 @@ Keys of the tasks to be moved.
 Defaults to all queued tasks.</p></dd>
 
       <dt><code>conditions</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of conditions.</p></dd>
+<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List conditions e.g. <code>list(simpleError("Error"), simpleError("Error"))</code>.
+Defaults to <code>list(message = "Task failed")</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -1181,7 +1197,9 @@ If <code>flatten</code> is <code>TRUE</code>, the values are flattened to a sing
 <code>list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))</code> becomes <code>list(x1 = 1, x2 = 2, y = 3)</code>.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))</code> becomes
-<code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.</p><div class="section">
+<code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.
+Names must be unique across the flattened fields.
+Colliding names produce duplicate columns, of which only the first is reachable by name.</p><div class="section">
 <h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hashes</span><span class="op">(</span><span class="va">keys</span>, <span class="va">fields</span>, flatten <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,6 +61,25 @@
     </div>
 
 
+    <div class="section level2">
+    <h2 id="options">Options<a class="anchor" aria-label="anchor" href="#options"></a></h2>
+
+
+<ul><li><p><code>rush.max_object_size</code>:
+Maximum size in MiB of the serialized worker configuration stored in Redis.
+Defaults to <code>512</code>.
+If the configuration exceeds this limit, an error is raised unless <code>large_objects_path</code> is set in <code><a href="rush_plan.html">rush_plan()</a></code>,
+in which case the configuration is written to disk instead.</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="environment-variables">Environment Variables<a class="anchor" aria-label="anchor" href="#environment-variables"></a></h2>
+
+
+<ul><li><p><code>REDIS_URL</code>:
+Connection URL parsed by <a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a> to configure the connection to Redis.
+Used when no <code>config</code> is set via <code><a href="rush_plan.html">rush_plan()</a></code>.
+If unset, a default configuration is used.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Useful links:</p><ul><li><p><a href="https://rush.mlr-org.com">https://rush.mlr-org.com</a></p></li>

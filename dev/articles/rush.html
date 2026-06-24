@@ -37,7 +37,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id           x          y               keys
-                  &lt;char&gt;       &lt;num&gt;      &lt;num&gt;             &lt;char&gt;
-   1: reflectible_sun... 0.033355674 0.18263536 232cf570-e7be-4...
-   2: reflectible_sun... 0.157110073 0.39637113 6eb6e990-e19e-4...
-   3: reflectible_sun... 0.813017759 0.90167497 266cb91a-2f7f-4...
-   4: reflectible_sun... 0.970567015 0.98517360 4173d270-0b75-4...
-   5: reflectible_sun... 0.237922440 0.48777294 a12c5599-2090-4...
+<pre><code>               worker_id          x         y               keys
+                  &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1: hairraising_gal... 0.15456399 0.3931463 a3b032aa-2259-4...
+   2: anatomical_asia... 0.99238442 0.9961849 9ce2102a-c75f-4...
+   3: hairraising_gal... 0.94225882 0.9707002 0fcb1d74-52d0-4...
+   4: hairraising_gal... 0.04858090 0.2204108 cec4ed09-3c16-4...
+   5: anatomical_asia... 0.40991558 0.6402465 05aaf294-cd9b-4...
   ---
-7306:     bigboned_camel 0.450124699 0.67091333 c420bd10-3efc-4...
-7307: reflectible_sun... 0.003052619 0.05525051 754c55c6-bffd-4...
-7308:     bigboned_camel 0.721232280 0.84925395 666d26b4-501a-4...
-7309: reflectible_sun... 0.534504565 0.73109819 3d44b86a-0e7e-4...
-7310:     bigboned_camel 0.510157461 0.71425308 6dcae1b0-9d5d-4...</code></pre>
+6366: hairraising_gal... 0.54717476 0.7397126 85e60110-72e1-4...
+6367: anatomical_asia... 0.06355413 0.2520995 4cd4c2a6-334a-4...
+6368: hairraising_gal... 0.90609585 0.9518907 0c3beacd-f666-4...
+6369: anatomical_asia... 0.61463355 0.7839857 6a2e8bbb-5b9c-4...
+6370: hairraising_gal... 0.94872947 0.9740274 18e880f2-cb55-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -216,17 +216,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>               x         y          worker_id               keys
            &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.03335567 0.1826354 reflectible_sun... 232cf570-e7be-4...
-   2: 0.21577999 0.4645212     bigboned_camel 71710c77-9b51-4...
-   3: 0.15711007 0.3963711 reflectible_sun... 6eb6e990-e19e-4...
-   4: 0.81301776 0.9016750 reflectible_sun... 266cb91a-2f7f-4...
-   5: 0.97056701 0.9851736 reflectible_sun... 4173d270-0b75-4...
+   1: 0.15456399 0.3931463 hairraising_gal... a3b032aa-2259-4...
+   2: 0.99238442 0.9961849 anatomical_asia... 9ce2102a-c75f-4...
+   3: 0.94225882 0.9707002 hairraising_gal... 0fcb1d74-52d0-4...
+   4: 0.04858090 0.2204108 hairraising_gal... cec4ed09-3c16-4...
+   5: 0.40991558 0.6402465 anatomical_asia... 05aaf294-cd9b-4...
   ---
-7818: 0.76787591 0.8762853     bigboned_camel 8ba5a40e-2fb4-4...
-7819: 0.40034923 0.6327316 reflectible_sun... 6c71f938-0e9f-4...
-7820: 0.79972827 0.8942753 reflectible_sun... 72539aa0-77df-4...
-7821: 0.03201939 0.1789396     bigboned_camel a7148a5a-2fa3-4...
-7822: 0.21713298        NA reflectible_sun... 6ba2a025-fcae-4...</code></pre>
+6800: 0.82749732 0.9096688 anatomical_asia... d144b997-b8f9-4...
+6801: 0.83254382 0.9124384 hairraising_gal... 23e2d15d-d048-4...
+6802: 0.36952962 0.6078895 anatomical_asia... b5a588c8-c8b8-4...
+6803: 0.48930798        NA hairraising_gal... 156bab77-1a08-4...
+6804: 0.03124999        NA anatomical_asia... dc6aa588-bce8-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,9 +236,10 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          x          worker_id               keys
-      &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.217133 reflectible_sun... 6ba2a025-fcae-4...</code></pre>
+<pre><code>            x          worker_id               keys
+        &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.48930798 hairraising_gal... 156bab77-1a08-4...
+2: 0.03124999 anatomical_asia... dc6aa588-bce8-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -250,17 +251,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id          x               keys         y
         &lt;char&gt;             &lt;char&gt;      &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running reflectible_sun... 0.21713298 6ba2a025-fcae-4...        NA
-   2: finished reflectible_sun... 0.03335567 232cf570-e7be-4... 0.1826354
-   3: finished reflectible_sun... 0.15711007 6eb6e990-e19e-4... 0.3963711
-   4: finished reflectible_sun... 0.81301776 266cb91a-2f7f-4... 0.9016750
-   5: finished reflectible_sun... 0.97056701 4173d270-0b75-4... 0.9851736
+   1:  running hairraising_gal... 0.48930798 156bab77-1a08-4...        NA
+   2:  running anatomical_asia... 0.03124999 dc6aa588-bce8-4...        NA
+   3: finished hairraising_gal... 0.15456399 a3b032aa-2259-4... 0.3931463
+   4: finished anatomical_asia... 0.99238442 9ce2102a-c75f-4... 0.9961849
+   5: finished hairraising_gal... 0.94225882 0fcb1d74-52d0-4... 0.9707002
   ---
-7818: finished reflectible_sun... 0.41267979 8a539e85-e8d2-4... 0.6424016
-7819: finished reflectible_sun... 0.40034923 6c71f938-0e9f-4... 0.6327316
-7820: finished     bigboned_camel 0.76787591 8ba5a40e-2fb4-4... 0.8762853
-7821: finished reflectible_sun... 0.79972827 72539aa0-77df-4... 0.8942753
-7822: finished     bigboned_camel 0.03201939 a7148a5a-2fa3-4... 0.1789396</code></pre>
+6800: finished anatomical_asia... 0.75305247 a4cfe999-f665-4... 0.8677860
+6801: finished hairraising_gal... 0.28851475 d97b7de1-4b0c-4... 0.5371357
+6802: finished anatomical_asia... 0.82749732 d144b997-b8f9-4... 0.9096688
+6803: finished hairraising_gal... 0.83254382 23e2d15d-d048-4... 0.9124384
+6804: finished anatomical_asia... 0.36952962 b5a588c8-c8b8-4... 0.6078895</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -274,12 +275,12 @@
 <div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_running_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1</code></pre>
+<pre><code>[1] 2</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7821</code></pre>
+<pre><code>[1] 6802</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -307,11 +308,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.83571
+[1] 0.6030887
 
 
 $key
-[1] "af5df0fd-75ef-474b-8dbf-8649a86c219e"</code></pre>
+[1] "89e5c013-98f8-4cc5-893e-ee23a67a5c2a"</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -384,7 +385,7 @@ $key
 <div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code><span><span class="cn">NULL</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="logging">Logging<a class="anchor" aria-label="anchor" href="#logging"></a>
