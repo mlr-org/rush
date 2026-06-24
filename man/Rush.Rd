@@ -30,6 +30,11 @@ Methods to create a task:
 
 These methods return the key of the created tasks.
 The methods work on multiple tasks at once, so \code{xss} and \code{yss} are lists of inputs and outputs.
+When tasks are fetched, the \code{xss} and \code{yss} are unpacked
+so that the names of their inner elements become the columns of the returned table.
+For example, a \code{xss} stored as \code{list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))} yields \code{x1} and \code{x2} columns,
+not a \code{xs} column.
+The inner element names must therefore be unique across these fields.
 
 Methods to change the state of an existing task:
 \itemize{
@@ -670,20 +675,24 @@ Invisible self.
 \if{html}{\out{<a id="method-Rush-push_tasks"></a>}}
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{\code{Rush$push_tasks()}}{
-  Create queued tasks and add them to the queue.
+  Create tasks and add them to the queue.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_tasks(xss, extra = NULL)}
+    \preformatted{Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.
+Lists of arguments for the function e.g. \code{list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))}.
 If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
+      \item{\code{xss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the task
+e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))}.}
       \item{\code{extra}}{(\code{list()})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+Deprecated argument for additional information stored along with the task.
+Use \code{xss_extra} instead.}
     }
     \if{html}{\out{</div>}}
   }
@@ -708,14 +717,16 @@ See \verb{$finish_tasks()} for moving existing tasks from running to finished.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.
+Lists of arguments for the function e.g. \code{list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))}.
 If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
       \item{\code{yss}}{(list of named \code{list()})\cr
-Lists of results for the function e.g. \verb{list(list(y1, y2), list(y1, y2)))}.}
-      \item{\code{xss_extra}}{(\code{list})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-      \item{\code{yss_extra}}{(\code{list})\cr
-List of additional information stored along with the results e.g. \verb{list(list(timestamp), list(timestamp)))}.}
+Lists of results for the function e.g. \code{list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))}.}
+      \item{\code{xss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the task
+e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))}.}
+      \item{\code{yss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the results
+e.g. \code{list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -733,19 +744,21 @@ Keys of the tasks.
 See \verb{$fail_tasks()} for moving existing tasks from queued and running to failed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)}
+    \preformatted{Rush$push_failed_tasks(xss, xss_extra = NULL, conditions = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{xss}}{(list of named \code{list()})\cr
-Lists of arguments for the function e.g. \verb{list(list(x1, x2), list(x1, x2)))}.
+Lists of arguments for the function e.g. \code{list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))}.
 If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
-      \item{\code{xss_extra}}{(\code{list})\cr
-List of additional information stored along with the task e.g. \verb{list(list(timestamp), list(timestamp)))}.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.}
+      \item{\code{xss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the task
+e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))}.}
+      \item{\code{conditions}}{(\code{list()})\cr
+List conditions e.g. \code{list(simpleError("Error"), simpleError("Error"))}.
+Defaults to \code{list(message = "Task failed")}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -789,8 +802,9 @@ Invisible self.
       \item{\code{keys}}{(\code{character()})\cr
 Keys of the tasks to be moved.
 Defaults to all queued tasks.}
-      \item{\code{conditions}}{(named \code{list()})\cr
-List of lists of conditions.}
+      \item{\code{conditions}}{(\code{list()})\cr
+List conditions e.g. \code{list(simpleError("Error"), simpleError("Error"))}.
+Defaults to \code{list(message = "Task failed")}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -1101,6 +1115,8 @@ If \code{flatten} is \code{TRUE}, the values are flattened to a single list e.g.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, \verb{xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))} becomes
 \code{data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))}.
+Names must be unique across the flattened fields.
+Colliding names produce duplicate columns, of which only the first is reachable by name.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$read_hashes(keys, fields, flatten = TRUE)}

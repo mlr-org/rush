@@ -8,6 +8,27 @@
 \description{
 Package to tackle large-scale problems asynchronously across a distributed network. Employing a database centric model, rush enables workers to communicate tasks and their results over a shared 'Redis' database. Key features include low task overhead, efficient caching, and robust error handling. The package powers the asynchronous optimization algorithms in the 'bbotk' and 'mlr3tuning' packages.
 }
+\section{Options}{
+
+\itemize{
+\item \code{rush.max_object_size}:
+Maximum size in MiB of the serialized worker configuration stored in Redis.
+Defaults to \code{512}.
+If the configuration exceeds this limit, an error is raised unless \code{large_objects_path} is set in \code{\link[=rush_plan]{rush_plan()}},
+in which case the configuration is written to disk instead.
+}
+}
+
+\section{Environment Variables}{
+
+\itemize{
+\item \code{REDIS_URL}:
+Connection URL parsed by \link[redux:redis_config]{redux::redis_config} to configure the connection to Redis.
+Used when no \code{config} is set via \code{\link[=rush_plan]{rush_plan()}}.
+If unset, a default configuration is used.
+}
+}
+
 \seealso{
 Useful links:
 \itemize{

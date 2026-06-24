@@ -885,7 +885,7 @@ test_that("segfaults on mirai workers are detected", {
   expect_set_equal(rush$terminated_worker_ids, lost_workers)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
   data = rush$fetch_failed_tasks()
-  expect_set_equal(data$message, "Worker has crashed or was killed")
+  expect_set_equal(map_chr(data$condition, "message"), "Worker has crashed or was killed")
 })
 
 test_that("segfaults on processx workers are detected", {
@@ -914,7 +914,7 @@ test_that("segfaults on processx workers are detected", {
   expect_set_equal(rush$terminated_worker_ids, lost_workers)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
   data = rush$fetch_failed_tasks()
-  expect_set_equal(data$message, "Worker has crashed or was killed")
+  expect_set_equal(map_chr(data$condition, "message"), "Worker has crashed or was killed")
 })
 
 test_that("a segfault on a single worker is detected via heartbeat", {
@@ -955,7 +955,7 @@ test_that("a segfault on a single worker is detected via heartbeat", {
   expect_set_equal(rush$terminated_worker_ids, lost_workers)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 1)
   data = rush$fetch_failed_tasks()
-  expect_equal(data$message, "Worker has crashed or was killed")
+  expect_equal(data$condition[[1]]$message, "Worker has crashed or was killed")
 })
 
 test_that("a task lost in the pending state is recovered", {
@@ -996,7 +996,30 @@ test_that("a task lost in the pending state is recovered", {
   # task is failed, removed from the pending list, and not in running
   expect_equal(rush$failed_tasks, key)
   expect_null(rush$running_tasks)
-  expect_equal(rush$fetch_failed_tasks()$message, "Worker has crashed or was killed")
+  expect_equal(rush$fetch_failed_tasks()$condition[[1]]$message, "Worker has crashed or was killed")
+})
+
+test_that("detect_lost_workers only returns workers it actually detected as lost", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rush$start_local_workers(
+    worker_loop = wl_nop,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+  worker_id = rush$worker_ids[1]
+
+  # a worker that terminates cleanly while detect_lost_workers() runs is in both the running snapshot and the
+  # terminated set; it must not be reported as lost because the method did not detect it
+  r = rush$connector
+  r$command(c("SADD", get_private(rush)$.get_key("terminated_worker_ids"), worker_id))
+
+  expect_character(rush$detect_lost_workers(), len = 0)
 })
 
 test_that("segfaults on multiple workers are detected via the heartbeat", {
@@ -1041,7 +1064,7 @@ test_that("segfaults on multiple workers are detected via the heartbeat", {
   expect_set_equal(rush$terminated_worker_ids, lost_workers)
   expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
   data = rush$fetch_failed_tasks()
-  expect_set_equal(data$message, "Worker has crashed or was killed")
+  expect_set_equal(map_chr(data$condition, "message"), "Worker has crashed or was killed")
 })
 
 test_that("wait for tasks works when a task gets lost", {
@@ -1373,6 +1396,7 @@ test_that("simple errors are pushed as failed tasks", {
   expect_data_table(data, nrows = 1)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "condition", "keys"))
   expect_data_table(data, nrows = 1)
+  expect_equal(data$condition[[1]]$message, "Test error")
 })

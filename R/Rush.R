@@ -22,6 +22,11 @@
 #'
 #' These methods return the key of the created tasks.
 #' The methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and outputs.
+#' When tasks are fetched, the `xss` and `yss` are unpacked
+#' so that the names of their inner elements become the columns of the returned table.
+#' For example, a `xss` stored as `list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))` yields `x1` and `x2` columns,
+#' not a `xs` column.
+#' The inner element names must therefore be unique across these fields.
 #'
 #' Methods to change the state of an existing task:
 #'
@@ -84,6 +89,11 @@
 #' @template param_heartbeat_expire
 #' @template param_message_log
 #' @template param_output_log
+#' @template param_xss
+#' @template param_xss_extra
+#' @template param_yss
+#' @template param_yss_extra
+#' @template param_conditions
 #'
 #' @return Object of class [R6::R6Class] and `Rush`.
 #' @export
@@ -602,39 +612,44 @@ Rush = R6::R6Class(
       running_worker_ids = self$running_worker_ids
       heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
 
+      # collect the ids of the workers actually detected as lost in this call
+      lost_worker_ids = character()
+
       # check mirai workers
       if (length(self$processes_mirai)) {
-        iwalk(self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))], function(m, id) {
-          if (is_mirai_error(m$data) || is_error_value(m$data)) {
-            # for a crashed or interrupted mirai m$data is a scalar errorValue, so derive a human-readable message
-            # interrupt (19) has no message
-            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+        running_mirai = self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))]
+        lost = map_lgl(running_mirai, function(m) is_mirai_error(m$data) || is_error_value(m$data))
+        iwalk(running_mirai[lost], function(m, id) {
+          # for a crashed or interrupted mirai m$data is a scalar errorValue, so derive a human-readable message
+          # interrupt (19) has no message
+          message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-            lg$error("Lost worker '%s': %s", id, message)
+          lg$error("Lost worker '%s': %s", id, message)
 
-            # move worker to terminated
-            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          # move worker to terminated
+          r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            private$.fail_lost_tasks(id, message)
-          }
+          private$.fail_lost_tasks(id, message)
         })
+        lost_worker_ids = c(lost_worker_ids, names(running_mirai)[lost])
       }
 
       # check processx workers
       if (length(self$processes_processx)) {
-        iwalk(self$processes_processx[intersect(running_worker_ids, names(self$processes_processx))], function(m, id) {
-          if (!self$processes_processx[[id]]$is_alive()) {
-            lg$error("Lost worker '%s'", id)
-            # print error messages
-            # reading the error lines of a killed process may fail, so we guard against it
-            try(walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error), silent = TRUE)
+        running_processx = self$processes_processx[intersect(running_worker_ids, names(self$processes_processx))]
+        lost = map_lgl(running_processx, function(p) !p$is_alive())
+        iwalk(running_processx[lost], function(p, id) {
+          lg$error("Lost worker '%s'", id)
+          # print error messages
+          # reading the error lines of a killed process may fail, so we guard against it
+          try(walk(p$read_all_error_lines(), lg$error), silent = TRUE)
 
-            # move worker to terminated
-            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          # move worker to terminated
+          r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            private$.fail_lost_tasks(id, "Worker has crashed or was killed")
-          }
+          private$.fail_lost_tasks(id, "Worker has crashed or was killed")
         })
+        lost_worker_ids = c(lost_worker_ids, names(running_processx)[lost])
       }
 
       # check heartbeat of workers
@@ -665,11 +680,11 @@ Rush = R6::R6Class(
           walk(lost_workers, function(worker_id) {
             private$.fail_lost_tasks(worker_id, "Worker has crashed or was killed")
           })
+          lost_worker_ids = c(lost_worker_ids, lost_workers)
         }
       }
 
-      terminated_worker_ids = self$terminated_worker_ids
-      terminated_worker_ids[terminated_worker_ids %in% running_worker_ids]
+      lost_worker_ids
     },
 
     #' @description
@@ -818,19 +833,20 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Create queued tasks and add them to the queue.
+    #' Create tasks and add them to the queue.
     #'
-    #' @param xss (list of named `list()`)\cr
-    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
     #' @param extra (`list()`)\cr
-    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
+    #' Deprecated argument for additional information stored along with the task.
+    #' Use `xss_extra` instead.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, extra = NULL) {
+    push_tasks = function(xss, xss_extra = NULL, extra = NULL) {
       assert_list(xss, types = "list")
+      assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(extra, types = "list", null.ok = TRUE)
+      xss_extra = xss_extra %??% extra
+
       if (!length(xss)) {
         return(invisible(character()))
       }
@@ -841,7 +857,7 @@ Rush = R6::R6Class(
       # write tasks to hashes
       keys = self$write_hashes(
         xs = xss,
-        xs_extra = extra
+        xs_extra = xss_extra
       )
 
       cmds = list(
@@ -856,16 +872,6 @@ Rush = R6::R6Class(
     #' @description
     #' Create finished tasks.
     #' See `$finish_tasks()` for moving existing tasks from running to finished.
-    #'
-    #' @param xss (list of named `list()`)\cr
-    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
-    #' @param yss (list of named `list()`)\cr
-    #' Lists of results for the function e.g. `list(list(y1, y2), list(y1, y2)))`.
-    #' @param xss_extra (`list`)\cr
-    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
-    #' @param yss_extra (`list`)\cr
-    #' List of additional information stored along with the results e.g. `list(list(timestamp), list(timestamp)))`.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
@@ -893,27 +899,20 @@ Rush = R6::R6Class(
     #' Create failed tasks.
     #' See `$fail_tasks()` for moving existing tasks from queued and running to failed.
     #'
-    #' @param xss (list of named `list()`)\cr
-    #' Lists of arguments for the function e.g. `list(list(x1, x2), list(x1, x2)))`.
-    #' If `xss` is empty, no tasks are created and the method returns an empty `character()`.
-    #' @param xss_extra (`list`)\cr
-    #' List of additional information stored along with the task e.g. `list(list(timestamp), list(timestamp)))`.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
-    #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_failed_tasks = function(xss, xss_extra = NULL, conditions) {
+    push_failed_tasks = function(xss, xss_extra = NULL, conditions = NULL) {
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
-      assert_list(conditions, types = "list")
+      assert_list(conditions, types = "list", null.ok = TRUE)
+
       if (!length(xss)) {
         return(invisible(character()))
       }
+      conditions = conditions %??% list(list(message = "Task failed"))
       r = private$.connector
 
-      # write condition to hash
-      keys = self$write_hashes(xs = xss, xs_extra = xss_extra, condition = conditions)
+      keys = self$write_hashes(xs = xss, xs_extra = xss_extra, condition = wrap_conditions(conditions))
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
         c("SADD", private$.get_key("failed_tasks"), keys)
@@ -933,7 +932,9 @@ Rush = R6::R6Class(
     empty_queue = function() {
       r = private$.connector
 
-      # empty queue
+      # atomically read all queued task keys (LRANGE) and clear the queue (DEL)
+      # the pipeline returns one reply per command; the EXEC reply [[4]] holds the results of the queued
+      # commands, so [[4]][[1]] is the LRANGE result (the task keys) and [[4]][[2]] is the DEL count
       keys = unlist(r$pipeline(
         .commands = list(
           c("MULTI"),
@@ -948,8 +949,7 @@ Rush = R6::R6Class(
         return(invisible(self))
       }
 
-      # write condition to hash
-      self$write_hashes(condition = list(list(message = "Removed from queue")), keys = keys)
+      self$write_hashes(condition = wrap_conditions(list(list(message = "Removed from queue"))), keys = keys)
 
       # add to failed tasks
       r$command(c("SADD", private$.get_key("failed_tasks"), keys))
@@ -963,8 +963,6 @@ Rush = R6::R6Class(
     #' @param keys (`character()`)\cr
     #' Keys of the tasks to be moved.
     #' Defaults to all queued tasks.
-    #' @param conditions (named `list()`)\cr
-    #' List of lists of conditions.
     #'
     #' @return (`Rush`)\cr
     #' Invisible self.
@@ -1293,6 +1291,8 @@ Rush = R6::R6Class(
     #' For example, `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)),
     #' ys = list(list(y = 3), list(y = 7))` becomes
     #' `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+    #' Names must be unique across the flattened fields.
+    #' Colliding names produce duplicate columns, of which only the first is reachable by name.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the hashes.
@@ -1795,10 +1795,7 @@ Rush = R6::R6Class(
 
       if (length(keys)) {
         lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-        conditions = list(list(message = message))
-
-        # write condition to hash
-        self$write_hashes(condition = conditions, keys = keys)
+        self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
 
         cmds = c(
           map(running_keys, function(key) {
