@@ -1373,6 +1373,7 @@ test_that("simple errors are pushed as failed tasks", {
   expect_data_table(data, nrows = 1)
 
   data = rush$fetch_failed_tasks()
-  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "message", "keys"))
+  expect_names(names(data), must.include = c("x1", "x2", "worker_id", "condition", "keys"))
   expect_data_table(data, nrows = 1)
+  expect_equal(data$condition[[1]]$message, "Test error")
 })

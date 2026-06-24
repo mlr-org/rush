@@ -175,10 +175,12 @@ Fields to be returned.}
       \item{\code{xss}}{(list of named \code{list()})\cr
 Lists of arguments for the function e.g. \code{list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))}.
 If \code{xss} is empty, no tasks are created and the method returns an empty \code{character()}.}
-      \item{\code{xss_extra}}{(\verb{list of named }list()\verb{)\\cr List of additional information stored along with the task e.g. }list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.}
+      \item{\code{xss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the task
+e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))}.}
       \item{\code{extra}}{(\code{list})\cr
 Deprecated argument for additional information stored along with the task.
-Use \code{xs_extra} instead.}
+Use \code{xss_extra} instead.}
     }
     \if{html}{\out{</div>}}
   }
@@ -205,10 +207,12 @@ Keys of the tasks.
 Keys of the associated tasks.}
       \item{\code{yss}}{(list of named \code{list()})\cr
 Lists of results for the function e.g. \code{list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))}.}
-      \item{\code{yss_extra}}{(\verb{list of named }list()\verb{)\\cr List of additional information stored along with the results e.g. }list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))`.}
+      \item{\code{yss_extra}}{(list of named \code{list()})\cr
+List of additional information stored along with the results
+e.g. \code{list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))}.}
       \item{\code{extra}}{(named \code{list()})\cr
 Deprecated argument for additional information stored along with the results.
-Use \code{ys_extra} instead.}
+Use \code{yss_extra} instead.}
     }
     \if{html}{\out{</div>}}
   }
