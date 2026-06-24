@@ -999,6 +999,29 @@ test_that("a task lost in the pending state is recovered", {
   expect_equal(rush$fetch_failed_tasks()$condition[[1]]$message, "Worker has crashed or was killed")
 })
 
+test_that("detect_lost_workers only returns workers it actually detected as lost", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rush$start_local_workers(
+    worker_loop = wl_nop,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+  worker_id = rush$worker_ids[1]
+
+  # a worker that terminates cleanly while detect_lost_workers() runs is in both the running snapshot and the
+  # terminated set; it must not be reported as lost because the method did not detect it
+  r = rush$connector
+  r$command(c("SADD", get_private(rush)$.get_key("terminated_worker_ids"), worker_id))
+
+  expect_character(rush$detect_lost_workers(), len = 0)
+})
+
 test_that("segfaults on multiple workers are detected via the heartbeat", {
   skip_if_not_installed("callr")
   config = redis_configuration()

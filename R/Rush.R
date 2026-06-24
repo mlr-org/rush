@@ -612,39 +612,44 @@ Rush = R6::R6Class(
       running_worker_ids = self$running_worker_ids
       heartbeat_keys = r$SMEMBERS(private$.get_key("heartbeat_keys"))
 
+      # collect the ids of the workers actually detected as lost in this call
+      lost_worker_ids = character()
+
       # check mirai workers
       if (length(self$processes_mirai)) {
-        iwalk(self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))], function(m, id) {
-          if (is_mirai_error(m$data) || is_error_value(m$data)) {
-            # for a crashed or interrupted mirai m$data is a scalar errorValue, so derive a human-readable message
-            # interrupt (19) has no message
-            message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
+        running_mirai = self$processes_mirai[intersect(running_worker_ids, names(self$processes_mirai))]
+        lost = map_lgl(running_mirai, function(m) is_mirai_error(m$data) || is_error_value(m$data))
+        iwalk(running_mirai[lost], function(m, id) {
+          # for a crashed or interrupted mirai m$data is a scalar errorValue, so derive a human-readable message
+          # interrupt (19) has no message
+          message = if (unclass(m$data) == 19) "Worker has crashed or was killed" else as.character(m$data)
 
-            lg$error("Lost worker '%s': %s", id, message)
+          lg$error("Lost worker '%s': %s", id, message)
 
-            # move worker to terminated
-            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          # move worker to terminated
+          r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            private$.fail_lost_tasks(id, message)
-          }
+          private$.fail_lost_tasks(id, message)
         })
+        lost_worker_ids = c(lost_worker_ids, names(running_mirai)[lost])
       }
 
       # check processx workers
       if (length(self$processes_processx)) {
-        iwalk(self$processes_processx[intersect(running_worker_ids, names(self$processes_processx))], function(m, id) {
-          if (!self$processes_processx[[id]]$is_alive()) {
-            lg$error("Lost worker '%s'", id)
-            # print error messages
-            # reading the error lines of a killed process may fail, so we guard against it
-            try(walk(self$processes_processx[[id]]$read_all_error_lines(), lg$error), silent = TRUE)
+        running_processx = self$processes_processx[intersect(running_worker_ids, names(self$processes_processx))]
+        lost = map_lgl(running_processx, function(p) !p$is_alive())
+        iwalk(running_processx[lost], function(p, id) {
+          lg$error("Lost worker '%s'", id)
+          # print error messages
+          # reading the error lines of a killed process may fail, so we guard against it
+          try(walk(p$read_all_error_lines(), lg$error), silent = TRUE)
 
-            # move worker to terminated
-            r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
+          # move worker to terminated
+          r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
-            private$.fail_lost_tasks(id, "Worker has crashed or was killed")
-          }
+          private$.fail_lost_tasks(id, "Worker has crashed or was killed")
         })
+        lost_worker_ids = c(lost_worker_ids, names(running_processx)[lost])
       }
 
       # check heartbeat of workers
@@ -675,11 +680,11 @@ Rush = R6::R6Class(
           walk(lost_workers, function(worker_id) {
             private$.fail_lost_tasks(worker_id, "Worker has crashed or was killed")
           })
+          lost_worker_ids = c(lost_worker_ids, lost_workers)
         }
       }
 
-      terminated_worker_ids = self$terminated_worker_ids
-      terminated_worker_ids[terminated_worker_ids %in% running_worker_ids]
+      lost_worker_ids
     },
 
     #' @description
