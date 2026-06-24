@@ -932,7 +932,9 @@ Rush = R6::R6Class(
     empty_queue = function() {
       r = private$.connector
 
-      # empty queue
+      # atomically read all queued task keys (LRANGE) and clear the queue (DEL)
+      # the pipeline returns one reply per command; the EXEC reply [[4]] holds the results of the queued
+      # commands, so [[4]][[1]] is the LRANGE result (the task keys) and [[4]][[2]] is the DEL count
       keys = unlist(r$pipeline(
         .commands = list(
           c("MULTI"),
