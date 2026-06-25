@@ -69,6 +69,21 @@ so never run it against a production server.
 Sys.setenv(RUSH_TEST_USE_REDIS = "true")
 ```
 
+# Citation
+
+If you use rush, please cite our paper.
+
+> Becker M, Bischl B (2026). “rush: Scalable Asynchronous Distributed
+> Computing via Shared State in R.” *arXiv preprint arXiv:2606.21430*.
+> <https://arxiv.org/abs/2606.21430>.
+
+    @article{becker2026rush,
+      title   = {rush: Scalable Asynchronous Distributed Computing via Shared State in R},
+      author  = {Becker, Marc and Bischl, Bernd},
+      journal = {arXiv preprint arXiv:2606.21430},
+      year    = {2026}
+    }
+
 # Related Work
 
 - [future](https://CRAN.R-project.org/package=future)
