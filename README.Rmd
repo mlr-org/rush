@@ -66,11 +66,18 @@ If you use rush, please cite our paper.
 > <https://arxiv.org/abs/2606.21430>.
 
 ```
-@article{becker2026rush,
-  title   = {rush: Scalable Asynchronous Distributed Computing via Shared State in R},
-  author  = {Becker, Marc and Bischl, Bernd},
-  journal = {arXiv preprint arXiv:2606.21430},
-  year    = {2026}
+@misc{becker2026rush,
+  title = {rush: {{Scalable Asynchronous Distributed Computing}} via {{Shared State}} in {{R}}},
+  shorttitle = {rush},
+  author = {Becker, Marc and Bischl, Bernd},
+  year = 2026,
+  month = jun,
+  number = {arXiv:2606.21430},
+  eprint = {2606.21430},
+  primaryclass = {cs.DC},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2606.21430},
+  archiveprefix = {arXiv}
 }
 ```
 
