@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id         x         y               keys
-                  &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1: unappeased_mega... 0.9545523 0.9770119 4995e91b-45e6-4...
-   2:     emptied_verdin 0.4582538 0.6769445 5fee4993-5609-4...
-   3: unappeased_mega... 0.3992481 0.6318608 d2050528-66b5-4...
-   4: unappeased_mega... 0.3058796 0.5530639 b8f2108d-badb-4...
-   5:     emptied_verdin 0.4311841 0.6566461 85ac3962-a503-4...
+<pre><code>               worker_id          x         y               keys
+                  &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
+   1:       idle_limpkin 0.73394745 0.8567073 127106ad-c0b6-4...
+   2:       idle_limpkin 0.41998176 0.6480600 8e0b6e42-73d6-4...
+   3:       idle_limpkin 0.52097909 0.7217888 9c70bcef-fcb1-4...
+   4:       idle_limpkin 0.08126840 0.2850761 cfc040ac-f05d-4...
+   5:       idle_limpkin 0.70698654 0.8408249 331c6ec8-b941-4...
   ---
-8157:     emptied_verdin 0.1761361 0.4196857 802bf42b-a44a-4...
-8158:     emptied_verdin 0.3156972 0.5618694 31b76c6a-353e-4...
-8159: unappeased_mega... 0.4227625 0.6502019 dff9523d-faf9-4...
-8160: unappeased_mega... 0.3700221 0.6082944 4dfdc633-7229-4...
-8161:     emptied_verdin 0.2347353 0.4844948 93a6998c-acdc-4...</code></pre>
+6052:       idle_limpkin 0.37799977 0.6148169 9bcd3024-3048-4...
+6053: charcoal_foxhou... 0.71655592 0.8464963 d1702c64-65ff-4...
+6054:       idle_limpkin 0.98952321 0.9947478 9b69de4a-0153-4...
+6055: charcoal_foxhou... 0.19722191 0.4440967 27a042a2-2350-4...
+6056:       idle_limpkin 0.09968848 0.3157348 5dec6a1f-d9c7-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -216,17 +216,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>              x         y          worker_id               keys
           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.9545523 0.9770119 unappeased_mega... 4995e91b-45e6-4...
-   2: 0.4582538 0.6769445     emptied_verdin 5fee4993-5609-4...
-   3: 0.3992481 0.6318608 unappeased_mega... d2050528-66b5-4...
-   4: 0.3058796 0.5530639 unappeased_mega... b8f2108d-badb-4...
-   5: 0.4311841 0.6566461     emptied_verdin 85ac3962-a503-4...
+   1: 0.7339475 0.8567073       idle_limpkin 127106ad-c0b6-4...
+   2: 0.6231415 0.7893931 charcoal_foxhou... e1b4d2ec-b15d-4...
+   3: 0.4199818 0.6480600       idle_limpkin 8e0b6e42-73d6-4...
+   4: 0.5209791 0.7217888       idle_limpkin 9c70bcef-fcb1-4...
+   5: 0.0812684 0.2850761       idle_limpkin cfc040ac-f05d-4...
   ---
-8824: 0.2223579 0.4715484 unappeased_mega... 8a1efa11-7a10-4...
-8825: 0.2303833 0.4799826     emptied_verdin b608a8ef-c5f8-4...
-8826: 0.2415921 0.4915202     emptied_verdin 84c9be40-b45d-4...
-8827: 0.8663223 0.9307644 unappeased_mega... c0b62cdb-f9d0-4...
-8828: 0.5246459        NA     emptied_verdin 586d5b4b-3c2d-4...</code></pre>
+6462: 0.2424733 0.4924157 charcoal_foxhou... 1280096b-bbf0-4...
+6463: 0.6536547 0.8084892       idle_limpkin e3b0f1e3-5b95-4...
+6464: 0.4123869 0.6421736 charcoal_foxhou... b529fd27-f2ee-4...
+6465: 0.6943324 0.8332661       idle_limpkin 9c6830f9-582c-4...
+6466: 0.3498338        NA charcoal_foxhou... 5e734944-db0f-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -236,9 +236,9 @@
 <div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           x      worker_id               keys
-       &lt;num&gt;         &lt;char&gt;             &lt;char&gt;
-1: 0.5246459 emptied_verdin 586d5b4b-3c2d-4...</code></pre>
+<pre><code>           x          worker_id               keys
+       &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
+1: 0.3498338 charcoal_foxhou... 5e734944-db0f-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -250,17 +250,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id         x               keys         y
         &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running     emptied_verdin 0.5246459 586d5b4b-3c2d-4...        NA
-   2: finished unappeased_mega... 0.9545523 4995e91b-45e6-4... 0.9770119
-   3: finished     emptied_verdin 0.4582538 5fee4993-5609-4... 0.6769445
-   4: finished unappeased_mega... 0.3992481 d2050528-66b5-4... 0.6318608
-   5: finished unappeased_mega... 0.3058796 b8f2108d-badb-4... 0.5530639
+   1:  running charcoal_foxhou... 0.3498338 5e734944-db0f-4...        NA
+   2: finished       idle_limpkin 0.7339475 127106ad-c0b6-4... 0.8567073
+   3: finished       idle_limpkin 0.4199818 8e0b6e42-73d6-4... 0.6480600
+   4: finished       idle_limpkin 0.5209791 9c70bcef-fcb1-4... 0.7217888
+   5: finished       idle_limpkin 0.0812684 cfc040ac-f05d-4... 0.2850761
   ---
-8824: finished     emptied_verdin 0.0317943 d97eb10f-c1cc-4... 0.1783096
-8825: finished unappeased_mega... 0.2223579 8a1efa11-7a10-4... 0.4715484
-8826: finished     emptied_verdin 0.2303833 b608a8ef-c5f8-4... 0.4799826
-8827: finished     emptied_verdin 0.2415921 84c9be40-b45d-4... 0.4915202
-8828: finished unappeased_mega... 0.8663223 c0b62cdb-f9d0-4... 0.9307644</code></pre>
+6462: finished       idle_limpkin 0.5359251 59594d3e-83f8-4... 0.7320690
+6463: finished charcoal_foxhou... 0.2424733 1280096b-bbf0-4... 0.4924157
+6464: finished       idle_limpkin 0.6536547 e3b0f1e3-5b95-4... 0.8084892
+6465: finished charcoal_foxhou... 0.4123869 b529fd27-f2ee-4... 0.6421736
+6466: finished       idle_limpkin 0.6943324 9c6830f9-582c-4... 0.8332661</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 8827</code></pre>
+<pre><code>[1] 6465</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -307,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.5963553
+[1] 0.606991
 
 
 $key
-[1] "510c6e08-94f9-43e0-bdf5-2b767693000b"</code></pre>
+[1] "eea9e2aa-12a2-4d1d-b6a5-e6657caa310a"</code></pre>
 </div>
 </div>
 <div class="cell">
