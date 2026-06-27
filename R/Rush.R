@@ -756,7 +756,7 @@ Rush = R6::R6Class(
       # reset counters and caches
       private$.cached_tasks = data.table()
       private$.n_seen_results = 0
-      private$.n_consumed_tasks = 0
+      private$.n_consumed_tasks = 0L
       private$.log_counter = list()
 
       invisible(self)
@@ -1154,7 +1154,7 @@ Rush = R6::R6Class(
     reset_cache = function() {
       private$.cached_tasks = data.table()
       private$.n_seen_results = 0
-      private$.n_consumed_tasks = 0
+      private$.n_consumed_tasks = 0L
 
       invisible(self)
     },
@@ -1618,7 +1618,8 @@ Rush = R6::R6Class(
     # number of entries of the finished tasks list already read from redis
     # advances even when a task is dropped because its hash is missing,
     # so it can be larger than nrow(.cached_tasks)
-    .n_consumed_tasks = 0,
+    # integer (not double) so it never serializes to scientific notation (e.g. "1e+05") in redis LRANGE indices
+    .n_consumed_tasks = 0L,
 
     # counter for printed logs
     # zero based
