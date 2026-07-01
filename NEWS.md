@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 1.2.0
 
 * chore: The minimum R version is now 3.6.0, and Redis (>= 7.0) is declared as a system requirement.
 * refactor: Remove deprecated worker types `"local"` and `"remote"`.
