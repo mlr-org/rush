@@ -464,6 +464,33 @@ test_that("a worker is killed", {
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 })
 
+test_that("running tasks of killed workers are marked as failed", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  # holds the popped task in the running state until the worker is killed
+  wl_sleep = function(rush) {
+    task = rush$pop_task(timeout = 10)
+    Sys.sleep(600)
+  }
+
+  rush$start_workers(worker_loop = wl_sleep, n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  wait_until(rush$n_running_tasks == 1)
+
+  rush$stop_workers(type = "kill")
+
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+  data = rush$fetch_failed_tasks()
+  expect_equal(data$condition[[1]]$message, "Worker was killed")
+})
+
 test_that("stop_workers warns about and ignores workers that are not running", {
   rush = start_rush(n_workers = 1)
   on.exit({

@@ -123,6 +123,8 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Pop a task from the queue and mark it as running.
+    #' Returns `NULL` if no task is available,
+    #' or if the popped task was concurrently marked as failed because this worker was declared lost.
     #'
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for task in seconds.
@@ -148,16 +150,23 @@ RushWorker = R6::R6Class(
         return(NULL)
       }
 
-      # mark key as running
-      r$pipeline(
-        .commands = list(
-          "MULTI",
-          list("HSET", key, "worker_id", redux::object_to_bin(self$worker_id)),
-          c("LPOP", private$.get_worker_key("pending_task")),
-          c("SADD", private$.get_key("running_tasks"), key),
-          "EXEC"
-        )
-      )
+      # mark the task as running only while it is still in the pending list
+      # $detect_lost_workers() moves pending tasks to failed when this worker is declared lost,
+      # in which case the task is skipped instead of being marked as running
+      acquired = r$command(list(
+        "EVAL",
+        lua_mark_running,
+        "3",
+        private$.get_worker_key("pending_task"),
+        private$.get_key("running_tasks"),
+        key,
+        redux::object_to_bin(self$worker_id)
+      ))
+
+      if (!acquired) {
+        lg$warn("Task '%s' was marked as failed while the worker popped it", key)
+        return(NULL)
+      }
 
       task = self$read_hash(key = key, fields = fields)
       task$key = key
@@ -203,6 +212,9 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Save the output of tasks and mark them as finished.
+    #' The state transition is guarded:
+    #' a task that is no longer running, e.g. because it was marked as failed when this worker was declared lost,
+    #' stays in its state and the result is discarded with a warning.
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
@@ -226,26 +238,35 @@ RushWorker = R6::R6Class(
         keys = keys
       )
 
-      # move key from running to finished
+      # move keys from running to finished
       # keys of finished tasks are stored in a list i.e. the are ordered by time
       # each rush instance only needs to record how many results it has already seen
       # to cheaply get the latest results and cache the finished tasks
       # under some conditions a set would be more advantageous e.g. to check if a task is finished,
       # but at the moment a list seems to be the better option
-      r$pipeline(
-        .commands = list(
-          "MULTI",
-          c("SREM", private$.get_key("running_tasks"), keys),
-          c("RPUSH", private$.get_key("finished_tasks"), keys),
-          "EXEC"
-        )
-      )
+      # the move is guarded so a task that was already moved to failed stays failed (first writer wins)
+      moved = unlist(r$command(c(
+        "EVAL",
+        lua_move_set_to_list,
+        "2",
+        private$.get_key("running_tasks"),
+        private$.get_key("finished_tasks"),
+        keys
+      )))
+
+      n_discarded = length(keys) - length(moved)
+      if (n_discarded) {
+        lg$warn("Discarding the result(s) of %i task(s) that are no longer running", n_discarded)
+      }
 
       invisible(self)
     },
 
     #' @description
     #' Move running tasks to failed and optionally save the condition objects.
+    #' The state transition is guarded:
+    #' a task that is no longer running, e.g. because it was already finished,
+    #' stays in its state and the condition is discarded with a warning.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the running tasks to be moved.
@@ -258,17 +279,39 @@ RushWorker = R6::R6Class(
       r = self$connector
       conditions = conditions %??% list(list(message = "Task failed"))
 
-      self$write_hashes(condition = wrap_conditions(conditions), keys = keys)
-
-      # move key from running to failed
-      r$pipeline(
-        .commands = list(
-          "MULTI",
-          c("SREM", private$.get_key("running_tasks"), keys),
-          c("SADD", private$.get_key("failed_tasks"), keys),
-          "EXEC"
+      # check the length before the move so that an invalid input cannot change the task states
+      if (length(conditions) != 1L && length(conditions) != length(keys)) {
+        error_input(
+          "`conditions` must have length 1 or %i (the number of keys); got %i",
+          length(keys),
+          length(conditions)
         )
-      )
+      }
+
+      # move keys from running to failed
+      # the move is guarded so a task that was already moved to finished stays finished (first writer wins)
+      moved = unlist(r$command(c(
+        "EVAL",
+        lua_move_set_to_set,
+        "2",
+        private$.get_key("running_tasks"),
+        private$.get_key("failed_tasks"),
+        keys
+      )))
+
+      n_discarded = length(keys) - length(moved)
+      if (n_discarded) {
+        lg$warn("Discarding the condition(s) of %i task(s) that are no longer running", n_discarded)
+      }
+
+      # write the conditions only for the tasks that were moved
+      # so that a condition never appears on a task that finished concurrently
+      if (length(moved)) {
+        if (length(conditions) > 1L) {
+          conditions = conditions[match(moved, keys)]
+        }
+        self$write_hashes(condition = wrap_conditions(conditions), keys = moved)
+      }
 
       invisible(self)
     },

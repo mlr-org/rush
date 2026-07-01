@@ -566,7 +566,8 @@ A \code{timeout} of \code{0} checks once and errors immediately if the workers a
       \item{\code{type}}{(\code{character(1)})\cr
 Type of stopping.
 Either \code{"terminate"} or \code{"kill"}.
-If \code{"kill"} the workers are stopped immediately.
+If \code{"kill"} the workers are stopped immediately,
+and their running and pending tasks are marked as failed with the condition message \code{"Worker was killed"}.
 If \code{"terminate"} the workers evaluate the currently running task and then terminate.
 The \code{"terminate"} option must be implemented in the worker loop.}
       \item{\code{worker_ids}}{(\code{character()})\cr
@@ -591,9 +592,9 @@ Workers started from \verb{$worker_script()} are monitored through a heartbeat a
 when the heartbeat key expires.
 Because this is a timeout, \code{heartbeat_expire} must be larger than the longest pause a worker may
 experience, for example from garbage collection or swapping.
-If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
-for example failed and finished.
-Set \code{heartbeat_expire} conservatively to avoid false positives.
+If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
+and the results of tasks the worker finishes afterwards are discarded.
+Set \code{heartbeat_expire} conservatively to avoid discarding results.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$detect_lost_workers()}
