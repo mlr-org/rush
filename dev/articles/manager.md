@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: sly_basili...  8913 runnervmkk...     FALSE running
-    2: entomophag...  8911 runnervmkk...     FALSE running
+    1: bothersome...  8871 runnervmkk...     FALSE running
+    2: quasihisto...  8869 runnervmkk...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: entomophag...  8911 runnervmkk...     FALSE    running
-    2: sly_basili...  8913 runnervmkk...     FALSE terminated
+    1: quasihisto...  8869 runnervmkk...     FALSE    running
+    2: bothersome...  8871 runnervmkk...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1        x2          y          keys
-                <char>      <num>     <num>      <num>        <char>
-      1: wideawake_...  9.2244877 14.416189 147.119790 2ce7e53f-c...
-      2: wideawake_... -0.9652862  2.673455  40.297797 cfe64c8b-a...
-      3: periwinkle...  6.2311130  7.615583  62.058956 f22b0e7d-d...
-      4: wideawake_... -2.5561156  7.393320  14.379932 dbbd3f0c-4...
-      5: periwinkle...  9.2436320  5.531267  10.825924 f5e6391d-d...
+             worker_id        x1         x2          y          keys
+                <char>     <num>      <num>      <num>        <char>
+      1: doddered_y... -4.542281  8.6309814  61.135209 ad796707-2...
+      2: scribblena...  1.822643  3.5545190   7.607910 c55cfbf2-0...
+      3: doddered_y...  5.823610 13.8418840 180.639049 227bbeb6-5...
+      4: doddered_y... -2.372786  7.3181937  13.246211 1336d97d-e...
+      5: scribblena...  8.671432  4.1811966   8.141564 d121b269-d...
      ---
-    113: wideawake_...  6.8838285 14.125052 185.865638 b231925e-0...
-    114: periwinkle... -2.3042079  1.588727  80.387378 7e5e441f-d...
-    115: wideawake_...  1.0293351  6.751827  20.025686 f837761a-c...
-    116: periwinkle...  2.8728835  4.025569   3.088527 3229bf85-6...
-    117: wideawake_... -1.2083356  4.059801  29.822930 ab860297-6...
+    127: doddered_y... -1.790560 10.8484246  10.417323 af0acc81-7...
+    128: scribblena...  6.181162 10.2434322 103.189336 2b968f91-b...
+    129: doddered_y...  4.073341  0.5154856   5.584098 c714b483-d...
+    130: scribblena...  7.202727  6.9805095  48.791293 d6b5ec1c-3...
+    131: scribblena...  1.575444  8.8859482  35.687720 270bb4dc-c...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: periwinkle...  8911 runnervmkk...     FALSE terminated
-    2: wideawake_...  8913 runnervmkk...     FALSE terminated
+    1: scribblena...  8869 runnervmkk...     FALSE terminated
+    2: doddered_y...  8871 runnervmkk...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "proacademic_sealion" "frugal_cormorant"   
+    [1] "superserious_hagfish" "profound_pekingese"  
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: overwealth...  9164 runnervmkk...     FALSE running
-    2: subhexagon...  9166 runnervmkk...     FALSE running
+    1: intolerabl...  9122 runnervmkk...     FALSE running
+    2: correlatab...  9124 runnervmkk...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: overwealth...  9164 runnervmkk...     FALSE running
-    2: subhexagon...  9166 runnervmkk...     FALSE running
+    1: intolerabl...  9122 runnervmkk...     FALSE running
+    2: correlatab...  9124 runnervmkk...     FALSE running
 
 ``` r
 

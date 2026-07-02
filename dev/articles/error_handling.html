@@ -147,19 +147,19 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x1        x2     worker_id condition          keys
-         &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
- 1:  1.8004115  8.505701 sericate_r... &lt;list[1]&gt; af3dd156-2...
- 2:  2.7807398  1.870193 uninterest... &lt;list[1]&gt; 59d9e868-3...
- 3:  9.0788375  7.585494 uninterest... &lt;list[1]&gt; 4dafe152-a...
- 4: -4.5276982  1.179160 sericate_r... &lt;list[1]&gt; df554c3d-c...
- 5:  0.2914655  7.877135 sericate_r... &lt;list[1]&gt; 093f0617-c...
----
-72:  8.3338213 14.148477 sericate_r... &lt;list[1]&gt; bb854f50-2...
-73:  7.5825493 11.354952 sorcerous_... &lt;list[1]&gt; f5f1b97d-e...
-74:  8.0939130  7.384610 ichthyopha... &lt;list[1]&gt; 3756574f-0...
-75: -4.9136120 11.402036 sericate_r... &lt;list[1]&gt; 09624f1f-b...
-76:  6.8301118 13.244622 sorcerous_... &lt;list[1]&gt; f7f61355-a...</code></pre>
+<pre><code>             x1        x2     worker_id condition          keys
+          &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+  1:  2.7095738  7.459680 lunatic_el... &lt;list[1]&gt; 6f3bf6a6-a...
+  2: -3.8422539 13.227079 lunatic_el... &lt;list[1]&gt; a5f8325a-c...
+  3: -1.4477418  3.757785 lunatic_el... &lt;list[1]&gt; 26fd2a1b-7...
+  4: -0.9785854  7.584069 lunatic_el... &lt;list[1]&gt; 4c205261-4...
+  5:  1.0624847  9.664729 lunatic_el... &lt;list[1]&gt; 56eb6586-d...
+ ---
+104:  1.1380324  9.602052 troubled_c... &lt;list[1]&gt; 5c41ce1e-d...
+105: -2.4157284 10.014507 originativ... &lt;list[1]&gt; 3fa56a38-1...
+106:  1.7589790  9.324697 troubled_c... &lt;list[1]&gt; edf4d85f-8...
+107:  4.7472464 11.042881 hollow_sam... &lt;list[1]&gt; f39724dd-e...
+108:  2.9019508  3.124617 originativ... &lt;list[1]&gt; afbfbe31-a...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-error-handling-workers">Handling Failing Workers<a class="anchor" aria-label="anchor" href="#sec-error-handling-workers"></a>
@@ -189,7 +189,7 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "tasty_intermediateegret" "doughy_nettlefish"      </code></pre>
+<pre><code>[1] "unspirited_flyingsquirrel" "superangelic_ayeaye"      </code></pre>
 </div>
 </div>
 <p>When a worker fails, the state of any task it was evaluating is set to <code>"failed"</code>.</p>
@@ -197,10 +197,10 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           x1        x2     worker_id condition          keys
-        &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
-1:  4.6778770  6.375829 tasty_inte... &lt;list[1]&gt; 838d265f-f...
-2: -0.5639609 13.477997 doughy_net... &lt;list[1]&gt; a6c8c3c2-2...</code></pre>
+<pre><code>         x1       x2     worker_id condition          keys
+      &lt;num&gt;    &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+1: 7.205454 4.392867 unspirited... &lt;list[1]&gt; f3c9a720-7...
+2: 9.884778 7.082000 superangel... &lt;list[1]&gt; 35d3d96a-6...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-debugging">Debugging<a class="anchor" aria-label="anchor" href="#sec-debugging"></a>
@@ -254,7 +254,7 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "left_isabellineshrike"</code></pre>
+<pre><code>[1] "chattable_moorhen"</code></pre>
 </div>
 </div>
 <p>Output and message logs can be written to files via the <code>message_log</code> and <code>output_log</code> arguments.</p>
@@ -279,12 +279,12 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">message_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"message_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Debug message logging on worker zoophobic_squeaker started"</code></pre>
+<pre><code>[1] "Debug message logging on worker obsequious_hylaeosaurus started"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"output_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "[1] \"Debug output logging on worker zoophobic_squeaker started\""</code></pre>
+<pre><code>[1] "[1] \"Debug output logging on worker obsequious_hylaeosaurus started\""</code></pre>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

@@ -281,8 +281,6 @@ of `$start_workers()`.
 
 - [`Rush$empty_queue()`](#method-Rush-empty_queue)
 
-- [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
-
 - [`Rush$fetch_tasks()`](#method-Rush-fetch_tasks)
 
 - [`Rush$fetch_queued_tasks()`](#method-Rush-fetch_queued_tasks)
@@ -984,35 +982,6 @@ failed. The condition message is set to `"Removed from queue"`.
 #### Usage
 
     Rush$empty_queue()
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### `Rush$fail_tasks()`
-
-Deprecated method to move tasks from queued and running to failed.
-
-#### Usage
-
-    Rush$fail_tasks(keys, conditions = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the tasks to be moved. Defaults to all queued tasks.
-
-- `conditions`:
-
-  ([`list()`](https://rdrr.io/r/base/list.html))  
-  List conditions e.g.
-  `list(simpleError("Error"), simpleError("Error"))`. Defaults to
-  `list(message = "Task failed")`.
 
 #### Returns
 
