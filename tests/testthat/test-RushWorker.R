@@ -258,21 +258,21 @@ test_that("write_hashes enforces length-1-or-equal across fields", {
 test_that("writing list columns works", {
   rush = start_rush_worker()
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list("A"))))
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)), xss_extra = list(list(extra = list("A"))))
   rush$finish_tasks(keys, yss = list(list(y = 3)))
 
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
   rush$reset(workers = FALSE)
 
-  keys = rush$write_hashes(xs = list(list(x1 = 1, x2 = 2)), xs_extra = list(list(extra = list(letters[1:3]))))
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)), xss_extra = list(list(extra = list(letters[1:3]))))
   rush$finish_tasks(keys, yss = list(list(y = 3)))
 
   expect_list(rush$fetch_finished_tasks()$extra, len = 1)
   rush$reset(workers = FALSE)
 
-  keys = rush$write_hashes(
-    xs = list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)),
-    xs_extra = list(list(extra = list("A")), list(extra = list("B")))
+  keys = rush$push_running_tasks(
+    list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)),
+    xss_extra = list(list(extra = list("A")), list(extra = list("B")))
   )
   rush$finish_tasks(keys, yss = list(list(y = 3), list(y = 4)))
 
@@ -510,6 +510,62 @@ test_that("fail_tasks rejects conditions whose length is neither 1 nor length(ke
     rush$fail_tasks(keys, conditions = replicate(2, list(message = "error"), simplify = FALSE)),
     "length"
   )
+  expect_equal(rush$n_running_tasks, 3)
+  expect_equal(rush$n_failed_tasks, 0)
+})
+
+test_that("finish_tasks discards a task that is no longer running", {
+  rush = start_rush_worker()
+
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$fail_tasks(keys)
+  rush$finish_tasks(keys, yss = list(list(y = 3)))
+
+  expect_equal(rush$n_failed_tasks, 1)
+  expect_equal(rush$n_finished_tasks, 0)
+  expect_true(rush$is_failed_task(keys))
+})
+
+test_that("fail_tasks discards a task that already finished", {
+  rush = start_rush_worker()
+
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$finish_tasks(keys, yss = list(list(y = 3)))
+  rush$fail_tasks(keys, conditions = list(list(message = "lost")))
+
+  expect_equal(rush$n_finished_tasks, 1)
+  expect_equal(rush$n_failed_tasks, 0)
+  expect_false(rush$is_failed_task(keys))
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 1)
+})
+
+test_that("a task stolen from the pending list is not marked as running", {
+  rush = start_rush_worker()
+  r = rush$connector
+  pending_key = sprintf("%s:%s:pending_task", rush$network_id, rush$worker_id)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  # first half of $pop_task(): move the task from the queue to the pending list
+  r$command(c("LMOVE", sprintf("%s:queued_tasks", rush$network_id), pending_key, "RIGHT", "LEFT"))
+
+  # the manager declares the worker lost and fails the pending task
+  get_private(rush)$.fail_lost_tasks(rush$worker_id, "Worker has crashed")
+
+  expect_equal(rush$n_failed_tasks, 1)
+
+  # second half of $pop_task(): marking the stolen task as running is discarded
+  acquired = r$command(list(
+    "EVAL",
+    rush:::lua_mark_running,
+    "3",
+    pending_key,
+    sprintf("%s:running_tasks", rush$network_id),
+    keys,
+    redux::object_to_bin(rush$worker_id)
+  ))
+  expect_equal(acquired, 0)
+  expect_equal(rush$n_running_tasks, 0)
+  expect_true(rush$is_failed_task(keys))
 })
 
 test_that("fetch task with states works", {
