@@ -621,6 +621,13 @@ Generate a script to start workers. Run this script `n` times to start
 `n` workers. The logged variant of the script redacts the Redis
 password.
 
+Always set `heartbeat_period` when using this method. The heartbeat is
+the only way to manage a worker that was started from a script, because
+there is no process handle on the manager side. Without a heartbeat,
+`$stop_workers(type = "kill")` cannot kill the worker, and
+`$detect_lost_workers()` cannot detect its crash, so a crashed worker
+stays in the running state forever.
+
 #### Usage
 
     Rush$worker_script(
@@ -755,7 +762,10 @@ Stop workers.
   failed with the condition message `"Worker was killed"`. If
   `"terminate"` the workers evaluate the currently running task and then
   terminate. The `"terminate"` option must be implemented in the worker
-  loop.
+  loop. The `"kill"` option requires a process handle from
+  `$start_workers()` or `$start_local_workers()`, or a heartbeat.
+  Workers started from `$worker_script()` without a `heartbeat_period`
+  are silently skipped.
 
 - `worker_ids`:
 
@@ -774,12 +784,15 @@ Workers started with `mirai` or `processx` are monitored through their
 process handle, so a worker is only declared lost after its process has
 actually terminated. Workers started from `$worker_script()` are
 monitored through a heartbeat and are declared lost when the heartbeat
-key expires. Because this is a timeout, `heartbeat_expire` must be
-larger than the longest pause a worker may experience, for example from
-garbage collection or swapping. If a live worker is wrongly declared
-lost, its running and pending tasks are marked as failed, and the
-results of tasks the worker finishes afterwards are discarded. Set
-`heartbeat_expire` conservatively to avoid discarding results.
+key expires. Workers started from `$worker_script()` without a
+`heartbeat_period` cannot be monitored at all, so a crashed worker stays
+in the running state forever. Because this is a timeout,
+`heartbeat_expire` must be larger than the longest pause a worker may
+experience, for example from garbage collection or swapping. If a live
+worker is wrongly declared lost, its running and pending tasks are
+marked as failed, and the results of tasks the worker finishes
+afterwards are discarded. Set `heartbeat_expire` conservatively to avoid
+discarding results.
 
 #### Usage
 

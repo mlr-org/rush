@@ -563,7 +563,13 @@ If <code>NULL</code>, no output is stored.</p></dd>
 <h3 id="rush-worker-script-"><code>Rush$worker_script()</code><a class="anchor" aria-label="anchor" href="#rush-worker-script-"></a></h3>
 <p>Generate a script to start workers.
 Run this script <code>n</code> times to start <code>n</code> workers.
-The logged variant of the script redacts the Redis password.</p><div class="section">
+The logged variant of the script redacts the Redis password.</p>
+<p>Always set <code>heartbeat_period</code> when using this method.
+The heartbeat is the only way to manage a worker that was started from a script,
+because there is no process handle on the manager side.
+Without a heartbeat, <code>$stop_workers(type = "kill")</code> cannot kill the worker,
+and <code>$detect_lost_workers()</code> cannot detect its crash,
+so a crashed worker stays in the running state forever.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
@@ -680,7 +686,10 @@ Either <code>"terminate"</code> or <code>"kill"</code>.
 If <code>"kill"</code> the workers are stopped immediately,
 and their running tasks are marked as failed with the condition message <code>"Worker was killed"</code>.
 If <code>"terminate"</code> the workers evaluate the currently running task and then terminate.
-The <code>"terminate"</code> option must be implemented in the worker loop.</p></dd>
+The <code>"terminate"</code> option must be implemented in the worker loop.
+The <code>"kill"</code> option requires a process handle from <code>$start_workers()</code> or <code>$start_local_workers()</code>,
+or a heartbeat.
+Workers started from <code>$worker_script()</code> without a <code>heartbeat_period</code> are silently skipped.</p></dd>
 
       <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
@@ -702,6 +711,8 @@ The state of the worker is changed to <code>"terminated"</code>.</p>
 so a worker is only declared lost after its process has actually terminated.
 Workers started from <code>$worker_script()</code> are monitored through a heartbeat and are declared lost
 when the heartbeat key expires.
+Workers started from <code>$worker_script()</code> without a <code>heartbeat_period</code> cannot be monitored at all,
+so a crashed worker stays in the running state forever.
 Because this is a timeout, <code>heartbeat_expire</code> must be larger than the longest pause a worker may
 experience, for example from garbage collection or swapping.
 If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
