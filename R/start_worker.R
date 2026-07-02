@@ -98,8 +98,6 @@ start_worker = function(
       key = sprintf("%s:%s:%s", network_id, worker_id, "events"),
       buffer_size = lgr_buffer_size
     )
-    # remove custom fields from log messages because they might be not serializable
-    appender$add_filter(filter_custom_fields)
 
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)

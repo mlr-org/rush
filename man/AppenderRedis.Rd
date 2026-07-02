@@ -63,7 +63,13 @@ if (redux::redis_available()) {
   config,
   key,
   threshold = NA_integer_,
-  layout = lgr::LayoutJson$new(timestamp_fmt = "\%Y-\%m-\%d \%H:\%M:\%OS3"),
+  layout = lgr::LayoutJson$new(timestamp_fmt = "\%Y-\%m-\%d \%H:\%M:\%OS3",
+    transform_event = function(event) {
+     values = event$values
+    
+    values[intersect(names(values), c("level", "timestamp", "logger", "caller", "msg",
+    "rawMsg"))]
+ }),
   buffer_size = 0,
   flush_threshold = "error",
   flush_on_exit = TRUE,
@@ -83,7 +89,9 @@ Key of the list holding the log messages in the Redis data store.}
       \item{\code{threshold}}{(\code{integer(1)} | \code{character(1)})\cr
 Threshold for the log messages.}
       \item{\code{layout}}{(\link[lgr:Layout]{lgr::Layout})\cr
-Layout for the log messages.}
+Layout for the log messages.
+The default layout strips custom fields from the log events, because they might not be JSON-serializable.
+The stripping is scoped to this appender, so other appenders on the same logger still see the custom fields.}
       \item{\code{buffer_size}}{(\code{integer(1)})\cr
 Size of the buffer.}
       \item{\code{flush_threshold}}{(\code{character(1)})\cr

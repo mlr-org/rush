@@ -61,6 +61,7 @@ rsmp
 rsmps
 rushs
 sbatch
+subsetting
 stackoverflow
 testthat
 tgen

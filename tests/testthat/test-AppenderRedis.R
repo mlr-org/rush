@@ -78,7 +78,7 @@ test_that("settings the buffer size in redis appender works", {
   expect_list(logs, len = 3)
 })
 
-test_that("R6 classes can be filtered", {
+test_that("custom fields are stripped for the redis appender only", {
   appenders = lgr::get_logger("root")$appenders
 
   on.exit({
@@ -95,10 +95,10 @@ test_that("R6 classes can be filtered", {
     buffer_size = 0
   )
 
-  appender$add_filter(filter_custom_fields)
-
   root_logger = lgr::get_logger("root")
   root_logger$add_appender(appender)
+  appender_memory = lgr::AppenderBuffer$new(buffer_size = 10, flush_threshold = NULL)
+  root_logger$add_appender(appender_memory, name = "memory")
 
   lg = lgr::get_logger("mlr3/rush")
   root_logger$info("test-1", rush = rsh())
@@ -109,4 +109,7 @@ test_that("R6 classes can be filtered", {
   expect_data_table(tab, nrows = 1)
   expect_names(colnames(tab), identical.to = c("level", "timestamp", "logger", "caller", "msg"))
   expect_equal(tab$msg, "test-1")
+
+  # other appenders still see the custom fields
+  expect_class(appender_memory$buffer_events[[1]]$rush, "Rush")
 })
