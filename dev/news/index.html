@@ -78,11 +78,13 @@
 <li>fix: <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning.</li>
 <li>perf: <code>$wait_for_tasks()</code> no longer reads the full finished list and failed task set on every poll.</li>
 <li>fix: <code>$worker_script()</code> no longer logs the Redis password. The logged script shows <code>&lt;redacted&gt;</code> instead. The method now returns the script visibly.</li>
+<li>fix: <code>$worker_script()</code> now validates the <code>heartbeat_period</code>, <code>heartbeat_expire</code>, <code>message_log</code>, and <code>output_log</code> arguments instead of interpolating them into the shell command unchecked.</li>
 <li>fix: <code>RushWorker$new()</code> now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. <code>heartbeat_period</code> and <code>heartbeat_expire</code> must now be at least 1 second, and <code>heartbeat_expire</code> must be at least <code>heartbeat_period</code> seconds.</li>
 <li>fix: <code>$reset()</code> now also resets the internal log counter, so <code>$print_log()</code> no longer skips messages when the same network id is reused after a reset.</li>
 <li>fix: <code>$reset()</code> now deletes all keys in a single <code>MULTI</code>/<code>EXEC</code> transaction so a concurrent reader can no longer observe a half-reset network.</li>
 <li>feat: <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
 <li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
+<li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> now checks that <code>message_log</code> and <code>output_log</code> are existing directories, so a wrong path raises a clear error instead of a cryptic “cannot open the connection”.</li>
 <li>perf: <code>$worker_info</code> reads all workers in one pipelined round trip.</li>
 <li>refactor: Large objects are now stored under UUID keys.</li>
 </ul></div>

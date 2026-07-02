@@ -68,6 +68,9 @@
 - fix: `$worker_script()` no longer logs the Redis password. The logged
   script shows `<redacted>` instead. The method now returns the script
   visibly.
+- fix: `$worker_script()` now validates the `heartbeat_period`,
+  `heartbeat_expire`, `message_log`, and `output_log` arguments instead
+  of interpolating them into the shell command unchecked.
 - fix: `RushWorker$new()` now errors when the heartbeat process fails to
   set the heartbeat key within the startup timeout instead of silently
   registering a dead heartbeat. `heartbeat_period` and
@@ -88,6 +91,11 @@
   [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
   no longer errors on exit when `message_log` or `output_log` is set.
   The sinks are now reverted before the log connections are closed.
+- fix:
+  [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
+  now checks that `message_log` and `output_log` are existing
+  directories, so a wrong path raises a clear error instead of a cryptic
+  “cannot open the connection”.
 - perf: `$worker_info` reads all workers in one pipelined round trip.
 - refactor: Large objects are now stored under UUID keys.
 

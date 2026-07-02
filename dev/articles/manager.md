@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: phantastic...  8857 runnervmkk...     FALSE running
-    2: tall_harve...  8859 runnervmkk...     FALSE running
+    1: nondifficu...  8870 runnervmkk...     FALSE running
+    2: supersolar...  8868 runnervmkk...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: tall_harve...  8859 runnervmkk...     FALSE    running
-    2: phantastic...  8857 runnervmkk...     FALSE terminated
+    1: supersolar...  8868 runnervmkk...     FALSE    running
+    2: nondifficu...  8870 runnervmkk...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1        x2           y          keys
-                <char>     <num>     <num>       <num>        <char>
-      1: perispheri... -2.716592 13.090115   4.5396487 60241946-f...
-      2: perispheri...  9.485404  3.135369   0.7861106 7b3deb22-c...
-      3: perispheri... -3.321200  5.227452  56.5529383 e9318467-d...
-      4: alright_ja...  5.447625 12.028156 134.4794083 8247066c-3...
-      5: perispheri...  3.077963 11.526620  85.0844560 55b1b8c8-0...
+             worker_id        x1        x2          y          keys
+                <char>     <num>     <num>      <num>        <char>
+      1: technical_... 6.3315417  9.547143  90.914008 8eee7801-8...
+      2: technical_... 3.4604011 11.434203  89.142104 beda2139-b...
+      3: technical_... 6.8941635 10.444882 103.931603 c83047eb-4...
+      4: guidable_a... 6.6880631  2.208949  19.981163 16b4b408-0...
+      5: technical_... 3.1874020  5.342456  10.036012 d6af1b39-5...
      ---
-    130: alright_ja... -4.155873  9.640039  32.0242697 95e03d75-5...
-    131: perispheri... -3.969820 11.248439  13.1519916 6615e0a9-7...
-    132: alright_ja... -3.850790 12.594517   4.8151008 1d1fd9b8-4...
-    133: perispheri...  6.402094  8.973692  81.4410011 fd763811-3...
-    134: alright_ja...  3.682373  4.481163   8.4767455 259d9128-8...
+    132: technical_... 2.5408057  4.169217   3.981107 db6ed1f5-b...
+    133: guidable_a... 3.7014419  4.594841   9.240197 7c9c9a6e-2...
+    134: technical_... 5.8830736  5.729125  40.199014 9334d997-8...
+    135: guidable_a... 6.2746277  6.670347  50.633459 f7bd38c5-f...
+    136: technical_... 0.4960792  4.843212  18.603868 78b07ee4-7...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: perispheri...  8857 runnervmkk...     FALSE terminated
-    2: alright_ja...  8859 runnervmkk...     FALSE terminated
+    1: technical_...  8870 runnervmkk...     FALSE terminated
+    2: guidable_a...  8868 runnervmkk...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "rancorous_hornshark"     "raggletaggle_springtail"
+    [1] "cleanable_tegus"      "conscientious_yucker"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: francium_f...  9111 runnervmkk...     FALSE running
-    2: fatherly_b...  9114 runnervmkk...     FALSE running
+    1: untiring_f...  9124 runnervmkk...     FALSE running
+    2: differenti...  9122 runnervmkk...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: francium_f...  9111 runnervmkk...     FALSE running
-    2: fatherly_b...  9114 runnervmkk...     FALSE running
+    1: untiring_f...  9124 runnervmkk...     FALSE running
+    2: differenti...  9122 runnervmkk...     FALSE running
 
 ``` r
 
