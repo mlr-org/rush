@@ -6,11 +6,6 @@
 #' This function is called by `$start_local_workers()` or
 #' by the user after creating the worker script with `$worker_script()`.
 #'
-#' @note
-#' The function initializes the connection to the Redis database.
-#' It loads the packages required by the worker loop.
-#' The function initialize the [RushWorker] instance and starts the worker loop.
-#'
 #' @param config (`list()`)\cr
 #' Configuration for the Redis connection.
 #'
