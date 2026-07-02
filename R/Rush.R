@@ -357,6 +357,13 @@ Rush = R6::R6Class(
     #' Run this script `n` times to start `n` workers.
     #' The logged variant of the script redacts the Redis password.
     #'
+    #' Always set `heartbeat_period` when using this method.
+    #' The heartbeat is the only way to manage a worker that was started from a script,
+    #' because there is no process handle on the manager side.
+    #' Without a heartbeat, `$stop_workers(type = "kill")` cannot kill the worker,
+    #' and `$detect_lost_workers()` cannot detect its crash,
+    #' so a crashed worker stays in the running state forever.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #'
@@ -503,6 +510,9 @@ Rush = R6::R6Class(
     #' and their running tasks are marked as failed with the condition message `"Worker was killed"`.
     #' If `"terminate"` the workers evaluate the currently running task and then terminate.
     #' The `"terminate"` option must be implemented in the worker loop.
+    #' The `"kill"` option requires a process handle from `$start_workers()` or `$start_local_workers()`,
+    #' or a heartbeat.
+    #' Workers started from `$worker_script()` without a `heartbeat_period` are silently skipped.
     stop_workers = function(type = "kill", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
       worker_ids = assert_character(worker_ids, null.ok = TRUE)
@@ -609,6 +619,8 @@ Rush = R6::R6Class(
     #' so a worker is only declared lost after its process has actually terminated.
     #' Workers started from `$worker_script()` are monitored through a heartbeat and are declared lost
     #' when the heartbeat key expires.
+    #' Workers started from `$worker_script()` without a `heartbeat_period` cannot be monitored at all,
+    #' so a crashed worker stays in the running state forever.
     #' Because this is a timeout, `heartbeat_expire` must be larger than the longest pause a worker may
     #' experience, for example from garbage collection or swapping.
     #' If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,

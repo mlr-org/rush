@@ -463,6 +463,13 @@ If \code{NULL}, no output is stored.}
   Generate a script to start workers.
 Run this script \code{n} times to start \code{n} workers.
 The logged variant of the script redacts the Redis password.
+
+Always set \code{heartbeat_period} when using this method.
+The heartbeat is the only way to manage a worker that was started from a script,
+because there is no process handle on the manager side.
+Without a heartbeat, \verb{$stop_workers(type = "kill")} cannot kill the worker,
+and \verb{$detect_lost_workers()} cannot detect its crash,
+so a crashed worker stays in the running state forever.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$worker_script(
@@ -568,7 +575,10 @@ Either \code{"terminate"} or \code{"kill"}.
 If \code{"kill"} the workers are stopped immediately,
 and their running tasks are marked as failed with the condition message \code{"Worker was killed"}.
 If \code{"terminate"} the workers evaluate the currently running task and then terminate.
-The \code{"terminate"} option must be implemented in the worker loop.}
+The \code{"terminate"} option must be implemented in the worker loop.
+The \code{"kill"} option requires a process handle from \verb{$start_workers()} or \verb{$start_local_workers()},
+or a heartbeat.
+Workers started from \verb{$worker_script()} without a \code{heartbeat_period} are silently skipped.}
       \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
 If \code{NULL} all workers are stopped.
@@ -589,6 +599,8 @@ Workers started with \code{mirai} or \code{processx} are monitored through their
 so a worker is only declared lost after its process has actually terminated.
 Workers started from \verb{$worker_script()} are monitored through a heartbeat and are declared lost
 when the heartbeat key expires.
+Workers started from \verb{$worker_script()} without a \code{heartbeat_period} cannot be monitored at all,
+so a crashed worker stays in the running state forever.
 Because this is a timeout, \code{heartbeat_expire} must be larger than the longest pause a worker may
 experience, for example from garbage collection or swapping.
 If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
