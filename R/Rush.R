@@ -971,25 +971,6 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Deprecated method to move tasks from queued and running to failed.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the tasks to be moved.
-    #' Defaults to all queued tasks.
-    #'
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    fail_tasks = function(keys, conditions = NULL) {
-      warn_deprecated(
-        "$fail_tasks()"
-      )
-
-      self$empty_queue()
-
-      invisible(self)
-    },
-
-    #' @description
     #' Fetch all tasks from the database.
     #'
     #' @param fields (`character()`)\cr
