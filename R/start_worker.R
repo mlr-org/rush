@@ -6,11 +6,6 @@
 #' This function is called by `$start_local_workers()` or
 #' by the user after creating the worker script with `$worker_script()`.
 #'
-#' @note
-#' The function initializes the connection to the Redis database.
-#' It loads the packages required by the worker loop.
-#' The function initialize the [RushWorker] instance and starts the worker loop.
-#'
 #' @param config (`list()`)\cr
 #' Configuration for the Redis connection.
 #'
@@ -44,26 +39,34 @@ start_worker = function(
   output_log = NULL
 ) {
   timestamp_start = Sys.time()
-  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% ids::adjective_animal(1)
 
   if (!is.null(message_log)) {
+    checkmate::assert_directory_exists(message_log)
     message_log_path = file.path(message_log, sprintf("message_%s.log", worker_id))
     message_log_con = file(message_log_path, open = "a")
-    on.exit({
-      sink(type = "message")
-      close(message_log_con)
-    }, add = TRUE)
+    on.exit(
+      {
+        sink(type = "message")
+        close(message_log_con)
+      },
+      add = TRUE
+    )
     sink(message_log_con, type = "message", append = TRUE)
     mlr3misc::messagef("Debug message logging on worker %s started", worker_id)
   }
 
   if (!is.null(output_log)) {
+    checkmate::assert_directory_exists(output_log)
     output_log_path = file.path(output_log, sprintf("output_%s.log", worker_id))
     output_log_con = file(output_log_path, open = "a")
-    on.exit({
-      sink(type = "output")
-      close(output_log_con)
-    }, add = TRUE)
+    on.exit(
+      {
+        sink(type = "output")
+        close(output_log_con)
+      },
+      add = TRUE
+    )
     sink(output_log_con, type = "output", append = TRUE)
     print(sprintf("Debug output logging on worker %s started", worker_id))
   }
@@ -90,8 +93,6 @@ start_worker = function(
       key = sprintf("%s:%s:%s", network_id, worker_id, "events"),
       buffer_size = lgr_buffer_size
     )
-    # remove custom fields from log messages because they might be not serializable
-    appender$add_filter(filter_custom_fields)
 
     root_logger = lgr::get_logger("root")
     root_logger$add_appender(appender)

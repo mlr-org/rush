@@ -86,6 +86,14 @@ wl_segfault = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
 
+# writes more than the OS pipe buffer (~64 KiB) to stderr before finishing a task
+wl_big_stderr = function(rush) {
+  keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
+  message(strrep("x", 1e6))
+  rush$finish_tasks(keys, yss = list(list(y = 3)))
+  NULL
+}
+
 wl_nop = function(rush) {
   while (!rush$terminated) {
     Sys.sleep(1)

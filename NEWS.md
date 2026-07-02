@@ -2,8 +2,15 @@
 
 * chore: The minimum R version is now 3.6.0, and Redis (>= 7.0) is declared as a system requirement.
 * refactor: Remove deprecated worker types `"local"` and `"remote"`.
+* fix: `AppenderRedis` now strips custom fields from log events in its own layout instead of mutating the shared log event.
+  Previously, the custom fields were also removed from the output log and console output when `output_log` was set.
+  The `filter_custom_fields()` function is removed.
 * refactor: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$push_running_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
 * fix: `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
+* fix: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$detect_lost_workers()` now change task states with guarded first-writer-wins transitions implemented as Lua scripts.
+  A task can no longer be recorded as finished and failed at the same time when a live worker is wrongly declared lost, for example after its heartbeat expires during a long pause.
+  The losing transition is discarded with a warning.
+* fix: `$stop_workers(type = "kill")` now marks the running and pending tasks of killed workers as failed with the condition message `"Worker was killed"`. Previously these tasks remained in the running state indefinitely.
 * refactor: The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
 * fix: `$empty_queue()` no longer creates an orphaned hash in the Redis database when the queue is already empty.
@@ -18,6 +25,8 @@
   Affected tasks are dropped with a warning.
 * fix: `$fetch_failed_tasks()` and related methods now return the documented `condition` column holding the whole condition object.
 * feat: The `extra` argument of `$push_tasks()`, `$push_running_tasks()`, and `$finish_tasks()`  methods is deprecated in favor of the consistently named `xss_extra` and `yss_extra` arguments.
+* fix: `$start_local_workers()` now redirects the standard error stream of workers to a file instead of a pipe.
+  Previously, a worker writing more than the operating system's pipe buffer to standard error blocked forever because the pipe was only drained after the worker terminated.
 * fix: `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
   The temporary arguments file is now deleted after the worker reads it.
 * fix: `$stop_workers()` no longer errors when a requested worker id is not running.
@@ -26,6 +35,7 @@
 * fix: `$worker_script()` no longer logs the Redis password.
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.
+* fix: `$worker_script()` now validates the `heartbeat_period`, `heartbeat_expire`, `message_log`, and `output_log` arguments instead of interpolating them into the shell command unchecked.
 * fix: `RushWorker$new()` now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat.
   `heartbeat_period` and `heartbeat_expire` must now be at least 1 second, and `heartbeat_expire` must be at least `heartbeat_period` seconds.
 * fix: `$reset()` now also resets the internal log counter, so `$print_log()` no longer skips messages when the same network id is reused after a reset.
@@ -34,6 +44,8 @@
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
 * fix: `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
   The sinks are now reverted before the log connections are closed.
+* fix: `start_worker()` now checks that `message_log` and `output_log` are existing directories, so a wrong path raises a clear error instead of a cryptic "cannot open the connection".
+* refactor: `start_worker()` now generates default worker ids with `ids::adjective_animal()` instead of `uuid::UUIDgenerate()`, matching `RushWorker$new()`.
 * perf: `$worker_info` reads all workers in one pipelined round trip.
 * refactor: Large objects are now stored under UUID keys.
 

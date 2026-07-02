@@ -24,7 +24,7 @@ NULL
 #' @rdname rush_assertions
 assert_rush = function(rush, null_ok = FALSE) {
   if (null_ok && is.null(rush)) {
-    invisible(return(NULL))
+    return(invisible(NULL))
   }
   assert_r6(rush, "Rush")
   invisible(rush)
@@ -37,7 +37,7 @@ assert_rush = function(rush, null_ok = FALSE) {
 #' @rdname rush_assertions
 assert_rushs = function(rushs, null_ok = FALSE) {
   if (null_ok && is.null(rushs)) {
-    invisible(return(NULL))
+    return(invisible(NULL))
   }
   invisible(map(rushs, assert_rush))
 }
@@ -49,7 +49,7 @@ assert_rushs = function(rushs, null_ok = FALSE) {
 #' @rdname rush_assertions
 assert_rush_worker = function(worker, null_ok = FALSE) {
   if (null_ok && is.null(worker)) {
-    invisible(return(NULL))
+    return(invisible(NULL))
   }
   assert_r6(worker, "RushWorker")
   invisible(worker)
@@ -62,7 +62,7 @@ assert_rush_worker = function(worker, null_ok = FALSE) {
 #' @rdname rush_assertions
 assert_rush_workers = function(workers, null_ok = FALSE) {
   if (null_ok && is.null(workers)) {
-    invisible(return(NULL))
+    return(invisible(NULL))
   }
   invisible(map(workers, assert_rush_worker))
 }

@@ -205,7 +205,6 @@ Contains information about the workers.}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
     \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
-    \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
     \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
     \item \href{#method-Rush-fetch_running_tasks}{\code{Rush$fetch_running_tasks()}}
@@ -464,6 +463,13 @@ If \code{NULL}, no output is stored.}
   Generate a script to start workers.
 Run this script \code{n} times to start \code{n} workers.
 The logged variant of the script redacts the Redis password.
+
+Always set \code{heartbeat_period} when using this method.
+The heartbeat is the only way to manage a worker that was started from a script,
+because there is no process handle on the manager side.
+Without a heartbeat, \verb{$stop_workers(type = "kill")} cannot kill the worker,
+and \verb{$detect_lost_workers()} cannot detect its crash,
+so a crashed worker stays in the running state forever.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$worker_script(
@@ -566,9 +572,13 @@ A \code{timeout} of \code{0} checks once and errors immediately if the workers a
       \item{\code{type}}{(\code{character(1)})\cr
 Type of stopping.
 Either \code{"terminate"} or \code{"kill"}.
-If \code{"kill"} the workers are stopped immediately.
+If \code{"kill"} the workers are stopped immediately,
+and their running tasks are marked as failed with the condition message \code{"Worker was killed"}.
 If \code{"terminate"} the workers evaluate the currently running task and then terminate.
-The \code{"terminate"} option must be implemented in the worker loop.}
+The \code{"terminate"} option must be implemented in the worker loop.
+The \code{"kill"} option requires a process handle from \verb{$start_workers()} or \verb{$start_local_workers()},
+or a heartbeat.
+Workers started from \verb{$worker_script()} without a \code{heartbeat_period} are silently skipped.}
       \item{\code{worker_ids}}{(\code{character()})\cr
 Worker ids to be stopped.
 If \code{NULL} all workers are stopped.
@@ -589,11 +599,13 @@ Workers started with \code{mirai} or \code{processx} are monitored through their
 so a worker is only declared lost after its process has actually terminated.
 Workers started from \verb{$worker_script()} are monitored through a heartbeat and are declared lost
 when the heartbeat key expires.
+Workers started from \verb{$worker_script()} without a \code{heartbeat_period} cannot be monitored at all,
+so a crashed worker stays in the running state forever.
 Because this is a timeout, \code{heartbeat_expire} must be larger than the longest pause a worker may
 experience, for example from garbage collection or swapping.
-If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
-for example failed and finished.
-Set \code{heartbeat_expire} conservatively to avoid false positives.
+If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
+and the results of tasks the worker finishes afterwards are discarded.
+Set \code{heartbeat_expire} conservatively to avoid discarding results.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$detect_lost_workers()}
@@ -778,34 +790,6 @@ The condition message is set to \code{"Removed from queue"}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$empty_queue()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    (\code{Rush})\cr
-Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Rush-fail_tasks"></a>}}
-\if{latex}{\out{\hypertarget{method-Rush-fail_tasks}{}}}
-\subsection{\code{Rush$fail_tasks()}}{
-  Deprecated method to move tasks from queued and running to failed.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fail_tasks(keys, conditions = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{keys}}{(\code{character()})\cr
-Keys of the tasks to be moved.
-Defaults to all queued tasks.}
-      \item{\code{conditions}}{(\code{list()})\cr
-List conditions e.g. \code{list(simpleError("Error"), simpleError("Error"))}.
-Defaults to \code{list(message = "Task failed")}.}
-    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

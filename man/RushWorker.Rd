@@ -142,6 +142,7 @@ because a live worker wrongly declared lost can leave a task in an inconsistent 
 \if{latex}{\out{\hypertarget{method-RushWorker-pop_task}{}}}
 \subsection{\code{RushWorker$pop_task()}}{
   Pop a task from the queue and mark it as running.
+Returns \code{NULL} if no task is available.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}

@@ -263,8 +263,6 @@ Rush = R6::R6Class(
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
       assert_flag(supervise)
 
-      r = private$.connector
-
       # push worker config to redis
       private$.push_worker_config(
         worker_loop = worker_loop,
@@ -309,7 +307,9 @@ Rush = R6::R6Class(
               "Rscript",
               args = c("-e", expr),
               supervise = supervise,
-              stderr = "|"
+              # a file instead of a pipe ("|") so a worker writing more than the OS pipe buffer
+              # to stderr cannot block on write(), read via p$get_error_file() on loss
+              stderr = tempfile(sprintf("rush_worker_%s_stderr_", worker_id), fileext = ".log")
             )
           }),
           worker_ids
@@ -355,6 +355,13 @@ Rush = R6::R6Class(
     #' Run this script `n` times to start `n` workers.
     #' The logged variant of the script redacts the Redis password.
     #'
+    #' Always set `heartbeat_period` when using this method.
+    #' The heartbeat is the only way to manage a worker that was started from a script,
+    #' because there is no process handle on the manager side.
+    #' Without a heartbeat, `$stop_workers(type = "kill")` cannot kill the worker,
+    #' and `$detect_lost_workers()` cannot detect its crash,
+    #' so a crashed worker stays in the running state forever.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #'
@@ -373,6 +380,11 @@ Rush = R6::R6Class(
     ) {
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
+      assert_number(heartbeat_period, lower = 1, null.ok = TRUE)
+      # expire must be >= period so the TTL outlasts the refresh interval
+      assert_number(heartbeat_expire, lower = heartbeat_period %??% 1, null.ok = TRUE)
+      assert_string(message_log, null.ok = TRUE)
+      assert_string(output_log, null.ok = TRUE)
 
       # push worker config to redis
       private$.push_worker_config(
@@ -497,9 +509,13 @@ Rush = R6::R6Class(
     #' @param type (`character(1)`)\cr
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
-    #' If `"kill"` the workers are stopped immediately.
+    #' If `"kill"` the workers are stopped immediately,
+    #' and their running tasks are marked as failed with the condition message `"Worker was killed"`.
     #' If `"terminate"` the workers evaluate the currently running task and then terminate.
     #' The `"terminate"` option must be implemented in the worker loop.
+    #' The `"kill"` option requires a process handle from `$start_workers()` or `$start_local_workers()`,
+    #' or a heartbeat.
+    #' Workers started from `$worker_script()` without a `heartbeat_period` are silently skipped.
     stop_workers = function(type = "kill", worker_ids = NULL) {
       assert_choice(type, c("terminate", "kill"))
       worker_ids = assert_character(worker_ids, null.ok = TRUE)
@@ -576,6 +592,13 @@ Rush = R6::R6Class(
 
           r$pipeline(.commands = cmds)
         }
+
+        # mark the tasks of the killed workers as failed
+        # the moves are guarded so a task that a worker finishes before the kill takes effect stays finished
+        killed_worker_ids = unique(c(worker_ids_processx, worker_ids_mirai, worker_ids_heartbeat))
+        walk(killed_worker_ids, function(worker_id) {
+          private$.fail_lost_tasks(worker_id, "Worker was killed")
+        })
       }
 
       if (type == "terminate") {
@@ -599,11 +622,13 @@ Rush = R6::R6Class(
     #' so a worker is only declared lost after its process has actually terminated.
     #' Workers started from `$worker_script()` are monitored through a heartbeat and are declared lost
     #' when the heartbeat key expires.
+    #' Workers started from `$worker_script()` without a `heartbeat_period` cannot be monitored at all,
+    #' so a crashed worker stays in the running state forever.
     #' Because this is a timeout, `heartbeat_expire` must be larger than the longest pause a worker may
     #' experience, for example from garbage collection or swapping.
-    #' If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
-    #' for example failed and finished.
-    #' Set `heartbeat_expire` conservatively to avoid false positives.
+    #' If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
+    #' and the results of tasks the worker finishes afterwards are discarded.
+    #' Set `heartbeat_expire` conservatively to avoid discarding results.
     #'
     #' @return (`character()`)\cr
     #' Worker ids of detected lost workers.
@@ -640,9 +665,12 @@ Rush = R6::R6Class(
         lost = map_lgl(running_processx, function(p) !p$is_alive())
         iwalk(running_processx[lost], function(p, id) {
           lg$error("Lost worker '%s'", id)
-          # print error messages
-          # reading the error lines of a killed process may fail, so we guard against it
-          try(walk(p$read_all_error_lines(), lg$error), silent = TRUE)
+          # print error messages from the stderr file
+          # only the tail because workers can write unbounded output to stderr
+          error_file = p$get_error_file()
+          if (!is.null(error_file) && file.exists(error_file)) {
+            try(walk(tail(readLines(error_file, warn = FALSE), 50L), lg$error), silent = TRUE)
+          }
 
           # move worker to terminated
           r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
@@ -958,25 +986,6 @@ Rush = R6::R6Class(
     },
 
     #' @description
-    #' Deprecated method to move tasks from queued and running to failed.
-    #'
-    #' @param keys (`character()`)\cr
-    #' Keys of the tasks to be moved.
-    #' Defaults to all queued tasks.
-    #'
-    #' @return (`Rush`)\cr
-    #' Invisible self.
-    fail_tasks = function(keys, conditions = NULL) {
-      warn_deprecated(
-        "$fail_tasks()"
-      )
-
-      self$empty_queue()
-
-      invisible(self)
-    },
-
-    #' @description
     #' Fetch all tasks from the database.
     #'
     #' @param fields (`character()`)\cr
@@ -1073,7 +1082,6 @@ Rush = R6::R6Class(
       fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition"),
       states = c("queued", "running", "finished", "failed")
     ) {
-      r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
 
       all_keys = private$.tasks_with_state(states, only_new_keys = TRUE)
@@ -1421,7 +1429,6 @@ Rush = R6::R6Class(
     #'
     #' @return (Named list of `character()`).
     tasks_with_state = function(states) {
-      r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"))
       private$.tasks_with_state(states)
     }
@@ -1715,7 +1722,6 @@ Rush = R6::R6Class(
 
     # fetch tasks
     .fetch_tasks = function(keys, fields) {
-      r = private$.connector
       assert_character(fields)
 
       if (!length(keys)) {
@@ -1746,8 +1752,6 @@ Rush = R6::R6Class(
 
     # fetch and cache tasks
     .fetch_cached_tasks = function(new_keys, fields) {
-      r = private$.connector
-
       lg$debug("Reading %i cached task(s)", nrow(private$.cached_tasks))
 
       if (length(new_keys)) {
@@ -1790,26 +1794,44 @@ Rush = R6::R6Class(
       running_keys = running_keys[!is.na(running_keys)]
 
       # popped from the queue into the pending list but not yet marked as running when the worker was lost
-      pending_key = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
+      pending_keys = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
 
-      keys = c(running_keys, pending_key)
+      keys = c(running_keys, pending_keys)
+      if (!length(keys)) {
+        lg$debug("Worker '%s' has no running or pending tasks", worker_id)
+        return(invisible(NULL))
+      }
 
-      if (length(keys)) {
-        lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-        self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
+      # write the conditions before the moves so a task is never visible as failed without its condition
+      self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
 
-        cmds = c(
-          map(running_keys, function(key) {
-            c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
-          }),
-          if (length(pending_key)) list(c("SADD", private$.get_key("failed_tasks"), pending_key))
-        )
+      # the moves are guarded so a key is only failed while it is still in its source (first writer wins)
+      # if the worker is alive and finishes or pops a task concurrently, the state set by the first actor stays
+      moved = c(
+        if (length(running_keys)) {
+          unlist(r$command(c(
+            "EVAL",
+            lua_move_set_to_set,
+            "2",
+            private$.get_key("running_tasks"),
+            private$.get_key("failed_tasks"),
+            running_keys
+          )))
+        },
+        if (length(pending_keys)) {
+          unlist(r$command(c(
+            "EVAL",
+            lua_move_list_to_set,
+            "2",
+            private$.get_worker_key("pending_task", worker_id),
+            private$.get_key("failed_tasks"),
+            pending_keys
+          )))
+        }
+      )
 
-        r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
-
-        r$command(c("DEL", private$.get_worker_key("pending_task", worker_id)))
-      } else {
-        lg$error("Worker '%s' crashed before evaluating a task", worker_id)
+      if (length(moved)) {
+        lg$error("Lost %i task(s): %s", length(moved), str_collapse(moved))
       }
 
       invisible(NULL)

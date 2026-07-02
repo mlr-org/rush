@@ -227,6 +227,24 @@ test_that("local workers remove the arguments file after start", {
   expect_set_equal(list.files(tempdir(), pattern = "\\.rds$"), rds_files)
 })
 
+test_that("a local worker writing large output to stderr does not block", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rush$start_local_workers(
+    worker_loop = wl_big_stderr,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  wait_until(rush$n_finished_tasks == 1, timeout = 30)
+  expect_equal(rush$n_finished_tasks, 1)
+})
+
 # start workers with script ----------------------------------------------------
 
 test_that("worker script contains the password but the log redacts it", {
@@ -464,6 +482,33 @@ test_that("a worker is killed", {
   expect_true(mirai::is_error_value(rush$processes_mirai[[worker_id_2]]$data))
 })
 
+test_that("running tasks of killed workers are marked as failed", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  # holds the popped task in the running state until the worker is killed
+  wl_sleep = function(rush) {
+    task = rush$pop_task(timeout = 10)
+    Sys.sleep(600)
+  }
+
+  rush$start_workers(worker_loop = wl_sleep, n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  wait_until(rush$n_running_tasks == 1)
+
+  rush$stop_workers(type = "kill")
+
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 1)
+  data = rush$fetch_failed_tasks()
+  expect_equal(data$condition[[1]]$message, "Worker was killed")
+})
+
 test_that("stop_workers warns about and ignores workers that are not running", {
   rush = start_rush(n_workers = 1)
   on.exit({
@@ -486,7 +531,8 @@ test_that("stop_workers warns about and ignores workers that are not running", {
 
   # a mix of a running and a non-running worker warns but still stops the running one
   log = capture.output(
-    rush$stop_workers(worker_ids = c(worker_id, "ghost"), type = "kill"))
+    rush$stop_workers(worker_ids = c(worker_id, "ghost"), type = "kill")
+  )
   expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
 
   wait_until(worker_id %in% rush$terminated_worker_ids)
@@ -494,7 +540,8 @@ test_that("stop_workers warns about and ignores workers that are not running", {
 
   # stopping only a non-running worker warns and is a no-op without error
   log = capture.output(
-    expect_invisible(rush$stop_workers(worker_ids = "ghost", type = "kill")))
+    expect_invisible(rush$stop_workers(worker_ids = "ghost", type = "kill"))
+  )
   expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
 })
 
