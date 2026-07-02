@@ -885,6 +885,52 @@ test_that("empty queue on an empty queue does not leak a hash", {
   expect_equal(r$DBSIZE(), 0)
 })
 
+test_that("empty running works", {
+  rush = start_rush_worker()
+
+  running_keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 2, x2 = 2)))
+  queued_keys = rush$push_tasks(list(list(x1 = 3, x2 = 2)))
+
+  rush$empty_running()
+
+  expect_equal(rush$n_running_tasks, 0)
+  expect_equal(rush$n_failed_tasks, 2)
+  expect_equal(rush$n_queued_tasks, 1)
+  data = rush$fetch_failed_tasks()
+  expect_set_equal(data$keys, running_keys)
+  expect_set_equal(map_chr(data$condition, "message"), "Removed from running")
+})
+
+test_that("empty running moves a pending task to failed", {
+  rush = start_rush_worker()
+  r = rush$connector
+  pending_key = sprintf("%s:%s:pending_task", rush$network_id, rush$worker_id)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  # first half of $pop_task(): move the task from the queue to the pending list
+  r$command(c("LMOVE", sprintf("%s:queued_tasks", rush$network_id), pending_key, "RIGHT", "LEFT"))
+
+  rush$empty_running()
+
+  expect_true(rush$is_failed_task(keys))
+  expect_equal(r$LLEN(pending_key), 0)
+  expect_equal(rush$n_running_tasks, 0)
+})
+
+test_that("empty running on an empty network does not leak a hash", {
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+  on.exit({
+    rush$reset()
+  })
+
+  rush = rsh(network_id = "test-rush", config = config)
+  rush$empty_running()
+
+  expect_equal(r$DBSIZE(), 0)
+})
+
 # segfault detection -----------------------------------------------------------
 
 test_that("segfaults on mirai workers are detected", {

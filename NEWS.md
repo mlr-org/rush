@@ -11,6 +11,7 @@
 * refactor: The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
 * fix: `$empty_queue()` no longer creates an orphaned hash in the Redis database when the queue is already empty.
+* feat: New method `$empty_running()` moves all running and pending tasks to the failed state with the condition message `"Removed from running"`. Tasks that a worker finishes or fails at the same time keep the state set by the worker, and workers discard the results of removed tasks.
 * BREAKING CHANGE: The `$empty_queue()` method now empties the entire queue instead of a specified set of tasks.
   The `keys` and `conditions` arguments are removed.
 * fix: `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task.

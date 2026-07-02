@@ -205,6 +205,7 @@ Contains information about the workers.}
     \item \href{#method-Rush-push_finished_tasks}{\code{Rush$push_finished_tasks()}}
     \item \href{#method-Rush-push_failed_tasks}{\code{Rush$push_failed_tasks()}}
     \item \href{#method-Rush-empty_queue}{\code{Rush$empty_queue()}}
+    \item \href{#method-Rush-empty_running}{\code{Rush$empty_running()}}
     \item \href{#method-Rush-fail_tasks}{\code{Rush$fail_tasks()}}
     \item \href{#method-Rush-fetch_tasks}{\code{Rush$fetch_tasks()}}
     \item \href{#method-Rush-fetch_queued_tasks}{\code{Rush$fetch_queued_tasks()}}
@@ -779,6 +780,29 @@ The condition message is set to \code{"Removed from queue"}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$empty_queue()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    (\code{Rush})\cr
+Invisible self.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Rush-empty_running"></a>}}
+\if{latex}{\out{\hypertarget{method-Rush-empty_running}{}}}
+\subsection{\code{Rush$empty_running()}}{
+  Remove all tasks from the running state.
+The state of the tasks is set to failed.
+The condition message is set to \code{"Removed from running"}.
+Also removes tasks that a worker popped from the queue but has not marked as running yet.
+The moves are guarded, so a task that a worker finishes or fails at the same time keeps the state set by
+the worker.
+The workers keep evaluating the removed tasks but discard their results.
+Tasks that are popped from the queue after the call are not affected.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Rush$empty_running()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

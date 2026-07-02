@@ -966,6 +966,72 @@ Rush = R6::R6Class(
     },
 
     #' @description
+    #' Remove all tasks from the running state.
+    #' The state of the tasks is set to failed.
+    #' The condition message is set to `"Removed from running"`.
+    #' Also removes tasks that a worker popped from the queue but has not marked as running yet.
+    #' The moves are guarded, so a task that a worker finishes or fails at the same time keeps the state set by
+    #' the worker.
+    #' The workers keep evaluating the removed tasks but discard their results.
+    #' Tasks that are popped from the queue after the call are not affected.
+    #'
+    #' @return (`Rush`)\cr
+    #' Invisible self.
+    empty_running = function() {
+      r = private$.connector
+      worker_ids = self$worker_ids
+
+      # read the running tasks and the pending lists of all workers in one transaction
+      # so a task mid-pop cannot slip from one snapshot into the other
+      r$MULTI()
+      r$SMEMBERS(private$.get_key("running_tasks"))
+      walk(worker_ids, function(worker_id) {
+        r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1L))
+      })
+      res = r$EXEC()
+
+      running_keys = unlist(res[[1]])
+      pending_keys = set_names(map(res[-1], unlist), worker_ids)
+
+      keys = c(running_keys, unlist(pending_keys))
+
+      # nothing to do if no task is running or pending
+      if (!length(keys)) {
+        return(invisible(self))
+      }
+
+      # write the conditions before the moves so a task is never visible as failed without its condition
+      self$write_hashes(condition = wrap_conditions(list(list(message = "Removed from running"))), keys = keys)
+
+      # the moves are guarded so a task that a worker finishes or fails at the same time keeps that state
+      # (first writer wins) and a removed pending task cannot be marked as running anymore
+      if (length(running_keys)) {
+        r$command(c(
+          "EVAL",
+          lua_move_set_to_set,
+          "2",
+          private$.get_key("running_tasks"),
+          private$.get_key("failed_tasks"),
+          running_keys
+        ))
+      }
+      iwalk(pending_keys, function(keys, worker_id) {
+        if (length(keys)) {
+          r$command(c(
+            "EVAL",
+            lua_move_list_to_set,
+            "2",
+            private$.get_worker_key("pending_task", worker_id),
+            private$.get_key("failed_tasks"),
+            keys
+          ))
+        }
+      })
+
+      invisible(self)
+    },
+
+    #' @description
     #' Deprecated method to move tasks from queued and running to failed.
     #'
     #' @param keys (`character()`)\cr
