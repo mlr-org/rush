@@ -309,7 +309,9 @@ Rush = R6::R6Class(
               "Rscript",
               args = c("-e", expr),
               supervise = supervise,
-              stderr = "|"
+              # a file instead of a pipe ("|") so a worker writing more than the OS pipe buffer
+              # to stderr cannot block on write(), read via p$get_error_file() on loss
+              stderr = tempfile(sprintf("rush_worker_%s_stderr_", worker_id), fileext = ".log")
             )
           }),
           worker_ids
@@ -648,9 +650,12 @@ Rush = R6::R6Class(
         lost = map_lgl(running_processx, function(p) !p$is_alive())
         iwalk(running_processx[lost], function(p, id) {
           lg$error("Lost worker '%s'", id)
-          # print error messages
-          # reading the error lines of a killed process may fail, so we guard against it
-          try(walk(p$read_all_error_lines(), lg$error), silent = TRUE)
+          # print error messages from the stderr file
+          # only the tail because workers can write unbounded output to stderr
+          error_file = p$get_error_file()
+          if (!is.null(error_file) && file.exists(error_file)) {
+            try(walk(tail(readLines(error_file, warn = FALSE), 50L), lg$error), silent = TRUE)
+          }
 
           # move worker to terminated
           r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))

@@ -227,6 +227,24 @@ test_that("local workers remove the arguments file after start", {
   expect_set_equal(list.files(tempdir(), pattern = "\\.rds$"), rds_files)
 })
 
+test_that("a local worker writing large output to stderr does not block", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+    walk(rush$processes_processx, function(process) process$kill())
+  })
+
+  rush$start_local_workers(
+    worker_loop = wl_big_stderr,
+    n_workers = 1
+  )
+  rush$wait_for_workers(1, timeout = 5)
+
+  wait_until(rush$n_finished_tasks == 1, timeout = 30)
+  expect_equal(rush$n_finished_tasks, 1)
+})
+
 # start workers with script ----------------------------------------------------
 
 test_that("worker script contains the password but the log redacts it", {

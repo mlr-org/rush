@@ -22,6 +22,8 @@
   Affected tasks are dropped with a warning.
 * fix: `$fetch_failed_tasks()` and related methods now return the documented `condition` column holding the whole condition object.
 * feat: The `extra` argument of `$push_tasks()`, `$push_running_tasks()`, and `$finish_tasks()`  methods is deprecated in favor of the consistently named `xss_extra` and `yss_extra` arguments.
+* fix: `$start_local_workers()` now redirects the standard error stream of workers to a file instead of a pipe.
+  Previously, a worker writing more than the operating system's pipe buffer to standard error blocked forever because the pipe was only drained after the worker terminated.
 * fix: `$start_local_workers()` no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes.
   The temporary arguments file is now deleted after the worker reads it.
 * fix: `$stop_workers()` no longer errors when a requested worker id is not running.
