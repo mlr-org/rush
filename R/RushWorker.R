@@ -266,7 +266,7 @@ RushWorker = R6::R6Class(
     #' Move running tasks to failed and optionally save the condition objects.
     #' The state transition is guarded:
     #' a task that is no longer running, e.g. because it was already finished,
-    #' stays in its state and the condition is discarded with a warning.
+    #' stays in its state and is skipped with a warning.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the running tasks to be moved.
@@ -279,17 +279,12 @@ RushWorker = R6::R6Class(
       r = self$connector
       conditions = conditions %??% list(list(message = "Task failed"))
 
-      # check the length before the move so that an invalid input cannot change the task states
-      if (length(conditions) != 1L && length(conditions) != length(keys)) {
-        error_input(
-          "`conditions` must have length 1 or %i (the number of keys); got %i",
-          length(keys),
-          length(conditions)
-        )
-      }
+      # write the conditions before the move so a task is never visible as failed without its condition
+      self$write_hashes(condition = wrap_conditions(conditions), keys = keys)
 
       # move keys from running to failed
       # the move is guarded so a task that was already moved to finished stays finished (first writer wins)
+      # a task that finished concurrently keeps the condition on its hash but is not marked as failed
       moved = unlist(r$command(c(
         "EVAL",
         lua_move_set_to_set,
@@ -301,16 +296,7 @@ RushWorker = R6::R6Class(
 
       n_discarded = length(keys) - length(moved)
       if (n_discarded) {
-        lg$warn("Discarding the condition(s) of %i task(s) that are no longer running", n_discarded)
-      }
-
-      # write the conditions only for the tasks that were moved
-      # so that a condition never appears on a task that finished concurrently
-      if (length(moved)) {
-        if (length(conditions) > 1L) {
-          conditions = conditions[match(moved, keys)]
-        }
-        self$write_hashes(condition = wrap_conditions(conditions), keys = moved)
+        lg$warn("Discarding the failed state of %i task(s) that are no longer running", n_discarded)
       }
 
       invisible(self)

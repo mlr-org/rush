@@ -234,7 +234,7 @@ Invisible self.
   Move running tasks to failed and optionally save the condition objects.
 The state transition is guarded:
 a task that is no longer running, e.g. because it was already finished,
-stays in its state and the condition is discarded with a warning.
+stays in its state and is skipped with a warning.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$fail_tasks(keys, conditions = NULL)}

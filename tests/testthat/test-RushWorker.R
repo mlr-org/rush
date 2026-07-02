@@ -535,9 +535,8 @@ test_that("fail_tasks discards a task that already finished", {
 
   expect_equal(rush$n_finished_tasks, 1)
   expect_equal(rush$n_failed_tasks, 0)
-  data = rush$fetch_finished_tasks()
-  expect_data_table(data, nrows = 1)
-  expect_names(names(data), disjunct.from = "condition")
+  expect_false(rush$is_failed_task(keys))
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 1)
 })
 
 test_that("a task stolen from the pending list is not marked as running", {

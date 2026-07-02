@@ -1800,6 +1800,15 @@ Rush = R6::R6Class(
       # popped from the queue into the pending list but not yet marked as running when the worker was lost
       pending_keys = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
 
+      keys = c(running_keys, pending_keys)
+      if (!length(keys)) {
+        lg$debug("Worker '%s' has no running or pending tasks", worker_id)
+        return(invisible(NULL))
+      }
+
+      # write the conditions before the moves so a task is never visible as failed without its condition
+      self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
+
       # the moves are guarded so a key is only failed while it is still in its source (first writer wins)
       # if the worker is alive and finishes or pops a task concurrently, the state set by the first actor stays
       moved = c(
@@ -1827,11 +1836,6 @@ Rush = R6::R6Class(
 
       if (length(moved)) {
         lg$error("Lost %i task(s): %s", length(moved), str_collapse(moved))
-        # write the conditions only for the tasks that were moved
-        # so that a condition never appears on a task that finished concurrently
-        self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = moved)
-      } else {
-        lg$debug("Worker '%s' has no running or pending tasks", worker_id)
       }
 
       invisible(NULL)
