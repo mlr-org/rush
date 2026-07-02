@@ -497,7 +497,8 @@ Rush = R6::R6Class(
     #' @param type (`character(1)`)\cr
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
-    #' If `"kill"` the workers are stopped immediately.
+    #' If `"kill"` the workers are stopped immediately,
+    #' and their running and pending tasks are marked as failed with the condition message `"Worker was killed"`.
     #' If `"terminate"` the workers evaluate the currently running task and then terminate.
     #' The `"terminate"` option must be implemented in the worker loop.
     stop_workers = function(type = "kill", worker_ids = NULL) {
@@ -576,6 +577,13 @@ Rush = R6::R6Class(
 
           r$pipeline(.commands = cmds)
         }
+
+        # mark the tasks of the killed workers as failed
+        # the moves are guarded so a task that a worker finishes before the kill takes effect stays finished
+        killed_worker_ids = unique(c(worker_ids_processx, worker_ids_mirai, worker_ids_heartbeat))
+        walk(killed_worker_ids, function(worker_id) {
+          private$.fail_lost_tasks(worker_id, "Worker was killed")
+        })
       }
 
       if (type == "terminate") {
@@ -601,9 +609,9 @@ Rush = R6::R6Class(
     #' when the heartbeat key expires.
     #' Because this is a timeout, `heartbeat_expire` must be larger than the longest pause a worker may
     #' experience, for example from garbage collection or swapping.
-    #' If a live worker is wrongly declared lost, a task it is processing can be recorded in two states at once,
-    #' for example failed and finished.
-    #' Set `heartbeat_expire` conservatively to avoid false positives.
+    #' If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
+    #' and the results of tasks the worker finishes afterwards are discarded.
+    #' Set `heartbeat_expire` conservatively to avoid discarding results.
     #'
     #' @return (`character()`)\cr
     #' Worker ids of detected lost workers.
@@ -1790,26 +1798,44 @@ Rush = R6::R6Class(
       running_keys = running_keys[!is.na(running_keys)]
 
       # popped from the queue into the pending list but not yet marked as running when the worker was lost
-      pending_key = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
+      pending_keys = unlist(r$command(c("LRANGE", private$.get_worker_key("pending_task", worker_id), 0, -1)))
 
-      keys = c(running_keys, pending_key)
+      keys = c(running_keys, pending_keys)
+      if (!length(keys)) {
+        lg$debug("Worker '%s' has no running or pending tasks", worker_id)
+        return(invisible(NULL))
+      }
 
-      if (length(keys)) {
-        lg$error("Lost %i task(s): %s", length(keys), str_collapse(keys))
-        self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
+      # write the conditions before the moves so a task is never visible as failed without its condition
+      self$write_hashes(condition = wrap_conditions(list(list(message = message))), keys = keys)
 
-        cmds = c(
-          map(running_keys, function(key) {
-            c("SMOVE", private$.get_key("running_tasks"), private$.get_key("failed_tasks"), key)
-          }),
-          if (length(pending_key)) list(c("SADD", private$.get_key("failed_tasks"), pending_key))
-        )
+      # the moves are guarded so a key is only failed while it is still in its source (first writer wins)
+      # if the worker is alive and finishes or pops a task concurrently, the state set by the first actor stays
+      moved = c(
+        if (length(running_keys)) {
+          unlist(r$command(c(
+            "EVAL",
+            lua_move_set_to_set,
+            "2",
+            private$.get_key("running_tasks"),
+            private$.get_key("failed_tasks"),
+            running_keys
+          )))
+        },
+        if (length(pending_keys)) {
+          unlist(r$command(c(
+            "EVAL",
+            lua_move_list_to_set,
+            "2",
+            private$.get_worker_key("pending_task", worker_id),
+            private$.get_key("failed_tasks"),
+            pending_keys
+          )))
+        }
+      )
 
-        r$pipeline(.commands = c(list("MULTI"), cmds, list("EXEC")))
-
-        r$command(c("DEL", private$.get_worker_key("pending_task", worker_id)))
-      } else {
-        lg$error("Worker '%s' crashed before evaluating a task", worker_id)
+      if (length(moved)) {
+        lg$error("Lost %i task(s): %s", length(moved), str_collapse(moved))
       }
 
       invisible(NULL)
