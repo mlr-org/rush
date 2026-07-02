@@ -531,7 +531,8 @@ test_that("stop_workers warns about and ignores workers that are not running", {
 
   # a mix of a running and a non-running worker warns but still stops the running one
   log = capture.output(
-    rush$stop_workers(worker_ids = c(worker_id, "ghost"), type = "kill"))
+    rush$stop_workers(worker_ids = c(worker_id, "ghost"), type = "kill")
+  )
   expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
 
   wait_until(worker_id %in% rush$terminated_worker_ids)
@@ -539,7 +540,8 @@ test_that("stop_workers warns about and ignores workers that are not running", {
 
   # stopping only a non-running worker warns and is a no-op without error
   log = capture.output(
-    expect_invisible(rush$stop_workers(worker_ids = "ghost", type = "kill")))
+    expect_invisible(rush$stop_workers(worker_ids = "ghost", type = "kill"))
+  )
   expect_match(paste(log, collapse = "\n"), "ghost", fixed = TRUE)
 })
 
