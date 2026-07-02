@@ -42,6 +42,7 @@
 * fix: `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
   The sinks are now reverted before the log connections are closed.
 * fix: `start_worker()` now checks that `message_log` and `output_log` are existing directories, so a wrong path raises a clear error instead of a cryptic "cannot open the connection".
+* refactor: `start_worker()` now generates default worker ids with `ids::adjective_animal()` instead of `uuid::UUIDgenerate()`, matching `RushWorker$new()`.
 * perf: `$worker_info` reads all workers in one pipelined round trip.
 * refactor: Large objects are now stored under UUID keys.
 

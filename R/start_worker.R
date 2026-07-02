@@ -44,7 +44,7 @@ start_worker = function(
   output_log = NULL
 ) {
   timestamp_start = Sys.time()
-  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% uuid::UUIDgenerate()
+  worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% ids::adjective_animal(1)
 
   if (!is.null(message_log)) {
     checkmate::assert_directory_exists(message_log)
