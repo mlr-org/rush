@@ -156,19 +156,19 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               worker_id          x         y               keys
-                  &lt;char&gt;      &lt;num&gt;     &lt;num&gt;             &lt;char&gt;
-   1:       idle_limpkin 0.73394745 0.8567073 127106ad-c0b6-4...
-   2:       idle_limpkin 0.41998176 0.6480600 8e0b6e42-73d6-4...
-   3:       idle_limpkin 0.52097909 0.7217888 9c70bcef-fcb1-4...
-   4:       idle_limpkin 0.08126840 0.2850761 cfc040ac-f05d-4...
-   5:       idle_limpkin 0.70698654 0.8408249 331c6ec8-b941-4...
+<pre><code>               worker_id          x          y               keys
+                  &lt;char&gt;      &lt;num&gt;      &lt;num&gt;             &lt;char&gt;
+   1: abandoned_crown... 0.43152271 0.65690388 7baa76ef-774d-4...
+   2: authorized_irio... 0.25400053 0.50398465 3d3375d2-3c67-4...
+   3: abandoned_crown... 0.60321594 0.77666977 3a909f05-a35f-4...
+   4: authorized_irio... 0.89747123 0.94734958 0026051b-33ba-4...
+   5: abandoned_crown... 0.60793370 0.77970103 28cd6e46-ad72-4...
   ---
-6052:       idle_limpkin 0.37799977 0.6148169 9bcd3024-3048-4...
-6053: charcoal_foxhou... 0.71655592 0.8464963 d1702c64-65ff-4...
-6054:       idle_limpkin 0.98952321 0.9947478 9b69de4a-0153-4...
-6055: charcoal_foxhou... 0.19722191 0.4440967 27a042a2-2350-4...
-6056:       idle_limpkin 0.09968848 0.3157348 5dec6a1f-d9c7-4...</code></pre>
+6271: authorized_irio... 0.57870169 0.76072445 2d344ce8-508b-4...
+6272: abandoned_crown... 0.00397615 0.06305672 a0ba4441-5fdf-4...
+6273: authorized_irio... 0.06645587 0.25779037 46cd7377-d2a5-4...
+6274: authorized_irio... 0.99013749 0.99505652 0c320521-227e-4...
+6275: abandoned_crown... 0.81499534 0.90277092 1b58d05c-33ea-4...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="stop-workers">Stop Workers<a class="anchor" aria-label="anchor" href="#stop-workers"></a>
@@ -216,17 +216,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>              x         y          worker_id               keys
           &lt;num&gt;     &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-   1: 0.7339475 0.8567073       idle_limpkin 127106ad-c0b6-4...
-   2: 0.6231415 0.7893931 charcoal_foxhou... e1b4d2ec-b15d-4...
-   3: 0.4199818 0.6480600       idle_limpkin 8e0b6e42-73d6-4...
-   4: 0.5209791 0.7217888       idle_limpkin 9c70bcef-fcb1-4...
-   5: 0.0812684 0.2850761       idle_limpkin cfc040ac-f05d-4...
+   1: 0.4315227 0.6569039 abandoned_crown... 7baa76ef-774d-4...
+   2: 0.2540005 0.5039847 authorized_irio... 3d3375d2-3c67-4...
+   3: 0.6032159 0.7766698 abandoned_crown... 3a909f05-a35f-4...
+   4: 0.8974712 0.9473496 authorized_irio... 0026051b-33ba-4...
+   5: 0.6079337 0.7797010 abandoned_crown... 28cd6e46-ad72-4...
   ---
-6462: 0.2424733 0.4924157 charcoal_foxhou... 1280096b-bbf0-4...
-6463: 0.6536547 0.8084892       idle_limpkin e3b0f1e3-5b95-4...
-6464: 0.4123869 0.6421736 charcoal_foxhou... b529fd27-f2ee-4...
-6465: 0.6943324 0.8332661       idle_limpkin 9c6830f9-582c-4...
-6466: 0.3498338        NA charcoal_foxhou... 5e734944-db0f-4...</code></pre>
+6683: 0.6083365 0.7799593 authorized_irio... 8aac6420-56b3-4...
+6684: 0.6147776 0.7840776 abandoned_crown... d90c69bd-1b9e-4...
+6685: 0.4657951 0.6824918 authorized_irio... 1ddac7ff-4fcf-4...
+6686: 0.7237675 0.8507453 abandoned_crown... af9c9c0a-189f-4...
+6687: 0.7437853        NA authorized_irio... 05871b7b-c7a1-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -238,7 +238,7 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>           x          worker_id               keys
        &lt;num&gt;             &lt;char&gt;             &lt;char&gt;
-1: 0.3498338 charcoal_foxhou... 5e734944-db0f-4...</code></pre>
+1: 0.7437853 authorized_irio... 05871b7b-c7a1-4...</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -250,17 +250,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>         state          worker_id         x               keys         y
         &lt;char&gt;             &lt;char&gt;     &lt;num&gt;             &lt;char&gt;     &lt;num&gt;
-   1:  running charcoal_foxhou... 0.3498338 5e734944-db0f-4...        NA
-   2: finished       idle_limpkin 0.7339475 127106ad-c0b6-4... 0.8567073
-   3: finished       idle_limpkin 0.4199818 8e0b6e42-73d6-4... 0.6480600
-   4: finished       idle_limpkin 0.5209791 9c70bcef-fcb1-4... 0.7217888
-   5: finished       idle_limpkin 0.0812684 cfc040ac-f05d-4... 0.2850761
+   1:  running authorized_irio... 0.7437853 05871b7b-c7a1-4...        NA
+   2: finished abandoned_crown... 0.4315227 7baa76ef-774d-4... 0.6569039
+   3: finished authorized_irio... 0.2540005 3d3375d2-3c67-4... 0.5039847
+   4: finished abandoned_crown... 0.6032159 3a909f05-a35f-4... 0.7766698
+   5: finished authorized_irio... 0.8974712 0026051b-33ba-4... 0.9473496
   ---
-6462: finished       idle_limpkin 0.5359251 59594d3e-83f8-4... 0.7320690
-6463: finished charcoal_foxhou... 0.2424733 1280096b-bbf0-4... 0.4924157
-6464: finished       idle_limpkin 0.6536547 e3b0f1e3-5b95-4... 0.8084892
-6465: finished charcoal_foxhou... 0.4123869 b529fd27-f2ee-4... 0.6421736
-6466: finished       idle_limpkin 0.6943324 9c6830f9-582c-4... 0.8332661</code></pre>
+6683: finished abandoned_crown... 0.1110038 a76b1da6-e435-4... 0.3331723
+6684: finished authorized_irio... 0.6083365 8aac6420-56b3-4... 0.7799593
+6685: finished abandoned_crown... 0.6147776 d90c69bd-1b9e-4... 0.7840776
+6686: finished authorized_irio... 0.4657951 1ddac7ff-4fcf-4... 0.6824918
+6687: finished abandoned_crown... 0.7237675 af9c9c0a-189f-4... 0.8507453</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="task-counts">Task Counts<a class="anchor" aria-label="anchor" href="#task-counts"></a>
@@ -279,7 +279,7 @@
 <div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_finished_tasks</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 6465</code></pre>
+<pre><code>[1] 6686</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_failed_tasks</span></span></code></pre></div>
@@ -307,11 +307,11 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>$xs
 $xs$x
-[1] 0.606991
+[1] 0.5129026
 
 
 $key
-[1] "eea9e2aa-12a2-4d1d-b6a5-e6657caa310a"</code></pre>
+[1] "21476c47-e8f4-42e8-ba6a-1fbae0f68e85"</code></pre>
 </div>
 </div>
 <div class="cell">
