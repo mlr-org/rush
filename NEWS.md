@@ -2,6 +2,9 @@
 
 * chore: The minimum R version is now 3.6.0, and Redis (>= 7.0) is declared as a system requirement.
 * refactor: Remove deprecated worker types `"local"` and `"remote"`.
+* fix: `AppenderRedis` now strips custom fields from log events in its own layout instead of mutating the shared log event.
+  Previously, the custom fields were also removed from the output log and console output when `output_log` was set.
+  The `filter_custom_fields()` function is removed.
 * refactor: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$push_running_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
 * fix: `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
 * fix: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$detect_lost_workers()` now change task states with guarded first-writer-wins transitions implemented as Lua scripts.
