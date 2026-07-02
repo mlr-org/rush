@@ -168,7 +168,8 @@ Creates a new instance of this
 
 ### `RushWorker$pop_task()`
 
-Pop a task from the queue and mark it as running.
+Pop a task from the queue and mark it as running. Returns `NULL` if no
+task is available.
 
 #### Usage
 

@@ -753,9 +753,11 @@ Stop workers.
 
   (`character(1)`)  
   Type of stopping. Either `"terminate"` or `"kill"`. If `"kill"` the
-  workers are stopped immediately. If `"terminate"` the workers evaluate
-  the currently running task and then terminate. The `"terminate"`
-  option must be implemented in the worker loop.
+  workers are stopped immediately, and their running tasks are marked as
+  failed with the condition message `"Worker was killed"`. If
+  `"terminate"` the workers evaluate the currently running task and then
+  terminate. The `"terminate"` option must be implemented in the worker
+  loop.
 
 - `worker_ids`:
 
@@ -777,9 +779,9 @@ monitored through a heartbeat and are declared lost when the heartbeat
 key expires. Because this is a timeout, `heartbeat_expire` must be
 larger than the longest pause a worker may experience, for example from
 garbage collection or swapping. If a live worker is wrongly declared
-lost, a task it is processing can be recorded in two states at once, for
-example failed and finished. Set `heartbeat_expire` conservatively to
-avoid false positives.
+lost, its running and pending tasks are marked as failed, and the
+results of tasks the worker finishes afterwards are discarded. Set
+`heartbeat_expire` conservatively to avoid discarding results.
 
 #### Usage
 
