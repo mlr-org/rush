@@ -498,7 +498,7 @@ Rush = R6::R6Class(
     #' Type of stopping.
     #' Either `"terminate"` or `"kill"`.
     #' If `"kill"` the workers are stopped immediately,
-    #' and their running and pending tasks are marked as failed with the condition message `"Worker was killed"`.
+    #' and their running tasks are marked as failed with the condition message `"Worker was killed"`.
     #' If `"terminate"` the workers evaluate the currently running task and then terminate.
     #' The `"terminate"` option must be implemented in the worker loop.
     stop_workers = function(type = "kill", worker_ids = NULL) {

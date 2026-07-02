@@ -1,7 +1,6 @@
 # Lua scripts for first-writer-wins task state transitions.
 #
-# A task key is moved to a terminal state only if it can still be removed from its source
-# (the running set or the pending list) in the same atomic step.
+# A task key is moved to a terminal state only if it can still be removed from its source in the same atomic step.
 # The first actor to remove a key from its source decides the state of the task,
 # and the transition of the losing actor is discarded.
 # This prevents a task from being recorded in two states at once,

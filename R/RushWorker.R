@@ -123,8 +123,7 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Pop a task from the queue and mark it as running.
-    #' Returns `NULL` if no task is available,
-    #' or if the popped task was concurrently marked as failed because this worker was declared lost.
+    #' Returns `NULL` if no task is available.
     #'
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for task in seconds.
@@ -164,6 +163,8 @@ RushWorker = R6::R6Class(
       ))
 
       if (!acquired) {
+        # the task was already moved to failed by $detect_lost_workers() while this worker was processing it
+        # only happens when the worker is wrongly declared lost
         lg$warn("Task '%s' was marked as failed while the worker popped it", key)
         return(NULL)
       }
@@ -212,9 +213,6 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Save the output of tasks and mark them as finished.
-    #' The state transition is guarded:
-    #' a task that is no longer running, e.g. because it was marked as failed when this worker was declared lost,
-    #' stays in its state and the result is discarded with a warning.
     #'
     #' @param keys (`character(1)`)\cr
     #' Keys of the associated tasks.
@@ -256,6 +254,8 @@ RushWorker = R6::R6Class(
 
       n_discarded = length(keys) - length(moved)
       if (n_discarded) {
+        # the task was already moved to failed by $detect_lost_workers() while this worker was processing it
+        # only happens when the worker is wrongly declared lost
         lg$warn("Discarding the result(s) of %i task(s) that are no longer running", n_discarded)
       }
 
@@ -264,9 +264,6 @@ RushWorker = R6::R6Class(
 
     #' @description
     #' Move running tasks to failed and optionally save the condition objects.
-    #' The state transition is guarded:
-    #' a task that is no longer running, e.g. because it was already finished,
-    #' stays in its state and is skipped with a warning.
     #'
     #' @param keys (`character()`)\cr
     #' Keys of the running tasks to be moved.

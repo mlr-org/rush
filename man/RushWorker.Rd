@@ -142,8 +142,7 @@ because a live worker wrongly declared lost can leave a task in an inconsistent 
 \if{latex}{\out{\hypertarget{method-RushWorker-pop_task}{}}}
 \subsection{\code{RushWorker$pop_task()}}{
   Pop a task from the queue and mark it as running.
-Returns \code{NULL} if no task is available,
-or if the popped task was concurrently marked as failed because this worker was declared lost.
+Returns \code{NULL} if no task is available.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}
@@ -197,9 +196,6 @@ Keys of the tasks.
 \if{latex}{\out{\hypertarget{method-RushWorker-finish_tasks}{}}}
 \subsection{\code{RushWorker$finish_tasks()}}{
   Save the output of tasks and mark them as finished.
-The state transition is guarded:
-a task that is no longer running, e.g. because it was marked as failed when this worker was declared lost,
-stays in its state and the result is discarded with a warning.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$finish_tasks(keys, yss, yss_extra = NULL, extra = NULL)}
@@ -232,9 +228,6 @@ Invisible self.
 \if{latex}{\out{\hypertarget{method-RushWorker-fail_tasks}{}}}
 \subsection{\code{RushWorker$fail_tasks()}}{
   Move running tasks to failed and optionally save the condition objects.
-The state transition is guarded:
-a task that is no longer running, e.g. because it was already finished,
-stays in its state and is skipped with a warning.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$fail_tasks(keys, conditions = NULL)}
