@@ -85,6 +85,7 @@
 <li>feat: <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
 <li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
 <li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> now checks that <code>message_log</code> and <code>output_log</code> are existing directories, so a wrong path raises a clear error instead of a cryptic “cannot open the connection”.</li>
+<li>refactor: <code><a href="../reference/start_worker.html">start_worker()</a></code> now generates default worker ids with <code><a href="https://rdrr.io/pkg/ids/man/adjective_animal.html" class="external-link">ids::adjective_animal()</a></code> instead of <code><a href="https://rdrr.io/pkg/uuid/man/UUIDgenerate.html" class="external-link">uuid::UUIDgenerate()</a></code>, matching <code>RushWorker$new()</code>.</li>
 <li>perf: <code>$worker_info</code> reads all workers in one pipelined round trip.</li>
 <li>refactor: Large objects are now stored under UUID keys.</li>
 </ul></div>

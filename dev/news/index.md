@@ -96,6 +96,13 @@
   now checks that `message_log` and `output_log` are existing
   directories, so a wrong path raises a clear error instead of a cryptic
   “cannot open the connection”.
+- refactor:
+  [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
+  now generates default worker ids with
+  [`ids::adjective_animal()`](https://rdrr.io/pkg/ids/man/adjective_animal.html)
+  instead of
+  [`uuid::UUIDgenerate()`](https://rdrr.io/pkg/uuid/man/UUIDgenerate.html),
+  matching `RushWorker$new()`.
 - perf: `$worker_info` reads all workers in one pipelined round trip.
 - refactor: Large objects are now stored under UUID keys.
 
