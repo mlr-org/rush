@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: commiserab...  8871 runnervmkk...     FALSE running
-    2: finnicky_b...  8873 runnervmkk...     FALSE running
+    1: sly_basili...  8913 runnervmkk...     FALSE running
+    2: entomophag...  8911 runnervmkk...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: finnicky_b...  8873 runnervmkk...     FALSE    running
-    2: commiserab...  8871 runnervmkk...     FALSE terminated
+    1: entomophag...  8911 runnervmkk...     FALSE    running
+    2: sly_basili...  8913 runnervmkk...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -145,17 +145,17 @@ rush$fetch_finished_tasks()
 
              worker_id         x1        x2          y          keys
                 <char>      <num>     <num>      <num>        <char>
-      1: ancient_dr...  0.4851564 13.222465  81.922665 72504772-e...
-      2: ancient_dr... -3.6534650 13.593547   1.631576 5f97e9cc-4...
-      3: criminolog...  9.3236201  6.619001  18.323024 070eab4e-b...
-      4: ancient_dr...  9.1397957  8.110128  35.183685 4751427c-1...
-      5: criminolog...  6.9394619 12.956684 156.379511 4852ce74-d...
+      1: wideawake_...  9.2244877 14.416189 147.119790 2ce7e53f-c...
+      2: wideawake_... -0.9652862  2.673455  40.297797 cfe64c8b-a...
+      3: periwinkle...  6.2311130  7.615583  62.058956 f22b0e7d-d...
+      4: wideawake_... -2.5561156  7.393320  14.379932 dbbd3f0c-4...
+      5: periwinkle...  9.2436320  5.531267  10.825924 f5e6391d-d...
      ---
-    127: criminolog...  9.2835835  3.113417   1.063380 273b6392-6...
-    128: ancient_dr...  2.7480814 11.605578  82.198223 2dcd84cf-f...
-    129: criminolog...  3.6661766  9.701352  62.527563 275052fd-3...
-    130: ancient_dr...  7.4065076  6.589584  42.147467 e03b2b14-0...
-    131: ancient_dr...  2.0472011  8.582966  33.684175 800569b9-f...
+    113: wideawake_...  6.8838285 14.125052 185.865638 b231925e-0...
+    114: periwinkle... -2.3042079  1.588727  80.387378 7e5e441f-d...
+    115: wideawake_...  1.0293351  6.751827  20.025686 f837761a-c...
+    116: periwinkle...  2.8728835  4.025569   3.088527 3229bf85-6...
+    117: wideawake_... -1.2083356  4.059801  29.822930 ab860297-6...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: criminolog...  8873 runnervmkk...     FALSE terminated
-    2: ancient_dr...  8871 runnervmkk...     FALSE terminated
+    1: periwinkle...  8911 runnervmkk...     FALSE terminated
+    2: wideawake_...  8913 runnervmkk...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "naggy_geese"      "benevolent_mamba"
+    [1] "proacademic_sealion" "frugal_cormorant"   
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: declared_l...  9120 runnervmkk...     FALSE running
-    2: loved_siam...  9123 runnervmkk...     FALSE running
+    1: overwealth...  9164 runnervmkk...     FALSE running
+    2: subhexagon...  9166 runnervmkk...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: declared_l...  9120 runnervmkk...     FALSE running
-    2: loved_siam...  9123 runnervmkk...     FALSE running
+    1: overwealth...  9164 runnervmkk...     FALSE running
+    2: subhexagon...  9166 runnervmkk...     FALSE running
 
 ``` r
 

@@ -73,6 +73,7 @@
 <li>fix: <code>$fetch_tasks()</code>, <code>$fetch_finished_tasks()</code>, and <code>$fetch_new_tasks()</code> no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
 <li>fix: <code>$fetch_failed_tasks()</code> and related methods now return the documented <code>condition</code> column holding the whole condition object.</li>
 <li>feat: The <code>extra</code> argument of <code>$push_tasks()</code>, <code>$push_running_tasks()</code>, and <code>$finish_tasks()</code> methods is deprecated in favor of the consistently named <code>xss_extra</code> and <code>yss_extra</code> arguments.</li>
+<li>fix: <code>$start_local_workers()</code> now redirects the standard error stream of workers to a file instead of a pipe. Previously, a worker writing more than the operating system’s pipe buffer to standard error blocked forever because the pipe was only drained after the worker terminated.</li>
 <li>fix: <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 <li>fix: <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning.</li>
 <li>perf: <code>$wait_for_tasks()</code> no longer reads the full finished list and failed task set on every poll.</li>
