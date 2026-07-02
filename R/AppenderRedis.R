@@ -12,6 +12,8 @@
 #' Threshold for the log messages.
 #' @param layout ([lgr::Layout])\cr
 #' Layout for the log messages.
+#' The default layout strips custom fields from the log events, because they might not be JSON-serializable.
+#' The stripping is scoped to this appender, so other appenders on the same logger still see the custom fields.
 #' @param buffer_size (`integer(1)`)\cr
 #' Size of the buffer.
 #' @param flush_threshold (`character(1)`)\cr
@@ -50,7 +52,14 @@ AppenderRedis = R6::R6Class(
       config,
       key,
       threshold = NA_integer_,
-      layout = lgr::LayoutJson$new(timestamp_fmt = "%Y-%m-%d %H:%M:%OS3"),
+      layout = lgr::LayoutJson$new(
+        timestamp_fmt = "%Y-%m-%d %H:%M:%OS3",
+        # custom fields might not be JSON-serializable, so only the standard fields are written to Redis.
+        transform_event = function(event) {
+          values = event$values
+          values[intersect(names(values), c("level", "timestamp", "logger", "caller", "msg", "rawMsg"))]
+        }
+      ),
       buffer_size = 0,
       flush_threshold = "error",
       flush_on_exit = TRUE,
@@ -101,20 +110,3 @@ AppenderRedis = R6::R6Class(
     .key = NULL
   )
 )
-
-#' @title Filter Custom Fields
-#'
-#' @description
-#' Filters custom fields from log events.
-#'
-#' @param event ([lgr::LogEvent])\cr
-#' Log event.
-#'
-#' @export
-filter_custom_fields = function(event) {
-  # this mutates the shared LogEvent in place, so the custom fields are stripped for every appender, not just the Redis
-  # one. This is safe as long as the console appender that would print these fields is removed from the worker logger.
-  extra_cols = setdiff(names(event$values), c("level", "timestamp", "logger", "caller", "msg", "rawMsg"))
-  rm(list = extra_cols, envir = event)
-  TRUE
-}
