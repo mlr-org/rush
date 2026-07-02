@@ -263,8 +263,6 @@ Rush = R6::R6Class(
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
       assert_flag(supervise)
 
-      r = private$.connector
-
       # push worker config to redis
       private$.push_worker_config(
         worker_loop = worker_loop,
@@ -1084,7 +1082,6 @@ Rush = R6::R6Class(
       fields = c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition"),
       states = c("queued", "running", "finished", "failed")
     ) {
-      r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"), empty.ok = FALSE)
 
       all_keys = private$.tasks_with_state(states, only_new_keys = TRUE)
@@ -1432,7 +1429,6 @@ Rush = R6::R6Class(
     #'
     #' @return (Named list of `character()`).
     tasks_with_state = function(states) {
-      r = private$.connector
       assert_subset(states, c("queued", "running", "finished", "failed"))
       private$.tasks_with_state(states)
     }
@@ -1726,7 +1722,6 @@ Rush = R6::R6Class(
 
     # fetch tasks
     .fetch_tasks = function(keys, fields) {
-      r = private$.connector
       assert_character(fields)
 
       if (!length(keys)) {
@@ -1757,8 +1752,6 @@ Rush = R6::R6Class(
 
     # fetch and cache tasks
     .fetch_cached_tasks = function(new_keys, fields) {
-      r = private$.connector
-
       lg$debug("Reading %i cached task(s)", nrow(private$.cached_tasks))
 
       if (length(new_keys)) {
