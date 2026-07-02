@@ -4,7 +4,9 @@
 * refactor: Remove deprecated worker types `"local"` and `"remote"`.
 * refactor: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$push_running_tasks()` are moved from `Rush` to `RushWorker` so that a task is only marked as failed or finished by the worker that processes it.
 * fix: `$fail_tasks()` and `$finish_tasks()` now move a task between states atomically with `MULTI`/`EXEC` so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.
-* fix: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$detect_lost_workers()` now change task states with guarded first-writer-wins transitions implemented as Lua scripts. A task can no longer be recorded as finished and failed at the same time when a live worker is wrongly declared lost, for example after its heartbeat expires during a long pause. The losing transition is discarded with a warning.
+* fix: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and `$detect_lost_workers()` now change task states with guarded first-writer-wins transitions implemented as Lua scripts.
+  A task can no longer be recorded as finished and failed at the same time when a live worker is wrongly declared lost, for example after its heartbeat expires during a long pause.
+  The losing transition is discarded with a warning.
 * fix: `$stop_workers(type = "kill")` now marks the running and pending tasks of killed workers as failed with the condition message `"Worker was killed"`. Previously these tasks remained in the running state indefinitely.
 * refactor: The deprecated methods `$push_failed()` and `$push_results()` are removed.
   Use `$fail_tasks()` and `$finish_tasks()` instead.
