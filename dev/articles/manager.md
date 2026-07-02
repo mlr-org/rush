@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: rear_abalo...  8818 runnervmkk...     FALSE running
-    2: celestial_...  8816 runnervmkk...     FALSE running
+    1: shortsight...  8875 runnervmkk...     FALSE running
+    2: disregardf...  8877 runnervmkk...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: celestial_...  8816 runnervmkk...     FALSE    running
-    2: rear_abalo...  8818 runnervmkk...     FALSE terminated
+    1: shortsight...  8875 runnervmkk...     FALSE    running
+    2: disregardf...  8877 runnervmkk...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1        x2           y          keys
-                <char>      <num>     <num>       <num>        <char>
-      1: flowery_bo...  6.0994419  1.635871  19.7292306 9bb584e0-3...
-      2: definable_...  2.2033001  9.820611  49.2154539 5f4dee30-2...
-      3: flowery_bo...  2.8152606  9.170535  44.8255459 7dcdd544-a...
-      4: definable_... -1.3117690 13.507080  39.4687416 b8884e93-5...
-      5: flowery_bo... -0.5885695  5.990484  18.9685110 c864a8df-c...
+             worker_id         x1         x2          y          keys
+                <char>      <num>      <num>      <num>        <char>
+      1: alphabetic...  3.3650948  3.6440333   2.998720 3ae61c21-1...
+      2: alphabetic... -2.4771596 13.9745898  12.933969 c163f39c-0...
+      3: alphabetic...  0.9139890  6.2193514  18.315614 9e54edbb-3...
+      4: alphabetic...  0.1005996  0.4160143  48.986186 8e54d5ca-7...
+      5: alphabetic...  2.5499078 14.0720116 129.502327 645b4abd-f...
      ---
-    149: flowery_bo... -4.2932101  8.659852  49.0479178 79f62eb6-3...
-    150: flowery_bo... -3.2332990 11.861609   0.8412953 82b3cba3-a...
-    151: definable_... -2.8044776 11.949117   1.1588909 352fd7bc-d...
-    152: definable_... -0.9237890 12.196218  37.0930198 ab069f8c-e...
-    153: flowery_bo...  7.0174505 10.806858 109.5537233 6cffebc0-a...
+    104: alphabetic...  9.5580028  9.6082355  49.743225 53d97060-d...
+    105: overconsta... -3.4983849  5.4876049  59.698091 b53d7e13-0...
+    106: alphabetic...  2.4203940  3.4942794   3.136363 6e3e64e8-a...
+    107: overconsta... -0.5693950  4.9946319  21.903212 d2a3dda3-4...
+    108: alphabetic... -3.1111000 13.8323380   3.060878 cf2a74e0-f...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: flowery_bo...  8818 runnervmkk...     FALSE terminated
-    2: definable_...  8816 runnervmkk...     FALSE terminated
+    1: alphabetic...  8877 runnervmkk...     FALSE terminated
+    2: overconsta...  8875 runnervmkk...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "goodhearted_queenconch"        "confusional_northerncardinals"
+    [1] "dullish_mice"          "inconsequent_woodcock"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: semivulcan...  9068 runnervmkk...     FALSE running
-    2: comminativ...  9073 runnervmkk...     FALSE running
+    1: bottlegree...  9129 runnervmkk...     FALSE running
+    2: limivorous...  9127 runnervmkk...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: semivulcan...  9068 runnervmkk...     FALSE running
-    2: comminativ...  9073 runnervmkk...     FALSE running
+    1: bottlegree...  9129 runnervmkk...     FALSE running
+    2: limivorous...  9127 runnervmkk...     FALSE running
 
 ``` r
 

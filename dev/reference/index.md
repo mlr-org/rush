@@ -38,5 +38,3 @@
   : rush: Rapid Asynchronous and Distributed Computing
 - [`store_large_object()`](https://rush.mlr-org.com/dev/reference/store_large_object.md)
   : Store Large Objects
-- [`filter_custom_fields()`](https://rush.mlr-org.com/dev/reference/filter_custom_fields.md)
-  : Filter Custom Fields

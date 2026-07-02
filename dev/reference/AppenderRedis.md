@@ -61,7 +61,13 @@ Creates a new instance of this
       config,
       key,
       threshold = NA_integer_,
-      layout = lgr::LayoutJson$new(timestamp_fmt = "%Y-%m-%d %H:%M:%OS3"),
+      layout = lgr::LayoutJson$new(timestamp_fmt = "%Y-%m-%d %H:%M:%OS3",
+        transform_event = function(event) {
+         values = event$values
+
+        values[intersect(names(values), c("level", "timestamp", "logger", "caller", "msg",
+        "rawMsg"))]
+     }),
       buffer_size = 0,
       flush_threshold = "error",
       flush_on_exit = TRUE,
@@ -90,7 +96,10 @@ Creates a new instance of this
 - `layout`:
 
   ([lgr::Layout](https://s-fleck.github.io/lgr/reference/Layout.html))  
-  Layout for the log messages.
+  Layout for the log messages. The default layout strips custom fields
+  from the log events, because they might not be JSON-serializable. The
+  stripping is scoped to this appender, so other appenders on the same
+  logger still see the custom fields.
 
 - `buffer_size`:
 

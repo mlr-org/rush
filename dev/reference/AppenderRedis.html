@@ -102,7 +102,13 @@ This <a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="exte
 <span>  <span class="va">config</span>,</span>
 <span>  <span class="va">key</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="cn">NA_integer_</span>,</span>
-<span>  layout <span class="op">=</span> <span class="fu">lgr</span><span class="fu">::</span><span class="va"><a href="https://s-fleck.github.io/lgr/reference/LayoutJson.html" class="external-link">LayoutJson</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>timestamp_fmt <span class="op">=</span> <span class="st">"%Y-%m-%d %H:%M:%OS3"</span><span class="op">)</span>,</span>
+<span>  layout <span class="op">=</span> <span class="fu">lgr</span><span class="fu">::</span><span class="va"><a href="https://s-fleck.github.io/lgr/reference/LayoutJson.html" class="external-link">LayoutJson</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>timestamp_fmt <span class="op">=</span> <span class="st">"%Y-%m-%d %H:%M:%OS3"</span>,</span>
+<span>    transform_event <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">event</span><span class="op">)</span> <span class="op">{</span></span>
+<span>     <span class="va">values</span> <span class="op">=</span> <span class="va">event</span><span class="op">$</span><span class="va">values</span></span>
+<span></span>
+<span>    <span class="va">values</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"level"</span>, <span class="st">"timestamp"</span>, <span class="st">"logger"</span>, <span class="st">"caller"</span>, <span class="st">"msg"</span>,</span>
+<span>    <span class="st">"rawMsg"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span> <span class="op">}</span><span class="op">)</span>,</span>
 <span>  buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  flush_threshold <span class="op">=</span> <span class="st">"error"</span>,</span>
 <span>  flush_on_exit <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -126,7 +132,9 @@ Threshold for the log messages.</p></dd>
 
       <dt><code>layout</code></dt>
 <dd><p>(<a href="https://s-fleck.github.io/lgr/reference/Layout.html" class="external-link">lgr::Layout</a>)<br>
-Layout for the log messages.</p></dd>
+Layout for the log messages.
+The default layout strips custom fields from the log events, because they might not be JSON-serializable.
+The stripping is scoped to this appender, so other appenders on the same logger still see the custom fields.</p></dd>
 
       <dt><code>buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
