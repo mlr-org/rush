@@ -71,6 +71,7 @@
 <li>BREAKING CHANGE: The <code>$empty_queue()</code> method now empties the entire queue instead of a specified set of tasks. The <code>keys</code> and <code>conditions</code> arguments are removed.</li>
 <li>fix: <code>$detect_lost_workers()</code> no longer marks a task as both finished and failed, or loses a task.</li>
 <li>fix: <code>$detect_lost_workers()</code> now returns only the worker ids it actually detected as lost during the call, instead of also including workers that terminated cleanly while the method was running.</li>
+<li>fix: <code>$detect_lost_workers()</code> no longer reports a heartbeat worker as lost and fails its tasks when the worker terminates cleanly while the method is running.</li>
 <li>fix: <code>$pop_task()</code> no longer loses a task when a worker crashes between popping the task from the queue and marking it as running. The task is now moved atomically into a per-worker pending list and recovered as a failed task by <code>$detect_lost_workers()</code>.</li>
 <li>fix: <code>$push_tasks()</code>, <code>$push_finished_tasks()</code>, <code>$push_failed_tasks()</code>, and <code>$push_running_tasks()</code> now return early when called with an empty list of tasks.</li>
 <li>fix: <code>$fetch_tasks()</code>, <code>$fetch_finished_tasks()</code>, and <code>$fetch_new_tasks()</code> no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>

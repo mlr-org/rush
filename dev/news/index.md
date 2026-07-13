@@ -49,6 +49,9 @@
 - fix: `$detect_lost_workers()` now returns only the worker ids it
   actually detected as lost during the call, instead of also including
   workers that terminated cleanly while the method was running.
+- fix: `$detect_lost_workers()` no longer reports a heartbeat worker as
+  lost and fails its tasks when the worker terminates cleanly while the
+  method is running.
 - fix: `$pop_task()` no longer loses a task when a worker crashes
   between popping the task from the queue and marking it as running. The
   task is now moved atomically into a per-worker pending list and
