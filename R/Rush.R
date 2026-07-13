@@ -394,51 +394,39 @@ Rush = R6::R6Class(
         packages = packages
       )
 
-      # values are embedded as double-quoted R literals via deparse() and format_script() shell-quotes
-      # the whole -e payload exactly once, so shell metacharacters in credentials and paths are never expanded
-      format_config = function(config) {
-        fields = imap(config, function(value, name) sprintf("%s = %s", name, deparse(as.character(value))))
-        paste0("list(", paste(fields, collapse = ", "), ")")
-      }
-      args = list(network_id = deparse(private$.network_id))
-      config = mlr3misc::discard(unclass(self$config), is.null)
-      config$url = NULL
-      args[["config"]] = format_config(config)
-      if (!is.null(lgr_thresholds)) {
-        lgr_thresholds = paste(
-          imap(lgr_thresholds, function(value, name) {
-            sprintf("%s = %s", deparse(name), deparse(as.character(value)))
-          }),
-          collapse = ", "
+      # deparse() renders the whole call as R source with every value escaped as an R literal,
+      # and shQuote() quotes the -e payload exactly once for POSIX shells,
+      # so shell metacharacters in credentials and paths are never expanded
+      format_script = function(config) {
+        args = discard(
+          list(
+            network_id = private$.network_id,
+            config = config,
+            lgr_thresholds = lgr_thresholds,
+            lgr_buffer_size = if (!is.null(lgr_thresholds)) lgr_buffer_size,
+            heartbeat_period = heartbeat_period,
+            heartbeat_expire = heartbeat_expire,
+            message_log = message_log,
+            output_log = output_log
+          ),
+          is.null
         )
-        args[["lgr_thresholds"]] = paste0("c(", lgr_thresholds, ")")
-        args[["lgr_buffer_size"]] = lgr_buffer_size
+        expr = paste(deparse(as.call(c(quote(rush::start_worker), args)), width.cutoff = 500L), collapse = " ")
+        paste("Rscript -e", shQuote(expr, type = "sh"))
       }
-      if (!is.null(heartbeat_period)) {
-        args[["heartbeat_period"]] = heartbeat_period
-      }
-      if (!is.null(heartbeat_expire)) {
-        args[["heartbeat_expire"]] = heartbeat_expire
-      }
-      if (!is.null(message_log)) {
-        args[["message_log"]] = deparse(message_log)
-      }
-      if (!is.null(output_log)) {
-        args[["output_log"]] = deparse(output_log)
-      }
-      format_script = function(args) {
-        fields = paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
-        paste("Rscript -e", shQuote(sprintf("rush::start_worker(%s)", fields), type = "sh"))
-      }
-      script = format_script(args)
+
+      config = discard(unclass(self$config), is.null)
+      # parsing url fails
+      config$url = NULL
+      config = map(config, as.character)
+      script = format_script(config)
 
       lg$info("Creating worker script")
       # log a variant with the password redacted to keep credentials out of log streams
       if (!is.null(config$password)) {
         config$password = "<redacted>"
-        args[["config"]] = format_config(config)
       }
-      lg$info("%s", format_script(args))
+      lg$info("%s", format_script(config))
 
       script
     },
