@@ -354,6 +354,7 @@ Rush = R6::R6Class(
     #' Generate a script to start workers.
     #' Run this script `n` times to start `n` workers.
     #' The logged variant of the script redacts the Redis password.
+    #' The script is quoted for POSIX shells (e.g., `sh`, `bash`, `zsh`).
     #'
     #' Always set `heartbeat_period` when using this method.
     #' The heartbeat is the only way to manage a worker that was started from a script,
@@ -393,19 +394,20 @@ Rush = R6::R6Class(
         packages = packages
       )
 
-      # convert arguments to character
+      # values are embedded as double-quoted R literals via deparse() and format_script() shell-quotes
+      # the whole -e payload exactly once, so shell metacharacters in credentials and paths are never expanded
       format_config = function(config) {
-        fields = imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh")))
+        fields = imap(config, function(value, name) sprintf("%s = %s", name, deparse(as.character(value))))
         paste0("list(", paste(fields, collapse = ", "), ")")
       }
-      args = list(network_id = shQuote(private$.network_id, type = "sh"))
+      args = list(network_id = deparse(private$.network_id))
       config = mlr3misc::discard(unclass(self$config), is.null)
       config$url = NULL
       args[["config"]] = format_config(config)
       if (!is.null(lgr_thresholds)) {
         lgr_thresholds = paste(
           imap(lgr_thresholds, function(value, name) {
-            sprintf("%s = %s", shQuote(name, type = "sh"), shQuote(value, type = "sh"))
+            sprintf("%s = %s", deparse(name), deparse(as.character(value)))
           }),
           collapse = ", "
         )
@@ -419,15 +421,16 @@ Rush = R6::R6Class(
         args[["heartbeat_expire"]] = heartbeat_expire
       }
       if (!is.null(message_log)) {
-        args[["message_log"]] = shQuote(message_log, type = "sh")
+        args[["message_log"]] = deparse(message_log)
       }
       if (!is.null(output_log)) {
-        args[["output_log"]] = shQuote(output_log, type = "sh")
+        args[["output_log"]] = deparse(output_log)
       }
-      format_args = function(args) {
-        paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
+      format_script = function(args) {
+        fields = paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
+        paste("Rscript -e", shQuote(sprintf("rush::start_worker(%s)", fields), type = "sh"))
       }
-      script = sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args))
+      script = format_script(args)
 
       lg$info("Creating worker script")
       # log a variant with the password redacted to keep credentials out of log streams
@@ -435,7 +438,7 @@ Rush = R6::R6Class(
         config$password = "<redacted>"
         args[["config"]] = format_config(config)
       }
-      lg$info("%s", sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args)))
+      lg$info("%s", format_script(args))
 
       script
     },
