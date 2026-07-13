@@ -33,12 +33,11 @@ start_rush_worker = function() {
   rush::RushWorker$new(network_id = network_id, config = config)
 }
 
-# parses the string returned by rush$worker_script() and starts a processx process
+# runs the string returned by rush$worker_script() through a POSIX shell like a user would
+# exec replaces the shell with Rscript, so the process handle points at the worker itself
 start_script_worker = function(script) {
-  script = sub("^Rscript\\s+-e\\s+\"(.*)\"$", "\\1", script, perl = TRUE)
-
-  px = processx::process$new("Rscript",
-    args = c("-e", script),
+  px = processx::process$new("sh",
+    args = c("-c", paste("exec", script)),
     supervise = TRUE,
     stderr = "|", stdout = "|")
   px
