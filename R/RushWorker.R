@@ -48,7 +48,7 @@ RushWorker = R6::R6Class(
     ) {
       super$initialize(network_id = network_id, config = config)
 
-      self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
+      self$worker_id = assert_string(worker_id %??% generate_worker_ids())
       r = self$connector
 
       # setup heartbeat

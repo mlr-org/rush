@@ -211,7 +211,7 @@ Rush = R6::R6Class(
       config$url = NULL
 
       # generate worker ids
-      worker_ids = adjective_animal(n = n_workers)
+      worker_ids = generate_worker_ids(n_workers)
 
       # start rush worker with mirai
       self$processes_mirai = c(
@@ -278,7 +278,7 @@ Rush = R6::R6Class(
       config$url = NULL
 
       # generate worker ids
-      worker_ids = adjective_animal(n = n_workers)
+      worker_ids = generate_worker_ids(n_workers)
 
       self$processes_processx = c(
         self$processes_processx,
