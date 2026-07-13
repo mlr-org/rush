@@ -680,6 +680,10 @@ Rush = R6::R6Class(
         if (!all(running)) {
           # search for associated worker ids
           expired_heartbeat_keys = heartbeat_keys[!running]
+          # re-read the running set instead of matching against the snapshot from the top of the call
+          # set_terminated() leaves the running set before deleting the heartbeat key,
+          # so a worker that terminated cleanly since the snapshot cannot be in a fresh read
+          running_worker_ids = self$running_worker_ids
           # read the heartbeat fields of the the running workers
           cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
           # guard against a missing heartbeat field in an existing hash with %??% NA
