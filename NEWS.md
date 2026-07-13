@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 1.2.0
 
 * fix: `$start_workers()`, `$start_local_workers()`, `start_worker()`, and `RushWorker$new()` now append a random suffix to generated worker ids so that ids are unique by construction and can no longer collide.
