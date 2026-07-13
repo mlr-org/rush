@@ -211,7 +211,7 @@ Rush = R6::R6Class(
       config$url = NULL
 
       # generate worker ids
-      worker_ids = adjective_animal(n = n_workers)
+      worker_ids = generate_worker_ids(n_workers)
 
       # start rush worker with mirai
       self$processes_mirai = c(
@@ -278,7 +278,7 @@ Rush = R6::R6Class(
       config$url = NULL
 
       # generate worker ids
-      worker_ids = adjective_animal(n = n_workers)
+      worker_ids = generate_worker_ids(n_workers)
 
       self$processes_processx = c(
         self$processes_processx,
@@ -354,6 +354,7 @@ Rush = R6::R6Class(
     #' Generate a script to start workers.
     #' Run this script `n` times to start `n` workers.
     #' The logged variant of the script redacts the Redis password.
+    #' The script is quoted for POSIX shells (e.g., `sh`, `bash`, `zsh`).
     #'
     #' Always set `heartbeat_period` when using this method.
     #' The heartbeat is the only way to manage a worker that was started from a script,
@@ -380,9 +381,9 @@ Rush = R6::R6Class(
     ) {
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
-      assert_number(heartbeat_period, lower = 1, null.ok = TRUE)
+      heartbeat_period = assert_int(heartbeat_period, lower = 1, null.ok = TRUE, coerce = TRUE)
       # expire must be >= period so the TTL outlasts the refresh interval
-      assert_number(heartbeat_expire, lower = heartbeat_period %??% 1, null.ok = TRUE)
+      heartbeat_expire = assert_int(heartbeat_expire, lower = heartbeat_period %??% 1, null.ok = TRUE, coerce = TRUE)
       assert_string(message_log, null.ok = TRUE)
       assert_string(output_log, null.ok = TRUE)
 
@@ -393,49 +394,40 @@ Rush = R6::R6Class(
         packages = packages
       )
 
-      # convert arguments to character
-      format_config = function(config) {
-        fields = imap(config, function(value, name) sprintf("%s = %s", name, shQuote(value, type = "sh")))
-        paste0("list(", paste(fields, collapse = ", "), ")")
-      }
-      args = list(network_id = shQuote(private$.network_id, type = "sh"))
-      config = mlr3misc::discard(unclass(self$config), is.null)
-      config$url = NULL
-      args[["config"]] = format_config(config)
-      if (!is.null(lgr_thresholds)) {
-        lgr_thresholds = paste(
-          imap(lgr_thresholds, function(value, name) {
-            sprintf("%s = %s", shQuote(name, type = "sh"), shQuote(value, type = "sh"))
-          }),
-          collapse = ", "
+      # deparse() renders the whole call as R source with every value escaped as an R literal,
+      # and shQuote() quotes the -e payload exactly once for POSIX shells,
+      # so shell metacharacters in credentials and paths are never expanded
+      format_script = function(config) {
+        args = discard(
+          list(
+            network_id = private$.network_id,
+            config = config,
+            lgr_thresholds = lgr_thresholds,
+            lgr_buffer_size = if (!is.null(lgr_thresholds)) lgr_buffer_size,
+            heartbeat_period = heartbeat_period,
+            heartbeat_expire = heartbeat_expire,
+            message_log = message_log,
+            output_log = output_log
+          ),
+          is.null
         )
-        args[["lgr_thresholds"]] = paste0("c(", lgr_thresholds, ")")
-        args[["lgr_buffer_size"]] = lgr_buffer_size
+        # width.cutoff = 500L keeps the whole call on one line
+        expr = paste(deparse(as.call(c(quote(rush::start_worker), args)), width.cutoff = 500L), collapse = " ")
+        paste("Rscript -e", shQuote(expr, type = "sh"))
       }
-      if (!is.null(heartbeat_period)) {
-        args[["heartbeat_period"]] = heartbeat_period
-      }
-      if (!is.null(heartbeat_expire)) {
-        args[["heartbeat_expire"]] = heartbeat_expire
-      }
-      if (!is.null(message_log)) {
-        args[["message_log"]] = shQuote(message_log, type = "sh")
-      }
-      if (!is.null(output_log)) {
-        args[["output_log"]] = shQuote(output_log, type = "sh")
-      }
-      format_args = function(args) {
-        paste(imap(args, function(value, name) sprintf("%s = %s", name, value)), collapse = ", ")
-      }
-      script = sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args))
+
+      config = discard(unclass(self$config), is.null)
+      # parsing url fails
+      config$url = NULL
+      config = map(config, as.character)
+      script = format_script(config)
 
       lg$info("Creating worker script")
       # log a variant with the password redacted to keep credentials out of log streams
       if (!is.null(config$password)) {
         config$password = "<redacted>"
-        args[["config"]] = format_config(config)
       }
-      lg$info("%s", sprintf("Rscript -e \"rush::start_worker(%s)\"", format_args(args)))
+      lg$info("%s", format_script(config))
 
       script
     },
@@ -688,6 +680,10 @@ Rush = R6::R6Class(
         if (!all(running)) {
           # search for associated worker ids
           expired_heartbeat_keys = heartbeat_keys[!running]
+          # re-read the running set instead of matching against the snapshot from the top of the call
+          # set_terminated() leaves the running set before deleting the heartbeat key,
+          # so a worker that terminated cleanly since the snapshot cannot be in a fresh read
+          running_worker_ids = self$running_worker_ids
           # read the heartbeat fields of the the running workers
           cmds = map(running_worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), "heartbeat"))
           # guard against a missing heartbeat field in an existing hash with %??% NA

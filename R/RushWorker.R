@@ -48,7 +48,7 @@ RushWorker = R6::R6Class(
     ) {
       super$initialize(network_id = network_id, config = config)
 
-      self$worker_id = assert_string(worker_id %??% ids::adjective_animal(1))
+      self$worker_id = assert_string(worker_id %??% generate_worker_ids())
       r = self$connector
 
       # setup heartbeat
@@ -56,10 +56,10 @@ RushWorker = R6::R6Class(
       heartbeat_key = ""
       if (!is.null(heartbeat_period)) {
         require_namespaces("callr")
-        assert_number(heartbeat_period, lower = 1)
+        heartbeat_period = assert_int(heartbeat_period, lower = 1, coerce = TRUE)
         # expire must be >= period so the TTL outlasts the refresh interval
-        assert_number(heartbeat_expire, lower = heartbeat_period, null.ok = TRUE)
-        heartbeat_expire = heartbeat_expire %??% (heartbeat_period * 3)
+        heartbeat_expire = assert_int(heartbeat_expire, lower = heartbeat_period, null.ok = TRUE, coerce = TRUE)
+        heartbeat_expire = heartbeat_expire %??% (heartbeat_period * 3L)
 
         # set heartbeat key
         heartbeat_key = private$.get_worker_key("heartbeat")

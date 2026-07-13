@@ -29,6 +29,13 @@ get_hostname = function() {
   host[1]
 }
 
+# Generate worker ids.
+# adjective_animal() samples with replacement and can collide; appending a uuid fragment makes the
+# ids unique by construction, without any cross-process coordination.
+generate_worker_ids = function(n = 1L) {
+  paste0(adjective_animal(n), "_", strtrim(UUIDgenerate(n = n), 8L))
+}
+
 # skips serialization of NULL
 safe_bin_to_object = function(bin) {
   if (is.null(bin)) {

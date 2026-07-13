@@ -463,6 +463,7 @@ If \code{NULL}, no output is stored.}
   Generate a script to start workers.
 Run this script \code{n} times to start \code{n} workers.
 The logged variant of the script redacts the Redis password.
+The script is quoted for POSIX shells (e.g., \code{sh}, \code{bash}, \code{zsh}) and does not work in \code{cmd.exe} on Windows.
 
 Always set \code{heartbeat_period} when using this method.
 The heartbeat is the only way to manage a worker that was started from a script,

@@ -271,6 +271,26 @@ test_that("worker script contains the password but the log redacts it", {
   expect_false(grepl("test-secret", log, fixed = TRUE))
 })
 
+test_that("worker script quoting survives a POSIX shell", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit({
+    rush$reset()
+  })
+
+  password = "pa$$w'\"rd `date` \\slash"
+  rush$config = redux::redis_config(password = password)
+  script = rush$worker_script(worker_loop = wl_queue)
+
+  # print the -e payload exactly as Rscript would receive it from a real shell
+  probe = sub("^Rscript -e ", "printf %s ", script)
+  payload = processx::run("sh", args = c("-c", probe))$stdout
+  call = str2lang(payload)
+
+  expect_equal(call[["network_id"]], rush$network_id)
+  expect_equal(eval(call[["config"]])$password, password)
+})
+
 test_that("heartbeat process is started", {
   skip_if_not_installed("callr")
   config = redis_configuration()

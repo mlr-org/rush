@@ -1,5 +1,7 @@
 # rush 1.2.0
 
+* fix: `$start_workers()`, `$start_local_workers()`, `start_worker()`, and `RushWorker$new()` now append a random suffix to generated worker ids so that ids are unique by construction and can no longer collide.
+* fix: `$start_workers()` and `RushWorker$new()` now reject fractional `heartbeat_period` and `heartbeat_expire` values and coerce integer-valued doubles.
 * chore: The minimum R version is now 3.6.0, and Redis (>= 7.0) is declared as a system requirement.
 * refactor: Remove deprecated worker types `"local"` and `"remote"`.
 * fix: `AppenderRedis` now strips custom fields from log events in its own layout instead of mutating the shared log event.
@@ -18,6 +20,7 @@
   The `keys` and `conditions` arguments are removed.
 * fix: `$detect_lost_workers()` no longer marks a task as both finished and failed, or loses a task.
 * fix: `$detect_lost_workers()` now returns only the worker ids it actually detected as lost during the call, instead of also including workers that terminated cleanly while the method was running.
+* fix: `$detect_lost_workers()` no longer reports a heartbeat worker as lost and fails its tasks when the worker terminates cleanly while the method is running.
 * fix: `$pop_task()` no longer loses a task when a worker crashes between popping the task from the queue and marking it as running.
   The task is now moved atomically into a per-worker pending list and recovered as a failed task by `$detect_lost_workers()`.
 * fix: `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks.
@@ -32,6 +35,7 @@
 * fix: `$stop_workers()` no longer errors when a requested worker id is not running.
   Such ids are now skipped with a warning.
 * perf: `$wait_for_tasks()` no longer reads the full finished list and failed task set on every poll.
+* fix: `$worker_script()` now embeds values as R string literals and shell-quotes the whole `Rscript -e` payload exactly once for POSIX shells.
 * fix: `$worker_script()` no longer logs the Redis password.
   The logged script shows `<redacted>` instead.
   The method now returns the script visibly.

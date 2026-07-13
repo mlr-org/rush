@@ -25,7 +25,7 @@ heartbeat = function(network_id, config, worker_id, heartbeat_key, heartbeat_per
   kill_key = sprintf("%s:%s:kill", network_id, worker_id)
 
   repeat {
-    r$command(c("EXPIRE", heartbeat_key, heartbeat_expire))
+    r$command(c("EXPIRE", heartbeat_key, as.integer(heartbeat_expire)))
     kill = r$command(c("BLPOP", kill_key, heartbeat_period))[[2]]
     if (!is.null(kill)) {
       r$command(c("DEL", heartbeat_key, kill_key))
