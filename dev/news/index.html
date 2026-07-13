@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,14 +57,16 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.2.0" id="rush-120">rush 1.2.0<a class="anchor" aria-label="anchor" href="#rush-120"></a></h2>
 <ul><li>fix: <code>$start_workers()</code>, <code>$start_local_workers()</code>, <code><a href="../reference/start_worker.html">start_worker()</a></code>, and <code>RushWorker$new()</code> now append a random suffix to generated worker ids so that ids are unique by construction and can no longer collide.</li>
 <li>fix: <code>$start_workers()</code> and <code>RushWorker$new()</code> now reject fractional <code>heartbeat_period</code> and <code>heartbeat_expire</code> values and coerce integer-valued doubles.</li>
 <li>chore: The minimum R version is now 3.6.0, and Redis (&gt;= 7.0) is declared as a system requirement.</li>
 <li>refactor: Remove deprecated worker types <code>"local"</code> and <code>"remote"</code>.</li>
 <li>fix: <code>AppenderRedis</code> now strips custom fields from log events in its own layout instead of mutating the shared log event. Previously, the custom fields were also removed from the output log and console output when <code>output_log</code> was set. The <code>filter_custom_fields()</code> function is removed.</li>
 <li>refactor: <code>$fail_tasks()</code>, <code>$finish_tasks()</code>, <code>$pop_task()</code>, and <code>$push_running_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> so that a task is only marked as failed or finished by the worker that processes it.</li>
-<li>fix: <code>$fail_tasks()</code> and <code>$finish_tasks()</code> now move a task between states atomically with <code>MULTI</code>/<code>EXEC</code> so that a worker crash mid-move can no longer remove a task from the running state without recording it as failed or finished.</li>
-<li>fix: <code>$fail_tasks()</code>, <code>$finish_tasks()</code>, <code>$pop_task()</code>, and <code>$detect_lost_workers()</code> now change task states with guarded first-writer-wins transitions implemented as Lua scripts. A task can no longer be recorded as finished and failed at the same time when a live worker is wrongly declared lost, for example after its heartbeat expires during a long pause. The losing transition is discarded with a warning.</li>
+<li>fix: <code>$fail_tasks()</code>, <code>$finish_tasks()</code>, <code>$pop_task()</code>, and <code>$detect_lost_workers()</code> now change task states with guarded first-writer-wins transitions implemented as Lua scripts. A task can no longer be recorded as finished and failed at the same time when a live worker is wrongly declared lost. The losing transition is discarded with a warning.</li>
 <li>fix: <code>$stop_workers(type = "kill")</code> now marks the running and pending tasks of killed workers as failed with the condition message <code>"Worker was killed"</code>. Previously these tasks remained in the running state indefinitely.</li>
 <li>refactor: The deprecated methods <code>$push_failed()</code> and <code>$push_results()</code> are removed. Use <code>$fail_tasks()</code> and <code>$finish_tasks()</code> instead.</li>
 <li>fix: <code>$empty_queue()</code> no longer creates an orphaned hash in the Redis database when the queue is already empty.</li>
@@ -75,6 +77,7 @@
 <li>fix: <code>$pop_task()</code> no longer loses a task when a worker crashes between popping the task from the queue and marking it as running. The task is now moved atomically into a per-worker pending list and recovered as a failed task by <code>$detect_lost_workers()</code>.</li>
 <li>fix: <code>$push_tasks()</code>, <code>$push_finished_tasks()</code>, <code>$push_failed_tasks()</code>, and <code>$push_running_tasks()</code> now return early when called with an empty list of tasks.</li>
 <li>fix: <code>$fetch_tasks()</code>, <code>$fetch_finished_tasks()</code>, and <code>$fetch_new_tasks()</code> no longer fail when task hashes have been removed from the database. Affected tasks are dropped with a warning.</li>
+<li>fix: <code>$fetch_new_tasks()</code> and <code>$fetch_finished_tasks()</code> no longer fail after more than 100,000 tasks have been fetched. The internal counter of consumed tasks is now stored as an integer so it can no longer be formatted in scientific notation in Redis commands.</li>
 <li>fix: <code>$fetch_failed_tasks()</code> and related methods now return the documented <code>condition</code> column holding the whole condition object.</li>
 <li>feat: The <code>extra</code> argument of <code>$push_tasks()</code>, <code>$push_running_tasks()</code>, and <code>$finish_tasks()</code> methods is deprecated in favor of the consistently named <code>xss_extra</code> and <code>yss_extra</code> arguments.</li>
 <li>fix: <code>$start_local_workers()</code> now redirects the standard error stream of workers to a file instead of a pipe. Previously, a worker writing more than the operating system’s pipe buffer to standard error blocked forever because the pipe was only drained after the worker terminated.</li>
@@ -88,9 +91,9 @@
 <li>fix: <code>$reset()</code> now also resets the internal log counter, so <code>$print_log()</code> no longer skips messages when the same network id is reused after a reset.</li>
 <li>fix: <code>$reset()</code> now deletes all keys in a single <code>MULTI</code>/<code>EXEC</code> transaction so a concurrent reader can no longer observe a half-reset network.</li>
 <li>feat: <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gains the <code>start_worker_timeout</code> argument, which sets the default timeout used by <code>$wait_for_workers()</code>. An explicit <code>timeout</code> passed to <code>$wait_for_workers()</code> is no longer overridden by the configuration.</li>
+<li>fix: <code>$wait_for_workers(timeout = 0)</code> now checks once and errors immediately if the workers are not yet registered, instead of never checking.</li>
 <li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> no longer errors on exit when <code>message_log</code> or <code>output_log</code> is set. The sinks are now reverted before the log connections are closed.</li>
 <li>fix: <code><a href="../reference/start_worker.html">start_worker()</a></code> now checks that <code>message_log</code> and <code>output_log</code> are existing directories, so a wrong path raises a clear error instead of a cryptic “cannot open the connection”.</li>
-<li>refactor: <code><a href="../reference/start_worker.html">start_worker()</a></code> now generates default worker ids with <code><a href="https://rdrr.io/pkg/ids/man/adjective_animal.html" class="external-link">ids::adjective_animal()</a></code> instead of <code><a href="https://rdrr.io/pkg/uuid/man/UUIDgenerate.html" class="external-link">uuid::UUIDgenerate()</a></code>, matching <code>RushWorker$new()</code>.</li>
 <li>perf: <code>$worker_info</code> reads all workers in one pipelined round trip.</li>
 <li>refactor: Large objects are now stored under UUID keys.</li>
 </ul></div>

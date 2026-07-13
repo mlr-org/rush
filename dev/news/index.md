@@ -2,6 +2,8 @@
 
 ## rush (development version)
 
+## rush 1.2.0
+
 - fix: `$start_workers()`, `$start_local_workers()`,
   [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md),
   and `RushWorker$new()` now append a random suffix to generated worker
@@ -21,17 +23,12 @@
   `$push_running_tasks()` are moved from `Rush` to `RushWorker` so that
   a task is only marked as failed or finished by the worker that
   processes it.
-- fix: `$fail_tasks()` and `$finish_tasks()` now move a task between
-  states atomically with `MULTI`/`EXEC` so that a worker crash mid-move
-  can no longer remove a task from the running state without recording
-  it as failed or finished.
 - fix: `$fail_tasks()`, `$finish_tasks()`, `$pop_task()`, and
   `$detect_lost_workers()` now change task states with guarded
   first-writer-wins transitions implemented as Lua scripts. A task can
   no longer be recorded as finished and failed at the same time when a
-  live worker is wrongly declared lost, for example after its heartbeat
-  expires during a long pause. The losing transition is discarded with a
-  warning.
+  live worker is wrongly declared lost. The losing transition is
+  discarded with a warning.
 - fix: `$stop_workers(type = "kill")` now marks the running and pending
   tasks of killed workers as failed with the condition message
   `"Worker was killed"`. Previously these tasks remained in the running
@@ -62,6 +59,10 @@
 - fix: `$fetch_tasks()`, `$fetch_finished_tasks()`, and
   `$fetch_new_tasks()` no longer fail when task hashes have been removed
   from the database. Affected tasks are dropped with a warning.
+- fix: `$fetch_new_tasks()` and `$fetch_finished_tasks()` no longer fail
+  after more than 100,000 tasks have been fetched. The internal counter
+  of consumed tasks is now stored as an integer so it can no longer be
+  formatted in scientific notation in Redis commands.
 - fix: `$fetch_failed_tasks()` and related methods now return the
   documented `condition` column holding the whole condition object.
 - feat: The `extra` argument of `$push_tasks()`,
@@ -105,6 +106,9 @@
   gains the `start_worker_timeout` argument, which sets the default
   timeout used by `$wait_for_workers()`. An explicit `timeout` passed to
   `$wait_for_workers()` is no longer overridden by the configuration.
+- fix: `$wait_for_workers(timeout = 0)` now checks once and errors
+  immediately if the workers are not yet registered, instead of never
+  checking.
 - fix:
   [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
   no longer errors on exit when `message_log` or `output_log` is set.
@@ -114,13 +118,6 @@
   now checks that `message_log` and `output_log` are existing
   directories, so a wrong path raises a clear error instead of a cryptic
   “cannot open the connection”.
-- refactor:
-  [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md)
-  now generates default worker ids with
-  [`ids::adjective_animal()`](https://rdrr.io/pkg/ids/man/adjective_animal.html)
-  instead of
-  [`uuid::UUIDgenerate()`](https://rdrr.io/pkg/uuid/man/UUIDgenerate.html),
-  matching `RushWorker$new()`.
 - perf: `$worker_info` reads all workers in one pipelined round trip.
 - refactor: Large objects are now stored under UUID keys.
 

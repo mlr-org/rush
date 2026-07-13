@@ -19,7 +19,7 @@ to connect to the Redis database via the redux package."><meta name="robots" con
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.1.0.9001</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -564,7 +564,7 @@ If <code>NULL</code>, no output is stored.</p></dd>
 <p>Generate a script to start workers.
 Run this script <code>n</code> times to start <code>n</code> workers.
 The logged variant of the script redacts the Redis password.
-The script is quoted for POSIX shells (e.g., <code>sh</code>, <code>bash</code>, <code>zsh</code>) and does not work in <code>cmd.exe</code> on Windows.</p>
+The script is quoted for POSIX shells (e.g., <code>sh</code>, <code>bash</code>, <code>zsh</code>).</p>
 <p>Always set <code>heartbeat_period</code> when using this method.
 The heartbeat is the only way to manage a worker that was started from a script,
 because there is no process handle on the manager side.
