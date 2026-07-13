@@ -2,6 +2,9 @@
 
 ## rush (development version)
 
+- fix: `$start_workers()` and `RushWorker$new()` now reject fractional
+  `heartbeat_period` and `heartbeat_expire` values and coerce
+  integer-valued doubles.
 - chore: The minimum R version is now 3.6.0, and Redis (\>= 7.0) is
   declared as a system requirement.
 - refactor: Remove deprecated worker types `"local"` and `"remote"`.

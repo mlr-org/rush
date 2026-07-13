@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: albinic_bi...  9031 runnervm5m...     FALSE running
-    2: dermatolog...  9029 runnervm5m...     FALSE running
+    1: pettish_la...  8849 runnervm5m...     FALSE running
+    2:    ebony_boto  8851 runnervm5m...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: albinic_bi...  9031 runnervm5m...     FALSE    running
-    2: dermatolog...  9029 runnervm5m...     FALSE terminated
+    1:    ebony_boto  8851 runnervm5m...     FALSE    running
+    2: pettish_la...  8849 runnervm5m...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1         x2          y          keys
-                <char>     <num>      <num>      <num>        <char>
-      1: astrophysi...  3.816132 11.7286003 100.924392 e867ed1c-c...
-      2: astrophysi...  7.702958  0.4352781  12.386155 12054d62-1...
-      3: contortive...  6.877064 11.0176881 115.043989 8af6c6ca-3...
-      4: astrophysi...  2.064221 11.1520777  67.655689 309953e4-b...
-      5: contortive... -3.688994 10.7503057  10.089254 d19ab823-3...
+             worker_id         x1         x2          y          keys
+                <char>      <num>      <num>      <num>        <char>
+      1: spiritless...  8.0903193  2.7010739   9.009868 46b00c3b-a...
+      2: spiritless...  4.2587617  6.1696553  26.994961 486ffb0c-f...
+      3: criticisab...  0.1892705 11.6841689  55.200298 3bbf15b3-4...
+      4: spiritless...  0.9844994 12.9991276  86.559703 39b86a25-3...
+      5: criticisab... -4.7564308 14.0179662  16.547152 f8f6a53c-0...
      ---
-    113: contortive...  3.921237 12.5686029 120.310646 d97f4aa3-1...
-    114: astrophysi...  7.834297 10.4302898  90.651797 f367aec6-5...
-    115: contortive...  3.070926  3.9275409   2.971578 eff4c441-1...
-    116: astrophysi...  9.777078  9.1079719  40.927069 b1661cac-e...
-    117: contortive... -3.333759  0.5584203 149.004344 0b15ce2e-1...
+    131: criticisab...  4.7233103  3.2769307  13.761565 576f609b-c...
+    132: spiritless...  6.4841381  4.6041730  31.606861 13d7235d-d...
+    133: criticisab...  6.9734999 13.4546428 167.983773 ce86709d-5...
+    134: spiritless...  4.9052293  0.6577086  12.254596 ae502aa5-9...
+    135: criticisab...  3.8119777  3.0577622   4.032236 7af6edb5-e...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: contortive...  9031 runnervm5m...     FALSE terminated
-    2: astrophysi...  9029 runnervm5m...     FALSE terminated
+    1: criticisab...  8851 runnervm5m...     FALSE terminated
+    2: spiritless...  8849 runnervm5m...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "illlooking_mandrill"       "privatized_englishpointer"
+    [1] "uninvincible_neonblueguppy"   "phytoclimatological_dairycow"
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: glandlike_...  9285 runnervm5m...     FALSE running
-    2: hygrophili...  9281 runnervm5m...     FALSE running
+    1: contemplab...  9102 runnervm5m...     FALSE running
+    2: unanarchis...  9104 runnervm5m...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: glandlike_...  9285 runnervm5m...     FALSE running
-    2: hygrophili...  9281 runnervm5m...     FALSE running
+    1: contemplab...  9102 runnervm5m...     FALSE running
+    2: unanarchis...  9104 runnervm5m...     FALSE running
 
 ``` r
 
@@ -426,7 +426,7 @@ rush$worker_script(
   heartbeat_expire = 3)
 ```
 
-    [1] "Rscript -e 'rush::start_worker(network_id = \"random-search-network\", config = list(scheme = \"redis\", host = \"127.0.0.1\", port = \"6379\"), heartbeat_period = 1, heartbeat_expire = 3)'"
+    [1] "Rscript -e 'rush::start_worker(network_id = \"random-search-network\", config = list(scheme = \"redis\", host = \"127.0.0.1\", port = \"6379\"), heartbeat_period = 1L, heartbeat_expire = 3L)'"
 
 To kill a script worker, the `$stop_workers(type = "kill")` method
 pushes a kill signal to the heartbeat process, which then terminates the

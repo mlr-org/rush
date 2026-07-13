@@ -57,7 +57,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
-<ul><li>chore: The minimum R version is now 3.6.0, and Redis (&gt;= 7.0) is declared as a system requirement.</li>
+<ul><li>fix: <code>$start_workers()</code> and <code>RushWorker$new()</code> now reject fractional <code>heartbeat_period</code> and <code>heartbeat_expire</code> values and coerce integer-valued doubles.</li>
+<li>chore: The minimum R version is now 3.6.0, and Redis (&gt;= 7.0) is declared as a system requirement.</li>
 <li>refactor: Remove deprecated worker types <code>"local"</code> and <code>"remote"</code>.</li>
 <li>fix: <code>AppenderRedis</code> now strips custom fields from log events in its own layout instead of mutating the shared log event. Previously, the custom fields were also removed from the output log and console output when <code>output_log</code> was set. The <code>filter_custom_fields()</code> function is removed.</li>
 <li>refactor: <code>$fail_tasks()</code>, <code>$finish_tasks()</code>, <code>$pop_task()</code>, and <code>$push_running_tasks()</code> are moved from <code>Rush</code> to <code>RushWorker</code> so that a task is only marked as failed or finished by the worker that processes it.</li>
