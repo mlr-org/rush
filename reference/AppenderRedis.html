@@ -5,8 +5,8 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Log to Redis Database — AppenderRedis"><meta name="description" content="AppenderRedis writes log messages to a Redis data base.
-This lgr::Appender is created internally by RushWorker when logger thresholds are passed via rush_plan()."><meta property="og:description" content="AppenderRedis writes log messages to a Redis data base.
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Log to Redis Database — AppenderRedis"><meta name="description" content="AppenderRedis writes log messages to a Redis database.
+This lgr::Appender is created internally by RushWorker when logger thresholds are passed via rush_plan()."><meta property="og:description" content="AppenderRedis writes log messages to a Redis database.
 This lgr::Appender is created internally by RushWorker when logger thresholds are passed via rush_plan()."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -15,7 +15,7 @@ This lgr::Appender is created internally by RushWorker when logger thresholds ar
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,14 +59,14 @@ This lgr::Appender is created internally by RushWorker when logger thresholds ar
     </div>
 
     <div class="ref-description section level2">
-    <p>AppenderRedis writes log messages to a Redis data base.
+    <p>AppenderRedis writes log messages to a Redis database.
 This <a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="external-link">lgr::Appender</a> is created internally by <a href="RushWorker.html">RushWorker</a> when logger thresholds are passed via <code><a href="rush_plan.html">rush_plan()</a></code>.</p>
     </div>
 
 
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Object of class <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6::R6Class</a> and <code>AppenderRedis</code> with methods for writing log events to Redis data bases.</p>
+    <p>Object of class <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6::R6Class</a> and <code>AppenderRedis</code> with methods for writing log events to Redis databases.</p>
     </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
@@ -77,33 +77,38 @@ This <a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="exte
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-AppenderRedis-new"><code>AppenderRedis$new()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-AppenderRedis-initialize"><code>AppenderRedis$new()</code></a></p></li>
 <li><p><a href="#method-AppenderRedis-flush"><code>AppenderRedis$flush()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="add_filter"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-add_filter"><code>lgr::Filterable$add_filter()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-filter"><code>lgr::Filterable$filter()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_layout"><a href="https://s-fleck.github.io/lgr/reference/Appender.html#method-set_layout"><code>lgr::Appender$set_layout()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_threshold"><a href="https://s-fleck.github.io/lgr/reference/Appender.html#method-set_threshold"><code>lgr::Appender$set_threshold()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="append"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-append"><code>lgr::AppenderMemory$append()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="clear"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-clear"><code>lgr::AppenderMemory$clear()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="format"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-format"><code>lgr::AppenderMemory$format()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_buffer_size"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_buffer_size"><code>lgr::AppenderMemory$set_buffer_size()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_exit"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_on_exit"><code>lgr::AppenderMemory$set_flush_on_exit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_rotate"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_on_rotate"><code>lgr::AppenderMemory$set_flush_on_rotate()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_threshold"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_threshold"><code>lgr::AppenderMemory$set_flush_threshold()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_should_flush"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_should_flush"><code>lgr::AppenderMemory$set_should_flush()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="show"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-show"><code>lgr::AppenderMemory$show()</code></a></span></li>
-</ul></details></p><hr><a id="method-AppenderRedis-new"></a><div class="section">
-<h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-filter"><code>lgr::Filterable$filter()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="https://s-fleck.github.io/lgr/reference/Filterable.html#method-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_layout"><a href="https://s-fleck.github.io/lgr/reference/Appender.html#method-set_layout"><code>lgr::Appender$set_layout()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_threshold"><a href="https://s-fleck.github.io/lgr/reference/Appender.html#method-set_threshold"><code>lgr::Appender$set_threshold()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="append"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-append"><code>lgr::AppenderMemory$append()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="clear"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-clear"><code>lgr::AppenderMemory$clear()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="format"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-format"><code>lgr::AppenderMemory$format()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_buffer_size"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_buffer_size"><code>lgr::AppenderMemory$set_buffer_size()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_exit"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_on_exit"><code>lgr::AppenderMemory$set_flush_on_exit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_rotate"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_on_rotate"><code>lgr::AppenderMemory$set_flush_on_rotate()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_threshold"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_flush_threshold"><code>lgr::AppenderMemory$set_flush_threshold()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_should_flush"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-set_should_flush"><code>lgr::AppenderMemory$set_should_flush()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="show"><a href="https://s-fleck.github.io/lgr/reference/AppenderMemory.html#method-show"><code>lgr::AppenderMemory$show()</code></a></span></li>
+</ul></details></p><hr><a id="method-AppenderRedis-initialize"></a><div class="section">
+<h3 id="appenderredis-new-"><code>AppenderRedis$new()</code><a class="anchor" aria-label="anchor" href="#appenderredis-new-"></a></h3>
 <p>Creates a new instance of this <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6</a> class.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/AppenderRedis.html">AppenderRedis</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="va">config</span>,</span>
 <span>  <span class="va">key</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="cn">NA_integer_</span>,</span>
-<span>  layout <span class="op">=</span> <span class="fu">lgr</span><span class="fu">::</span><span class="va"><a href="https://s-fleck.github.io/lgr/reference/LayoutJson.html" class="external-link">LayoutJson</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>timestamp_fmt <span class="op">=</span> <span class="st">"%Y-%m-%d %H:%M:%OS3"</span><span class="op">)</span>,</span>
+<span>  layout <span class="op">=</span> <span class="fu">lgr</span><span class="fu">::</span><span class="va"><a href="https://s-fleck.github.io/lgr/reference/LayoutJson.html" class="external-link">LayoutJson</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>timestamp_fmt <span class="op">=</span> <span class="st">"%Y-%m-%d %H:%M:%OS3"</span>,</span>
+<span>    transform_event <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">event</span><span class="op">)</span> <span class="op">{</span></span>
+<span>     <span class="va">values</span> <span class="op">=</span> <span class="va">event</span><span class="op">$</span><span class="va">values</span></span>
+<span></span>
+<span>    <span class="va">values</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"level"</span>, <span class="st">"timestamp"</span>, <span class="st">"logger"</span>, <span class="st">"caller"</span>, <span class="st">"msg"</span>,</span>
+<span>    <span class="st">"rawMsg"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span> <span class="op">}</span><span class="op">)</span>,</span>
 <span>  buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  flush_threshold <span class="op">=</span> <span class="st">"error"</span>,</span>
 <span>  flush_on_exit <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -111,56 +116,47 @@ This <a href="https://s-fleck.github.io/lgr/reference/Appender.html" class="exte
 <span>  should_flush <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  filters <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>config</code></dt>
 <dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.</p></dd>
 
-
-<dt><code>key</code></dt>
+      <dt><code>key</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Key of the list holding the log messages in the Redis data store.</p></dd>
 
-
-<dt><code>threshold</code></dt>
+      <dt><code>threshold</code></dt>
 <dd><p>(<code>integer(1)</code> | <code>character(1)</code>)<br>
 Threshold for the log messages.</p></dd>
 
-
-<dt><code>layout</code></dt>
+      <dt><code>layout</code></dt>
 <dd><p>(<a href="https://s-fleck.github.io/lgr/reference/Layout.html" class="external-link">lgr::Layout</a>)<br>
-Layout for the log messages.</p></dd>
+Layout for the log messages.
+The default layout strips custom fields from the log events, because they might not be JSON-serializable.
+The stripping is scoped to this appender, so other appenders on the same logger still see the custom fields.</p></dd>
 
-
-<dt><code>buffer_size</code></dt>
+      <dt><code>buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Size of the buffer.</p></dd>
 
-
-<dt><code>flush_threshold</code></dt>
+      <dt><code>flush_threshold</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Threshold for flushing the buffer.</p></dd>
 
-
-<dt><code>flush_on_exit</code></dt>
+      <dt><code>flush_on_exit</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Flush the buffer on exit.</p></dd>
 
-
-<dt><code>flush_on_rotate</code></dt>
+      <dt><code>flush_on_rotate</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Flush the buffer on rotate.</p></dd>
 
-
-<dt><code>should_flush</code></dt>
+      <dt><code>should_flush</code></dt>
 <dd><p>(<code>function</code>)<br>
 Function that determines if the buffer should be flushed.</p></dd>
 
-
-<dt><code>filters</code></dt>
+      <dt><code>filters</code></dt>
 <dd><p>(<code>list</code>)<br>
 List of filters.</p></dd>
 
@@ -168,15 +164,17 @@ List of filters.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-AppenderRedis-flush"></a><div class="section">
-<h3 id="method-flush-">Method <code><a href="https://rdrr.io/r/base/connections.html" class="external-link">flush()</a></code><a class="anchor" aria-label="anchor" href="#method-flush-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-AppenderRedis-flush"></a><div class="section">
+<h3 id="appenderredis-flush-"><code>AppenderRedis$flush()</code><a class="anchor" aria-label="anchor" href="#appenderredis-flush-"></a></h3>
 <p>Sends the buffer's contents to the Redis data store, and then clears the buffer.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">AppenderRedis</span><span class="op">$</span><span class="fu">flush</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-
 </div>
+
 
     </div>
 
@@ -211,7 +209,7 @@ List of filters.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

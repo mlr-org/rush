@@ -18,8 +18,8 @@
     }
   };
 </script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,19 +146,19 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              x1        x2     worker_id       message          keys
-           &lt;num&gt;     &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
-  1:  6.22049829  4.716900 robotic_pi... Random Err... add54117-5...
-  2:  8.07920956 10.670161 burned_wat... Random Err... 0956e1d2-9...
-  3:  2.83975696  3.674718 duckie_aus... Random Err... 7c5003a9-d...
-  4:  5.36330978 11.233661 robotic_pi... Random Err... f70fb1e1-9...
-  5:  4.03138302 14.260316 robotic_pi... Random Err... 95206071-c...
+<pre><code>            x1        x2     worker_id condition          keys
+         &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+  1:  2.572199  2.482924 refreshful... &lt;list[1]&gt; ee687727-b...
+  2: -1.986177 11.923412 contradict... &lt;list[1]&gt; 7d35c7a0-d...
+  3:  3.711689  1.905521 refreshful... &lt;list[1]&gt; cab9b5b9-a...
+  4: -4.653192  4.163906 contradict... &lt;list[1]&gt; b025b725-a...
+  5:  9.342368 13.138830 refreshful... &lt;list[1]&gt; 02fc5dc3-a...
  ---
-136:  2.67492232 13.512226 burned_wat... Random Err... e6ddf7c5-8...
-137: -0.07961306  4.218037 duckie_aus... Random Err... b36f4793-2...
-138:  4.60658294  9.267348 phytoclima... Random Err... 9912c386-2...
-139:  0.70167323  5.436933 robotic_pi... Random Err... 5ec00b54-3...
-140:  9.67885918 13.561780 robotic_pi... Random Err... 7b3b2fe5-7...</code></pre>
+106:  4.669072 10.166325 contradict... &lt;list[1]&gt; 3bc37bb0-9...
+107:  4.027866 13.918090 kainolopho... &lt;list[1]&gt; 95c8f7ec-2...
+108: -2.995506  8.620931 archaistic... &lt;list[1]&gt; e29d093e-e...
+109:  3.637736 11.293786 kainolopho... &lt;list[1]&gt; 3c845975-2...
+110:  9.868069 12.899744 archaistic... &lt;list[1]&gt; 550dd0c2-b...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-error-handling-workers">Handling Failing Workers<a class="anchor" aria-label="anchor" href="#sec-error-handling-workers"></a>
@@ -188,7 +188,8 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "close_malamute"    "nonangelic_kawala"</code></pre>
+<pre><code>[1] "brainsick_alligatorgar_f28d6e57"
+[2] "diamantiferous_cleanerwrasse_7c33246e"</code></pre>
 </div>
 </div>
 <p>When a worker fails, the state of any task it was evaluating is set to <code>"failed"</code>.</p>
@@ -196,10 +197,10 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          x1        x2     worker_id       message          keys
-       &lt;num&gt;     &lt;num&gt;        &lt;char&gt;        &lt;char&gt;        &lt;char&gt;
-1: -1.532230 0.6106526 close_mala... Worker has... ffeaf0e2-7...
-2:  9.224463 9.3519615 nonangelic... Worker has... bae6cd62-1...</code></pre>
+<pre><code>            x1       x2     worker_id condition          keys
+         &lt;num&gt;    &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+1:  0.03488415 13.06521 brainsick_... &lt;list[1]&gt; 016f71a5-e...
+2: -3.41829768 10.73486 diamantife... &lt;list[1]&gt; c6eb9af2-c...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-debugging">Debugging<a class="anchor" aria-label="anchor" href="#sec-debugging"></a>
@@ -253,7 +254,7 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "discomfortable_invisiblerail"</code></pre>
+<pre><code>[1] "reflectible_anteater_58458f9b"</code></pre>
 </div>
 </div>
 <p>Output and message logs can be written to files via the <code>message_log</code> and <code>output_log</code> arguments.</p>
@@ -278,12 +279,12 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">message_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"message_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Debug message logging on worker grindable_songbird started"</code></pre>
+<pre><code>[1] "Debug message logging on worker volumed_bluefintuna_e0febfc7 started"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"output_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "[1] \"Debug output logging on worker grindable_songbird started\""</code></pre>
+<pre><code>[1] "[1] \"Debug output logging on worker volumed_bluefintuna_e0febfc7 started\""</code></pre>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
@@ -378,7 +379,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

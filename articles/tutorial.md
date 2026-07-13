@@ -41,6 +41,7 @@ The function is optimized over the domain \\x_1 \in \[-5, 10\]\\ and
 fast to evaluate yet sufficiently nontrivial.
 
 ``` r
+
 branin = function(x1, x2) {
   (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 +
     10 * (1 - 1 / (8 * pi)) * cos(x1) +
@@ -61,6 +62,7 @@ Branin function, and writes the result to the Redis database. It takes a
 arguments. The loop terminates after 100 tasks have been evaluated.
 
 ``` r
+
 library(rush)
 
 wl_random_search = function(rush, branin) {
@@ -110,6 +112,7 @@ argument specifies a configuration file used to connect to the Redis
 database via the `redux` package.
 
 ``` r
+
 config = redux::redis_config()
 
 rush = rsh(
@@ -125,6 +128,7 @@ run on `mirai` daemons which are started with the
 function.
 
 ``` r
+
 mirai::daemons(4)
 
 rush$start_workers(
@@ -134,6 +138,7 @@ rush$start_workers(
 
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
@@ -150,35 +155,38 @@ information can be passed to `$push_running_tasks()` and
 `$finish_tasks()` via the `extra` argument.
 
 ``` r
+
 rush$fetch_finished_tasks()[order(y)]
 ```
 
-             worker_id        x1        x2           y          keys
-                <char>     <num>     <num>       <num>        <char>
-      1: clerkish_a... -3.284734 12.663514   0.4978428 107f2e58-b...
-      2: clerkish_a... -2.904123 11.748131   0.6686936 e18bd2bf-8...
-      3: clerkish_a... -3.028543 11.464645   0.7511268 d007f094-a...
-      4: clerkish_a... -3.247963 11.932456   0.8117238 0159ee24-f...
-      5: releasable...  3.592409  1.999518   1.3597027 9243a1da-9...
+             worker_id        x1         x2           y          keys
+                <char>     <num>      <num>       <num>        <char>
+      1: advanced_a...  3.232928  2.6791159   0.6628404 f8a0f944-b...
+      2: preeconomi... -3.202501 13.0765055   0.8442584 c05327ea-c...
+      3: free_xuanh... -3.701119 13.4526460   1.9051934 834fa9ae-9...
+      4: free_xuanh...  9.319886  3.6182500   1.9643170 8114624e-3...
+      5: advanced_a...  8.949084  0.5966707   3.7329115 14dd531d-3...
      ---
-     99: releasable...  5.325262 14.191969 184.6252276 90ba9a3c-2...
-    100: clerkish_a...  7.525621 14.608523 189.1778203 09d329f2-2...
-    101: releasable...  6.649994 14.430495 195.8915814 656f6249-a...
-    102: clerkish_a...  6.673017 14.538423 198.6127759 1bd2189b-0...
-    103: zoometric_...  6.061181 14.508774 199.1804346 c00146a0-d...
+     98: advanced_a...  6.639481 13.4588871 171.0562225 ce76e381-e...
+     99: free_xuanh... -4.053264  1.6059839 172.2716108 6fad3eed-c...
+    100: advanced_a...  7.442354 14.2583702 181.4896976 81002c56-0...
+    101: preeconomi...  4.950714 14.7782054 194.2807708 d51b3c0d-1...
+    102: preeconomi... -4.920787  3.1188604 203.5573514 c275c85e-7...
 
 Printing the `rush` object displays the number of running workers and
 the number of tasks in each state.
 
 ``` r
+
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
     • Queued Tasks: 0
     • Running Tasks: 0
-    • Finished Tasks: 103
+    • Finished Tasks: 102
     • Failed Tasks: 0
 
 > **Note**
@@ -193,10 +201,12 @@ The workers can be stopped and the database reset using the `$reset()`
 method.
 
 ``` r
+
 rush$reset()
 
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
@@ -225,6 +235,7 @@ median, the worker discards the configuration and starts a new one. The
 loop terminates once 1000 evaluations have been recorded.
 
 ``` r
+
 wl_median_stopping = function(rush, training_ids, test_ids, mtcars_data, response) {
   while (rush$n_finished_tasks < 1000) {
     params = list(
@@ -265,6 +276,7 @@ The training and test splits are passed explicitly as arguments to the
 worker loop.
 
 ``` r
+
 data(mtcars)
 
 training_ids = sample(seq_len(nrow(mtcars)), 20)
@@ -292,22 +304,28 @@ rush$start_workers(
 We fetch the finished tasks and sort them by the objective value.
 
 ``` r
+
 rush$fetch_finished_tasks()[order(rmse)]
 ```
 
-           worker_id max_depth    lambda     alpha nrounds     rmse          keys
-              <char>     <int>     <num>     <num>   <int>    <num>        <char>
-    1: seasick_ga...         8 0.5872703 0.9283051       5 3.399543 ab156db3-4...
-    2: subdendroi...         7 0.7662136 0.1721479       5 3.399543 dc5f8202-d...
-    3: cream_gord...        13 0.0534540 0.3474133       5 3.399543 34c4880c-e...
-    4: uncheerabl...        16 0.6247686 0.6070815       5 3.399543 4d2ace0c-e...
-    5: subdendroi...         7 0.7662136 0.1721479       6 3.442590 f303db46-1...
-    6: cream_gord...        13 0.0534540 0.3474133       6 3.442590 ec1f8dd6-d...
-    7: seasick_ga...         8 0.5872703 0.9283051       6 3.442590 1ef298ce-d...
+            worker_id max_depth     lambda     alpha nrounds     rmse          keys
+               <char>     <int>      <num>     <num>   <int>    <num>        <char>
+     1: hexaemeric...        11 0.29733354 0.5779433       5 3.497727 940fb1ea-a...
+     2: poisonous_...         4 0.07158638 0.9497982       5 3.497727 789bf424-2...
+     3: residentia...         7 0.32686213 0.4358092       5 3.497727 e880915d-4...
+     4: historic_d...         7 0.44641256 0.3946832       5 3.497727 8d95d100-2...
+     5: hexaemeric...        11 0.29733354 0.5779433       6 5.328163 be011d3a-2...
+     6: hexaemeric...        11 0.29733354 0.5779433       7 5.328163 ca664124-6...
+     7: hexaemeric...        11 0.29733354 0.5779433       8 5.328163 eb79f586-8...
+     8: poisonous_...         4 0.07158638 0.9497982       6 5.328163 15d1979e-4...
+     9: hexaemeric...        11 0.29733354 0.5779433       9 5.328163 a4ffecfa-9...
+    10: residentia...         7 0.32686213 0.4358092       6 5.328163 a165f306-3...
+    11: poisonous_...         4 0.07158638 0.9497982       7 5.328163 c51425f2-3...
 
 We stop the workers and reset the database.
 
 ``` r
+
 rush$reset()
 ```
 
@@ -338,6 +356,7 @@ avoids redundant evaluations: the design is generated once in the main
 process, and workers draw tasks from the shared queue.
 
 ``` r
+
 config = redux::redis_config()
 
 rush = rsh(
@@ -346,6 +365,7 @@ rush = rsh(
 ```
 
 ``` r
+
 lhs_points = lhs::maximinLHS(n = 25, k = 2)
 x1_lower = -5
 x1_range = 15
@@ -361,6 +381,7 @@ rush$push_tasks(xss = xss)
 
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
@@ -378,6 +399,7 @@ returns `NULL`, signaling the transition to the model-based optimization
 phase.
 
 ``` r
+
 wl_bayesian_optimization = function(rush, branin) {
   repeat {
     task = rush$pop_task()
@@ -422,6 +444,7 @@ from appearing twice if a state transition occurs during the fetch.
 We start four workers and wait for the optimization to complete.
 
 ``` r
+
 mirai::daemons(4)
 
 rush$start_workers(
@@ -431,22 +454,23 @@ rush$start_workers(
 ```
 
 ``` r
+
 rush$fetch_finished_tasks()[order(y)]
 ```
 
              worker_id        x1         x2           y          keys
                 <char>     <num>      <num>       <num>        <char>
-      1: abdicant_a... -3.180919 12.3555075   0.4055135 b1bd8cee-b...
-      2: lignite_ir...  2.955242  2.4143066   0.5642403 04ac2d99-2...
-      3: cultureles...  9.653110  3.0677648   0.8018914 10d2996b-5...
-      4: abdicant_a... -3.454594 13.0978113   0.8677742 1c48ed8c-7...
-      5: cultureles...  9.384230  1.5688928   1.1663670 12dfd53c-3...
+      1: wily_ballp... -2.944061 11.8988777   0.5933627 02aa6093-7...
+      2: wily_ballp... -3.255602 11.9690529   0.7985041 85dea5b4-5...
+      3: grayish_ko... -2.612544 11.7835058   2.2638247 e10b64f0-9...
+      4: wily_ballp...  3.744895  0.8464719   3.1031225 e02a6934-a...
+      5: grayish_ko...  3.755340  0.4459633   4.1076915 4f9bebcc-e...
      ---
-     99: abdicant_a...  6.898353 14.2367253 188.6211512 a669d8d0-8...
-    100: lignite_ir... -4.044499  0.3973708 204.3561576 aca15c60-b...
-    101: lignite_ir... -4.382255  0.2688955 237.5188750 cbab29e2-8...
-    102: lignite_ir... -4.599327  0.5490589 249.2827172 6f184570-3...
-    103: lignite_ir... -4.647117  0.4878745 255.8031897 c1d76638-9...
+     99: noncontinu... -4.390234  0.1770946 241.0530171 f42d84fd-4...
+    100: ultramicro... -4.662148  0.7174323 250.0938295 e7cc716a-1...
+    101: noncontinu... -4.702377  0.6557204 255.9204950 d87cce31-c...
+    102: noncontinu... -4.733885  0.4307260 266.1573557 10b590dd-d...
+    103: noncontinu... -4.975016  0.9736602 273.0486846 5832be87-b...
 
 Egelé, Romain, Isabelle Guyon, Venkatram Vishwanath, and Prasanna
 Balaprakash. 2023. “Asynchronous Decentralized Bayesian Optimization for

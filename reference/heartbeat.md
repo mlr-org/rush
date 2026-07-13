@@ -46,13 +46,18 @@ heartbeat(
 
   (`integer(1)`)  
   Period of the heartbeat in seconds. The heartbeat is updated every
-  `heartbeat_period` seconds.
+  `heartbeat_period` seconds. Must be at least 1 second.
 
 - heartbeat_expire:
 
   (`integer(1)`)  
   Time to live of the heartbeat in seconds. The heartbeat key is set to
-  expire after `heartbeat_expire` seconds.
+  expire after `heartbeat_expire` seconds. Must be at least
+  `heartbeat_period`, otherwise a live worker is reaped as lost between
+  two heartbeats. Set it larger than the longest pause a worker may
+  experience, for example from garbage collection or swapping, because a
+  live worker wrongly declared lost can leave a task in an inconsistent
+  state.
 
 - pid:
 

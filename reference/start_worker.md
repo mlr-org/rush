@@ -4,7 +4,7 @@ Starts a worker. The function loads packages, initializes the
 [RushWorker](https://rush.mlr-org.com/reference/RushWorker.md) instance
 and invokes the worker loop. This function is called by
 `$start_local_workers()` or by the user after creating the worker script
-with `$create_worker_script()`.
+with `$worker_script()`.
 
 ## Usage
 
@@ -59,13 +59,18 @@ start_worker(
 
   (`integer(1)`)  
   Period of the heartbeat in seconds. The heartbeat is updated every
-  `heartbeat_period` seconds.
+  `heartbeat_period` seconds. Must be at least 1 second.
 
 - heartbeat_expire:
 
   (`integer(1)`)  
   Time to live of the heartbeat in seconds. The heartbeat key is set to
-  expire after `heartbeat_expire` seconds.
+  expire after `heartbeat_expire` seconds. Must be at least
+  `heartbeat_period`, otherwise a live worker is reaped as lost between
+  two heartbeats. Set it larger than the longest pause a worker may
+  experience, for example from garbage collection or swapping, because a
+  live worker wrongly declared lost can leave a task in an inconsistent
+  state.
 
 - message_log:
 
@@ -85,23 +90,13 @@ start_worker(
 
 `NULL`
 
-## Note
-
-The function initializes the connection to the Redis data base. It loads
-the packages required by the worker loop. The function initialize the
-[RushWorker](https://rush.mlr-org.com/reference/RushWorker.md) instance
-and starts the worker loop.
-
 ## Examples
 
 ``` r
 # This example is not executed since Redis must be installed
 if (FALSE) { # \dontrun{
   rush::start_worker(
-   network_id = 'test-rush',
-   url = 'redis://127.0.0.1:6379',
-   scheme = 'redis',
-   host = '127.0.0.1',
-   port = '6379')
+    network_id = "test-rush",
+    config = list(host = "127.0.0.1", port = "6379"))
 } # }
 ```

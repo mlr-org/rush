@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rush — Rush"><meta name="description" content="The Rush class manages a rush network by starting, monitoring, and stopping workers.
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Rush — Rush"><meta name="description" content="The Rush class manages a rush network by starting, monitoring, and stopping workers.
 It shares all task-related methods (e.g., fetching results, pushing tasks) with RushWorker.
 A Rush instance is created with the rsh() function which requires a network ID and a config argument
 to connect to the Redis database via the redux package."><meta property="og:description" content="The Rush class manages a rush network by starting, monitoring, and stopping workers.
@@ -19,7 +19,7 @@ to connect to the Redis database via the redux package."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,11 +88,18 @@ The input <code>xs</code> and output <code>ys</code> are lists that can contain 
 <li><p><code>$push_failed_tasks(xss, conditions)</code>: Create failed tasks.</p></li>
 <li><p><code>$push_tasks(xss)</code>: Create queued tasks.</p></li>
 </ul><p>These methods return the key of the created tasks.
-The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.</p>
+The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.
+When tasks are fetched, the <code>xss</code> and <code>yss</code> are unpacked
+so that the names of their inner elements become the columns of the returned table.
+For example, a <code>xss</code> stored as <code>list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))</code> yields <code>x1</code> and <code>x2</code> columns,
+not a <code>xs</code> column.
+The inner element names must therefore be unique across these fields.</p>
 <p>Methods to change the state of an existing task:</p><ul><li><p><code>$finish_tasks(keys, yss)</code>: Save the output of tasks and mark them as finished.</p></li>
 <li><p><code>$fail_tasks(keys, conditions)</code>: Mark tasks as failed and optionally save the condition objects.</p></li>
 <li><p><code>$pop_task()</code>: Pop a task from the queue and mark it as running.</p></li>
-</ul><p>The following methods are used to fetch tasks:</p><ul><li><p><code>$fetch_tasks()</code>: Fetch all tasks.</p></li>
+</ul><p>The methods <code>$pop_task()</code>, <code>$push_running_tasks(xss)</code>, <code>$finish_tasks(keys, yss)</code>, and
+<code>$fail_tasks(keys, conditions)</code> are only available on <a href="RushWorker.html">RushWorker</a>.</p>
+<p>The following methods are used to fetch tasks:</p><ul><li><p><code>$fetch_tasks()</code>: Fetch all tasks.</p></li>
 <li><p><code>$fetch_finished_tasks()</code>: Fetch finished tasks.</p></li>
 <li><p><code>$fetch_failed_tasks()</code>: Fetch failed tasks.</p></li>
 <li><p><code>$fetch_tasks_with_state()</code>: Fetch tasks with different states at once.</p></li>
@@ -142,9 +149,9 @@ with the <code>message_log</code> and <code>output_log</code> arguments of <code
 List of processes started with <code>$start_local_workers()</code>.</p></dd>
 
 
-<dt><code>processes_mirai</code></dt>
+    <dt><code>processes_mirai</code></dt>
 <dd><p>(<a href="https://mirai.r-lib.org/reference/mirai.html" class="external-link">mirai::mirai</a>)<br>
-List of mirai processes started with <code>$start_remote_workers()</code>.</p></dd>
+List of mirai processes started with <code>$start_workers()</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -156,97 +163,99 @@ List of mirai processes started with <code>$start_remote_workers()</code>.</p></
 Identifier of the rush network.</p></dd>
 
 
-<dt><code>config</code></dt>
+    <dt><code>config</code></dt>
 <dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
-Redis configuration options.</p></dd>
+Redis configuration options.
+Assigning a new configuration does not affect the live connection.
+Call <code>$reconnect()</code> afterwards to connect with the new configuration.</p></dd>
 
 
-<dt><code>connector</code></dt>
+    <dt><code>connector</code></dt>
 <dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_api.html" class="external-link">redux::redis_api</a>)<br>
 Returns a connection to Redis.</p></dd>
 
 
-<dt><code>n_workers</code></dt>
+    <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers.</p></dd>
 
 
-<dt><code>n_running_workers</code></dt>
+    <dt><code>n_running_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of running workers.</p></dd>
 
 
-<dt><code>n_terminated_workers</code></dt>
+    <dt><code>n_terminated_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of terminated workers.</p></dd>
 
 
-<dt><code>worker_ids</code></dt>
+    <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Ids of workers.</p></dd>
 
 
-<dt><code>running_worker_ids</code></dt>
+    <dt><code>running_worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Ids of running workers.</p></dd>
 
 
-<dt><code>terminated_worker_ids</code></dt>
+    <dt><code>terminated_worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Ids of terminated workers.</p></dd>
 
 
-<dt><code>tasks</code></dt>
+    <dt><code>tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of all tasks.</p></dd>
 
 
-<dt><code>queued_tasks</code></dt>
+    <dt><code>queued_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of queued tasks.</p></dd>
 
 
-<dt><code>running_tasks</code></dt>
+    <dt><code>running_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of running tasks.</p></dd>
 
 
-<dt><code>finished_tasks</code></dt>
+    <dt><code>finished_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of finished tasks.</p></dd>
 
 
-<dt><code>failed_tasks</code></dt>
+    <dt><code>failed_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of failed tasks.</p></dd>
 
 
-<dt><code>n_queued_tasks</code></dt>
+    <dt><code>n_queued_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of queued tasks.</p></dd>
 
 
-<dt><code>n_running_tasks</code></dt>
+    <dt><code>n_running_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of running tasks.</p></dd>
 
 
-<dt><code>n_finished_tasks</code></dt>
+    <dt><code>n_finished_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of finished tasks.</p></dd>
 
 
-<dt><code>n_failed_tasks</code></dt>
+    <dt><code>n_failed_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of failed tasks.</p></dd>
 
 
-<dt><code>n_tasks</code></dt>
+    <dt><code>n_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of all tasks.</p></dd>
 
 
-<dt><code>worker_info</code></dt>
+    <dt><code>worker_info</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table::data.table()</a></code>)<br>
 Contains information about the workers.</p></dd>
 
@@ -258,8 +267,7 @@ Contains information about the workers.</p></dd>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-Rush-new"><code>Rush$new()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-Rush-initialize"><code>Rush$new()</code></a></p></li>
 <li><p><a href="#method-Rush-format"><code>Rush$format()</code></a></p></li>
 <li><p><a href="#method-Rush-print"><code>Rush$print()</code></a></p></li>
 <li><p><a href="#method-Rush-reconnect"><code>Rush$reconnect()</code></a></p></li>
@@ -273,11 +281,7 @@ Contains information about the workers.</p></dd>
 <li><p><a href="#method-Rush-reset"><code>Rush$reset()</code></a></p></li>
 <li><p><a href="#method-Rush-read_log"><code>Rush$read_log()</code></a></p></li>
 <li><p><a href="#method-Rush-print_log"><code>Rush$print_log()</code></a></p></li>
-<li><p><a href="#method-Rush-pop_task"><code>Rush$pop_task()</code></a></p></li>
-<li><p><a href="#method-Rush-finish_tasks"><code>Rush$finish_tasks()</code></a></p></li>
-<li><p><a href="#method-Rush-fail_tasks"><code>Rush$fail_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-push_tasks"><code>Rush$push_tasks()</code></a></p></li>
-<li><p><a href="#method-Rush-push_running_tasks"><code>Rush$push_running_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-push_finished_tasks"><code>Rush$push_finished_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-push_failed_tasks"><code>Rush$push_failed_tasks()</code></a></p></li>
 <li><p><a href="#method-Rush-empty_queue"><code>Rush$empty_queue()</code></a></p></li>
@@ -296,17 +300,13 @@ Contains information about the workers.</p></dd>
 <li><p><a href="#method-Rush-is_running_task"><code>Rush$is_running_task()</code></a></p></li>
 <li><p><a href="#method-Rush-is_failed_task"><code>Rush$is_failed_task()</code></a></p></li>
 <li><p><a href="#method-Rush-tasks_with_state"><code>Rush$tasks_with_state()</code></a></p></li>
-<li><p><a href="#method-Rush-push_results"><code>Rush$push_results()</code></a></p></li>
-<li><p><a href="#method-Rush-push_failed"><code>Rush$push_failed()</code></a></p></li>
 <li><p><a href="#method-Rush-clone"><code>Rush$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-Rush-new"></a><div class="section">
-<h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
+</ul></div><p></p><hr><a id="method-Rush-initialize"></a><div class="section">
+<h3 id="rush-new-"><code>Rush$new()</code><a class="anchor" aria-label="anchor" href="#rush-new-"></a></h3>
 <p>Creates a new instance of this <a href="https://r6.r-lib.org/reference/R6Class.html" class="external-link">R6</a> class.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/Rush.html">Rush</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>network_id <span class="op">=</span> <span class="cn">NULL</span>, config <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>network_id</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
@@ -314,8 +314,7 @@ Identifier of the rush network.
 Manager and workers must have the same id.
 Keys in Redis are prefixed with the instance id.</p></dd>
 
-
-<dt><code>config</code></dt>
+      <dt><code>config</code></dt>
 <dd><p>(<a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redux::redis_config</a>)<br>
 Redis configuration options.
 If <code>NULL</code>, configuration set by <code><a href="rush_plan.html">rush_plan()</a></code> is used.
@@ -327,40 +326,41 @@ See <a href="https://richfitz.github.io/redux/reference/redis_config.html" class
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-format"></a><div class="section">
-<h3 id="method-format-">Method <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code><a class="anchor" aria-label="anchor" href="#method-format-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-format"></a><div class="section">
+<h3 id="rush-format-"><code>Rush$format()</code><a class="anchor" aria-label="anchor" href="#rush-format-"></a></h3>
 <p>Helper for print outputs.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">format</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>(ignored).</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>).</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-print"></a><div class="section">
-<h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-print"></a><div class="section">
+<h3 id="rush-print-"><code>Rush$print()</code><a class="anchor" aria-label="anchor" href="#rush-print-"></a></h3>
 <p>Print method.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>).</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-reconnect"></a><div class="section">
-<h3 id="method-reconnect-">Method <code>reconnect()</code><a class="anchor" aria-label="anchor" href="#method-reconnect-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-reconnect"></a><div class="section">
+<h3 id="rush-reconnect-"><code>Rush$reconnect()</code><a class="anchor" aria-label="anchor" href="#rush-reconnect-"></a></h3>
 <p>Reconnect to Redis.
 The connection breaks when the Rush object is saved to disk.
 Call this method to reconnect after loading the object.</p><div class="section">
@@ -368,9 +368,10 @@ Call this method to reconnect after loading the object.</p><div class="section">
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reconnect</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+</div>
 
-</div><p></p><hr><a id="method-Rush-start_workers"></a><div class="section">
-<h3 id="method-start-workers-">Method <code>start_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-workers-"></a></h3>
+<p></p><hr><a id="method-Rush-start_workers"></a><div class="section">
+<h3 id="rush-start-workers-"><code>Rush$start_workers()</code><a class="anchor" aria-label="anchor" href="#rush-start-workers-"></a></h3>
 <p>Start workers to run the worker loop in <code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code>.
 Initializes a <a href="RushWorker.html">RushWorker</a> in each process and starts the worker loop.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
@@ -384,50 +385,41 @@ Initializes a <a href="RushWorker.html">RushWorker</a> in each process and start
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
 <dd><p>(<code>function</code>)<br>
 Loop run on the workers.</p></dd>
 
-
-<dt><code>...</code></dt>
+      <dt><code>...</code></dt>
 <dd><p>(<code>any</code>)<br>
 Arguments passed to <code>worker_loop</code>.</p></dd>
 
-
-<dt><code>n_workers</code></dt>
+      <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.</p></dd>
 
-
-<dt><code>packages</code></dt>
+      <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
 
-
-<dt><code>lgr_thresholds</code></dt>
+      <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
 Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
-
-<dt><code>lgr_buffer_size</code></dt>
+      <dt><code>lgr_buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
 
-
-<dt><code>message_log</code></dt>
+      <dt><code>message_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the message log files e.g. <code>/tmp/message_logs/</code>
 The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 
-
-<dt><code>output_log</code></dt>
+      <dt><code>output_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
@@ -437,8 +429,10 @@ If <code>NULL</code>, no output is stored.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-start_local_workers"></a><div class="section">
-<h3 id="method-start-local-workers-">Method <code>start_local_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-local-workers-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-start_local_workers"></a><div class="section">
+<h3 id="rush-start-local-workers-"><code>Rush$start_local_workers()</code><a class="anchor" aria-label="anchor" href="#rush-start-local-workers-"></a></h3>
 <p>Start workers locally with <code>processx</code>.
 Initializes a <a href="RushWorker.html">RushWorker</a> in each process and starts the worker loop.
 Use <code>$wait_for_workers()</code> to wait until the workers are registered in the network.</p><div class="section">
@@ -454,55 +448,45 @@ Use <code>$wait_for_workers()</code> to wait until the workers are registered in
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
 <dd><p>(<code>function</code>)<br>
 Loop run on the workers.</p></dd>
 
-
-<dt><code>...</code></dt>
+      <dt><code>...</code></dt>
 <dd><p>(<code>any</code>)<br>
 Arguments passed to <code>worker_loop</code>.</p></dd>
 
-
-<dt><code>n_workers</code></dt>
+      <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.</p></dd>
 
-
-<dt><code>packages</code></dt>
+      <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
 
-
-<dt><code>lgr_thresholds</code></dt>
+      <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
 Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
-
-<dt><code>lgr_buffer_size</code></dt>
+      <dt><code>lgr_buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
 
-
-<dt><code>supervise</code></dt>
+      <dt><code>supervise</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to kill the workers when the main R process is shut down.</p></dd>
 
-
-<dt><code>message_log</code></dt>
+      <dt><code>message_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the message log files e.g. <code>/tmp/message_logs/</code>
 The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 
-
-<dt><code>output_log</code></dt>
+      <dt><code>output_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
@@ -512,8 +496,10 @@ If <code>NULL</code>, no output is stored.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-start_remote_workers"></a><div class="section">
-<h3 id="method-start-remote-workers-">Method <code>start_remote_workers()</code><a class="anchor" aria-label="anchor" href="#method-start-remote-workers-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-start_remote_workers"></a><div class="section">
+<h3 id="rush-start-remote-workers-"><code>Rush$start_remote_workers()</code><a class="anchor" aria-label="anchor" href="#rush-start-remote-workers-"></a></h3>
 <p>Start workers to run the worker loop in <code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code>.
 Initializes a <a href="RushWorker.html">RushWorker</a> in each process and starts the worker loop.</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
@@ -527,50 +513,41 @@ Initializes a <a href="RushWorker.html">RushWorker</a> in each process and start
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
 <dd><p>(<code>function</code>)<br>
 Loop run on the workers.</p></dd>
 
-
-<dt><code>...</code></dt>
+      <dt><code>...</code></dt>
 <dd><p>(<code>any</code>)<br>
 Arguments passed to <code>worker_loop</code>.</p></dd>
 
-
-<dt><code>n_workers</code></dt>
+      <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.</p></dd>
 
-
-<dt><code>packages</code></dt>
+      <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
 
-
-<dt><code>lgr_thresholds</code></dt>
+      <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
 Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
-
-<dt><code>lgr_buffer_size</code></dt>
+      <dt><code>lgr_buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
 
-
-<dt><code>message_log</code></dt>
+      <dt><code>message_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the message log files e.g. <code>/tmp/message_logs/</code>
 The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 
-
-<dt><code>output_log</code></dt>
+      <dt><code>output_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
@@ -580,10 +557,20 @@ If <code>NULL</code>, no output is stored.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-worker_script"></a><div class="section">
-<h3 id="method-worker-script-">Method <code>worker_script()</code><a class="anchor" aria-label="anchor" href="#method-worker-script-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-worker_script"></a><div class="section">
+<h3 id="rush-worker-script-"><code>Rush$worker_script()</code><a class="anchor" aria-label="anchor" href="#rush-worker-script-"></a></h3>
 <p>Generate a script to start workers.
-Run this script <code>n</code> times to start <code>n</code> workers.</p><div class="section">
+Run this script <code>n</code> times to start <code>n</code> workers.
+The logged variant of the script redacts the Redis password.
+The script is quoted for POSIX shells (e.g., <code>sh</code>, <code>bash</code>, <code>zsh</code>).</p>
+<p>Always set <code>heartbeat_period</code> when using this method.
+The heartbeat is the only way to manage a worker that was started from a script,
+because there is no process handle on the manager side.
+Without a heartbeat, <code>$stop_workers(type = "kill")</code> cannot kill the worker,
+and <code>$detect_lost_workers()</code> cannot detect its crash,
+so a crashed worker stays in the running state forever.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
@@ -596,57 +583,51 @@ Run this script <code>n</code> times to start <code>n</code> workers.</p><div cl
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_loop</code></dt>
 <dd><p>(<code>function</code>)<br>
 Loop run on the workers.</p></dd>
 
-
-<dt><code>...</code></dt>
+      <dt><code>...</code></dt>
 <dd><p>(<code>any</code>)<br>
 Arguments passed to <code>worker_loop</code>.</p></dd>
 
-
-<dt><code>packages</code></dt>
+      <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Packages to be loaded by the workers.</p></dd>
 
-
-<dt><code>lgr_thresholds</code></dt>
+      <dt><code>lgr_thresholds</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code> | named <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric()</a></code>)<br>
 Logger threshold on the workers e.g. <code>c("mlr3/rush" = "debug")</code>.</p></dd>
 
-
-<dt><code>lgr_buffer_size</code></dt>
+      <dt><code>lgr_buffer_size</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 By default (<code>lgr_buffer_size = 0</code>), the log messages are directly saved in the Redis data store.
 If <code>lgr_buffer_size &gt; 0</code>, the log messages are buffered and saved in the Redis data store when the buffer is full.
 This improves the performance of the logging.</p></dd>
 
-
-<dt><code>heartbeat_period</code></dt>
+      <dt><code>heartbeat_period</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Period of the heartbeat in seconds.
-The heartbeat is updated every <code>heartbeat_period</code> seconds.</p></dd>
+The heartbeat is updated every <code>heartbeat_period</code> seconds.
+Must be at least 1 second.</p></dd>
 
-
-<dt><code>heartbeat_expire</code></dt>
+      <dt><code>heartbeat_expire</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.</p></dd>
+The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
+Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.
+Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
+because a live worker wrongly declared lost can leave a task in an inconsistent state.</p></dd>
 
-
-<dt><code>message_log</code></dt>
+      <dt><code>message_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the message log files e.g. <code>/tmp/message_logs/</code>
 The message log files are named <code>message_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 
-
-<dt><code>output_log</code></dt>
+      <dt><code>output_log</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
@@ -654,88 +635,106 @@ If <code>NULL</code>, no output is stored.</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>(<code>character(1)</code>)<br>
+Shell command to start a worker.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-wait_for_workers"></a><div class="section">
-<h3 id="method-wait-for-workers-">Method <code>wait_for_workers()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-workers-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-wait_for_workers"></a><div class="section">
+<h3 id="rush-wait-for-workers-"><code>Rush$wait_for_workers()</code><a class="anchor" aria-label="anchor" href="#rush-wait-for-workers-"></a></h3>
 <p>Wait until workers are registered in the network.
 Either <code>n</code>, <code>worker_ids</code> or both must be provided.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>n <span class="op">=</span> <span class="cn">NULL</span>, worker_ids <span class="op">=</span> <span class="cn">NULL</span>, timeout <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>n <span class="op">=</span> <span class="cn">NULL</span>, worker_ids <span class="op">=</span> <span class="cn">NULL</span>, timeout <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>n</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to wait for.
 If <code>NULL</code>, wait for all workers in <code>worker_ids</code>.</p></dd>
 
-
-<dt><code>worker_ids</code></dt>
+      <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids to wait for.
 If <code>NULL</code>, wait for any <code>n</code> workers to be registered.</p></dd>
 
-
-<dt><code>timeout</code></dt>
+      <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>
 Timeout in seconds.
-Default is <code>Inf</code>.</p></dd>
+Defaults to the <code>start_worker_timeout</code> set with <code><a href="rush_plan.html">rush_plan()</a></code>, or <code>Inf</code> if none is set.
+A <code>timeout</code> of <code>0</code> checks once and errors immediately if the workers are not yet registered.</p></dd>
 
 
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-stop_workers"></a><div class="section">
-<h3 id="method-stop-workers-">Method <code>stop_workers()</code><a class="anchor" aria-label="anchor" href="#method-stop-workers-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-stop_workers"></a><div class="section">
+<h3 id="rush-stop-workers-"><code>Rush$stop_workers()</code><a class="anchor" aria-label="anchor" href="#rush-stop-workers-"></a></h3>
 <p>Stop workers.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">stop_workers</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"kill"</span>, worker_ids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>type</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Type of stopping.
 Either <code>"terminate"</code> or <code>"kill"</code>.
-If <code>"kill"</code> the workers are stopped immediately.
+If <code>"kill"</code> the workers are stopped immediately,
+and their running tasks are marked as failed with the condition message <code>"Worker was killed"</code>.
 If <code>"terminate"</code> the workers evaluate the currently running task and then terminate.
-The <code>"terminate"</code> option must be implemented in the worker loop.</p></dd>
+The <code>"terminate"</code> option must be implemented in the worker loop.
+The <code>"kill"</code> option requires a process handle from <code>$start_workers()</code> or <code>$start_local_workers()</code>,
+or a heartbeat.
+Workers started from <code>$worker_script()</code> without a <code>heartbeat_period</code> are silently skipped.</p></dd>
 
-
-<dt><code>worker_ids</code></dt>
+      <dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids to be stopped.
-If <code>NULL</code> all workers are stopped.</p></dd>
+If <code>NULL</code> all workers are stopped.
+Ids that are not currently running are skipped with a warning.</p></dd>
 
 
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-detect_lost_workers"></a><div class="section">
-<h3 id="method-detect-lost-workers-">Method <code>detect_lost_workers()</code><a class="anchor" aria-label="anchor" href="#method-detect-lost-workers-"></a></h3>
-<p>Detect lost workers.
-The state of the worker is changed to <code>"terminated"</code>.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p></p><hr><a id="method-Rush-detect_lost_workers"></a><div class="section">
+<h3 id="rush-detect-lost-workers-"><code>Rush$detect_lost_workers()</code><a class="anchor" aria-label="anchor" href="#rush-detect-lost-workers-"></a></h3>
+<p>Detect lost workers.
+The state of the worker is changed to <code>"terminated"</code>.</p>
+<p>Workers started with <code>mirai</code> or <code>processx</code> are monitored through their process handle,
+so a worker is only declared lost after its process has actually terminated.
+Workers started from <code>$worker_script()</code> are monitored through a heartbeat and are declared lost
+when the heartbeat key expires.
+Workers started from <code>$worker_script()</code> without a <code>heartbeat_period</code> cannot be monitored at all,
+so a crashed worker stays in the running state forever.
+Because this is a timeout, <code>heartbeat_expire</code> must be larger than the longest pause a worker may
+experience, for example from garbage collection or swapping.
+If a live worker is wrongly declared lost, its running and pending tasks are marked as failed,
+and the results of tasks the worker finishes afterwards are discarded.
+Set <code>heartbeat_expire</code> conservatively to avoid discarding results.</p><div class="section">
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids of detected lost workers.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-reset"></a><div class="section">
-<h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-reset"></a><div class="section">
+<h3 id="rush-reset-"><code>Rush$reset()</code><a class="anchor" aria-label="anchor" href="#rush-reset-"></a></h3>
 <p>Stop workers and delete data stored in redis.</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span>workers <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>workers</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
@@ -746,319 +745,197 @@ Default is <code>TRUE</code>.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-read_log"></a><div class="section">
-<h3 id="method-read-log-">Method <code>read_log()</code><a class="anchor" aria-label="anchor" href="#method-read-log-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-read_log"></a><div class="section">
+<h3 id="rush-read-log-"><code>Rush$read_log()</code><a class="anchor" aria-label="anchor" href="#rush-read-log-"></a></h3>
 <p>Read log messages written with the <code>lgr</code> package by the workers.</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_log</span><span class="op">(</span>worker_ids <span class="op">=</span> <span class="cn">NULL</span>, time_difference <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>worker_ids</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Worker ids to be read log messages from.
 Defaults to all worker ids.</p></dd>
 
-
-<dt><code>time_difference</code></dt>
+      <dt><code>time_difference</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to calculate the time difference between log messages.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p><code>data.table()</code><br>
-Table with level, timestamp, logger, caller and message, and optionally time difference.</p>
+Table with columns <code>worker_id</code>, <code>level</code>, <code>timestamp</code>, <code>logger</code>, <code>caller</code> and <code>msg</code>,
+and optionally <code>time_difference</code>.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-print_log"></a><div class="section">
-<h3 id="method-print-log-">Method <code>print_log()</code><a class="anchor" aria-label="anchor" href="#method-print-log-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-print_log"></a><div class="section">
+<h3 id="rush-print-log-"><code>Rush$print_log()</code><a class="anchor" aria-label="anchor" href="#rush-print-log-"></a></h3>
 <p>Print log messages written with the <code>lgr</code> package by the workers.
 Log messages are printed with the original logger.</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">print_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>(<code>Rush</code>)<br>
-Invisible self.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-pop_task"></a><div class="section">
-<h3 id="method-pop-task-">Method <code>pop_task()</code><a class="anchor" aria-label="anchor" href="#method-pop-task-"></a></h3>
-<p>Pop a task from the queue and mark it as running.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">pop_task</span><span class="op">(</span>timeout <span class="op">=</span> <span class="fl">1</span>, fields <span class="op">=</span> <span class="st">"xs"</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>timeout</code></dt>
-<dd><p>(<code>numeric(1)</code>)<br>
-Time to wait for task in seconds.</p></dd>
-
-
-<dt><code>fields</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Fields to be returned.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-
-</div><p></p><hr><a id="method-Rush-finish_tasks"></a><div class="section">
-<h3 id="method-finish-tasks-">Method <code>finish_tasks()</code><a class="anchor" aria-label="anchor" href="#method-finish-tasks-"></a></h3>
-<p>Save output of tasks and mark them as finished.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">keys</span>, <span class="va">yss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>(<code>character(1)</code>)<br>
-Keys of the associated tasks.</p></dd>
-
-
-<dt><code>yss</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of named results.</p></dd>
-
-
-<dt><code>extra</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of additional information stored along with the results.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fail_tasks"></a><div class="section">
-<h3 id="method-fail-tasks-">Method <code>fail_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fail-tasks-"></a></h3>
-<p>Mark tasks as failed and optionally save the condition objects</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fail_tasks</span><span class="op">(</span><span class="va">keys</span>, conditions <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the tasks to be moved.
-Defaults to all queued tasks.</p></dd>
-
-
-<dt><code>conditions</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of conditions.
-Defaults to <code>list(message = "Failed")</code>.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
-<p>(<code>Rush</code>)<br>
-Invisible self.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-push_tasks"></a><div class="section">
-<h3 id="method-push-tasks-">Method <code>push_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-tasks-"></a></h3>
-<p>Create queued tasks and add them to the queue.</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><hr><a id="method-Rush-push_tasks"></a><div class="section">
+<h3 id="rush-push-tasks-"><code>Rush$push_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-push-tasks-"></a></h3>
+<p>Create tasks and add them to the queue.</p><div class="section">
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
+      <dt><code>xss_extra</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
 
-<dt><code>extra</code></dt>
+      <dt><code>extra</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+Deprecated argument for additional information stored along with the task.
+Use <code>xss_extra</code> instead.</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
+Keys of the tasks.</p>
 </div>
-<div class="section">
+
+</div>
+
+<p></p><hr><a id="method-Rush-push_finished_tasks"></a><div class="section">
+<h3 id="rush-push-finished-tasks-"><code>Rush$push_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-push-finished-tasks-"></a></h3>
+<p>Create finished tasks.
+See <code>$finish_tasks()</code> for moving existing tasks from running to finished.</p><div class="section">
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_finished_tasks</span><span class="op">(</span><span class="va">xss</span>, <span class="va">yss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, yss_extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>xss</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
+
+      <dt><code>yss</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+Lists of results for the function e.g. <code>list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))</code>.</p></dd>
+
+      <dt><code>xss_extra</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
+
+      <dt><code>yss_extra</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the results
+e.g. <code>list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))</code>.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
 <h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-push_running_tasks"></a><div class="section">
-<h3 id="method-push-running-tasks-">Method <code>push_running_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-running-tasks-"></a></h3>
-<p>Create running tasks.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span><span class="va">xss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<p></p><hr><a id="method-Rush-push_failed_tasks"></a><div class="section">
+<h3 id="rush-push-failed-tasks-"><code>Rush$push_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-push-failed-tasks-"></a></h3>
+<p>Create failed tasks.
+See <code>$fail_tasks()</code> for moving existing tasks from queued and running to failed.</p><div class="section">
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, conditions <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
 <dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
+Lists of arguments for the function e.g. <code>list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))</code>.
+If <code>xss</code> is empty, no tasks are created and the method returns an empty <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>.</p></dd>
 
+      <dt><code>xss_extra</code></dt>
+<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List of additional information stored along with the task
+e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))</code>.</p></dd>
 
-<dt><code>extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
+      <dt><code>conditions</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+List conditions e.g. <code>list(simpleError("Error"), simpleError("Error"))</code>.
+Defaults to <code>list(message = "Task failed")</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-push_finished_tasks"></a><div class="section">
-<h3 id="method-push-finished-tasks-">Method <code>push_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-finished-tasks-"></a></h3>
-<p>Create finished tasks.
-See <code>$finish_tasks()</code> for moving existing tasks from running to finished.</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_finished_tasks</span><span class="op">(</span><span class="va">xss</span>, <span class="va">yss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, yss_extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>xss</code></dt>
-<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
-
-
-<dt><code>yss</code></dt>
-<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of results for the function e.g. <code>list(list(y1, y2), list(y1, y2)))</code>.</p></dd>
-
-
-<dt><code>xss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
-
-
-<dt><code>yss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the results e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
-<p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the tasks.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-push_failed_tasks"></a><div class="section">
-<h3 id="method-push-failed-tasks-">Method <code>push_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#method-push-failed-tasks-"></a></h3>
-<p>Create failed tasks.
-See <code>$fail_tasks()</code> for moving existing tasks from queued and running to failed.</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">conditions</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>xss</code></dt>
-<dd><p>(list of named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-Lists of arguments for the function e.g. <code>list(list(x1, x2), list(x1, x2)))</code>.</p></dd>
-
-
-<dt><code>xss_extra</code></dt>
-<dd><p>(<code>list</code>)<br>
-List of additional information stored along with the task e.g. <code>list(list(timestamp), list(timestamp)))</code>.</p></dd>
-
-
-<dt><code>conditions</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of conditions.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
-<p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the tasks.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-empty_queue"></a><div class="section">
-<h3 id="method-empty-queue-">Method <code>empty_queue()</code><a class="anchor" aria-label="anchor" href="#method-empty-queue-"></a></h3>
+<p></p><hr><a id="method-Rush-empty_queue"></a><div class="section">
+<h3 id="rush-empty-queue-"><code>Rush$empty_queue()</code><a class="anchor" aria-label="anchor" href="#rush-empty-queue-"></a></h3>
 <p>Remove all tasks from the queue.
-The state of the tasks is set to failed.</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">empty_queue</span><span class="op">(</span>keys <span class="op">=</span> <span class="cn">NULL</span>, conditions <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the tasks to be moved.
-Defaults to all queued tasks.</p></dd>
-
-
-<dt><code>conditions</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of conditions.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+The state of the tasks is set to failed.
+The condition message is set to <code>"Removed from queue"</code>.</p><div class="section">
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">empty_queue</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_tasks"></a><div class="section">
-<h3 id="method-fetch-tasks-">Method <code>fetch_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-tasks-"></a></h3>
-<p>Fetch all tasks from the data base.</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+</div>
+
+<p></p><hr><a id="method-Rush-fetch_tasks"></a><div class="section">
+<h3 id="rush-fetch-tasks-"><code>Rush$fetch_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-tasks-"></a></h3>
+<p>Fetch all tasks from the database.</p><div class="section">
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")</code>.</p></dd>
+Defaults to <code>c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p><code>data.table()</code><br>
 Table of all tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_queued_tasks"></a><div class="section">
-<h3 id="method-fetch-queued-tasks-">Method <code>fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-queued-tasks-"></a></h3>
-<p>Fetch queued tasks from the data base.</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<p></p><hr><a id="method-Rush-fetch_queued_tasks"></a><div class="section">
+<h3 id="rush-fetch-queued-tasks-"><code>Rush$fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-queued-tasks-"></a></h3>
+<p>Fetch queued tasks from the database.</p><div class="section">
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
@@ -1066,22 +943,21 @@ Defaults to <code>c("xs", "xs_extra")</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p><code>data.table()</code><br>
 Table of queued tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_running_tasks"></a><div class="section">
-<h3 id="method-fetch-running-tasks-">Method <code>fetch_running_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-running-tasks-"></a></h3>
-<p>Fetch running tasks from the data base.</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
+<p></p><hr><a id="method-Rush-fetch_running_tasks"></a><div class="section">
+<h3 id="rush-fetch-running-tasks-"><code>Rush$fetch_running_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-running-tasks-"></a></h3>
+<p>Fetch running tasks from the database.</p><div class="section">
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_running_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
@@ -1089,85 +965,87 @@ Defaults to <code>c("xs", "xs_extra", "worker_id")</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p><code>data.table()</code><br>
 Table of running tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_failed_tasks"></a><div class="section">
-<h3 id="method-fetch-failed-tasks-">Method <code>fetch_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-failed-tasks-"></a></h3>
-<p>Fetch failed tasks from the data base.</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"condition"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<p></p><hr><a id="method-Rush-fetch_failed_tasks"></a><div class="section">
+<h3 id="rush-fetch-failed-tasks-"><code>Rush$fetch_failed_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-failed-tasks-"></a></h3>
+<p>Fetch failed tasks from the database.</p><div class="section">
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"condition"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra", "worker_id", "condition"</code>.</p></dd>
+Defaults to <code>c("xs", "xs_extra", "worker_id", "condition")</code>.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p><code>data.table()</code><br>
 Table of failed tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_finished_tasks"></a><div class="section">
-<h3 id="method-fetch-finished-tasks-">Method <code>fetch_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-finished-tasks-"></a></h3>
-<p>Fetch finished tasks from the data base.
+</div>
+
+<p></p><hr><a id="method-Rush-fetch_finished_tasks"></a><div class="section">
+<h3 id="rush-fetch-finished-tasks-"><code>Rush$fetch_finished_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-finished-tasks-"></a></h3>
+<p>Fetch finished tasks from the database.
 Finished tasks are cached.</p><div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"worker_id"</span>, <span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra", "worker_id", "ys", "ys_extra")</code>.</p></dd>
+Defaults to <code>c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")</code>.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p><code>data.table()</code><br>
 Table of finished tasks.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_tasks_with_state"></a><div class="section">
-<h3 id="method-fetch-tasks-with-state-">Method <code>fetch_tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#method-fetch-tasks-with-state-"></a></h3>
-<p>Fetch tasks with different states from the data base.
+</div>
+
+<p></p><hr><a id="method-Rush-fetch_tasks_with_state"></a><div class="section">
+<h3 id="rush-fetch-tasks-with-state-"><code>Rush$fetch_tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-tasks-with-state-"></a></h3>
+<p>Fetch tasks with different states from the database.
 If tasks with different states are to be queried at the same time,
 this function prevents tasks from appearing twice.
 This could be the case if a worker changes the state of a task while the tasks are being fetched.
 Finished tasks are cached.</p><div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_tasks_with_state</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"worker_id"</span>, <span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"queued"</span>, <span class="st">"running"</span>, <span class="st">"finished"</span>, <span class="st">"failed"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")</code>.</p></dd>
+Defaults to <code>c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")</code>.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
-
-<dt><code>states</code></dt>
+      <dt><code>states</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 States of the tasks to be fetched.
 Defaults to <code>c("queued", "running", "finished", "failed")</code>.</p></dd>
@@ -1176,68 +1054,71 @@ Defaults to <code>c("queued", "running", "finished", "failed")</code>.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-fetch_new_tasks"></a><div class="section">
-<h3 id="method-fetch-new-tasks-">Method <code>fetch_new_tasks()</code><a class="anchor" aria-label="anchor" href="#method-fetch-new-tasks-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-fetch_new_tasks"></a><div class="section">
+<h3 id="rush-fetch-new-tasks-"><code>Rush$fetch_new_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-new-tasks-"></a></h3>
 <p>Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks.
-If <code>timeout</code> is set, blocks until new tasks are available or the timeout is reached.</p><div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+If <code>timeout</code> is set, blocks until new tasks are available or the timeout is reached.</p>
+<p>"New" is tracked relative to previous calls of this method only.
+<code>$fetch_finished_tasks()</code> grows the same cache but does not advance this counter,
+so a task already returned by <code>$fetch_finished_tasks()</code> is returned again by the next <code>$fetch_new_tasks()</code>.</p><div class="section">
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_new_tasks</span><span class="op">(</span></span>
 <span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"ys"</span>, <span class="st">"xs_extra"</span>, <span class="st">"worker_id"</span>, <span class="st">"ys_extra"</span>, <span class="st">"condition"</span><span class="op">)</span>,</span>
 <span>  timeout <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Fields to be read from the hashes.</p></dd>
+Fields to be read from the hashes.
+If the fields change between calls,
+fields requested only by a later call remain <code>NA</code> for the already cached tasks.
+Use <code>$reset_cache()</code> to reset the cache in this case.</p></dd>
 
-
-<dt><code>timeout</code></dt>
+      <dt><code>timeout</code></dt>
 <dd><p>(<code>numeric(1)</code>)<br>
 Time to wait for new results in seconds.
 Defaults to <code>0</code> (no waiting).</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p><code>data.table()</code><br>
 Table of latest results.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-reset_cache"></a><div class="section">
-<h3 id="method-reset-cache-">Method <code>reset_cache()</code><a class="anchor" aria-label="anchor" href="#method-reset-cache-"></a></h3>
-<p>Reset the cache of the finished tasks.</p><div class="section">
-<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset_cache</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<p></p><hr><a id="method-Rush-reset_cache"></a><div class="section">
+<h3 id="rush-reset-cache-"><code>Rush$reset_cache()</code><a class="anchor" aria-label="anchor" href="#rush-reset-cache-"></a></h3>
+<p>Reset the cache of the finished tasks.</p><div class="section">
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">reset_cache</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p>(<code>Rush</code>)<br>
 Invisible self.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-wait_for_tasks"></a><div class="section">
-<h3 id="method-wait-for-tasks-">Method <code>wait_for_tasks()</code><a class="anchor" aria-label="anchor" href="#method-wait-for-tasks-"></a></h3>
-<p>Wait until tasks are finished.
-The function also unblocks when no worker is running or all tasks failed.</p><div class="section">
-<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
+<p></p><hr><a id="method-Rush-wait_for_tasks"></a><div class="section">
+<h3 id="rush-wait-for-tasks-"><code>Rush$wait_for_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-wait-for-tasks-"></a></h3>
+<p>Wait until tasks are finished.
+The function also unblocks when no worker is running or all tasks failed.</p><div class="section">
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">wait_for_tasks</span><span class="op">(</span><span class="va">keys</span>, detect_lost_workers <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks to wait for.</p></dd>
 
-
-<dt><code>detect_lost_workers</code></dt>
+      <dt><code>detect_lost_workers</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to detect failed tasks.
 Comes with an overhead.</p></dd>
@@ -1246,8 +1127,10 @@ Comes with an overhead.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-write_hashes"></a><div class="section">
-<h3 id="method-write-hashes-">Method <code>write_hashes()</code><a class="anchor" aria-label="anchor" href="#method-write-hashes-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-write_hashes"></a><div class="section">
+<h3 id="rush-write-hashes-"><code>Rush$write_hashes()</code><a class="anchor" aria-label="anchor" href="#rush-write-hashes-"></a></h3>
 <p>Writes R objects to Redis hashes.
 The function takes the vectors in <code>...</code> as input and writes each element as a field-value pair to a new hash.
 The name of the argument defines the field into which the serialized element is written.
@@ -1261,40 +1144,37 @@ in which case the value is broadcast across all hashes.
 Other length mismatches raise an error.
 Both lists and atomic vectors are supported.
 Arguments that are <code>NULL</code> are ignored.</p><div class="section">
-<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">write_hashes</span><span class="op">(</span><span class="va">...</span>, .values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, keys <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Lists to be written to the hashes.
 The names of the arguments are used as fields.</p></dd>
 
-
-<dt><code>.values</code></dt>
+      <dt><code>.values</code></dt>
 <dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Lists to be written to the hashes.
 The names of the list are used as fields.</p></dd>
 
-
-<dt><code>keys</code></dt>
+      <dt><code>keys</code></dt>
 <dd><p>(character())<br>
 Keys of the hashes.
 If <code>NULL</code> new keys are generated.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
 <p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the hashes.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-read_hashes"></a><div class="section">
-<h3 id="method-read-hashes-">Method <code>read_hashes()</code><a class="anchor" aria-label="anchor" href="#method-read-hashes-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-read_hashes"></a><div class="section">
+<h3 id="rush-read-hashes-"><code>Rush$read_hashes()</code><a class="anchor" aria-label="anchor" href="#rush-read-hashes-"></a></h3>
 <p>Reads R Objects from Redis hashes.
 The function reads the field-value pairs of the hashes stored at <code>keys</code>.
 The values of a hash are deserialized and combined to a list.
@@ -1302,74 +1182,69 @@ If <code>flatten</code> is <code>TRUE</code>, the values are flattened to a sing
 <code>list(xs = list(x1 = 1, x2 = 2), ys = list(y = 3))</code> becomes <code>list(x1 = 1, x2 = 2, y = 3)</code>.
 The reading functions combine the hashes to a table where the names of the inner lists are the column names.
 For example, <code>xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))</code> becomes
-<code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.</p><div class="section">
-<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<code>data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))</code>.
+Names must be unique across the flattened fields.
+Colliding names produce duplicate columns, of which only the first is reachable by name.</p><div class="section">
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hashes</span><span class="op">(</span><span class="va">keys</span>, <span class="va">fields</span>, flatten <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-27">Arguments<a class="anchor" aria-label="anchor" href="#arguments-27"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the hashes.</p></dd>
 
-
-<dt><code>fields</code></dt>
+      <dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.</p></dd>
 
-
-<dt><code>flatten</code></dt>
+      <dt><code>flatten</code></dt>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to flatten the list.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
 <p>(list of <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-read_hash"></a><div class="section">
-<h3 id="method-read-hash-">Method <code>read_hash()</code><a class="anchor" aria-label="anchor" href="#method-read-hash-"></a></h3>
-<p>Reads a single Redis hash and returns the values as a list named by the fields.</p><div class="section">
-<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hash</span><span class="op">(</span><span class="va">key</span>, <span class="va">fields</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-28">Arguments<a class="anchor" aria-label="anchor" href="#arguments-28"></a></h4>
+<p></p><hr><a id="method-Rush-read_hash"></a><div class="section">
+<h3 id="rush-read-hash-"><code>Rush$read_hash()</code><a class="anchor" aria-label="anchor" href="#rush-read-hash-"></a></h3>
+<p>Reads a single Redis hash and returns the values as a list named by the fields.</p><div class="section">
+<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">read_hash</span><span class="op">(</span><span class="va">key</span>, <span class="va">fields</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>key</code></dt>
 <dd><p>(<code>character(1)</code>)<br>
 Key of the hash.</p></dd>
 
-
-<dt><code>fields</code></dt>
+      <dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hash.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
 <p>(list of <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 The outer list contains one element for each key.
 The inner list is the combination of the lists stored at the different fields.</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-is_running_task"></a><div class="section">
-<h3 id="method-is-running-task-">Method <code>is_running_task()</code><a class="anchor" aria-label="anchor" href="#method-is-running-task-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-is_running_task"></a><div class="section">
+<h3 id="rush-is-running-task-"><code>Rush$is_running_task()</code><a class="anchor" aria-label="anchor" href="#rush-is-running-task-"></a></h3>
 <p>Checks whether tasks have the status <code>"running"</code>.</p><div class="section">
-<h4 id="usage-34">Usage<a class="anchor" aria-label="anchor" href="#usage-34"></a></h4>
+<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">is_running_task</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-29">Arguments<a class="anchor" aria-label="anchor" href="#arguments-29"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p></dd>
@@ -1378,15 +1253,15 @@ Keys of the tasks.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-is_failed_task"></a><div class="section">
-<h3 id="method-is-failed-task-">Method <code>is_failed_task()</code><a class="anchor" aria-label="anchor" href="#method-is-failed-task-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-Rush-is_failed_task"></a><div class="section">
+<h3 id="rush-is-failed-task-"><code>Rush$is_failed_task()</code><a class="anchor" aria-label="anchor" href="#rush-is-failed-task-"></a></h3>
 <p>Checks whether tasks have the status <code>"failed"</code>.</p><div class="section">
-<h4 id="usage-35">Usage<a class="anchor" aria-label="anchor" href="#usage-35"></a></h4>
+<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">is_failed_task</span><span class="op">(</span><span class="va">keys</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-30">Arguments<a class="anchor" aria-label="anchor" href="#arguments-30"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>keys</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Keys of the tasks.</p></dd>
@@ -1395,97 +1270,35 @@ Keys of the tasks.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-Rush-tasks_with_state"></a><div class="section">
-<h3 id="method-tasks-with-state-">Method <code>tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#method-tasks-with-state-"></a></h3>
-<p>Returns keys of requested states.</p><div class="section">
-<h4 id="usage-36">Usage<a class="anchor" aria-label="anchor" href="#usage-36"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">tasks_with_state</span><span class="op">(</span><span class="va">states</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-31">Arguments<a class="anchor" aria-label="anchor" href="#arguments-31"></a></h4>
+<p></p><hr><a id="method-Rush-tasks_with_state"></a><div class="section">
+<h3 id="rush-tasks-with-state-"><code>Rush$tasks_with_state()</code><a class="anchor" aria-label="anchor" href="#rush-tasks-with-state-"></a></h3>
+<p>Returns keys of requested states.</p><div class="section">
+<h4 id="usage-32">Usage<a class="anchor" aria-label="anchor" href="#usage-32"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">tasks_with_state</span><span class="op">(</span><span class="va">states</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>states</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 States of the tasks.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
+</div><p></p><div class="section">
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
 <p>(Named list of <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>).</p>
 </div>
 
-</div><p></p><hr><a id="method-Rush-push_results"></a><div class="section">
-<h3 id="method-push-results-">Method <code>push_results()</code><a class="anchor" aria-label="anchor" href="#method-push-results-"></a></h3>
-<p>Deprecated method.
-Use <code>$finish_tasks()</code> instead.</p><div class="section">
-<h4 id="usage-37">Usage<a class="anchor" aria-label="anchor" href="#usage-37"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_results</span><span class="op">(</span><span class="va">keys</span>, <span class="va">yss</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-32">Arguments<a class="anchor" aria-label="anchor" href="#arguments-32"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the associated tasks.</p></dd>
-
-
-<dt><code>yss</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of named results.</p></dd>
-
-
-<dt><code>extra</code></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of lists of additional information stored along with the results.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
-<p>(<code>Rush</code>)<br>
-Invisible self.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-push_failed"></a><div class="section">
-<h3 id="method-push-failed-">Method <code>push_failed()</code><a class="anchor" aria-label="anchor" href="#method-push-failed-"></a></h3>
-<p>Deprecated method.
-Use <code>$fail_tasks()</code> instead.</p><div class="section">
-<h4 id="usage-38">Usage<a class="anchor" aria-label="anchor" href="#usage-38"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_failed</span><span class="op">(</span><span class="va">keys</span>, <span class="va">conditions</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-33">Arguments<a class="anchor" aria-label="anchor" href="#arguments-33"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>keys</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of the associated tasks.</p></dd>
-
-
-<dt><code>conditions</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
-List of conditions.</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
-<p>(<code>Rush</code>)<br>
-Invisible self.</p>
-</div>
-
-</div><p></p><hr><a id="method-Rush-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+<p></p><hr><a id="method-Rush-clone"></a><div class="section">
+<h3 id="rush-clone-"><code>Rush$clone()</code><a class="anchor" aria-label="anchor" href="#rush-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-39">Usage<a class="anchor" aria-label="anchor" href="#usage-39"></a></h4>
+<h4 id="usage-33">Usage<a class="anchor" aria-label="anchor" href="#usage-33"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-34">Arguments<a class="anchor" aria-label="anchor" href="#arguments-34"></a></h4>
+</div><p></p><div class="section">
+<h4 id="arguments-27">Arguments<a class="anchor" aria-label="anchor" href="#arguments-27"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -1494,6 +1307,7 @@ Invisible self.</p>
 </div>
 
 </div>
+
 
     </div>
 
@@ -1522,7 +1336,7 @@ Invisible self.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

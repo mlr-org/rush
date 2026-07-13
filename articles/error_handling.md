@@ -14,6 +14,7 @@ responsible for catching errors and marking the corresponding task as
 `"failed"` using the `$fail_tasks()` method.
 
 ``` r
+
 library(rush)
 
 branin = function(x1, x2) {
@@ -42,6 +43,7 @@ wl_random_search = function(rush, branin) {
 We initialize the network and start the workers.
 
 ``` r
+
 rush = rsh(
   network = "test-simple-error",
   config = redux::redis_config())
@@ -60,22 +62,23 @@ not interrupt the overall execution and allows subsequent inspection and
 reevaluation of failed tasks.
 
 ``` r
+
 rush$fetch_failed_tasks()
 ```
 
-                  x1        x2     worker_id       message          keys
-               <num>     <num>        <char>        <char>        <char>
-      1:  6.22049829  4.716900 robotic_pi... Random Err... add54117-5...
-      2:  8.07920956 10.670161 burned_wat... Random Err... 0956e1d2-9...
-      3:  2.83975696  3.674718 duckie_aus... Random Err... 7c5003a9-d...
-      4:  5.36330978 11.233661 robotic_pi... Random Err... f70fb1e1-9...
-      5:  4.03138302 14.260316 robotic_pi... Random Err... 95206071-c...
+                x1        x2     worker_id condition          keys
+             <num>     <num>        <char>    <list>        <char>
+      1:  2.572199  2.482924 refreshful... <list[1]> ee687727-b...
+      2: -1.986177 11.923412 contradict... <list[1]> 7d35c7a0-d...
+      3:  3.711689  1.905521 refreshful... <list[1]> cab9b5b9-a...
+      4: -4.653192  4.163906 contradict... <list[1]> b025b725-a...
+      5:  9.342368 13.138830 refreshful... <list[1]> 02fc5dc3-a...
      ---
-    136:  2.67492232 13.512226 burned_wat... Random Err... e6ddf7c5-8...
-    137: -0.07961306  4.218037 duckie_aus... Random Err... b36f4793-2...
-    138:  4.60658294  9.267348 phytoclima... Random Err... 9912c386-2...
-    139:  0.70167323  5.436933 robotic_pi... Random Err... 5ec00b54-3...
-    140:  9.67885918 13.561780 robotic_pi... Random Err... 7b3b2fe5-7...
+    106:  4.669072 10.166325 contradict... <list[1]> 3bc37bb0-9...
+    107:  4.027866 13.918090 kainolopho... <list[1]> 95c8f7ec-2...
+    108: -2.995506  8.620931 archaistic... <list[1]> e29d093e-e...
+    109:  3.637736 11.293786 kainolopho... <list[1]> 3c845975-2...
+    110:  9.868069 12.899744 archaistic... <list[1]> 550dd0c2-b...
 
 ## Handling Failing Workers
 
@@ -84,6 +87,7 @@ remain in the `"running"` state indefinitely. We simulate a segmentation
 fault by terminating the worker process.
 
 ``` r
+
 wl_failed_worker = function(rush) {
   xs = list(x1 = runif(1, -5, 10), x2 = runif(1, 0, 15))
   key = rush$push_running_tasks(xss = list(xs))
@@ -111,22 +115,25 @@ works automatically by checking process status. Workers started via
 vignette](https://rush.mlr-org.com/articles/manager.html#sec-script-error-handling)).
 
 ``` r
+
 rush$detect_lost_workers()
 ```
 
-    [1] "close_malamute"    "nonangelic_kawala"
+    [1] "brainsick_alligatorgar_f28d6e57"
+    [2] "diamantiferous_cleanerwrasse_7c33246e"
 
 When a worker fails, the state of any task it was evaluating is set to
 `"failed"`.
 
 ``` r
+
 rush$fetch_failed_tasks()
 ```
 
-              x1        x2     worker_id       message          keys
-           <num>     <num>        <char>        <char>        <char>
-    1: -1.532230 0.6106526 close_mala... Worker has... ffeaf0e2-7...
-    2:  9.224463 9.3519615 nonangelic... Worker has... bae6cd62-1...
+                x1       x2     worker_id condition          keys
+             <num>    <num>        <char>    <list>        <char>
+    1:  0.03488415 13.06521 brainsick_... <list[1]> 016f71a5-e...
+    2: -3.41829768 10.73486 diamantife... <list[1]> c6eb9af2-c...
 
 ## Debugging
 
@@ -136,6 +143,7 @@ following worker loop, which generates an error for large values of
 `x1`.
 
 ``` r
+
 wl_error = function(rush) {
 
   repeat {
@@ -159,6 +167,7 @@ To debug the worker loop locally, a `RushWorker` instance is
 instantiated manually and passed as argument to the worker loop.
 
 ``` r
+
 rush_worker = RushWorker$new(network_id = "test-error")
 
 wl_error(rush_worker)
@@ -176,6 +185,7 @@ by running the worker loop in a separate process and using
 `$detect_lost_workers()`.
 
 ``` r
+
 rush = rsh(
   network = "test-error",
   config = redux::redis_config())
@@ -188,15 +198,17 @@ rush$start_workers(
 ```
 
 ``` r
+
 rush$detect_lost_workers()
 ```
 
-    [1] "discomfortable_invisiblerail"
+    [1] "reflectible_anteater_58458f9b"
 
 Output and message logs can be written to files via the `message_log`
 and `output_log` arguments.
 
 ``` r
+
 rush = rsh(
   network = "test-error",
   config = redux::redis_config())
@@ -217,10 +229,11 @@ Sys.sleep(5)
 readLines(file.path(message_log, sprintf("message_%s.log", worker_ids[1])))
 ```
 
-    [1] "Debug message logging on worker grindable_songbird started"
+    [1] "Debug message logging on worker volumed_bluefintuna_e0febfc7 started"
 
 ``` r
+
 readLines(file.path(output_log, sprintf("output_%s.log", worker_ids[1])))
 ```
 
-    [1] "[1] \"Debug output logging on worker grindable_songbird started\""
+    [1] "[1] \"Debug output logging on worker volumed_bluefintuna_e0febfc7 started\""

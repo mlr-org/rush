@@ -5,13 +5,13 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Start a worker — start_worker"><meta name="description" content="Starts a worker.
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Start a worker — start_worker"><meta name="description" content="Starts a worker.
 The function loads packages, initializes the RushWorker instance and invokes the worker loop.
 This function is called by $start_local_workers() or
-by the user after creating the worker script with $create_worker_script()."><meta property="og:description" content="Starts a worker.
+by the user after creating the worker script with $worker_script()."><meta property="og:description" content="Starts a worker.
 The function loads packages, initializes the RushWorker instance and invokes the worker loop.
 This function is called by $start_local_workers() or
-by the user after creating the worker script with $create_worker_script()."></head><body>
+by the user after creating the worker script with $worker_script()."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -19,7 +19,7 @@ by the user after creating the worker script with $create_worker_script()."></he
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.1.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@ by the user after creating the worker script with $create_worker_script()."></he
     <p>Starts a worker.
 The function loads packages, initializes the <a href="RushWorker.html">RushWorker</a> instance and invokes the worker loop.
 This function is called by <code>$start_local_workers()</code> or
-by the user after creating the worker script with <code>$create_worker_script()</code>.</p>
+by the user after creating the worker script with <code>$worker_script()</code>.</p>
     </div>
 
     <div class="section level2">
@@ -121,13 +121,17 @@ This improves the performance of the logging.</p></dd>
 <dt id="arg-heartbeat-period">heartbeat_period<a class="anchor" aria-label="anchor" href="#arg-heartbeat-period"></a></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Period of the heartbeat in seconds.
-The heartbeat is updated every <code>heartbeat_period</code> seconds.</p></dd>
+The heartbeat is updated every <code>heartbeat_period</code> seconds.
+Must be at least 1 second.</p></dd>
 
 
 <dt id="arg-heartbeat-expire">heartbeat_expire<a class="anchor" aria-label="anchor" href="#arg-heartbeat-expire"></a></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Time to live of the heartbeat in seconds.
-The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.</p></dd>
+The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
+Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.
+Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
+because a live worker wrongly declared lost can leave a task in an inconsistent state.</p></dd>
 
 
 <dt id="arg-message-log">message_log<a class="anchor" aria-label="anchor" href="#arg-message-log"></a></dt>
@@ -148,23 +152,14 @@ If <code>NULL</code>, no output is stored.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>NULL</code></p>
     </div>
-    <div class="section level2">
-    <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>The function initializes the connection to the Redis data base.
-It loads the packages required by the worker loop.
-The function initialize the <a href="RushWorker.html">RushWorker</a> instance and starts the worker loop.</p>
-    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># This example is not executed since Redis must be installed</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span>  <span class="fu">rush</span><span class="fu">::</span><span class="fu">start_worker</span><span class="op">(</span></span></span>
-<span class="r-in"><span>   network_id <span class="op">=</span> <span class="st">'test-rush'</span>,</span></span>
-<span class="r-in"><span>   url <span class="op">=</span> <span class="st">'redis://127.0.0.1:6379'</span>,</span></span>
-<span class="r-in"><span>   scheme <span class="op">=</span> <span class="st">'redis'</span>,</span></span>
-<span class="r-in"><span>   host <span class="op">=</span> <span class="st">'127.0.0.1'</span>,</span></span>
-<span class="r-in"><span>   port <span class="op">=</span> <span class="st">'6379'</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    network_id <span class="op">=</span> <span class="st">"test-rush"</span>,</span></span>
+<span class="r-in"><span>    config <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>host <span class="op">=</span> <span class="st">"127.0.0.1"</span>, port <span class="op">=</span> <span class="st">"6379"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -177,7 +172,7 @@ The function initialize the <a href="RushWorker.html">RushWorker</a> instance an
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

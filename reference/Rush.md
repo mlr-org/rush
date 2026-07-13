@@ -36,7 +36,12 @@ Methods to create a task:
 
 These methods return the key of the created tasks. The methods work on
 multiple tasks at once, so `xss` and `yss` are lists of inputs and
-outputs.
+outputs. When tasks are fetched, the `xss` and `yss` are unpacked so
+that the names of their inner elements become the columns of the
+returned table. For example, a `xss` stored as
+`list(list(x1 = 2, x2 = 3), list(x1 = 4, x2 = 5))` yields `x1` and `x2`
+columns, not a `xs` column. The inner element names must therefore be
+unique across these fields.
 
 Methods to change the state of an existing task:
 
@@ -47,6 +52,11 @@ Methods to change the state of an existing task:
   save the condition objects.
 
 - `$pop_task()`: Pop a task from the queue and mark it as running.
+
+The methods `$pop_task()`, `$push_running_tasks(xss)`,
+`$finish_tasks(keys, yss)`, and `$fail_tasks(keys, conditions)` are only
+available on
+[RushWorker](https://rush.mlr-org.com/reference/RushWorker.md).
 
 The following methods are used to fetch tasks:
 
@@ -125,7 +135,7 @@ of `$start_workers()`.
 - `processes_mirai`:
 
   ([mirai::mirai](https://mirai.r-lib.org/reference/mirai.html))  
-  List of mirai processes started with `$start_remote_workers()`.
+  List of mirai processes started with `$start_workers()`.
 
 ## Active bindings
 
@@ -137,7 +147,9 @@ of `$start_workers()`.
 - `config`:
 
   ([redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html))  
-  Redis configuration options.
+  Redis configuration options. Assigning a new configuration does not
+  affect the live connection. Call `$reconnect()` afterwards to connect
+  with the new configuration.
 
 - `connector`:
 
@@ -233,7 +245,7 @@ of `$start_workers()`.
 
 ### Public methods
 
-- [`Rush$new()`](#method-Rush-new)
+- [`Rush$new()`](#method-Rush-initialize)
 
 - [`Rush$format()`](#method-Rush-format)
 
@@ -261,15 +273,7 @@ of `$start_workers()`.
 
 - [`Rush$print_log()`](#method-Rush-print_log)
 
-- [`Rush$pop_task()`](#method-Rush-pop_task)
-
-- [`Rush$finish_tasks()`](#method-Rush-finish_tasks)
-
-- [`Rush$fail_tasks()`](#method-Rush-fail_tasks)
-
 - [`Rush$push_tasks()`](#method-Rush-push_tasks)
-
-- [`Rush$push_running_tasks()`](#method-Rush-push_running_tasks)
 
 - [`Rush$push_finished_tasks()`](#method-Rush-push_finished_tasks)
 
@@ -307,15 +311,11 @@ of `$start_workers()`.
 
 - [`Rush$tasks_with_state()`](#method-Rush-tasks_with_state)
 
-- [`Rush$push_results()`](#method-Rush-push_results)
-
-- [`Rush$push_failed()`](#method-Rush-push_failed)
-
 - [`Rush$clone()`](#method-Rush-clone)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Rush$new()`
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -346,7 +346,7 @@ Creates a new instance of this
 
 ------------------------------------------------------------------------
 
-### Method [`format()`](https://rdrr.io/r/base/format.html)
+### `Rush$format()`
 
 Helper for print outputs.
 
@@ -366,7 +366,7 @@ Helper for print outputs.
 
 ------------------------------------------------------------------------
 
-### Method [`print()`](https://rdrr.io/r/base/print.html)
+### `Rush$print()`
 
 Print method.
 
@@ -380,7 +380,7 @@ Print method.
 
 ------------------------------------------------------------------------
 
-### Method `reconnect()`
+### `Rush$reconnect()`
 
 Reconnect to Redis. The connection breaks when the Rush object is saved
 to disk. Call this method to reconnect after loading the object.
@@ -391,7 +391,7 @@ to disk. Call this method to reconnect after loading the object.
 
 ------------------------------------------------------------------------
 
-### Method `start_workers()`
+### `Rush$start_workers()`
 
 Start workers to run the worker loop in
 [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
@@ -464,7 +464,7 @@ process and starts the worker loop.
 
 ------------------------------------------------------------------------
 
-### Method `start_local_workers()`
+### `Rush$start_local_workers()`
 
 Start workers locally with `processx`. Initializes a
 [RushWorker](https://rush.mlr-org.com/reference/RushWorker.md) in each
@@ -542,7 +542,7 @@ until the workers are registered in the network.
 
 ------------------------------------------------------------------------
 
-### Method `start_remote_workers()`
+### `Rush$start_remote_workers()`
 
 Start workers to run the worker loop in
 [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html).
@@ -615,10 +615,19 @@ process and starts the worker loop.
 
 ------------------------------------------------------------------------
 
-### Method `worker_script()`
+### `Rush$worker_script()`
 
 Generate a script to start workers. Run this script `n` times to start
-`n` workers.
+`n` workers. The logged variant of the script redacts the Redis
+password. The script is quoted for POSIX shells (e.g., `sh`, `bash`,
+`zsh`).
+
+Always set `heartbeat_period` when using this method. The heartbeat is
+the only way to manage a worker that was started from a script, because
+there is no process handle on the manager side. Without a heartbeat,
+`$stop_workers(type = "kill")` cannot kill the worker, and
+`$detect_lost_workers()` cannot detect its crash, so a crashed worker
+stays in the running state forever.
 
 #### Usage
 
@@ -669,13 +678,18 @@ Generate a script to start workers. Run this script `n` times to start
 
   (`integer(1)`)  
   Period of the heartbeat in seconds. The heartbeat is updated every
-  `heartbeat_period` seconds.
+  `heartbeat_period` seconds. Must be at least 1 second.
 
 - `heartbeat_expire`:
 
   (`integer(1)`)  
   Time to live of the heartbeat in seconds. The heartbeat key is set to
-  expire after `heartbeat_expire` seconds.
+  expire after `heartbeat_expire` seconds. Must be at least
+  `heartbeat_period`, otherwise a live worker is reaped as lost between
+  two heartbeats. Set it larger than the longest pause a worker may
+  experience, for example from garbage collection or swapping, because a
+  live worker wrongly declared lost can leave a task in an inconsistent
+  state.
 
 - `message_log`:
 
@@ -691,16 +705,21 @@ Generate a script to start workers. Run this script `n` times to start
   files are named `output_<worker_id>.log`. If `NULL`, no output is
   stored.
 
+#### Returns
+
+(`character(1)`)  
+Shell command to start a worker.
+
 ------------------------------------------------------------------------
 
-### Method `wait_for_workers()`
+### `Rush$wait_for_workers()`
 
 Wait until workers are registered in the network. Either `n`,
 `worker_ids` or both must be provided.
 
 #### Usage
 
-    Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = Inf)
+    Rush$wait_for_workers(n = NULL, worker_ids = NULL, timeout = NULL)
 
 #### Arguments
 
@@ -719,11 +738,14 @@ Wait until workers are registered in the network. Either `n`,
 - `timeout`:
 
   (`numeric(1)`)  
-  Timeout in seconds. Default is `Inf`.
+  Timeout in seconds. Defaults to the `start_worker_timeout` set with
+  [`rush_plan()`](https://rush.mlr-org.com/reference/rush_plan.md), or
+  `Inf` if none is set. A `timeout` of `0` checks once and errors
+  immediately if the workers are not yet registered.
 
 ------------------------------------------------------------------------
 
-### Method `stop_workers()`
+### `Rush$stop_workers()`
 
 Stop workers.
 
@@ -737,21 +759,41 @@ Stop workers.
 
   (`character(1)`)  
   Type of stopping. Either `"terminate"` or `"kill"`. If `"kill"` the
-  workers are stopped immediately. If `"terminate"` the workers evaluate
-  the currently running task and then terminate. The `"terminate"`
-  option must be implemented in the worker loop.
+  workers are stopped immediately, and their running tasks are marked as
+  failed with the condition message `"Worker was killed"`. If
+  `"terminate"` the workers evaluate the currently running task and then
+  terminate. The `"terminate"` option must be implemented in the worker
+  loop. The `"kill"` option requires a process handle from
+  `$start_workers()` or `$start_local_workers()`, or a heartbeat.
+  Workers started from `$worker_script()` without a `heartbeat_period`
+  are silently skipped.
 
 - `worker_ids`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Worker ids to be stopped. If `NULL` all workers are stopped.
+  Worker ids to be stopped. If `NULL` all workers are stopped. Ids that
+  are not currently running are skipped with a warning.
 
 ------------------------------------------------------------------------
 
-### Method `detect_lost_workers()`
+### `Rush$detect_lost_workers()`
 
 Detect lost workers. The state of the worker is changed to
 `"terminated"`.
+
+Workers started with `mirai` or `processx` are monitored through their
+process handle, so a worker is only declared lost after its process has
+actually terminated. Workers started from `$worker_script()` are
+monitored through a heartbeat and are declared lost when the heartbeat
+key expires. Workers started from `$worker_script()` without a
+`heartbeat_period` cannot be monitored at all, so a crashed worker stays
+in the running state forever. Because this is a timeout,
+`heartbeat_expire` must be larger than the longest pause a worker may
+experience, for example from garbage collection or swapping. If a live
+worker is wrongly declared lost, its running and pending tasks are
+marked as failed, and the results of tasks the worker finishes
+afterwards are discarded. Set `heartbeat_expire` conservatively to avoid
+discarding results.
 
 #### Usage
 
@@ -764,7 +806,7 @@ Worker ids of detected lost workers.
 
 ------------------------------------------------------------------------
 
-### Method `reset()`
+### `Rush$reset()`
 
 Stop workers and delete data stored in redis.
 
@@ -782,7 +824,7 @@ Stop workers and delete data stored in redis.
 
 ------------------------------------------------------------------------
 
-### Method `read_log()`
+### `Rush$read_log()`
 
 Read log messages written with the `lgr` package by the workers.
 
@@ -805,12 +847,12 @@ Read log messages written with the `lgr` package by the workers.
 #### Returns
 
 `data.table()`  
-Table with level, timestamp, logger, caller and message, and optionally
-time difference.
+Table with columns `worker_id`, `level`, `timestamp`, `logger`, `caller`
+and `msg`, and optionally `time_difference`.
 
 ------------------------------------------------------------------------
 
-### Method `print_log()`
+### `Rush$print_log()`
 
 Print log messages written with the `lgr` package by the workers. Log
 messages are printed with the original logger.
@@ -826,94 +868,13 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `pop_task()`
+### `Rush$push_tasks()`
 
-Pop a task from the queue and mark it as running.
-
-#### Usage
-
-    Rush$pop_task(timeout = 1, fields = "xs")
-
-#### Arguments
-
-- `timeout`:
-
-  (`numeric(1)`)  
-  Time to wait for task in seconds.
-
-- `fields`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be returned.
-
-------------------------------------------------------------------------
-
-### Method `finish_tasks()`
-
-Save output of tasks and mark them as finished.
+Create tasks and add them to the queue.
 
 #### Usage
 
-    Rush$finish_tasks(keys, yss, extra = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  (`character(1)`)  
-  Keys of the associated tasks.
-
-- `yss`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of named results.
-
-- `extra`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of additional information stored along with the results.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### Method `fail_tasks()`
-
-Mark tasks as failed and optionally save the condition objects
-
-#### Usage
-
-    Rush$fail_tasks(keys, conditions = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the tasks to be moved. Defaults to all queued tasks.
-
-- `conditions`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions. Defaults to `list(message = "Failed")`.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### Method `push_tasks()`
-
-Create queued tasks and add them to the queue.
-
-#### Usage
-
-    Rush$push_tasks(xss, extra = NULL)
+    Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)
 
 #### Arguments
 
@@ -921,13 +882,21 @@ Create queued tasks and add them to the queue.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
+
+- `xss_extra`:
+
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
+  List of additional information stored along with the task e.g.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `extra`:
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  Deprecated argument for additional information stored along with the
+  task. Use `xss_extra` instead.
 
 #### Returns
 
@@ -936,36 +905,7 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_running_tasks()`
-
-Create running tasks.
-
-#### Usage
-
-    Rush$push_running_tasks(xss, extra = NULL)
-
-#### Arguments
-
-- `xss`:
-
-  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
-  Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
-
-- `extra`:
-
-  (`list`)  
-  List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
-
-#### Returns
-
-([`character()`](https://rdrr.io/r/base/character.html))  
-Keys of the tasks.
-
-------------------------------------------------------------------------
-
-### Method `push_finished_tasks()`
+### `Rush$push_finished_tasks()`
 
 Create finished tasks. See `$finish_tasks()` for moving existing tasks
 from running to finished.
@@ -980,25 +920,27 @@ from running to finished.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `yss`:
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of results for the function e.g.
-  `list(list(y1, y2), list(y1, y2)))`.
+  `list(list(y1 = 1, y2 = 2), list(y1 = 3, y2 = 4))`.
 
 - `xss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `yss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the results e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_ys = Sys.time()), list(timestamp_ys = Sys.time()))`.
 
 #### Returns
 
@@ -1007,14 +949,14 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `push_failed_tasks()`
+### `Rush$push_failed_tasks()`
 
 Create failed tasks. See `$fail_tasks()` for moving existing tasks from
 queued and running to failed.
 
 #### Usage
 
-    Rush$push_failed_tasks(xss, xss_extra = NULL, conditions)
+    Rush$push_failed_tasks(xss, xss_extra = NULL, conditions = NULL)
 
 #### Arguments
 
@@ -1022,18 +964,22 @@ queued and running to failed.
 
   (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   Lists of arguments for the function e.g.
-  `list(list(x1, x2), list(x1, x2)))`.
+  `list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4))`. If `xss` is empty,
+  no tasks are created and the method returns an empty
+  [`character()`](https://rdrr.io/r/base/character.html).
 
 - `xss_extra`:
 
-  (`list`)  
+  (list of named [`list()`](https://rdrr.io/r/base/list.html))  
   List of additional information stored along with the task e.g.
-  `list(list(timestamp), list(timestamp)))`.
+  `list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time()))`.
 
 - `conditions`:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions.
+  ([`list()`](https://rdrr.io/r/base/list.html))  
+  List conditions e.g.
+  `list(simpleError("Error"), simpleError("Error"))`. Defaults to
+  `list(message = "Task failed")`.
 
 #### Returns
 
@@ -1042,26 +988,14 @@ Keys of the tasks.
 
 ------------------------------------------------------------------------
 
-### Method `empty_queue()`
+### `Rush$empty_queue()`
 
 Remove all tasks from the queue. The state of the tasks is set to
-failed.
+failed. The condition message is set to `"Removed from queue"`.
 
 #### Usage
 
-    Rush$empty_queue(keys = NULL, conditions = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the tasks to be moved. Defaults to all queued tasks.
-
-- `conditions`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of conditions.
+    Rush$empty_queue()
 
 #### Returns
 
@@ -1070,9 +1004,9 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_tasks()`
+### `Rush$fetch_tasks()`
 
-Fetch all tasks from the data base.
+Fetch all tasks from the database.
 
 #### Usage
 
@@ -1086,7 +1020,7 @@ Fetch all tasks from the data base.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra", "condition")`.
+  `c("xs", "ys", "xs_extra", "worker_id", "ys_extra", "condition")`.
 
 #### Returns
 
@@ -1095,9 +1029,9 @@ Table of all tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_queued_tasks()`
+### `Rush$fetch_queued_tasks()`
 
-Fetch queued tasks from the data base.
+Fetch queued tasks from the database.
 
 #### Usage
 
@@ -1117,9 +1051,9 @@ Table of queued tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_running_tasks()`
+### `Rush$fetch_running_tasks()`
 
-Fetch running tasks from the data base.
+Fetch running tasks from the database.
 
 #### Usage
 
@@ -1140,9 +1074,9 @@ Table of running tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_failed_tasks()`
+### `Rush$fetch_failed_tasks()`
 
-Fetch failed tasks from the data base.
+Fetch failed tasks from the database.
 
 #### Usage
 
@@ -1154,7 +1088,7 @@ Fetch failed tasks from the data base.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "condition"`.
+  `c("xs", "xs_extra", "worker_id", "condition")`.
 
 #### Returns
 
@@ -1163,9 +1097,9 @@ Table of failed tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_finished_tasks()`
+### `Rush$fetch_finished_tasks()`
 
-Fetch finished tasks from the data base. Finished tasks are cached.
+Fetch finished tasks from the database. Finished tasks are cached.
 
 #### Usage
 
@@ -1179,7 +1113,10 @@ Fetch finished tasks from the data base. Finished tasks are cached.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("xs", "xs_extra", "worker_id", "ys", "ys_extra")`.
+  `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`. If
+  the fields change between calls, fields requested only by a later call
+  remain `NA` for the already cached tasks. Use `$reset_cache()` to
+  reset the cache in this case.
 
 #### Returns
 
@@ -1188,9 +1125,9 @@ Table of finished tasks.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_tasks_with_state()`
+### `Rush$fetch_tasks_with_state()`
 
-Fetch tasks with different states from the data base. If tasks with
+Fetch tasks with different states from the database. If tasks with
 different states are to be queried at the same time, this function
 prevents tasks from appearing twice. This could be the case if a worker
 changes the state of a task while the tasks are being fetched. Finished
@@ -1209,7 +1146,10 @@ tasks are cached.
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Fields to be read from the hashes. Defaults to
-  `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`.
+  `c("worker_id", "xs", "ys", "xs_extra", "ys_extra", "condition")`. If
+  the fields change between calls, fields requested only by a later call
+  remain `NA` for the already cached tasks. Use `$reset_cache()` to
+  reset the cache in this case.
 
 - `states`:
 
@@ -1219,11 +1159,16 @@ tasks are cached.
 
 ------------------------------------------------------------------------
 
-### Method `fetch_new_tasks()`
+### `Rush$fetch_new_tasks()`
 
 Fetch new tasks that finished after the last call of this function.
 Updates the cache of the finished tasks. If `timeout` is set, blocks
 until new tasks are available or the timeout is reached.
+
+"New" is tracked relative to previous calls of this method only.
+`$fetch_finished_tasks()` grows the same cache but does not advance this
+counter, so a task already returned by `$fetch_finished_tasks()` is
+returned again by the next `$fetch_new_tasks()`.
 
 #### Usage
 
@@ -1237,7 +1182,9 @@ until new tasks are available or the timeout is reached.
 - `fields`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes.
+  Fields to be read from the hashes. If the fields change between calls,
+  fields requested only by a later call remain `NA` for the already
+  cached tasks. Use `$reset_cache()` to reset the cache in this case.
 
 - `timeout`:
 
@@ -1251,7 +1198,7 @@ Table of latest results.
 
 ------------------------------------------------------------------------
 
-### Method `reset_cache()`
+### `Rush$reset_cache()`
 
 Reset the cache of the finished tasks.
 
@@ -1266,7 +1213,7 @@ Invisible self.
 
 ------------------------------------------------------------------------
 
-### Method `wait_for_tasks()`
+### `Rush$wait_for_tasks()`
 
 Wait until tasks are finished. The function also unblocks when no worker
 is running or all tasks failed.
@@ -1289,7 +1236,7 @@ is running or all tasks failed.
 
 ------------------------------------------------------------------------
 
-### Method `write_hashes()`
+### `Rush$write_hashes()`
 
 Writes R objects to Redis hashes. The function takes the vectors in
 `...` as input and writes each element as a field-value pair to a new
@@ -1336,7 +1283,7 @@ Keys of the hashes.
 
 ------------------------------------------------------------------------
 
-### Method `read_hashes()`
+### `Rush$read_hashes()`
 
 Reads R Objects from Redis hashes. The function reads the field-value
 pairs of the hashes stored at `keys`. The values of a hash are
@@ -1347,7 +1294,9 @@ are flattened to a single list e.g.
 to a table where the names of the inner lists are the column names. For
 example,
 `xs = list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)), ys = list(list(y = 3), list(y = 7))`
-becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`.
+becomes `data.table(x1 = c(1, 3), x2 = c(2, 4), y = c(3, 7))`. Names
+must be unique across the flattened fields. Colliding names produce
+duplicate columns, of which only the first is reachable by name.
 
 #### Usage
 
@@ -1378,7 +1327,7 @@ combination of the lists stored at the different fields.
 
 ------------------------------------------------------------------------
 
-### Method `read_hash()`
+### `Rush$read_hash()`
 
 Reads a single Redis hash and returns the values as a list named by the
 fields.
@@ -1407,7 +1356,7 @@ combination of the lists stored at the different fields.
 
 ------------------------------------------------------------------------
 
-### Method `is_running_task()`
+### `Rush$is_running_task()`
 
 Checks whether tasks have the status `"running"`.
 
@@ -1424,7 +1373,7 @@ Checks whether tasks have the status `"running"`.
 
 ------------------------------------------------------------------------
 
-### Method `is_failed_task()`
+### `Rush$is_failed_task()`
 
 Checks whether tasks have the status `"failed"`.
 
@@ -1441,7 +1390,7 @@ Checks whether tasks have the status `"failed"`.
 
 ------------------------------------------------------------------------
 
-### Method `tasks_with_state()`
+### `Rush$tasks_with_state()`
 
 Returns keys of requested states.
 
@@ -1462,66 +1411,7 @@ Returns keys of requested states.
 
 ------------------------------------------------------------------------
 
-### Method `push_results()`
-
-Deprecated method. Use `$finish_tasks()` instead.
-
-#### Usage
-
-    Rush$push_results(keys, yss, extra = NULL)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the associated tasks.
-
-- `yss`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of named results.
-
-- `extra`:
-
-  (named [`list()`](https://rdrr.io/r/base/list.html))  
-  List of lists of additional information stored along with the results.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### Method `push_failed()`
-
-Deprecated method. Use `$fail_tasks()` instead.
-
-#### Usage
-
-    Rush$push_failed(keys, conditions)
-
-#### Arguments
-
-- `keys`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of the associated tasks.
-
-- `conditions`:
-
-  ([`list()`](https://rdrr.io/r/base/list.html))  
-  List of conditions.
-
-#### Returns
-
-(`Rush`)  
-Invisible self.
-
-------------------------------------------------------------------------
-
-### Method `clone()`
+### `Rush$clone()`
 
 The objects of this class are cloneable with this method.
 

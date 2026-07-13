@@ -7,6 +7,7 @@ introduction.
 ## Worker Loop
 
 ``` r
+
 library(rush)
 
 worker_loop = function(rush) {
@@ -24,11 +25,13 @@ worker_loop = function(rush) {
 ## Rush Manager
 
 ``` r
+
 config = redux::redis_config()
 
 rush = rsh(network_id = "my_network", config = config)
 rush
 ```
+
 
     ── <Rush> ──────────────────────────────────────────────────────────────────────
     • Running Workers: 0
@@ -40,6 +43,7 @@ rush
 ## Start Workers
 
 ``` r
+
 mirai::daemons(n = 2L)
 
 rush$start_workers(
@@ -50,32 +54,35 @@ rush$start_workers(
 ## Wait for Workers
 
 ``` r
+
 rush$wait_for_workers(n = 2L)
 ```
 
 ## Fetch Results
 
 ``` r
+
 rush$fetch_finished_tasks()
 ```
 
-                   worker_id          x         y               keys
-                      <char>      <num>     <num>             <char>
-       1: successive_mora... 0.75739725 0.8702857 685c02d0-8d5d-4...
-       2: successive_mora... 0.73470609 0.8571500 ccc33ca6-bc3c-4...
-       3: successive_mora... 0.94463880 0.9719253 319d201e-249e-4...
-       4: successive_mora... 0.25832031 0.5082522 aa72bab7-5f00-4...
-       5: successive_mora... 0.31593424 0.5620803 9b62ede3-ea73-4...
+                   worker_id         x         y               keys
+                      <char>     <num>     <num>             <char>
+       1: entertaining_ti... 0.6820267 0.8258491 ccf294fd-c701-4...
+       2: light_urutu_17b... 0.6893773 0.8302875 13c788ba-98a2-4...
+       3: entertaining_ti... 0.2345821 0.4843367 4978e5d7-d1b9-4...
+       4: entertaining_ti... 0.1993941 0.4465356 bd914da4-1102-4...
+       5: light_urutu_17b... 0.2318826 0.4815419 ce13bb26-de8c-4...
       ---
-    5829:       unquiet_lice 0.96045558 0.9800284 6b13ddaf-7b48-4...
-    5830: successive_mora... 0.46340474 0.6807384 6bdd6b84-08b1-4...
-    5831: successive_mora... 0.50453684 0.7103076 6b93ab6c-e46c-4...
-    5832:       unquiet_lice 0.07438545 0.2727370 5e2fd392-1b0f-4...
-    5833: successive_mora... 0.74783803 0.8647763 1c9c0352-bc6f-4...
+    7260: entertaining_ti... 0.5533006 0.7438418 016397d2-fc38-4...
+    7261: light_urutu_17b... 0.8346250 0.9135781 653b90d1-a58e-4...
+    7262: entertaining_ti... 0.3693656 0.6077546 395fd1c2-7b9f-4...
+    7263: entertaining_ti... 0.2343231 0.4840693 00aba0f0-e941-4...
+    7264: light_urutu_17b... 0.1930876 0.4394173 ac663241-80a7-4...
 
 ## Stop Workers
 
 ``` r
+
 rush$stop_workers(type = "kill")
 ```
 
@@ -92,90 +99,100 @@ rush$stop_workers(type = "kill")
 ## More fetch methods
 
 ``` r
+
 rush$fetch_tasks()
 ```
 
-                  x         y          worker_id               keys
-              <num>     <num>             <char>             <char>
-       1: 0.7573972 0.8702857 successive_mora... 685c02d0-8d5d-4...
-       2: 0.6455596 0.8034673       unquiet_lice b0551f74-940f-4...
-       3: 0.7347061 0.8571500 successive_mora... ccc33ca6-bc3c-4...
-       4: 0.9446388 0.9719253 successive_mora... 319d201e-249e-4...
-       5: 0.2583203 0.5082522 successive_mora... aa72bab7-5f00-4...
+                   x         y          worker_id condition               keys
+               <num>     <num>             <char>    <list>             <char>
+       1: 0.68937734 0.8302875 light_urutu_17b...    [NULL] 13c788ba-98a2-4...
+       2: 0.68202667 0.8258491 entertaining_ti...    [NULL] ccf294fd-c701-4...
+       3: 0.23458206 0.4843367 entertaining_ti...    [NULL] 4978e5d7-d1b9-4...
+       4: 0.23188261 0.4815419 light_urutu_17b...    [NULL] ce13bb26-de8c-4...
+       5: 0.19939408 0.4465356 entertaining_ti...    [NULL] bd914da4-1102-4...
       ---
-    6214: 0.9990487 0.9995242 successive_mora... 9364de75-ae42-4...
-    6215: 0.5845468 0.7645566       unquiet_lice 7db58d49-4cc2-4...
-    6216: 0.8998862 0.9486233 successive_mora... 9f9486b4-4546-4...
-    6217: 0.1527503 0.3908328       unquiet_lice 5add1a51-93d7-4...
-    6218: 0.1106366        NA       unquiet_lice 1db068fa-ab0c-4...
+    7707: 0.99636395 0.9981803 entertaining_ti...    [NULL] 2864def3-6175-4...
+    7708: 0.04043386 0.2010817 light_urutu_17b...    [NULL] 8caff164-0905-4...
+    7709: 0.01165548 0.1079606 entertaining_ti...    [NULL] 0038b736-5c36-4...
+    7710: 0.77813677 0.8821206 light_urutu_17b...    [NULL] 61ce5bb1-25df-4...
+    7711: 0.08852670        NA entertaining_ti... <list[1]> bbe9626f-39db-4...
 
 ``` r
+
 rush$fetch_queued_tasks()
 ```
 
     Null data.table (0 rows and 0 cols)
 
 ``` r
+
 rush$fetch_running_tasks()
-```
-
-               x    worker_id               keys
-           <num>       <char>             <char>
-    1: 0.1106366 unquiet_lice 1db068fa-ab0c-4...
-
-``` r
-rush$fetch_failed_tasks()
 ```
 
     Null data.table (0 rows and 0 cols)
 
 ``` r
+
+rush$fetch_failed_tasks()
+```
+
+               x          worker_id condition               keys
+           <num>             <char>    <list>             <char>
+    1: 0.0885267 entertaining_ti... <list[1]> bbe9626f-39db-4...
+
+``` r
+
 rush$fetch_tasks_with_state(states = c("running", "finished"))
 ```
 
-             state          worker_id         x               keys         y
-            <char>             <char>     <num>             <char>     <num>
-       1:  running       unquiet_lice 0.1106366 1db068fa-ab0c-4...        NA
-       2: finished successive_mora... 0.7573972 685c02d0-8d5d-4... 0.8702857
-       3: finished successive_mora... 0.7347061 ccc33ca6-bc3c-4... 0.8571500
-       4: finished successive_mora... 0.9446388 319d201e-249e-4... 0.9719253
-       5: finished successive_mora... 0.2583203 aa72bab7-5f00-4... 0.5082522
+             state          worker_id          x         y               keys
+            <char>             <char>      <num>     <num>             <char>
+       1: finished entertaining_ti... 0.68202667 0.8258491 ccf294fd-c701-4...
+       2: finished light_urutu_17b... 0.68937734 0.8302875 13c788ba-98a2-4...
+       3: finished entertaining_ti... 0.23458206 0.4843367 4978e5d7-d1b9-4...
+       4: finished entertaining_ti... 0.19939408 0.4465356 bd914da4-1102-4...
+       5: finished light_urutu_17b... 0.23188261 0.4815419 ce13bb26-de8c-4...
       ---
-    6214: finished       unquiet_lice 0.6929914 3b5f2ce2-c169-4... 0.8324610
-    6215: finished successive_mora... 0.9990487 9364de75-ae42-4... 0.9995242
-    6216: finished       unquiet_lice 0.5845468 7db58d49-4cc2-4... 0.7645566
-    6217: finished successive_mora... 0.8998862 9f9486b4-4546-4... 0.9486233
-    6218: finished       unquiet_lice 0.1527503 5add1a51-93d7-4... 0.3908328
+    7706: finished light_urutu_17b... 0.32984433 0.5743208 ae84e224-2907-4...
+    7707: finished entertaining_ti... 0.99636395 0.9981803 2864def3-6175-4...
+    7708: finished light_urutu_17b... 0.04043386 0.2010817 8caff164-0905-4...
+    7709: finished entertaining_ti... 0.01165548 0.1079606 0038b736-5c36-4...
+    7710: finished light_urutu_17b... 0.77813677 0.8821206 61ce5bb1-25df-4...
 
 ## Task Counts
 
 ``` r
+
 rush$n_queued_tasks
 ```
 
     [1] 0
 
 ``` r
+
 rush$n_running_tasks
-```
-
-    [1] 1
-
-``` r
-rush$n_finished_tasks
-```
-
-    [1] 6217
-
-``` r
-rush$n_failed_tasks
 ```
 
     [1] 0
 
+``` r
+
+rush$n_finished_tasks
+```
+
+    [1] 7710
+
+``` r
+
+rush$n_failed_tasks
+```
+
+    [1] 1
+
 ## Push Tasks to Queue
 
 ``` r
+
 xss = replicate(25, list(x = runif(1L)), simplify = FALSE)
 
 rush$push_tasks(xss = xss)
@@ -183,20 +200,26 @@ rush$push_tasks(xss = xss)
 
 ## Pop Task from Queue
 
+Only a `RushWorker` can pop tasks from the queue.
+
 ``` r
-task = rush$pop_task()
+
+rush_worker = RushWorker$new("my_network")
+
+task = rush_worker$pop_task()
 task
 ```
 
     $xs
     $xs$x
-    [1] 0.1350048
+    [1] 0.755584
 
 
     $key
-    [1] "eb47e2cf-c45b-448a-82c1-fea1fe73d117"
+    [1] "a0357a96-c2a8-43c6-9795-b43812c1e82d"
 
 ``` r
+
 worker_loop = function(rush) {
   repeat {
     task = rush$pop_task()
@@ -211,6 +234,7 @@ worker_loop = function(rush) {
 ## Local Workers
 
 ``` r
+
 rush$start_local_workers(
   worker_loop = worker_loop,
   n_workers = 2)
@@ -219,15 +243,17 @@ rush$start_local_workers(
 ## Script Workers
 
 ``` r
+
 script = rush$worker_script(worker_loop = worker_loop)
 cat(script)
 ```
 
-    Rscript -e "rush::start_worker(network_id = 'my_network', config = list(scheme = 'redis', host = '127.0.0.1', port = '6379'))"
+    Rscript -e 'rush::start_worker(network_id = "my_network", config = list(scheme = "redis", host = "127.0.0.1", port = "6379"))'
 
 ## Heartbeats
 
 ``` r
+
 script = rush$worker_script(
   worker_loop = worker_loop,
   heartbeat_period = 10,
@@ -237,12 +263,14 @@ script = rush$worker_script(
 ## Reset Network
 
 ``` r
+
 rush$reset()
 ```
 
 ## Handling R Errors
 
 ``` r
+
 worker_loop = function(rush) {
   while (!rush$terminated) {
 
@@ -262,14 +290,16 @@ worker_loop = function(rush) {
 ## Detecting Lost Workers
 
 ``` r
+
 rush$detect_lost_workers()
 ```
 
-    NULL
+    character(0)
 
 ## Logging
 
 ``` r
+
 worker_loop = function(rush) {
   lg = lgr::get_logger("mlr3/rush")
   lg$info("Worker %s started on %s", rush$worker_id, rush$hostname)
@@ -282,18 +312,21 @@ rush$start_workers(
 ```
 
 ``` r
+
 rush$print_log()
 ```
 
 ## Debugging
 
 ``` r
+
 rush_worker = RushWorker$new("test-network")
 
 worker_loop(rush_worker)
 ```
 
 ``` r
+
 mirai::daemons(1L)
 
 worker_ids = rush$start_workers(
@@ -306,6 +339,7 @@ worker_ids = rush$start_workers(
 ## Rush Plan
 
 ``` r
+
 rush_plan(
   n_workers = 4,
   config = redux::redis_config(),

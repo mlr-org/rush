@@ -1,6 +1,6 @@
 # Log to Redis Database
 
-AppenderRedis writes log messages to a Redis data base. This
+AppenderRedis writes log messages to a Redis database. This
 [lgr::Appender](https://s-fleck.github.io/lgr/reference/Appender.html)
 is created internally by
 [RushWorker](https://rush.mlr-org.com/reference/RushWorker.md) when
@@ -11,7 +11,7 @@ logger thresholds are passed via
 
 Object of class
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) and
-`AppenderRedis` with methods for writing log events to Redis data bases.
+`AppenderRedis` with methods for writing log events to Redis databases.
 
 ## Super classes
 
@@ -26,7 +26,7 @@ Object of class
 
 ### Public methods
 
-- [`AppenderRedis$new()`](#method-AppenderRedis-new)
+- [`AppenderRedis$new()`](#method-AppenderRedis-initialize)
 
 - [`AppenderRedis$flush()`](#method-AppenderRedis-flush)
 
@@ -50,7 +50,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `AppenderRedis$new()`
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -61,7 +61,13 @@ Creates a new instance of this
       config,
       key,
       threshold = NA_integer_,
-      layout = lgr::LayoutJson$new(timestamp_fmt = "%Y-%m-%d %H:%M:%OS3"),
+      layout = lgr::LayoutJson$new(timestamp_fmt = "%Y-%m-%d %H:%M:%OS3",
+        transform_event = function(event) {
+         values = event$values
+
+        values[intersect(names(values), c("level", "timestamp", "logger", "caller", "msg",
+        "rawMsg"))]
+     }),
       buffer_size = 0,
       flush_threshold = "error",
       flush_on_exit = TRUE,
@@ -90,7 +96,10 @@ Creates a new instance of this
 - `layout`:
 
   ([lgr::Layout](https://s-fleck.github.io/lgr/reference/Layout.html))  
-  Layout for the log messages.
+  Layout for the log messages. The default layout strips custom fields
+  from the log events, because they might not be JSON-serializable. The
+  stripping is scoped to this appender, so other appenders on the same
+  logger still see the custom fields.
 
 - `buffer_size`:
 
@@ -124,7 +133,7 @@ Creates a new instance of this
 
 ------------------------------------------------------------------------
 
-### Method [`flush()`](https://rdrr.io/r/base/connections.html)
+### `AppenderRedis$flush()`
 
 Sends the buffer's contents to the Redis data store, and then clears the
 buffer.

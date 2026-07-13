@@ -1,6 +1,10 @@
 # Store Large Objects
 
-Store large objects to disk and return a reference to the object.
+Store large objects to disk and return a reference to the object. The
+written `.rds` files are not cleaned up automatically. The caller is
+responsible for removing them, e.g. by storing them below
+[`tempdir()`](https://rdrr.io/r/base/tempfile.html) or by calling
+[`unlink()`](https://rdrr.io/r/base/unlink.html) on the returned `path`.
 
 ## Usage
 
@@ -18,12 +22,12 @@ store_large_object(obj, path)
 - path:
 
   (`character(1)`)  
-  Path to store the object.
+  Path to an existing directory to store the object in.
 
 ## Value
 
 [`list()`](https://rdrr.io/r/base/list.html) of class
-`"rush_large_object"` with the name and path of the stored object.
+`"rush_large_object"` with the path of the stored object.
 
 ## Examples
 

@@ -16,7 +16,8 @@ rush_plan(
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
-  worker_type = "mirai"
+  worker_type = "mirai",
+  start_worker_timeout = NULL
 )
 ```
 
@@ -53,7 +54,10 @@ rush_plan(
 - large_objects_path:
 
   (`character(1)`)  
-  The path to the directory where large objects are stored.
+  The path to the directory where large objects are stored. These files
+  are not removed automatically and the caller is responsible for
+  cleaning them up, e.g. by pointing this at a subdirectory of
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html).
 
 - worker_type:
 
@@ -62,6 +66,15 @@ rush_plan(
   [mirai](https://CRAN.R-project.org/package=mirai), `"processx"` to use
   [processx](https://CRAN.R-project.org/package=processx) or `"script"`
   to get a script to run.
+
+- start_worker_timeout:
+
+  (`numeric(1)`)  
+  Default timeout in seconds used by `$wait_for_workers()` of
+  [Rush](https://rush.mlr-org.com/reference/Rush.md) when no `timeout`
+  is passed. If `NULL`, `$wait_for_workers()` waits indefinitely by
+  default. A timeout of `0` checks once and errors immediately if the
+  workers are not yet registered.
 
 ## Value
 

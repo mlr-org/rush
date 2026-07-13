@@ -36,12 +36,14 @@ for asynchronous optimization algorithms in
 Install the latest release from CRAN.
 
 ``` r
+
 install.packages("rush")
 ```
 
 Install the development version from GitHub.
 
 ``` r
+
 pak::pak("mlr-org/rush")
 ```
 
@@ -55,7 +57,32 @@ to `true`. The test suite deletes the Redis database before execution,
 so never run it against a production server.
 
 ``` r
+
 Sys.setenv(RUSH_TEST_USE_REDIS = "true")
+```
+
+# Citation
+
+If you use rush, please cite our paper.
+
+> Becker M, Bischl B (2026). “rush: Scalable Asynchronous Distributed
+> Computing via Shared State in R.” *arXiv preprint arXiv:2606.21430*.
+> <https://arxiv.org/abs/2606.21430>.
+
+``` R
+@misc{becker2026rush,
+  title = {rush: {{Scalable Asynchronous Distributed Computing}} via {{Shared State}} in {{R}}},
+  shorttitle = {rush},
+  author = {Becker, Marc and Bischl, Bernd},
+  year = 2026,
+  month = jun,
+  number = {arXiv:2606.21430},
+  eprint = {2606.21430},
+  primaryclass = {cs.DC},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2606.21430},
+  archiveprefix = {arXiv}
+}
 ```
 
 # Related Work
