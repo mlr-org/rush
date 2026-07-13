@@ -26,6 +26,8 @@
 * fix: `$push_tasks()`, `$push_finished_tasks()`, `$push_failed_tasks()`, and `$push_running_tasks()` now return early when called with an empty list of tasks.
 * fix: `$fetch_tasks()`, `$fetch_finished_tasks()`, and `$fetch_new_tasks()` no longer fail when task hashes have been removed from the database.
   Affected tasks are dropped with a warning.
+* fix: `$fetch_new_tasks()` and `$fetch_finished_tasks()` no longer fail after more than 100,000 tasks have been fetched.
+  The internal counter of consumed tasks is now stored as an integer so it can no longer be formatted in scientific notation in Redis commands.
 * fix: `$fetch_failed_tasks()` and related methods now return the documented `condition` column holding the whole condition object.
 * feat: The `extra` argument of `$push_tasks()`, `$push_running_tasks()`, and `$finish_tasks()`  methods is deprecated in favor of the consistently named `xss_extra` and `yss_extra` arguments.
 * fix: `$start_local_workers()` now redirects the standard error stream of workers to a file instead of a pipe.
@@ -46,6 +48,7 @@
 * fix: `$reset()` now deletes all keys in a single `MULTI`/`EXEC` transaction so a concurrent reader can no longer observe a half-reset network.
 * feat: `rush_plan()` gains the `start_worker_timeout` argument, which sets the default timeout used by `$wait_for_workers()`.
   An explicit `timeout` passed to `$wait_for_workers()` is no longer overridden by the configuration.
+* fix: `$wait_for_workers(timeout = 0)` now checks once and errors immediately if the workers are not yet registered, instead of never checking.
 * fix: `start_worker()` no longer errors on exit when `message_log` or `output_log` is set.
   The sinks are now reverted before the log connections are closed.
 * fix: `start_worker()` now checks that `message_log` and `output_log` are existing directories, so a wrong path raises a clear error instead of a cryptic "cannot open the connection".
