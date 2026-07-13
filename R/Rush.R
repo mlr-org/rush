@@ -381,9 +381,9 @@ Rush = R6::R6Class(
     ) {
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
-      assert_number(heartbeat_period, lower = 1, null.ok = TRUE)
+      heartbeat_period = assert_int(heartbeat_period, lower = 1, null.ok = TRUE, coerce = TRUE)
       # expire must be >= period so the TTL outlasts the refresh interval
-      assert_number(heartbeat_expire, lower = heartbeat_period %??% 1, null.ok = TRUE)
+      heartbeat_expire = assert_int(heartbeat_expire, lower = heartbeat_period %??% 1, null.ok = TRUE, coerce = TRUE)
       assert_string(message_log, null.ok = TRUE)
       assert_string(output_log, null.ok = TRUE)
 
@@ -411,6 +411,7 @@ Rush = R6::R6Class(
           ),
           is.null
         )
+        # width.cutoff = 500L keeps the whole call on one line
         expr = paste(deparse(as.call(c(quote(rush::start_worker), args)), width.cutoff = 500L), collapse = " ")
         paste("Rscript -e", shQuote(expr, type = "sh"))
       }

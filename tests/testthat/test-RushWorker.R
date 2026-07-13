@@ -84,6 +84,25 @@ test_that("heartbeat_period and heartbeat_expire are validated", {
     RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 2, heartbeat_expire = 1),
     ">= 2"
   )
+  # fractional values are rejected because Redis EXPIRE requires an integer
+  expect_error(
+    RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1.5),
+    "integerish"
+  )
+  expect_error(
+    RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1, heartbeat_expire = 4.5),
+    "integerish"
+  )
+})
+
+test_that("large heartbeat values are sent to Redis as integers, not scientific notation", {
+  skip_if_not_installed("callr")
+  config = redis_configuration()
+
+  # 1e5 must reach EXPIRE as "100000", not "1e+05" which Redis rejects
+  rush = RushWorker$new(network_id = "test-rush", config = config, heartbeat_period = 1, heartbeat_expire = 1e5)
+  r = redux::hiredis(config)
+  expect_gt(r$command(c("TTL", sprintf("test-rush:%s:heartbeat", rush$worker_id))), 0)
 })
 
 test_that("a worker is terminated", {
