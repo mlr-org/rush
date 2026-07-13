@@ -619,7 +619,8 @@ each process and starts the worker loop.
 
 Generate a script to start workers. Run this script `n` times to start
 `n` workers. The logged variant of the script redacts the Redis
-password.
+password. The script is quoted for POSIX shells (e.g., `sh`, `bash`,
+`zsh`) and does not work in `cmd.exe` on Windows.
 
 Always set `heartbeat_period` when using this method. The heartbeat is
 the only way to manage a worker that was started from a script, because

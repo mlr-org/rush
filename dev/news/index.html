@@ -78,6 +78,7 @@
 <li>fix: <code>$start_local_workers()</code> no longer generates unparseable worker startup code on Windows or when the temporary directory path contains quotes. The temporary arguments file is now deleted after the worker reads it.</li>
 <li>fix: <code>$stop_workers()</code> no longer errors when a requested worker id is not running. Such ids are now skipped with a warning.</li>
 <li>perf: <code>$wait_for_tasks()</code> no longer reads the full finished list and failed task set on every poll.</li>
+<li>fix: <code>$worker_script()</code> now embeds values as R string literals and shell-quotes the whole <code>Rscript -e</code> payload exactly once for POSIX shells.</li>
 <li>fix: <code>$worker_script()</code> no longer logs the Redis password. The logged script shows <code>&lt;redacted&gt;</code> instead. The method now returns the script visibly.</li>
 <li>fix: <code>$worker_script()</code> now validates the <code>heartbeat_period</code>, <code>heartbeat_expire</code>, <code>message_log</code>, and <code>output_log</code> arguments instead of interpolating them into the shell command unchecked.</li>
 <li>fix: <code>RushWorker$new()</code> now errors when the heartbeat process fails to set the heartbeat key within the startup timeout instead of silently registering a dead heartbeat. <code>heartbeat_period</code> and <code>heartbeat_expire</code> must now be at least 1 second, and <code>heartbeat_expire</code> must be at least <code>heartbeat_period</code> seconds.</li>
@@ -179,7 +180,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

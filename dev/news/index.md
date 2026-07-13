@@ -70,6 +70,9 @@
   not running. Such ids are now skipped with a warning.
 - perf: `$wait_for_tasks()` no longer reads the full finished list and
   failed task set on every poll.
+- fix: `$worker_script()` now embeds values as R string literals and
+  shell-quotes the whole `Rscript -e` payload exactly once for POSIX
+  shells.
 - fix: `$worker_script()` no longer logs the Redis password. The logged
   script shows `<redacted>` instead. The method now returns the script
   visibly.
