@@ -2,6 +2,10 @@
 
 ## rush (development version)
 
+- fix: `$start_workers()`, `$start_local_workers()`,
+  [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md),
+  and `RushWorker$new()` now append a random suffix to generated worker
+  ids so that ids are unique by construction and can no longer collide.
 - fix: `$start_workers()` and `RushWorker$new()` now reject fractional
   `heartbeat_period` and `heartbeat_expire` values and coerce
   integer-valued doubles.
