@@ -10,6 +10,7 @@ Package website: [release](https://rush.mlr-org.com/) | [dev](https://rush.mlr-o
 
 <!-- badges: start -->
 [![r-cmd-check](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml/badge.svg)](https://github.com/mlr-org/rush/actions/workflows/r-cmd-check.yml)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.21430-b31b1b.svg)](https://arxiv.org/abs/2606.21430)
 [![CRAN Status](https://www.r-pkg.org/badges/version-ago/rush)](https://cran.r-project.org/package=rush)
 [![Mattermost](https://img.shields.io/badge/chat-mattermost-orange.svg)](https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/)
 <!-- badges: end -->

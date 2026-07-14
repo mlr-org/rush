@@ -1,0 +1,12 @@
+bibentry(
+  bibtype = "Article",
+  title = "rush: Scalable Asynchronous Distributed Computing via Shared State in R",
+  author = c(
+    person("Marc", "Becker"),
+    person("Bernd", "Bischl")
+  ),
+  year = 2026,
+  journal = "arXiv preprint arXiv:2606.21430",
+  doi = "10.48550/arXiv.2606.21430",
+  url = "https://arxiv.org/abs/2606.21430"
+)
