@@ -59,7 +59,7 @@
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.2.0" id="rush-120">rush 1.2.0<a class="anchor" aria-label="anchor" href="#rush-120"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.2.0" id="rush-120">rush 1.2.0<a class="anchor" aria-label="anchor" href="#rush-120"></a></h2><p class="text-muted">CRAN release: 2026-07-13</p>
 <ul><li>fix: <code>$start_workers()</code>, <code>$start_local_workers()</code>, <code><a href="../reference/start_worker.html">start_worker()</a></code>, and <code>RushWorker$new()</code> now append a random suffix to generated worker ids so that ids are unique by construction and can no longer collide.</li>
 <li>fix: <code>$start_workers()</code> and <code>RushWorker$new()</code> now reject fractional <code>heartbeat_period</code> and <code>heartbeat_expire</code> values and coerce integer-valued doubles.</li>
 <li>chore: The minimum R version is now 3.6.0, and Redis (&gt;= 7.0) is declared as a system requirement.</li>

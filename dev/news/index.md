@@ -4,6 +4,8 @@
 
 ## rush 1.2.0
 
+CRAN release: 2026-07-13
+
 - fix: `$start_workers()`, `$start_local_workers()`,
   [`start_worker()`](https://rush.mlr-org.com/dev/reference/start_worker.md),
   and `RushWorker$new()` now append a random suffix to generated worker

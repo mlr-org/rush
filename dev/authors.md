@@ -8,15 +8,18 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/mlr-org/rush/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/mlr-org/rush/blob/main/inst/CITATION)
 
-Becker M (2026). *rush: Rapid Asynchronous and Distributed Computing*. R
-package version 1.2.0.9000, <https://rush.mlr-org.com>.
+Becker M, Bischl B (2026). “rush: Scalable Asynchronous Distributed
+Computing via Shared State in R.” *arXiv preprint arXiv:2606.21430*.
+[doi:10.48550/arXiv.2606.21430](https://doi.org/10.48550/arXiv.2606.21430).
+<https://arxiv.org/abs/2606.21430>.
 
-    @Manual{,
-      title = {rush: Rapid Asynchronous and Distributed Computing},
-      author = {Marc Becker},
+    @Article{,
+      title = {rush: Scalable Asynchronous Distributed Computing via Shared State in R},
+      author = {Marc Becker and Bernd Bischl},
       year = {2026},
-      note = {R package version 1.2.0.9000},
-      url = {https://rush.mlr-org.com},
+      journal = {arXiv preprint arXiv:2606.21430},
+      doi = {10.48550/arXiv.2606.21430},
+      url = {https://arxiv.org/abs/2606.21430},
     }
