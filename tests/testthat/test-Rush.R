@@ -41,6 +41,46 @@ test_that("workers are started", {
   expect_set_equal(rush$worker_info$state, "running")
 })
 
+test_that("workers can create local daemons", {
+  # workers must not run "within a mirai map", otherwise they cannot create local daemons,
+  # e.g. for the encapsulation in mlr3
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  wl_daemon = function(rush) {
+    result = tryCatch(
+      {
+        mirai::daemons(1, .compute = "test_encapsulation")
+        for (i in 1:100) {
+          if (mirai::status(.compute = "test_encapsulation")$connections == 1L) {
+            break
+          }
+          Sys.sleep(0.05)
+        }
+        connections = mirai::status(.compute = "test_encapsulation")$connections
+        mirai::daemons(0, .compute = "test_encapsulation")
+        list(ok = TRUE, connections = connections)
+      },
+      error = function(e) {
+        list(ok = FALSE, connections = 0L)
+      }
+    )
+    keys = rush$push_running_tasks(list(list(x = 1)))
+    rush$finish_tasks(keys, yss = list(result))
+    NULL
+  }
+
+  rush$start_workers(worker_loop = wl_daemon, n_workers = 1)
+  wait_until(rush$n_finished_tasks == 1)
+
+  data = rush$fetch_finished_tasks()
+  expect_true(data$ok)
+  expect_equal(data$connections, 1L)
+})
+
 test_that("packages are available on the worker", {
   rush = start_rush(n_workers = 1)
   on.exit({

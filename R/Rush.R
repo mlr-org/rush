@@ -213,22 +213,34 @@ Rush = R6::R6Class(
       # generate worker ids
       worker_ids = generate_worker_ids(n_workers)
 
-      # start rush worker with mirai
+      # start each rush worker in its own mirai call
+      # using mirai_map() would run the worker loop "within a mirai map", which prevents the worker
+      # from creating local daemons (e.g. for the encapsulation in mlr3)
       self$processes_mirai = c(
         self$processes_mirai,
         set_names(
-          mirai_map(
-            worker_ids,
-            rush::start_worker,
-            .args = list(
-              network_id = private$.network_id,
-              config = config,
-              lgr_thresholds = lgr_thresholds,
-              lgr_buffer_size = lgr_buffer_size,
-              message_log = message_log,
-              output_log = output_log
+          map(worker_ids, function(worker_id) {
+            mirai(
+              rush::start_worker(
+                worker_id = worker_id,
+                network_id = network_id,
+                config = config,
+                lgr_thresholds = lgr_thresholds,
+                lgr_buffer_size = lgr_buffer_size,
+                message_log = message_log,
+                output_log = output_log
+              ),
+              .args = list(
+                worker_id = worker_id,
+                network_id = private$.network_id,
+                config = config,
+                lgr_thresholds = lgr_thresholds,
+                lgr_buffer_size = lgr_buffer_size,
+                message_log = message_log,
+                output_log = output_log
+              )
             )
-          ),
+          }),
           worker_ids
         )
       )

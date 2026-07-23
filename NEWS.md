@@ -1,5 +1,7 @@
 # rush (development version)
 
+* fix: `$start_workers()` now starts each worker in its own `mirai::mirai()` call instead of a single `mirai::mirai_map()` call, so that workers can create local daemons.
+
 # rush 1.2.0
 
 * fix: `$start_workers()`, `$start_local_workers()`, `start_worker()`, and `RushWorker$new()` now append a random suffix to generated worker ids so that ids are unique by construction and can no longer collide.
