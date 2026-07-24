@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 1.2.1
 
 * fix: `$start_workers()` now starts each worker in its own `mirai::mirai()` call instead of a single `mirai::mirai_map()` call, so that workers can create local daemons.
 
