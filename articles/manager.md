@@ -78,8 +78,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: unwholesom...  8941 runnervm5m...     FALSE running
-    2: taxidermy_...  8943 runnervm5m...     FALSE running
+    1: sightly_wa...  8846 runnervmvr...     FALSE running
+    2: glassy_afr...  8848 runnervmvr...     FALSE running
 
 ### Stopping Workers
 
@@ -99,8 +99,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: taxidermy_...  8943 runnervm5m...     FALSE    running
-    2: unwholesom...  8941 runnervm5m...     FALSE terminated
+    1: sightly_wa...  8846 runnervmvr...     FALSE    running
+    2: glassy_afr...  8848 runnervmvr...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -142,19 +142,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1          x2          y          keys
-                <char>     <num>       <num>      <num>        <char>
-      1: bacteroid_...  1.620643 12.37502880  83.740843 90ed934c-e...
-      2: guilty_owl... -3.094138 13.92872337   3.532678 d0c1c4ae-0...
-      3: bacteroid_... -3.033146  3.41128751  74.493573 1c2ec252-3...
-      4: guilty_owl... -4.696590  2.16809390 210.249343 736bed5d-1...
-      5: bacteroid_... -4.596478  6.67949954  96.599881 af2fc59a-5...
+             worker_id        x1         x2          y          keys
+                <char>     <num>      <num>      <num>        <char>
+      1: dotted_cat...  4.396488  8.7744202  59.937079 d467e5e9-1...
+      2: dotted_cat...  4.513567  0.3807248   9.242988 15ef48fa-8...
+      3: dotted_cat... -1.983443 12.9438319  16.900174 291d6639-d...
+      4: dotted_cat...  1.304200  3.2396488  13.347583 7fc91f70-0...
+      5: dotted_cat... -3.302953 14.3644050   3.406687 2e85c8d2-f...
      ---
-    129: guilty_owl... -2.362484  4.77489144  35.727744 9f2808ea-1...
-    130: bacteroid_... -2.360667  0.01497431 112.634628 26aae5e4-9...
-    131: guilty_owl...  2.356719  7.82456730  26.805866 d234f6d1-7...
-    132: bacteroid_... -4.965560 10.39951891  57.143676 70f6e97d-6...
-    133: guilty_owl...  1.140679  4.44886588  14.013126 4419b339-9...
+     98: meaningles...  8.432988  3.7625498   8.734095 7cc22c27-f...
+     99: dotted_cat...  2.159953 12.5714023  93.144423 60d16c9e-3...
+    100: meaningles...  6.815003 14.0040946 183.414604 348f7bd6-e...
+    101: dotted_cat...  5.170906 14.7573921 197.391472 b2291dde-7...
+    102: meaningles...  4.800742  0.1987504  12.142235 83d0c69b-f...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -171,8 +171,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: bacteroid_...  8941 runnervm5m...     FALSE terminated
-    2: guilty_owl...  8943 runnervm5m...     FALSE terminated
+    1: dotted_cat...  8848 runnervmvr...     FALSE terminated
+    2: meaningles...  8846 runnervmvr...     FALSE terminated
 
 ``` r
 
@@ -210,7 +210,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "unphilosophical_rhinoceros_0747f67e" "calciphobic_blacklab_d40786f0"      
+    [1] "otherworldly_cuckoo_ec336827"      "pronationalist_minibeast_1246d4cd"
 
 ``` r
 
@@ -353,8 +353,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: weighable_...  9196 runnervm5m...     FALSE running
-    2: magnific_b...  9199 runnervm5m...     FALSE running
+    1: homesick_b...  9099 runnervmvr...     FALSE running
+    2: sociopsych...  9102 runnervmvr...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -375,8 +375,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: weighable_...  9196 runnervm5m...     FALSE running
-    2: magnific_b...  9199 runnervm5m...     FALSE running
+    1: homesick_b...  9099 runnervmvr...     FALSE running
+    2: sociopsych...  9102 runnervmvr...     FALSE running
 
 ``` r
 
