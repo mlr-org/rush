@@ -2,6 +2,8 @@
 
 ## rush (development version)
 
+## rush 1.2.1
+
 - fix: `$start_workers()` now starts each worker in its own
   [`mirai::mirai()`](https://mirai.r-lib.org/reference/mirai.html) call
   instead of a single

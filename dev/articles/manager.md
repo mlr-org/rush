@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: militarist...  8840 runnervm3j...     FALSE running
-    2: termitic_b...  8842 runnervm3j...     FALSE running
+    1: harebraine...  8792 runnervmvr...     FALSE running
+    2: pseudoscie...  8794 runnervmvr...     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: militarist...  8840 runnervm3j...     FALSE    running
-    2: termitic_b...  8842 runnervm3j...     FALSE terminated
+    1: harebraine...  8792 runnervmvr...     FALSE    running
+    2: pseudoscie...  8794 runnervmvr...     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1         x2         y          keys
-                <char>     <num>      <num>     <num>        <char>
-      1: griffinesq...  6.692319  3.1911271 23.038721 cfe0d51d-a...
-      2: dunite_sca...  6.185850  5.2819914 37.061395 83e9e344-1...
-      3: griffinesq...  9.543437 11.5434630 80.864468 f80ae6ac-1...
-      4: griffinesq... -2.333855 12.9226209  9.636285 5136ca51-c...
-      5: dunite_sca... -2.820342  8.0231281 13.091301 bde80c0a-b...
+             worker_id        x1         x2           y          keys
+                <char>     <num>      <num>       <num>        <char>
+      1: smallminde...  2.074403 13.9668487 120.1230118 da22b057-8...
+      2: smallminde... -3.783226  0.3485643 185.1417714 b74c69b9-5...
+      3: smallminde...  8.794360  7.4782873  32.3147473 90e79735-0...
+      4: smallminde...  5.029153 10.0293254  89.8352742 8473a43f-f...
+      5: smallminde...  9.812630 11.2439537  72.0472331 8020a624-e...
      ---
-    127: griffinesq...  7.762059  1.3238945 10.892585 b7cbe1df-2...
-    128: dunite_sca...  5.357751  2.0620924 16.551563 815ebd9d-2...
-    129: griffinesq...  4.179062  0.6743685  5.984292 e2260af5-4...
-    130: dunite_sca... -4.136836 13.6090491  6.179512 b3b0bb67-2...
-    131: griffinesq...  2.150042  9.0084693 38.769965 13aa459c-c...
+    102: smallminde...  5.968580  8.1786053  69.1982456 391894fe-1...
+    103: brief_cica...  5.533652  5.7117843  37.8503922 04482db7-f...
+    104: smallminde...  5.710966  5.1486124  34.2693275 9072ddc3-0...
+    105: brief_cica...  9.359810  2.3113040   0.4301215 2e123218-7...
+    106: smallminde...  4.579416 10.9530931  99.5921548 206f42de-f...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat      state
               <char> <int>        <char>    <lgcl>     <char>
-    1: dunite_sca...  8842 runnervm3j...     FALSE terminated
-    2: griffinesq...  8840 runnervm3j...     FALSE terminated
+    1: brief_cica...  8792 runnervmvr...     FALSE terminated
+    2: smallminde...  8794 runnervmvr...     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "stripy_grebe_e897a920"           "piscivorous_newtnutria_28cb73b6"
+    [1] "svelte_jellyfish_4fea4cc6" "vitriolic_borer_ab82996a" 
 
 ``` r
 
@@ -354,8 +354,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: noetic_ibe...  9091 runnervm3j...     FALSE running
-    2: amebic_jun...  9094 runnervm3j...     FALSE running
+    1: thickskull...  9044 runnervmvr...     FALSE running
+    2: eclectic_a...  9047 runnervmvr...     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -376,8 +376,8 @@ rush$worker_info
 
            worker_id   pid      hostname heartbeat   state
               <char> <int>        <char>    <lgcl>  <char>
-    1: noetic_ibe...  9091 runnervm3j...     FALSE running
-    2: amebic_jun...  9094 runnervm3j...     FALSE running
+    1: thickskull...  9044 runnervmvr...     FALSE running
+    2: eclectic_a...  9047 runnervmvr...     FALSE running
 
 ``` r
 
