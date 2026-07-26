@@ -151,6 +151,11 @@ because a live worker wrongly declared lost can leave a task in an inconsistent 
 \subsection{\code{RushWorker$pop_task()}}{
   Pop a task from the queue and mark it as running.
 Returns \code{NULL} if no task is available.
+
+A worker running on a compute profile takes tasks from the queue of its profile first
+and falls back to the shared queue,
+so that tasks pushed without a profile are processed by any worker.
+A worker running on the default compute profile only takes tasks from the shared queue.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}

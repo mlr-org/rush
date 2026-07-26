@@ -18,7 +18,7 @@
 #' * `$push_running_tasks(xss)`: Create running tasks
 #' * `$push_finished_tasks(xss, yss)`: Create finished tasks.
 #' * `$push_failed_tasks(xss, conditions)`: Create failed tasks.
-#' * `$push_tasks(xss)`: Create queued tasks.
+#' * `$push_tasks(xss)`: Create queued tasks, optionally for a compute profile.
 #'
 #' These methods return the key of the created tasks.
 #' The methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and outputs.
@@ -85,6 +85,12 @@
 #'
 #' The profile of a worker is recorded in the `profile` column of `$worker_info`
 #' and is passed to the worker loop, see the worker loop section.
+#'
+#' Each compute profile has its own queue.
+#' Tasks pushed with `$push_tasks(xss, profile = "gpu")` are only processed by the workers of the `"gpu"` profile.
+#' Tasks pushed without a profile are added to the shared queue and are processed by any worker.
+#' A worker takes tasks from the queue of its profile first and falls back to the shared queue.
+#' The `$n_queued_tasks_per_profile` field shows the number of tasks queued for each profile.
 #'
 #' @section Worker Loop:
 #' The worker loop is the main function that is run on the workers.
@@ -850,7 +856,9 @@ Rush = R6::R6Class(
       cmds = c(
         cmds,
         list(
-          c("DEL", private$.get_key("queued_tasks")),
+          # the queues of all compute profiles and the set of profiles tasks were pushed to
+          c("DEL", private$.get_queue_keys()),
+          c("DEL", private$.get_key("queue_profiles")),
           c("DEL", private$.get_key("running_tasks")),
           c("DEL", private$.get_key("finished_tasks")),
           c("DEL", private$.get_key("failed_tasks")),
@@ -943,16 +951,24 @@ Rush = R6::R6Class(
     #' @description
     #' Create tasks and add them to the queue.
     #'
+    #' Tasks pushed without a `profile` are added to the shared queue and are processed by any worker.
+    #' Tasks pushed with a `profile` are added to the queue of the compute profile
+    #' and are only processed by the workers running on that profile.
+    #'
     #' @param extra (`list()`)\cr
     #' Deprecated argument for additional information stored along with the task.
     #' Use `xss_extra` instead.
+    #' @param profile (`character(1)`)\cr
+    #' Name of the `mirai` compute profile the tasks are queued for.
+    #' If `NULL`, the tasks are added to the shared queue.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, xss_extra = NULL, extra = NULL) {
+    push_tasks = function(xss, xss_extra = NULL, extra = NULL, profile = NULL) {
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(extra, types = "list", null.ok = TRUE)
+      assert_string(profile, null.ok = TRUE)
       xss_extra = xss_extra %??% extra
 
       if (!length(xss)) {
@@ -963,15 +979,22 @@ Rush = R6::R6Class(
       lg$debug("Pushing %i task(s) to the queue", length(xss))
 
       # write tasks to hashes
+      # the profile is stored on the task so that it is visible when the tasks are fetched
       keys = self$write_hashes(
         xs = xss,
-        xs_extra = xss_extra
+        xs_extra = xss_extra,
+        profile = if (!is.null(profile)) list(profile)
       )
 
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
-        c("LPUSH", private$.get_key("queued_tasks"), keys)
+        c("LPUSH", private$.get_queue_key(profile), keys)
       )
+
+      # record the profile so that the queues of all profiles can be found
+      if (!is.null(profile)) {
+        cmds = c(cmds, list(c("SADD", private$.get_key("queue_profiles"), profile)))
+      }
       r$pipeline(.commands = cmds)
 
       invisible(keys)
@@ -1040,17 +1063,21 @@ Rush = R6::R6Class(
     empty_queue = function() {
       r = private$.connector
 
-      # atomically read all queued task keys (LRANGE) and clear the queue (DEL)
-      # the pipeline returns one reply per command; the EXEC reply [[4]] holds the results of the queued
-      # commands, so [[4]][[1]] is the LRANGE result (the task keys) and [[4]][[2]] is the DEL count
-      keys = unlist(r$pipeline(
-        .commands = list(
-          c("MULTI"),
-          c("LRANGE", private$.get_key("queued_tasks"), 0, -1L),
-          c("DEL", private$.get_key("queued_tasks")),
-          c("EXEC")
+      # the queued tasks are spread over the shared queue and the queue of each compute profile
+      queue_keys = private$.get_queue_keys()
+
+      # atomically read all queued task keys (LRANGE) and clear the queues (DEL)
+      # the pipeline returns one reply per command; the last reply is the EXEC reply which holds the
+      # results of the queued commands, so the first replies are the task keys of the queues
+      res = r$pipeline(
+        .commands = c(
+          list("MULTI"),
+          map(queue_keys, function(queue_key) c("LRANGE", queue_key, 0, -1L)),
+          list(c("DEL", queue_keys)),
+          list("EXEC")
         )
-      )[[4]][[1]])
+      )
+      keys = unlist(res[[length(res)]][seq_along(queue_keys)])
 
       # nothing to do if the queue was already empty
       if (!length(keys)) {
@@ -1081,14 +1108,15 @@ Rush = R6::R6Class(
 
     #' @description
     #' Fetch queued tasks from the database.
+    #' Tasks queued for a compute profile have a `profile` column.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra")`.
+    #' Defaults to `c("xs", "xs_extra", "profile")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued tasks.
-    fetch_queued_tasks = function(fields = c("xs", "xs_extra")) {
+    fetch_queued_tasks = function(fields = c("xs", "xs_extra", "profile")) {
       keys = self$queued_tasks
       private$.fetch_tasks(keys, fields)
     },
@@ -1594,10 +1622,11 @@ Rush = R6::R6Class(
     },
 
     #' @field queued_tasks (`character()`)\cr
-    #' Keys of queued tasks.
+    #' Keys of queued tasks in the shared queue and the queues of all compute profiles.
     queued_tasks = function() {
       r = private$.connector
-      unlist(r$LRANGE(private$.get_key("queued_tasks"), 0, -1))
+      cmds = map(private$.get_queue_keys(), function(queue_key) c("LRANGE", queue_key, 0, -1))
+      unlist(r$pipeline(.commands = cmds))
     },
 
     #' @field running_tasks (`character()`)\cr
@@ -1622,10 +1651,21 @@ Rush = R6::R6Class(
     },
 
     #' @field n_queued_tasks (`integer(1)`)\cr
-    #' Number of queued tasks.
+    #' Number of queued tasks in the shared queue and the queues of all compute profiles.
     n_queued_tasks = function() {
       r = private$.connector
-      as.integer(r$LLEN(private$.get_key("queued_tasks")))
+      cmds = map(private$.get_queue_keys(), function(queue_key) c("LLEN", queue_key))
+      as.integer(sum(unlist(r$pipeline(.commands = cmds))))
+    },
+
+    #' @field n_queued_tasks_per_profile (named `integer()`)\cr
+    #' Number of queued tasks in the shared queue and the queues of all compute profiles.
+    #' The number of tasks in the shared queue is named `"default"`.
+    n_queued_tasks_per_profile = function() {
+      r = private$.connector
+      profiles = private$.get_queue_profiles()
+      cmds = map(private$.get_queue_keys(profiles), function(queue_key) c("LLEN", queue_key))
+      set_names(as.integer(unlist(r$pipeline(.commands = cmds))), c("default", profiles))
     },
 
     #' @field n_running_tasks (`integer(1)`)\cr
@@ -1725,6 +1765,33 @@ Rush = R6::R6Class(
       sprintf("%s:%s:%s", private$.network_id, worker_id, key)
     },
 
+    # prefix key with instance id and compute profile
+    .get_profile_key = function(key, profile) {
+      sprintf("%s:profile:%s:%s", private$.network_id, profile, key)
+    },
+
+    # key of the queue of a compute profile
+    # tasks pushed without a profile are queued in the shared queue
+    .get_queue_key = function(profile = NULL) {
+      if (is.null(profile)) {
+        private$.get_key("queued_tasks")
+      } else {
+        private$.get_profile_key("queued_tasks", profile)
+      }
+    },
+
+    # compute profiles tasks were pushed to
+    .get_queue_profiles = function() {
+      r = private$.connector
+      sort(unlist(r$SMEMBERS(private$.get_key("queue_profiles"))))
+    },
+
+    # keys of the shared queue and the queues of all compute profiles tasks were pushed to
+    .get_queue_keys = function(profiles = NULL) {
+      profiles = profiles %??% private$.get_queue_profiles()
+      c(private$.get_queue_key(), map_chr(profiles, function(profile) private$.get_queue_key(profile)))
+    },
+
     # push worker config to redis
     .push_worker_config = function(
       worker_loop = NULL,
@@ -1782,11 +1849,13 @@ Rush = R6::R6Class(
       # optionally limit finished tasks to unconsumed tasks
       start_finished_tasks = if (only_new_keys) private$.n_consumed_tasks else 0
 
+      # the queued tasks are spread over the shared queue and the queue of each compute profile
+      queue_keys = if ("queued" %in% states) private$.get_queue_keys() else character()
+      n_queues = length(queue_keys)
+
       # get keys of tasks with different states in one transaction
       r$MULTI()
-      if ("queued" %in% states) {
-        r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
-      }
+      walk(queue_keys, function(queue_key) r$LRANGE(queue_key, 0, -1))
       if ("running" %in% states) {
         r$SMEMBERS(private$.get_key("running_tasks"))
       }
@@ -1796,10 +1865,13 @@ Rush = R6::R6Class(
       if ("failed" %in% states) {
         r$SMEMBERS(private$.get_key("failed_tasks"))
       }
-      keys = r$EXEC()
-      keys = map(keys, unlist)
-      states_order = c("queued", "running", "finished", "failed")
-      set_names(keys, states_order[states_order %in% states])
+      res = r$EXEC()
+
+      # the replies of the queues are collapsed to the keys of the queued tasks
+      queued = if (n_queues) list(queued = unlist(res[seq_len(n_queues)]))
+      other_keys = res[seq_len(length(res) - n_queues) + n_queues]
+      states_order = c("running", "finished", "failed")
+      c(queued, set_names(map(other_keys, unlist), states_order[states_order %in% states]))
     },
 
     # fetch tasks

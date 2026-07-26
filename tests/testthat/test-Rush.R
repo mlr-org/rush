@@ -1027,6 +1027,117 @@ test_that("empty queue on an empty queue does not leak a hash", {
   expect_equal(r$DBSIZE(), 0)
 })
 
+# profile queues ---------------------------------------------------------------
+
+test_that("tasks are pushed to the queue of a compute profile", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  shared_key = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  gpu_key = rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "gpu")
+
+  expect_equal(rush$n_queued_tasks, 2)
+  expect_equal(rush$n_queued_tasks_per_profile, c(default = 1L, gpu = 1L))
+  expect_set_equal(rush$queued_tasks, c(shared_key, gpu_key))
+
+  data = rush$fetch_queued_tasks()
+  expect_data_table(data, nrows = 2)
+  expect_equal(data[list(gpu_key), profile, on = "keys"], "gpu")
+  expect_true(is.na(data[list(shared_key), profile, on = "keys"]))
+
+  # tasks of all queues have the queued state
+  data = rush$fetch_tasks_with_state(states = "queued")
+  expect_data_table(data, nrows = 2)
+  expect_set_equal(data$state, "queued")
+})
+
+test_that("the queues of all compute profiles are emptied", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "gpu")
+
+  rush$empty_queue()
+
+  expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_queued_tasks_per_profile, c(default = 0L, gpu = 0L))
+  expect_data_table(rush$fetch_queued_tasks(), nrows = 0)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
+})
+
+test_that("reset removes the queues of all compute profiles", {
+  config = redux::redis_config()
+  r = redux::hiredis(config)
+  r$FLUSHDB()
+
+  rush = rsh(network_id = "test-rush", config = config)
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "gpu")
+  rush$reset()
+
+  expect_equal(r$DBSIZE(), 0)
+  expect_equal(rush$n_queued_tasks, 0)
+})
+
+test_that("workers only process the tasks of their compute profile", {
+  profiles = c(cpu = 1, gpu = 1)
+  rush = start_rush_profiles(profiles)
+  on.exit({
+    rush$reset()
+    stop_rush_profiles(profiles)
+  })
+
+  rush$start_workers(worker_loop = wl_queue_profile)
+  rush$wait_for_workers(2, timeout = 5)
+
+  cpu_key = rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "cpu")
+  gpu_key = rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "gpu")
+  rush$wait_for_tasks(c(cpu_key, gpu_key))
+
+  data = rush$fetch_finished_tasks()
+  expect_equal(data[list(cpu_key), y, on = "keys"], "cpu")
+  expect_equal(data[list(gpu_key), y, on = "keys"], "gpu")
+})
+
+test_that("workers of a compute profile fall back to the shared queue", {
+  profiles = c(gpu = 1)
+  rush = start_rush_profiles(profiles)
+  on.exit({
+    rush$reset()
+    stop_rush_profiles(profiles)
+  })
+
+  rush$start_workers(worker_loop = wl_queue_profile)
+  rush$wait_for_workers(1, timeout = 5)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2), list(x1 = 3, x2 = 4)))
+  rush$wait_for_tasks(keys)
+
+  expect_set_equal(rush$fetch_finished_tasks()$y, "gpu")
+})
+
+test_that("workers on the default compute profile do not process tasks of a compute profile", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  rush$start_workers(worker_loop = wl_queue_profile, n_workers = 1)
+  rush$wait_for_workers(1, timeout = 5)
+
+  gpu_key = rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "gpu")
+  shared_key = rush$push_tasks(list(list(x1 = 3, x2 = 4)))
+  rush$wait_for_tasks(shared_key)
+
+  # the task of the gpu profile is still queued
+  expect_equal(rush$n_queued_tasks_per_profile, c(default = 0L, gpu = 1L))
+  expect_equal(rush$queued_tasks, gpu_key)
+  expect_equal(rush$fetch_finished_tasks()$keys, shared_key)
+})
+
 # segfault detection -----------------------------------------------------------
 
 test_that("segfaults on mirai workers are detected", {

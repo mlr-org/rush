@@ -25,7 +25,7 @@ Methods to create a task:
 \item \verb{$push_running_tasks(xss)}: Create running tasks
 \item \verb{$push_finished_tasks(xss, yss)}: Create finished tasks.
 \item \verb{$push_failed_tasks(xss, conditions)}: Create failed tasks.
-\item \verb{$push_tasks(xss)}: Create queued tasks.
+\item \verb{$push_tasks(xss)}: Create queued tasks, optionally for a compute profile.
 }
 
 These methods return the key of the created tasks.
@@ -101,6 +101,12 @@ rush$start_workers(worker_loop = worker_loop, profiles = c(cpu = 2, gpu = 2))
 
 The profile of a worker is recorded in the \code{profile} column of \verb{$worker_info}
 and is passed to the worker loop, see the worker loop section.
+
+Each compute profile has its own queue.
+Tasks pushed with \verb{$push_tasks(xss, profile = "gpu")} are only processed by the workers of the \code{"gpu"} profile.
+Tasks pushed without a profile are added to the shared queue and are processed by any worker.
+A worker takes tasks from the queue of its profile first and falls back to the shared queue.
+The \verb{$n_queued_tasks_per_profile} field shows the number of tasks queued for each profile.
 }
 
 \section{Worker Loop}{
@@ -181,7 +187,7 @@ Ids of terminated workers.}
 Keys of all tasks.}
 
     \item{\code{queued_tasks}}{(\code{character()})\cr
-Keys of queued tasks.}
+Keys of queued tasks in the shared queue and the queues of all compute profiles.}
 
     \item{\code{running_tasks}}{(\code{character()})\cr
 Keys of running tasks.}
@@ -193,7 +199,11 @@ Keys of finished tasks.}
 Keys of failed tasks.}
 
     \item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
-Number of queued tasks.}
+Number of queued tasks in the shared queue and the queues of all compute profiles.}
+
+    \item{\code{n_queued_tasks_per_profile}}{(named \code{integer()})\cr
+Number of queued tasks in the shared queue and the queues of all compute profiles.
+The number of tasks in the shared queue is named \code{"default"}.}
 
     \item{\code{n_running_tasks}}{(\code{integer(1)})\cr
 Number of running tasks.}
@@ -727,9 +737,13 @@ Invisible self.
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{\code{Rush$push_tasks()}}{
   Create tasks and add them to the queue.
+
+Tasks pushed without a \code{profile} are added to the shared queue and are processed by any worker.
+Tasks pushed with a \code{profile} are added to the queue of the compute profile
+and are only processed by the workers running on that profile.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)}
+    \preformatted{Rush$push_tasks(xss, xss_extra = NULL, extra = NULL, profile = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -744,6 +758,9 @@ e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time())
       \item{\code{extra}}{(\code{list()})\cr
 Deprecated argument for additional information stored along with the task.
 Use \code{xss_extra} instead.}
+      \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the tasks are queued for.
+If \code{NULL}, the tasks are added to the shared queue.}
     }
     \if{html}{\out{</div>}}
   }
@@ -869,9 +886,10 @@ Table of all tasks.
 \if{latex}{\out{\hypertarget{method-Rush-fetch_queued_tasks}{}}}
 \subsection{\code{Rush$fetch_queued_tasks()}}{
   Fetch queued tasks from the database.
+Tasks queued for a compute profile have a \code{profile} column.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}
+    \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "profile"))}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -879,7 +897,7 @@ Table of all tasks.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra")}.}
+Defaults to \code{c("xs", "xs_extra", "profile")}.}
     }
     \if{html}{\out{</div>}}
   }

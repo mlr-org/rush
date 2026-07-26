@@ -6,6 +6,7 @@ Balaprakash
 batchtools
 bbotk
 bibentries
+BLMOVE
 booktitle
 branin
 callr
@@ -29,6 +30,8 @@ knitr
 lecyer
 lightswitch
 lockfiles
+LMOVE
+LRANGE
 lrns
 mathcal
 mathjax
@@ -60,6 +63,7 @@ Rscript
 rsmp
 rsmps
 rushs
+SMEMBERS
 sbatch
 subsetting
 stackoverflow

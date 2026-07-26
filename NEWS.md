@@ -4,6 +4,10 @@
 * feat: `rush_plan()` gains the `profiles` argument to set the number of workers per `mirai` compute profile.
 * feat: `start_worker()` and `RushWorker$new()` gain the `profile` argument which records the compute profile of a worker in the new `profile` column of `$worker_info`.
 * feat: Worker loops with a `profile` argument are passed the name of the compute profile the worker runs on.
+* feat: `$push_tasks()` gains the `profile` argument to queue tasks for a `mirai` compute profile. Tasks queued for a profile are only processed by the workers running on that profile, whereas tasks pushed without a profile are queued in the shared queue and are processed by any worker.
+* feat: `$pop_task()` takes tasks from the queue of the compute profile of the worker first and falls back to the shared queue.
+* feat: `$n_queued_tasks_per_profile` reports the number of queued tasks of the shared queue and of each compute profile.
+* feat: `$fetch_queued_tasks()` now reads the `profile` field by default so that the compute profile a task is queued for is visible.
 
 # rush 1.2.1
 

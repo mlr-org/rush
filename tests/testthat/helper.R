@@ -94,6 +94,18 @@ wl_big_stderr = function(rush) {
   NULL
 }
 
+# pops tasks from the queue and reports the compute profile the worker runs on
+wl_queue_profile = function(rush, profile = NULL) {
+  while (!rush$terminated) {
+    task = rush$pop_task(fields = "xs")
+    if (!is.null(task)) {
+      rush$finish_tasks(task$key, yss = list(list(y = if (is.null(profile)) "default" else profile)))
+    }
+  }
+
+  NULL
+}
+
 # reports the compute profile the worker runs on
 wl_profile = function(rush, profile = NULL) {
   keys = rush$push_running_tasks(list(list(x1 = 1)))
