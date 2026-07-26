@@ -82,3 +82,19 @@ assert_lgr_buffer_size = function(lgr_buffer_size) {
     .var.name = "lgr_buffer_size"
   )
 }
+
+# the names of `profiles` are mirai compute profiles and the values the number of workers per profile
+assert_profiles = function(profiles) {
+  if (is.null(profiles)) {
+    return(NULL)
+  }
+  assert_integerish(
+    profiles,
+    lower = 1,
+    any.missing = FALSE,
+    min.len = 1,
+    names = "unique",
+    .var.name = "profiles"
+  )
+  set_names(as.integer(profiles), names(profiles))
+}

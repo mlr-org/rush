@@ -70,9 +70,37 @@
 #' Or a help script can be generated with the `$worker_script()` method that can be run anywhere.
 #' The only requirement is that the worker can connect to the Redis database.
 #'
+#' @section Compute Profiles:
+#' Daemons can be started on separate
+#' [compute profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles) of \CRANpkg{mirai},
+#' e.g. one profile for CPU daemons and one profile for GPU daemons.
+#' The `profiles` argument of the `$start_workers()` method distributes the workers over these profiles.
+#'
+#' ```
+#' mirai::daemons(2, .compute = "cpu")
+#' mirai::daemons(2, .compute = "gpu")
+#'
+#' rush$start_workers(worker_loop = worker_loop, profiles = c(cpu = 2, gpu = 2))
+#' ```
+#'
+#' The profile of a worker is recorded in the `profile` column of `$worker_info`
+#' and is passed to the worker loop, see the worker loop section.
+#'
 #' @section Worker Loop:
 #' The worker loop is the main function that is run on the workers.
 #' It is defined by the user and is passed to the `$start_workers()` method.
+#' The first argument of the worker loop is the [RushWorker] instance, which is passed as `rush`.
+#' If the worker loop has a `profile` argument, the name of the compute profile the worker runs on is passed to it.
+#' The profile is `NULL` when the worker runs on the default compute profile.
+#'
+#' ```
+#' worker_loop = function(rush, profile = NULL) {
+#'   while (!rush$terminated) {
+#'     task = rush$pop_task()
+#'     ...
+#'   }
+#' }
+#' ```
 #'
 #' @section Debugging:
 #' The `mirai::mirai` objects started with `$start_workers()` are stored in `$processes_mirai`.
@@ -82,6 +110,7 @@
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
+#' @template param_profiles
 #' @template param_packages
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
@@ -164,6 +193,10 @@ Rush = R6::R6Class(
     #' Start workers to run the worker loop in `mirai::daemons()`.
     #' Initializes a [RushWorker] in each process and starts the worker loop.
     #'
+    #' Workers are started on the default compute profile unless `profiles` is given.
+    #' With `profiles`, the workers are distributed over the
+    #' [compute profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles) of \CRANpkg{mirai}.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
@@ -172,30 +205,64 @@ Rush = R6::R6Class(
       worker_loop,
       ...,
       n_workers = NULL,
+      profiles = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       message_log = NULL,
       output_log = NULL
     ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
+      if (!is.null(n_workers) && !is.null(profiles)) {
+        error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
+      }
+      profiles = assert_profiles(profiles)
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
 
-      mirai_status = status()
-      # check number of daemons
-      if (!mirai_status$connections) {
-        error_config("No daemons available. Start daemons with `mirai::daemons()`")
+      # an explicitly passed `n_workers` takes precedence over the profiles of the rush plan
+      if (is.null(profiles) && is.null(n_workers)) {
+        profiles = assert_profiles(rush_env$profiles)
       }
 
-      # mirai is only available when mirai is started with a dispatcher
-      if (!is.null(mirai_status$mirai) && n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
-        warning_config(
-          "Number of workers %i exceeds number of available daemons %i",
-          n_workers,
-          mirai_status$connections - mirai_status$mirai["executing"]
-        )
+      # workers without profiles are one group of workers on the default compute profile
+      # the `NA` name marks the default profile which is passed as `.compute = NULL` to mirai
+      groups = if (is.null(profiles)) {
+        n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
+        set_names(n_workers, NA_character_)
+      } else {
+        profiles
       }
+
+      # check number of daemons of each compute profile
+      iwalk(groups, function(n, profile) {
+        mirai_status = status(.compute = if (!is.na(profile)) profile)
+
+        if (!mirai_status$connections) {
+          if (is.na(profile)) {
+            error_config("No daemons available. Start daemons with `mirai::daemons()`")
+          }
+          error_config(
+            "No daemons available on compute profile '%s'. Start daemons with `mirai::daemons(.compute = \"%s\")`",
+            profile,
+            profile
+          )
+        }
+
+        # mirai is only available when mirai is started with a dispatcher
+        if (!is.null(mirai_status$mirai) && n > mirai_status$connections - mirai_status$mirai["executing"]) {
+          available_daemons = mirai_status$connections - mirai_status$mirai["executing"]
+          if (is.na(profile)) {
+            warning_config("Number of workers %i exceeds number of available daemons %i", n, available_daemons)
+          } else {
+            warning_config(
+              "Number of workers %i on compute profile '%s' exceeds number of available daemons %i",
+              n,
+              profile,
+              available_daemons
+            )
+          }
+        }
+      })
 
       # push worker config to redis
       private$.push_worker_config(
@@ -204,27 +271,28 @@ Rush = R6::R6Class(
         packages = packages
       )
 
-      lg$info("Starting %i worker(s)", n_workers)
+      lg$info("Starting %i worker(s)", sum(groups))
 
       # reduce redis config
       config = mlr3misc::discard(unclass(self$config), is.null)
       config$url = NULL
 
-      # generate worker ids
-      worker_ids = generate_worker_ids(n_workers)
+      # generate worker ids per compute profile
+      worker_ids = imap(groups, function(n, profile) generate_worker_ids(n))
 
       # start each rush worker in its own mirai call
       # using mirai_map() would run the worker loop "within a mirai map", which prevents the worker
       # from creating local daemons (e.g. for the encapsulation in mlr3)
-      self$processes_mirai = c(
-        self$processes_mirai,
+      processes_mirai = imap(worker_ids, function(ids, profile) {
+        profile = if (!is.na(profile)) profile
         set_names(
-          map(worker_ids, function(worker_id) {
+          map(ids, function(worker_id) {
             mirai(
               rush::start_worker(
                 worker_id = worker_id,
                 network_id = network_id,
                 config = config,
+                profile = profile,
                 lgr_thresholds = lgr_thresholds,
                 lgr_buffer_size = lgr_buffer_size,
                 message_log = message_log,
@@ -234,18 +302,22 @@ Rush = R6::R6Class(
                 worker_id = worker_id,
                 network_id = private$.network_id,
                 config = config,
+                profile = profile,
                 lgr_thresholds = lgr_thresholds,
                 lgr_buffer_size = lgr_buffer_size,
                 message_log = message_log,
                 output_log = output_log
-              )
+              ),
+              .compute = profile
             )
           }),
-          worker_ids
+          ids
         )
-      )
+      })
 
-      invisible(worker_ids)
+      self$processes_mirai = c(self$processes_mirai, unlist(unname(processes_mirai), recursive = FALSE))
+
+      invisible(unlist(unname(worker_ids)))
     },
 
     #' @description
@@ -1593,12 +1665,14 @@ Rush = R6::R6Class(
       }
       r = private$.connector
 
-      fields = c("worker_id", "pid", "hostname", "heartbeat")
+      fields = c("worker_id", "pid", "hostname", "profile", "heartbeat")
       cmds = map(self$worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), fields))
       worker_info = set_names(rbindlist(r$pipeline(.commands = cmds)), fields)
 
       # fix type
       worker_info[, pid := as.integer(pid)][]
+      # workers on the default compute profile store an empty string
+      worker_info[!nzchar(profile), profile := NA_character_][]
       worker_info[, heartbeat := nzchar(heartbeat)][]
 
       # get worker states as atomic operation

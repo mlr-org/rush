@@ -15,6 +15,7 @@
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_id
+#' @template param_profile
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #' @template param_xss
@@ -33,6 +34,11 @@ RushWorker = R6::R6Class(
     #' Identifier of the worker.
     worker_id = NULL,
 
+    #' @field profile (`character(1)`)\cr
+    #' Name of the `mirai` compute profile the worker runs on.
+    #' `NULL` if the worker runs on the default compute profile.
+    profile = NULL,
+
     #' @field heartbeat (`callr::r_bg`)\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
@@ -43,12 +49,14 @@ RushWorker = R6::R6Class(
       network_id,
       config = NULL,
       worker_id = NULL,
+      profile = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL
     ) {
       super$initialize(network_id = network_id, config = config)
 
       self$worker_id = assert_string(worker_id %??% generate_worker_ids())
+      self$profile = assert_string(profile, null.ok = TRUE)
       r = self$connector
 
       # setup heartbeat
@@ -115,6 +123,9 @@ RushWorker = R6::R6Class(
         Sys.getpid(),
         "hostname",
         rush::get_hostname(),
+        "profile",
+        # empty string marks the default compute profile
+        self$profile %??% "",
         "heartbeat",
         heartbeat_key
       ))

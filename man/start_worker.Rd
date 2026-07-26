@@ -8,6 +8,7 @@ start_worker(
   worker_id = NULL,
   network_id,
   config = NULL,
+  profile = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -28,6 +29,10 @@ Keys in Redis are prefixed with the instance id.}
 
 \item{config}{(\code{list()})\cr
 Configuration for the Redis connection.}
+
+\item{profile}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the worker runs on.
+If \code{NULL}, the worker runs on the default compute profile.}
 
 \item{lgr_thresholds}{(named \code{character()} | named \code{numeric()})\cr
 Logger threshold on the workers e.g. \code{c("mlr3/rush" = "debug")}.}
@@ -67,6 +72,9 @@ Starts a worker.
 The function loads packages, initializes the \link{RushWorker} instance and invokes the worker loop.
 This function is called by \verb{$start_local_workers()} or
 by the user after creating the worker script with \verb{$worker_script()}.
+}
+\details{
+The compute profile of the worker is passed to the worker loop when the worker loop has a \code{profile} argument.
 }
 \examples{
 # This example is not executed since Redis must be installed

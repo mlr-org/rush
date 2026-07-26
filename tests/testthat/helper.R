@@ -94,6 +94,13 @@ wl_big_stderr = function(rush) {
   NULL
 }
 
+# reports the compute profile the worker runs on
+wl_profile = function(rush, profile = NULL) {
+  keys = rush$push_running_tasks(list(list(x1 = 1)))
+  rush$finish_tasks(keys, yss = list(list(y = if (is.null(profile)) "default" else profile)))
+  NULL
+}
+
 wl_nop = function(rush) {
   while (!rush$terminated) {
     Sys.sleep(1)

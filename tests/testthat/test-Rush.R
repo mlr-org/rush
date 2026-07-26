@@ -39,6 +39,68 @@ test_that("workers are started", {
   expect_set_equal(worker_ids, worker_info$worker_id)
   expect_set_equal(rush$worker_ids, worker_ids)
   expect_set_equal(rush$worker_info$state, "running")
+  # workers on the default compute profile have no profile
+  expect_true(all(is.na(worker_info$profile)))
+})
+
+test_that("workers are started on compute profiles", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  mirai::daemons(1, .compute = "cpu")
+  mirai::daemons(2, .compute = "gpu")
+  on.exit({
+    rush$reset()
+    mirai::daemons(0, .compute = "cpu")
+    mirai::daemons(0, .compute = "gpu")
+  })
+
+  # no daemons are started on the default profile
+  # so the workers only run when they are dispatched to the named profiles
+  worker_ids = rush$start_workers(
+    worker_loop = wl_profile,
+    profiles = c(cpu = 1, gpu = 2)
+  )
+  expect_character(worker_ids, len = 3, unique = TRUE)
+  rush$wait_for_workers(3, timeout = 5)
+
+  worker_info = rush$worker_info
+  expect_set_equal(worker_info$worker_id, worker_ids)
+  expect_equal(sort(worker_info$profile), c("cpu", "gpu", "gpu"))
+
+  # the worker loop is told on which profile it runs
+  wait_until(rush$n_finished_tasks == 3)
+  expect_equal(sort(rush$fetch_finished_tasks()$y), c("cpu", "gpu", "gpu"))
+})
+
+test_that("starting workers with n_workers and profiles at the same time fails", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  expect_error(
+    rush$start_workers(worker_loop = wl_queue, n_workers = 1, profiles = c(cpu = 1)),
+    class = "Mlr3ErrorConfig",
+    regexp = "at the same time"
+  )
+})
+
+test_that("starting workers on a compute profile without daemons fails", {
+  config = redis_configuration()
+  rush = rsh(config = config)
+  on.exit(rush$reset())
+
+  expect_error(
+    rush$start_workers(worker_loop = wl_queue, profiles = c(cpu = 1)),
+    class = "Mlr3ErrorConfig",
+    regexp = "No daemons available on compute profile 'cpu'"
+  )
+
+  expect_error(
+    rush$start_workers(worker_loop = wl_queue, profiles = c(2, 2)),
+    regexp = "names"
+  )
 })
 
 test_that("workers can create local daemons", {

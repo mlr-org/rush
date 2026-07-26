@@ -11,7 +11,8 @@ rush_plan(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai",
-  start_worker_timeout = NULL
+  start_worker_timeout = NULL,
+  profiles = NULL
 )
 }
 \arguments{
@@ -47,12 +48,20 @@ to get a script to run.}
 Default timeout in seconds used by \verb{$wait_for_workers()} of \link{Rush} when no \code{timeout} is passed.
 If \code{NULL}, \verb{$wait_for_workers()} waits indefinitely by default.
 A timeout of \code{0} checks once and errors immediately if the workers are not yet registered.}
+
+\item{profiles}{(named \code{integer()})\cr
+Number of workers to be started on each \code{mirai} compute profile, e.g. \code{c(cpu = 2, gpu = 2)}.
+The names are the compute profiles created with \code{\link[mirai:daemons]{mirai::daemons()}} and the values are the number of workers
+started on the daemons of the respective profile.
+Cannot be combined with \code{n_workers}.}
 }
 \value{
 \code{list()} with the stored configuration.
 }
 \description{
 Stores the number of workers and Redis configuration options (\link[redux:redis_config]{redux::redis_config}) for \link{Rush}.
+Instead of a single number of workers, the workers can be distributed over the compute profiles of
+\CRANpkg{mirai} with the \code{profiles} argument.
 The function tests the connection to Redis and throws an error if the connection fails.
 This function is usually used in third-party packages to setup how workers are started.
 }

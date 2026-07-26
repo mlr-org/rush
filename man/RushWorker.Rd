@@ -28,6 +28,10 @@ In addition to the inherited methods, the worker provides methods that require a
     \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
+    \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the worker runs on.
+\code{NULL} if the worker runs on the default compute profile.}
+
     \item{\code{heartbeat}}{(\code{callr::r_bg})\cr
 Background process for the heartbeat.}
   }
@@ -101,6 +105,7 @@ Used in the worker loop to determine whether to continue.}
   network_id,
   config = NULL,
   worker_id = NULL,
+  profile = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL
 )}
@@ -122,6 +127,9 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
       \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
+      \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the worker runs on.
+If \code{NULL}, the worker runs on the default compute profile.}
       \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
 The heartbeat is updated every \code{heartbeat_period} seconds.

@@ -14,6 +14,37 @@ test_that("rush_plan family works", {
   expect_true(rush_available())
 })
 
+test_that("profiles are stored in the rush plan and used to start workers", {
+  on.exit({
+    rush$reset()
+    remove_rush_plan()
+    mirai::daemons(0, .compute = "cpu")
+  })
+
+  config = redis_configuration()
+  rush_plan(profiles = c(cpu = 2), config = config)
+  expect_equal(rush_config()$profiles, c(cpu = 2L))
+  mirai::daemons(2, .compute = "cpu")
+
+  rush = rsh("test-rush")
+  worker_ids = rush$start_workers(worker_loop = wl_queue)
+  rush$wait_for_workers(2, timeout = 5)
+
+  expect_equal(length(worker_ids), 2)
+  expect_set_equal(rush$worker_info$profile, "cpu")
+})
+
+test_that("rush_plan with n_workers and profiles at the same time fails", {
+  on.exit(remove_rush_plan())
+
+  config = redis_configuration()
+  expect_error(
+    rush_plan(n_workers = 2, config = config, profiles = c(cpu = 2)),
+    class = "Mlr3ErrorConfig",
+    regexp = "at the same time"
+  )
+})
+
 test_that("start_worker_timeout is stored and used as default", {
   on.exit({
     rush$reset()
