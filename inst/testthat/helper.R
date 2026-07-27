@@ -26,6 +26,27 @@ start_rush = function(n_workers = 2) {
   rush
 }
 
+# starts one set of daemons per compute profile, e.g. `start_rush_profiles(c(cpu = 2, gpu = 1))`
+start_rush_profiles = function(profiles) {
+  config = redis_configuration()
+
+  rush::rush_plan(profiles = profiles)
+  rush = rush::rsh(config = config)
+
+  for (profile in names(profiles)) {
+    mirai::daemons(profiles[[profile]], .compute = profile)
+  }
+
+  rush
+}
+
+# shuts down the daemons of every compute profile started by `start_rush_profiles()`
+stop_rush_profiles = function(profiles) {
+  for (profile in names(profiles)) {
+    mirai::daemons(0, .compute = profile)
+  }
+}
+
 start_rush_worker = function() {
   config = redis_configuration()
 

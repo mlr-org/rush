@@ -35,9 +35,13 @@ test_that("a worker is registered", {
 
   worker_info = rush$worker_info
   expect_data_table(worker_info, nrows = 1)
-  expect_names(names(worker_info), permutation.of = c("worker_id", "pid", "hostname", "heartbeat", "state"))
+  expect_names(
+    names(worker_info),
+    permutation.of = c("worker_id", "pid", "hostname", "profile", "heartbeat", "state")
+  )
   expect_equal(worker_info$worker_id, rush$worker_id)
   expect_equal(worker_info$pid, Sys.getpid())
+  expect_true(is.na(worker_info$profile))
   expect_equal(rush$worker_ids, rush$worker_id)
   expect_equal(rush$worker_info$state, "running")
 })
@@ -300,6 +304,25 @@ test_that("writing list columns works", {
 
 
 # moving tasks between states --------------------------------------------------
+
+test_that("a worker of a compute profile pops tasks from its queue and the shared queue", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker = RushWorker$new(network_id = "test-rush", config = config, profile = "cpu")
+  on.exit(rush$reset())
+
+  cpu_key = rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "cpu")
+  gpu_key = rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "gpu")
+  shared_key = rush$push_tasks(list(list(x1 = 5, x2 = 6)))
+
+  # the queue of the profile is preferred over the shared queue
+  expect_equal(worker$pop_task(timeout = 1)$key, cpu_key)
+  expect_equal(worker$pop_task(timeout = 1)$key, shared_key)
+
+  # the queue of another profile is not touched
+  expect_null(worker$pop_task(timeout = 1))
+  expect_equal(rush$queued_tasks, gpu_key)
+})
 
 test_that("popping a task works", {
   rush = start_rush_worker()

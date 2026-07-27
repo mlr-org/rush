@@ -15,6 +15,7 @@
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_id
+#' @template param_profile
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
 #' @template param_xss
@@ -33,6 +34,11 @@ RushWorker = R6::R6Class(
     #' Identifier of the worker.
     worker_id = NULL,
 
+    #' @field profile (`character(1)`)\cr
+    #' Name of the `mirai` compute profile the worker runs on.
+    #' `NULL` if the worker runs on the default compute profile.
+    profile = NULL,
+
     #' @field heartbeat (`callr::r_bg`)\cr
     #' Background process for the heartbeat.
     heartbeat = NULL,
@@ -43,12 +49,14 @@ RushWorker = R6::R6Class(
       network_id,
       config = NULL,
       worker_id = NULL,
+      profile = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL
     ) {
       super$initialize(network_id = network_id, config = config)
 
       self$worker_id = assert_string(worker_id %??% generate_worker_ids())
+      self$profile = assert_string(profile, null.ok = TRUE)
       r = self$connector
 
       # setup heartbeat
@@ -115,6 +123,9 @@ RushWorker = R6::R6Class(
         Sys.getpid(),
         "hostname",
         rush::get_hostname(),
+        "profile",
+        # empty string marks the default compute profile
+        self$profile %??% "",
         "heartbeat",
         heartbeat_key
       ))
@@ -125,25 +136,37 @@ RushWorker = R6::R6Class(
     #' Pop a task from the queue and mark it as running.
     #' Returns `NULL` if no task is available.
     #'
+    #' A worker running on a compute profile takes tasks from the queue of its profile first
+    #' and falls back to the shared queue,
+    #' so that tasks pushed without a profile are processed by any worker.
+    #' A worker running on the default compute profile only takes tasks from the shared queue.
+    #'
     #' @param timeout (`numeric(1)`)\cr
     #' Time to wait for task in seconds.
     #' @param fields (`character()`)\cr
     #' Fields to be returned.
     pop_task = function(timeout = 1, fields = "xs") {
       r = self$connector
+      pending_key = private$.get_worker_key("pending_task")
+      shared_queue = private$.get_queue_key()
 
       # move task from queued to pending
       # pending is a very short state between queued and running
       # if the worker crashes between popping the task and marking it as running,
       # $detect_lost_workers() can find the task in the pending list and mark it as failed
-      key = r$command(c(
-        "BLMOVE",
-        private$.get_key("queued_tasks"),
-        private$.get_worker_key("pending_task"),
-        "RIGHT",
-        "LEFT",
-        timeout
-      ))
+      key = if (is.null(self$profile)) {
+        r$command(c("BLMOVE", shared_queue, pending_key, "RIGHT", "LEFT", timeout))
+      } else {
+        # both queues are checked without blocking first, then the worker blocks on its own queue
+        # and checks the shared queue once more, so a task in the shared queue is picked up
+        # after at most `timeout` seconds
+        # LMOVE and BLMOVE are atomic, so a task is never lost between the queue and the pending list
+        profile_queue = private$.get_queue_key(self$profile)
+        r$command(c("LMOVE", profile_queue, pending_key, "RIGHT", "LEFT")) %??%
+          r$command(c("LMOVE", shared_queue, pending_key, "RIGHT", "LEFT")) %??%
+          r$command(c("BLMOVE", profile_queue, pending_key, "RIGHT", "LEFT", timeout)) %??%
+          r$command(c("LMOVE", shared_queue, pending_key, "RIGHT", "LEFT"))
+      }
 
       if (is.null(key)) {
         return(NULL)
@@ -156,7 +179,7 @@ RushWorker = R6::R6Class(
         "EVAL",
         lua_mark_running,
         "3",
-        private$.get_worker_key("pending_task"),
+        pending_key,
         private$.get_key("running_tasks"),
         key,
         redux::object_to_bin(self$worker_id)

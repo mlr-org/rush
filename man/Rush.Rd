@@ -25,7 +25,7 @@ Methods to create a task:
 \item \verb{$push_running_tasks(xss)}: Create running tasks
 \item \verb{$push_finished_tasks(xss, yss)}: Create finished tasks.
 \item \verb{$push_failed_tasks(xss, conditions)}: Create failed tasks.
-\item \verb{$push_tasks(xss)}: Create queued tasks.
+\item \verb{$push_tasks(xss)}: Create queued tasks, optionally for a compute profile.
 }
 
 These methods return the key of the created tasks.
@@ -86,10 +86,44 @@ Or a help script can be generated with the \verb{$worker_script()} method that c
 The only requirement is that the worker can connect to the Redis database.
 }
 
+\section{Compute Profiles}{
+
+Daemons can be started on separate
+\href{https://mirai.r-lib.org/articles/mirai.html#scoped-profiles}{compute profiles} of \CRANpkg{mirai},
+e.g. one profile for CPU daemons and one profile for GPU daemons.
+The \code{profiles} argument of the \verb{$start_workers()} method distributes the workers over these profiles.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mirai::daemons(2, .compute = "cpu")
+mirai::daemons(2, .compute = "gpu")
+
+rush$start_workers(worker_loop = worker_loop, profiles = c(cpu = 2, gpu = 2))
+}\if{html}{\out{</div>}}
+
+The profile of a worker is recorded in the \code{profile} column of \verb{$worker_info}
+and is passed to the worker loop, see the worker loop section.
+
+Each compute profile has its own queue.
+Tasks pushed with \verb{$push_tasks(xss, profile = "gpu")} are only processed by the workers of the \code{"gpu"} profile.
+Tasks pushed without a profile are added to the shared queue and are processed by any worker.
+A worker takes tasks from the queue of its profile first and falls back to the shared queue.
+The \verb{$n_queued_tasks_per_profile} field shows the number of tasks queued for each profile.
+}
+
 \section{Worker Loop}{
 
 The worker loop is the main function that is run on the workers.
 It is defined by the user and is passed to the \verb{$start_workers()} method.
+The first argument of the worker loop is the \link{RushWorker} instance, which is passed as \code{rush}.
+If the worker loop has a \code{profile} argument, the name of the compute profile the worker runs on is passed to it.
+The profile is \code{NULL} when the worker runs on the default compute profile.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{worker_loop = function(rush, profile = NULL) \{
+  while (!rush$terminated) \{
+    task = rush$pop_task()
+    ...
+  \}
+\}
+}\if{html}{\out{</div>}}
 }
 
 \section{Debugging}{
@@ -153,7 +187,7 @@ Ids of terminated workers.}
 Keys of all tasks.}
 
     \item{\code{queued_tasks}}{(\code{character()})\cr
-Keys of queued tasks.}
+Keys of queued tasks in the shared queue and the queues of all compute profiles.}
 
     \item{\code{running_tasks}}{(\code{character()})\cr
 Keys of running tasks.}
@@ -165,7 +199,11 @@ Keys of finished tasks.}
 Keys of failed tasks.}
 
     \item{\code{n_queued_tasks}}{(\code{integer(1)})\cr
-Number of queued tasks.}
+Number of queued tasks in the shared queue and the queues of all compute profiles.}
+
+    \item{\code{n_queued_tasks_per_profile}}{(named \code{integer()})\cr
+Number of queued tasks in the shared queue and the queues of all compute profiles.
+The number of tasks in the shared queue is named \code{"default"}.}
 
     \item{\code{n_running_tasks}}{(\code{integer(1)})\cr
 Number of running tasks.}
@@ -308,12 +346,17 @@ Call this method to reconnect after loading the object.
 \subsection{\code{Rush$start_workers()}}{
   Start workers to run the worker loop in \code{mirai::daemons()}.
 Initializes a \link{RushWorker} in each process and starts the worker loop.
+
+Workers are started on the default compute profile unless \code{profiles} is given.
+With \code{profiles}, the workers are distributed over the
+\href{https://mirai.r-lib.org/articles/mirai.html#scoped-profiles}{compute profiles} of \CRANpkg{mirai}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Rush$start_workers(
   worker_loop,
   ...,
   n_workers = NULL,
+  profiles = NULL,
   packages = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
@@ -331,6 +374,11 @@ Loop run on the workers.}
 Arguments passed to \code{worker_loop}.}
       \item{\code{n_workers}}{(\code{integer(1)})\cr
 Number of workers to be started.}
+      \item{\code{profiles}}{(named \code{integer()})\cr
+Number of workers to be started on each \code{mirai} compute profile, e.g. \code{c(cpu = 2, gpu = 2)}.
+The names are the compute profiles created with \code{\link[mirai:daemons]{mirai::daemons()}} and the values are the number of workers
+started on the daemons of the respective profile.
+Cannot be combined with \code{n_workers}.}
       \item{\code{packages}}{(\code{character()})\cr
 Packages to be loaded by the workers.}
       \item{\code{lgr_thresholds}}{(named \code{character()} | named \code{numeric()})\cr
@@ -689,9 +737,13 @@ Invisible self.
 \if{latex}{\out{\hypertarget{method-Rush-push_tasks}{}}}
 \subsection{\code{Rush$push_tasks()}}{
   Create tasks and add them to the queue.
+
+Tasks pushed without a \code{profile} are added to the shared queue and are processed by any worker.
+Tasks pushed with a \code{profile} are added to the queue of the compute profile
+and are only processed by the workers running on that profile.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)}
+    \preformatted{Rush$push_tasks(xss, xss_extra = NULL, extra = NULL, profile = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -706,6 +758,9 @@ e.g. \code{list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time())
       \item{\code{extra}}{(\code{list()})\cr
 Deprecated argument for additional information stored along with the task.
 Use \code{xss_extra} instead.}
+      \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the tasks are queued for.
+If \code{NULL}, the tasks are added to the shared queue.}
     }
     \if{html}{\out{</div>}}
   }
@@ -831,9 +886,10 @@ Table of all tasks.
 \if{latex}{\out{\hypertarget{method-Rush-fetch_queued_tasks}{}}}
 \subsection{\code{Rush$fetch_queued_tasks()}}{
   Fetch queued tasks from the database.
+Tasks queued for a compute profile have a \code{profile} column.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))}
+    \preformatted{Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "profile"))}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -841,7 +897,7 @@ Table of all tasks.
     \describe{
       \item{\code{fields}}{(\code{character()})\cr
 Fields to be read from the hashes.
-Defaults to \code{c("xs", "xs_extra")}.}
+Defaults to \code{c("xs", "xs_extra", "profile")}.}
     }
     \if{html}{\out{</div>}}
   }

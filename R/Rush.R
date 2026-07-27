@@ -18,7 +18,7 @@
 #' * `$push_running_tasks(xss)`: Create running tasks
 #' * `$push_finished_tasks(xss, yss)`: Create finished tasks.
 #' * `$push_failed_tasks(xss, conditions)`: Create failed tasks.
-#' * `$push_tasks(xss)`: Create queued tasks.
+#' * `$push_tasks(xss)`: Create queued tasks, optionally for a compute profile.
 #'
 #' These methods return the key of the created tasks.
 #' The methods work on multiple tasks at once, so `xss` and `yss` are lists of inputs and outputs.
@@ -70,9 +70,43 @@
 #' Or a help script can be generated with the `$worker_script()` method that can be run anywhere.
 #' The only requirement is that the worker can connect to the Redis database.
 #'
+#' @section Compute Profiles:
+#' Daemons can be started on separate
+#' [compute profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles) of \CRANpkg{mirai},
+#' e.g. one profile for CPU daemons and one profile for GPU daemons.
+#' The `profiles` argument of the `$start_workers()` method distributes the workers over these profiles.
+#'
+#' ```
+#' mirai::daemons(2, .compute = "cpu")
+#' mirai::daemons(2, .compute = "gpu")
+#'
+#' rush$start_workers(worker_loop = worker_loop, profiles = c(cpu = 2, gpu = 2))
+#' ```
+#'
+#' The profile of a worker is recorded in the `profile` column of `$worker_info`
+#' and is passed to the worker loop, see the worker loop section.
+#'
+#' Each compute profile has its own queue.
+#' Tasks pushed with `$push_tasks(xss, profile = "gpu")` are only processed by the workers of the `"gpu"` profile.
+#' Tasks pushed without a profile are added to the shared queue and are processed by any worker.
+#' A worker takes tasks from the queue of its profile first and falls back to the shared queue.
+#' The `$n_queued_tasks_per_profile` field shows the number of tasks queued for each profile.
+#'
 #' @section Worker Loop:
 #' The worker loop is the main function that is run on the workers.
 #' It is defined by the user and is passed to the `$start_workers()` method.
+#' The first argument of the worker loop is the [RushWorker] instance, which is passed as `rush`.
+#' If the worker loop has a `profile` argument, the name of the compute profile the worker runs on is passed to it.
+#' The profile is `NULL` when the worker runs on the default compute profile.
+#'
+#' ```
+#' worker_loop = function(rush, profile = NULL) {
+#'   while (!rush$terminated) {
+#'     task = rush$pop_task()
+#'     ...
+#'   }
+#' }
+#' ```
 #'
 #' @section Debugging:
 #' The `mirai::mirai` objects started with `$start_workers()` are stored in `$processes_mirai`.
@@ -82,6 +116,7 @@
 #' @template param_network_id
 #' @template param_config
 #' @template param_worker_loop
+#' @template param_profiles
 #' @template param_packages
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
@@ -164,6 +199,10 @@ Rush = R6::R6Class(
     #' Start workers to run the worker loop in `mirai::daemons()`.
     #' Initializes a [RushWorker] in each process and starts the worker loop.
     #'
+    #' Workers are started on the default compute profile unless `profiles` is given.
+    #' With `profiles`, the workers are distributed over the
+    #' [compute profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles) of \CRANpkg{mirai}.
+    #'
     #' @param ... (`any`)\cr
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
@@ -172,30 +211,64 @@ Rush = R6::R6Class(
       worker_loop,
       ...,
       n_workers = NULL,
+      profiles = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       message_log = NULL,
       output_log = NULL
     ) {
-      n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
+      if (!is.null(n_workers) && !is.null(profiles)) {
+        error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
+      }
+      profiles = assert_profiles(profiles)
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
 
-      mirai_status = status()
-      # check number of daemons
-      if (!mirai_status$connections) {
-        error_config("No daemons available. Start daemons with `mirai::daemons()`")
+      # an explicitly passed `n_workers` takes precedence over the profiles of the rush plan
+      if (is.null(profiles) && is.null(n_workers)) {
+        profiles = assert_profiles(rush_env$profiles)
       }
 
-      # mirai is only available when mirai is started with a dispatcher
-      if (!is.null(mirai_status$mirai) && n_workers > mirai_status$connections - mirai_status$mirai["executing"]) {
-        warning_config(
-          "Number of workers %i exceeds number of available daemons %i",
-          n_workers,
-          mirai_status$connections - mirai_status$mirai["executing"]
-        )
+      # workers without profiles are one group of workers on the default compute profile
+      # the `NA` name marks the default profile which is passed as `.compute = NULL` to mirai
+      groups = if (is.null(profiles)) {
+        n_workers = assert_count(n_workers %??% rush_env$n_workers %??% 1, .var.name = "n_workers")
+        set_names(n_workers, NA_character_)
+      } else {
+        profiles
       }
+
+      # check number of daemons of each compute profile
+      iwalk(groups, function(n, profile) {
+        mirai_status = status(.compute = if (!is.na(profile)) profile)
+
+        if (!mirai_status$connections) {
+          if (is.na(profile)) {
+            error_config("No daemons available. Start daemons with `mirai::daemons()`")
+          }
+          error_config(
+            "No daemons available on compute profile '%s'. Start daemons with `mirai::daemons(.compute = \"%s\")`",
+            profile,
+            profile
+          )
+        }
+
+        # mirai is only available when mirai is started with a dispatcher
+        if (!is.null(mirai_status$mirai) && n > mirai_status$connections - mirai_status$mirai["executing"]) {
+          available_daemons = mirai_status$connections - mirai_status$mirai["executing"]
+          if (is.na(profile)) {
+            warning_config("Number of workers %i exceeds number of available daemons %i", n, available_daemons)
+          } else {
+            warning_config(
+              "Number of workers %i on compute profile '%s' exceeds number of available daemons %i",
+              n,
+              profile,
+              available_daemons
+            )
+          }
+        }
+      })
 
       # push worker config to redis
       private$.push_worker_config(
@@ -204,27 +277,28 @@ Rush = R6::R6Class(
         packages = packages
       )
 
-      lg$info("Starting %i worker(s)", n_workers)
+      lg$info("Starting %i worker(s)", sum(groups))
 
       # reduce redis config
       config = mlr3misc::discard(unclass(self$config), is.null)
       config$url = NULL
 
-      # generate worker ids
-      worker_ids = generate_worker_ids(n_workers)
+      # generate worker ids per compute profile
+      worker_ids = imap(groups, function(n, profile) generate_worker_ids(n))
 
       # start each rush worker in its own mirai call
       # using mirai_map() would run the worker loop "within a mirai map", which prevents the worker
       # from creating local daemons (e.g. for the encapsulation in mlr3)
-      self$processes_mirai = c(
-        self$processes_mirai,
+      processes_mirai = imap(worker_ids, function(ids, profile) {
+        profile = if (!is.na(profile)) profile
         set_names(
-          map(worker_ids, function(worker_id) {
+          map(ids, function(worker_id) {
             mirai(
               rush::start_worker(
                 worker_id = worker_id,
                 network_id = network_id,
                 config = config,
+                profile = profile,
                 lgr_thresholds = lgr_thresholds,
                 lgr_buffer_size = lgr_buffer_size,
                 message_log = message_log,
@@ -234,18 +308,22 @@ Rush = R6::R6Class(
                 worker_id = worker_id,
                 network_id = private$.network_id,
                 config = config,
+                profile = profile,
                 lgr_thresholds = lgr_thresholds,
                 lgr_buffer_size = lgr_buffer_size,
                 message_log = message_log,
                 output_log = output_log
-              )
+              ),
+              .compute = profile
             )
           }),
-          worker_ids
+          ids
         )
-      )
+      })
 
-      invisible(worker_ids)
+      self$processes_mirai = c(self$processes_mirai, unlist(unname(processes_mirai), recursive = FALSE))
+
+      invisible(unlist(unname(worker_ids)))
     },
 
     #' @description
@@ -778,7 +856,9 @@ Rush = R6::R6Class(
       cmds = c(
         cmds,
         list(
-          c("DEL", private$.get_key("queued_tasks")),
+          # the queues of all compute profiles and the set of profiles tasks were pushed to
+          c("DEL", private$.get_queue_keys()),
+          c("DEL", private$.get_key("queue_profiles")),
           c("DEL", private$.get_key("running_tasks")),
           c("DEL", private$.get_key("finished_tasks")),
           c("DEL", private$.get_key("failed_tasks")),
@@ -871,16 +951,24 @@ Rush = R6::R6Class(
     #' @description
     #' Create tasks and add them to the queue.
     #'
+    #' Tasks pushed without a `profile` are added to the shared queue and are processed by any worker.
+    #' Tasks pushed with a `profile` are added to the queue of the compute profile
+    #' and are only processed by the workers running on that profile.
+    #'
     #' @param extra (`list()`)\cr
     #' Deprecated argument for additional information stored along with the task.
     #' Use `xss_extra` instead.
+    #' @param profile (`character(1)`)\cr
+    #' Name of the `mirai` compute profile the tasks are queued for.
+    #' If `NULL`, the tasks are added to the shared queue.
     #'
     #' @return (`character()`)\cr
     #' Keys of the tasks.
-    push_tasks = function(xss, xss_extra = NULL, extra = NULL) {
+    push_tasks = function(xss, xss_extra = NULL, extra = NULL, profile = NULL) {
       assert_list(xss, types = "list")
       assert_list(xss_extra, types = "list", null.ok = TRUE)
       assert_list(extra, types = "list", null.ok = TRUE)
+      assert_string(profile, null.ok = TRUE)
       xss_extra = xss_extra %??% extra
 
       if (!length(xss)) {
@@ -891,15 +979,22 @@ Rush = R6::R6Class(
       lg$debug("Pushing %i task(s) to the queue", length(xss))
 
       # write tasks to hashes
+      # the profile is stored on the task so that it is visible when the tasks are fetched
       keys = self$write_hashes(
         xs = xss,
-        xs_extra = xss_extra
+        xs_extra = xss_extra,
+        profile = if (!is.null(profile)) list(profile)
       )
 
       cmds = list(
         c("RPUSH", private$.get_key("all_tasks"), keys),
-        c("LPUSH", private$.get_key("queued_tasks"), keys)
+        c("LPUSH", private$.get_queue_key(profile), keys)
       )
+
+      # record the profile so that the queues of all profiles can be found
+      if (!is.null(profile)) {
+        cmds = c(cmds, list(c("SADD", private$.get_key("queue_profiles"), profile)))
+      }
       r$pipeline(.commands = cmds)
 
       invisible(keys)
@@ -968,17 +1063,21 @@ Rush = R6::R6Class(
     empty_queue = function() {
       r = private$.connector
 
-      # atomically read all queued task keys (LRANGE) and clear the queue (DEL)
-      # the pipeline returns one reply per command; the EXEC reply [[4]] holds the results of the queued
-      # commands, so [[4]][[1]] is the LRANGE result (the task keys) and [[4]][[2]] is the DEL count
-      keys = unlist(r$pipeline(
-        .commands = list(
-          c("MULTI"),
-          c("LRANGE", private$.get_key("queued_tasks"), 0, -1L),
-          c("DEL", private$.get_key("queued_tasks")),
-          c("EXEC")
+      # the queued tasks are spread over the shared queue and the queue of each compute profile
+      queue_keys = private$.get_queue_keys()
+
+      # atomically read all queued task keys (LRANGE) and clear the queues (DEL)
+      # the pipeline returns one reply per command; the last reply is the EXEC reply which holds the
+      # results of the queued commands, so the first replies are the task keys of the queues
+      res = r$pipeline(
+        .commands = c(
+          list("MULTI"),
+          map(queue_keys, function(queue_key) c("LRANGE", queue_key, 0, -1L)),
+          list(c("DEL", queue_keys)),
+          list("EXEC")
         )
-      )[[4]][[1]])
+      )
+      keys = unlist(res[[length(res)]][seq_along(queue_keys)])
 
       # nothing to do if the queue was already empty
       if (!length(keys)) {
@@ -1009,14 +1108,15 @@ Rush = R6::R6Class(
 
     #' @description
     #' Fetch queued tasks from the database.
+    #' Tasks queued for a compute profile have a `profile` column.
     #'
     #' @param fields (`character()`)\cr
     #' Fields to be read from the hashes.
-    #' Defaults to `c("xs", "xs_extra")`.
+    #' Defaults to `c("xs", "xs_extra", "profile")`.
     #'
     #' @return `data.table()`\cr
     #' Table of queued tasks.
-    fetch_queued_tasks = function(fields = c("xs", "xs_extra")) {
+    fetch_queued_tasks = function(fields = c("xs", "xs_extra", "profile")) {
       keys = self$queued_tasks
       private$.fetch_tasks(keys, fields)
     },
@@ -1522,10 +1622,11 @@ Rush = R6::R6Class(
     },
 
     #' @field queued_tasks (`character()`)\cr
-    #' Keys of queued tasks.
+    #' Keys of queued tasks in the shared queue and the queues of all compute profiles.
     queued_tasks = function() {
       r = private$.connector
-      unlist(r$LRANGE(private$.get_key("queued_tasks"), 0, -1))
+      cmds = map(private$.get_queue_keys(), function(queue_key) c("LRANGE", queue_key, 0, -1))
+      unlist(r$pipeline(.commands = cmds))
     },
 
     #' @field running_tasks (`character()`)\cr
@@ -1550,10 +1651,21 @@ Rush = R6::R6Class(
     },
 
     #' @field n_queued_tasks (`integer(1)`)\cr
-    #' Number of queued tasks.
+    #' Number of queued tasks in the shared queue and the queues of all compute profiles.
     n_queued_tasks = function() {
       r = private$.connector
-      as.integer(r$LLEN(private$.get_key("queued_tasks")))
+      cmds = map(private$.get_queue_keys(), function(queue_key) c("LLEN", queue_key))
+      as.integer(sum(unlist(r$pipeline(.commands = cmds))))
+    },
+
+    #' @field n_queued_tasks_per_profile (named `integer()`)\cr
+    #' Number of queued tasks in the shared queue and the queues of all compute profiles.
+    #' The number of tasks in the shared queue is named `"default"`.
+    n_queued_tasks_per_profile = function() {
+      r = private$.connector
+      profiles = private$.get_queue_profiles()
+      cmds = map(private$.get_queue_keys(profiles), function(queue_key) c("LLEN", queue_key))
+      set_names(as.integer(unlist(r$pipeline(.commands = cmds))), c("default", profiles))
     },
 
     #' @field n_running_tasks (`integer(1)`)\cr
@@ -1593,12 +1705,14 @@ Rush = R6::R6Class(
       }
       r = private$.connector
 
-      fields = c("worker_id", "pid", "hostname", "heartbeat")
+      fields = c("worker_id", "pid", "hostname", "profile", "heartbeat")
       cmds = map(self$worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), fields))
       worker_info = set_names(rbindlist(r$pipeline(.commands = cmds)), fields)
 
       # fix type
       worker_info[, pid := as.integer(pid)][]
+      # workers on the default compute profile store an empty string
+      worker_info[!nzchar(profile), profile := NA_character_][]
       worker_info[, heartbeat := nzchar(heartbeat)][]
 
       # get worker states as atomic operation
@@ -1649,6 +1763,33 @@ Rush = R6::R6Class(
     .get_worker_key = function(key, worker_id = NULL) {
       worker_id = worker_id %??% self$worker_id
       sprintf("%s:%s:%s", private$.network_id, worker_id, key)
+    },
+
+    # prefix key with instance id and compute profile
+    .get_profile_key = function(key, profile) {
+      sprintf("%s:profile:%s:%s", private$.network_id, profile, key)
+    },
+
+    # key of the queue of a compute profile
+    # tasks pushed without a profile are queued in the shared queue
+    .get_queue_key = function(profile = NULL) {
+      if (is.null(profile)) {
+        private$.get_key("queued_tasks")
+      } else {
+        private$.get_profile_key("queued_tasks", profile)
+      }
+    },
+
+    # compute profiles tasks were pushed to
+    .get_queue_profiles = function() {
+      r = private$.connector
+      sort(unlist(r$SMEMBERS(private$.get_key("queue_profiles"))))
+    },
+
+    # keys of the shared queue and the queues of all compute profiles tasks were pushed to
+    .get_queue_keys = function(profiles = NULL) {
+      profiles = profiles %??% private$.get_queue_profiles()
+      c(private$.get_queue_key(), map_chr(profiles, function(profile) private$.get_queue_key(profile)))
     },
 
     # push worker config to redis
@@ -1708,11 +1849,13 @@ Rush = R6::R6Class(
       # optionally limit finished tasks to unconsumed tasks
       start_finished_tasks = if (only_new_keys) private$.n_consumed_tasks else 0
 
+      # the queued tasks are spread over the shared queue and the queue of each compute profile
+      queue_keys = if ("queued" %in% states) private$.get_queue_keys() else character()
+      n_queues = length(queue_keys)
+
       # get keys of tasks with different states in one transaction
       r$MULTI()
-      if ("queued" %in% states) {
-        r$LRANGE(private$.get_key("queued_tasks"), 0, -1)
-      }
+      walk(queue_keys, function(queue_key) r$LRANGE(queue_key, 0, -1))
       if ("running" %in% states) {
         r$SMEMBERS(private$.get_key("running_tasks"))
       }
@@ -1722,10 +1865,13 @@ Rush = R6::R6Class(
       if ("failed" %in% states) {
         r$SMEMBERS(private$.get_key("failed_tasks"))
       }
-      keys = r$EXEC()
-      keys = map(keys, unlist)
-      states_order = c("queued", "running", "finished", "failed")
-      set_names(keys, states_order[states_order %in% states])
+      res = r$EXEC()
+
+      # the replies of the queues are collapsed to the keys of the queued tasks
+      queued = if (n_queues) list(queued = unlist(res[seq_len(n_queues)]))
+      other_keys = res[seq_len(length(res) - n_queues) + n_queues]
+      states_order = c("running", "finished", "failed")
+      c(queued, set_names(map(other_keys, unlist), states_order[states_order %in% states]))
     },
 
     # fetch tasks

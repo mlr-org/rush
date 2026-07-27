@@ -9,8 +9,12 @@
 #' @param config (`list()`)\cr
 #' Configuration for the Redis connection.
 #'
+#' @details
+#' The compute profile of the worker is passed to the worker loop when the worker loop has a `profile` argument.
+#'
 #' @template param_network_id
 #' @template param_worker_id
+#' @template param_profile
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_heartbeat_period
@@ -31,6 +35,7 @@ start_worker = function(
   worker_id = NULL,
   network_id,
   config = NULL,
+  profile = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -72,6 +77,7 @@ start_worker = function(
   }
 
   checkmate::assert_string(network_id)
+  checkmate::assert_string(profile, null.ok = TRUE)
   # connect to redis
   if (!is.null(config$port)) {
     config$port = as.integer(config$port)
@@ -144,14 +150,22 @@ start_worker = function(
     network_id = network_id,
     worker_id = worker_id,
     config = config,
+    profile = profile,
     heartbeat_period = heartbeat_period,
     heartbeat_expire = heartbeat_expire
   )
 
   lg$debug("Worker '%s' started", worker_id)
 
+  # only worker loops that declare a `profile` argument are told on which compute profile they run
+  worker_loop_args = start_args$worker_loop_args
+  if ("profile" %nin% names(worker_loop_args) && "profile" %in% names(formals(start_args$worker_loop))) {
+    # `[` assignment keeps a `NULL` profile instead of dropping the element
+    worker_loop_args["profile"] = list(profile)
+  }
+
   # run worker loop
-  mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = start_args$worker_loop_args)
+  mlr3misc::invoke(start_args$worker_loop, rush = rush, .args = worker_loop_args)
 
   rush$set_terminated()
 

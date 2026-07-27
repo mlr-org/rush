@@ -6,6 +6,7 @@ Balaprakash
 batchtools
 bbotk
 bibentries
+BLMOVE
 booktitle
 branin
 callr
@@ -28,10 +29,13 @@ jsonlite
 knitr
 lecyer
 lightswitch
+LMOVE
 lockfiles
+LRANGE
 lrns
 mathcal
 mathjax
+metacharacters
 mirai
 msrs
 nolint
@@ -61,8 +65,9 @@ rsmp
 rsmps
 rushs
 sbatch
-subsetting
+SMEMBERS
 stackoverflow
+subsetting
 testthat
 tgen
 tgens

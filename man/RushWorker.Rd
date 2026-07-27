@@ -28,6 +28,10 @@ In addition to the inherited methods, the worker provides methods that require a
     \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.}
 
+    \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the worker runs on.
+\code{NULL} if the worker runs on the default compute profile.}
+
     \item{\code{heartbeat}}{(\code{callr::r_bg})\cr
 Background process for the heartbeat.}
   }
@@ -101,6 +105,7 @@ Used in the worker loop to determine whether to continue.}
   network_id,
   config = NULL,
   worker_id = NULL,
+  profile = NULL,
   heartbeat_period = NULL,
   heartbeat_expire = NULL
 )}
@@ -122,6 +127,9 @@ See \link[redux:redis_config]{redux::redis_config} for details.}
       \item{\code{worker_id}}{(\code{character(1)})\cr
 Identifier of the worker.
 Keys in redis specific to the worker are prefixed with the worker id.}
+      \item{\code{profile}}{(\code{character(1)})\cr
+Name of the \code{mirai} compute profile the worker runs on.
+If \code{NULL}, the worker runs on the default compute profile.}
       \item{\code{heartbeat_period}}{(\code{integer(1)})\cr
 Period of the heartbeat in seconds.
 The heartbeat is updated every \code{heartbeat_period} seconds.
@@ -143,6 +151,11 @@ because a live worker wrongly declared lost can leave a task in an inconsistent 
 \subsection{\code{RushWorker$pop_task()}}{
   Pop a task from the queue and mark it as running.
 Returns \code{NULL} if no task is available.
+
+A worker running on a compute profile takes tasks from the queue of its profile first
+and falls back to the shared queue,
+so that tasks pushed without a profile are processed by any worker.
+A worker running on the default compute profile only takes tasks from the shared queue.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RushWorker$pop_task(timeout = 1, fields = "xs")}

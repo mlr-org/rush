@@ -2,6 +2,8 @@
 #'
 #' @description
 #' Stores the number of workers and Redis configuration options ([redux::redis_config]) for [Rush].
+#' Instead of a single number of workers, the workers can be distributed over the compute profiles of
+#' \CRANpkg{mirai} with the `profiles` argument.
 #' The function tests the connection to Redis and throws an error if the connection fails.
 #' This function is usually used in third-party packages to setup how workers are started.
 #'
@@ -20,6 +22,7 @@
 #' A timeout of `0` checks once and errors immediately if the workers are not yet registered.
 #'
 #' @template param_n_workers
+#' @template param_profiles
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_large_objects_path
@@ -41,9 +44,14 @@ rush_plan = function(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai",
-  start_worker_timeout = NULL
+  start_worker_timeout = NULL,
+  profiles = NULL
 ) {
+  if (!is.null(n_workers) && !is.null(profiles)) {
+    error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
+  }
   assert_count(n_workers, null.ok = TRUE)
+  profiles = assert_profiles(profiles)
   assert_class(config, "redis_config", null.ok = TRUE)
   assert_vector(lgr_thresholds, names = "named", null.ok = TRUE)
   assert_count(lgr_buffer_size, null.ok = TRUE)
@@ -58,6 +66,7 @@ rush_plan = function(
     error_config("Can't connect to Redis. Check the configuration.")
   }
   assign("n_workers", n_workers, rush_env)
+  assign("profiles", profiles, rush_env)
   assign("config", config, rush_env)
   assign("lgr_thresholds", lgr_thresholds, rush_env)
   assign("lgr_buffer_size", lgr_buffer_size, rush_env)
@@ -85,6 +94,7 @@ rush_config = function() {
   list(
     config = rush_env$config,
     n_workers = rush_env$n_workers,
+    profiles = rush_env$profiles,
     lgr_thresholds = rush_env$lgr_thresholds,
     lgr_buffer_size = rush_env$lgr_buffer_size,
     large_objects_path = rush_env$large_objects_path,

@@ -217,14 +217,80 @@ mirai::daemons(
 )
 ```
 
+## Compute Profiles {#sec-compute-profiles}
+
+Daemons can be started on separate compute profiles, for example one profile for CPU daemons and one profile for GPU daemons.
+
+```{r manager-024}
+#| eval: false
+mirai::daemons(n = 2L, .compute = "cpu")
+mirai::daemons(n = 2L, .compute = "gpu")
+```
+
+The `profiles` argument of the `$start_workers()` method distributes the workers over the compute profiles.
+The names are the compute profiles and the values are the numbers of workers started on the daemons of the respective profile.
+The `profiles` argument cannot be combined with the `n_workers` argument.
+
+```{r manager-025}
+#| eval: false
+worker_ids = rush$start_workers(
+  worker_loop = wl_random_search,
+  profiles = c(cpu = 2, gpu = 2),
+  branin = branin)
+```
+
+The profile of a worker is recorded in the `profile` column of the `$worker_info` field.
+Furthermore, the name of the profile is passed to the worker loop when the worker loop has a `profile` argument.
+This allows the worker loop to run different code on different profiles.
+The profile is `NULL` when the worker runs on the default compute profile.
+
+```{r manager-026}
+#| eval: false
+wl_random_search = function(rush, branin, profile = NULL) {
+  while (!rush$terminated) {
+    xs = if (profile == "gpu") sample_gpu() else sample_cpu()
+    keys = rush$push_running_tasks(list(xs))
+    rush$finish_tasks(keys, yss = list(list(y = branin(xs$x1, xs$x2))))
+  }
+}
+```
+
+### Profile Queues {#sec-profile-queues}
+
+Each compute profile has its own queue.
+The `profile` argument of the `$push_tasks()` method queues tasks for a single profile.
+These tasks are only processed by the workers running on that profile.
+
+```{r manager-027}
+#| eval: false
+rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "gpu")
+```
+
+Tasks pushed without a profile are queued in the shared queue.
+A worker takes tasks from the queue of its profile first and falls back to the shared queue, so that tasks pushed without a profile are processed by any worker.
+Workers running on the default compute profile only take tasks from the shared queue.
+The `$n_queued_tasks_per_profile` field reports the number of queued tasks of the shared queue and of each profile.
+
+```{r manager-028}
+#| eval: false
+rush$n_queued_tasks_per_profile
+```
+
 ## Rush Plan {#sec-local-rush-plan}
 
 When `rush` is integrated into a third-party package, worker startup is typically managed by the package itself.
 Users can configure worker options by calling the `rush_plan()` function, which specifies the number of workers, the worker type, and the Redis configuration.
 
-```{r manager-024}
+```{r manager-029}
 #| eval: false
 rush_plan(n_workers = 2, config = redux::redis_config(), worker_type = "mirai")
+```
+
+The `profiles` argument sets the number of workers per compute profile, see @sec-compute-profiles.
+
+```{r manager-030}
+#| eval: false
+rush_plan(profiles = c(cpu = 2, gpu = 2), config = redux::redis_config())
 ```
 
 ## Passing Data to Workers {#sec-local-globals}
@@ -248,7 +314,7 @@ Workers can record messages generated via the `lgr` package to the database.
 The `lgr_thresholds` argument of `$start_local_workers()` specifies the logging level for each logger, e.g. `c("mlr3/rush" = "debug")`.
 Logging introduces a minor performance overhead and is disabled by default.
 
-```{r manager-025}
+```{r manager-031}
 rush = rsh(network_id = "random-search-network")
 
 wl_log_message = function(rush) {
@@ -262,25 +328,25 @@ rush$start_local_workers(
   lgr_thresholds = c(rush = "info"))
 ```
 
-```{r manager-026}
+```{r manager-032}
 #| include: false
 Sys.sleep(1)
 ```
 
 The most recent log messages can be retrieved as follows.
 
-```{r manager-027}
+```{r manager-033}
 Sys.sleep(1)
 rush$print_log()
 ```
 
 To retrieve all log entries, use the `$read_log()` method.
 
-```{r manager-028}
+```{r manager-034}
 rush$read_log()
 ```
 
-```{r manager-029}
+```{r manager-035}
 rush$reset()
 ```
 
@@ -290,7 +356,7 @@ The `$start_local_workers()` method launches workers using the `processx` packag
 The `n_workers` argument specifies the number of workers to launch and `worker_loop` defines the function executed by each worker.
 Additional arguments required by the worker loop are passed as named arguments to `$start_local_workers()`.
 
-```{r manager-030}
+```{r manager-036}
 rush = rsh(
   network = "random-search-network",
   config = redux::redis_config())
@@ -303,13 +369,13 @@ worker_ids = rush$start_local_workers(
 rush$wait_for_workers(worker_ids = worker_ids)
 ```
 
-```{r manager-031}
+```{r manager-037}
 rush$worker_info
 ```
 
 Additional workers can be added to the network at any time.
 
-```{r manager-032}
+```{r manager-038}
 rush$start_local_workers(
   worker_loop = wl_random_search,
   branin = branin,
@@ -318,11 +384,11 @@ rush$start_local_workers(
 rush$wait_for_workers(worker_ids = worker_ids)
 ```
 
-```{r manager-033}
+```{r manager-039}
 rush$worker_info
 ```
 
-```{r manager-034}
+```{r manager-040}
 rush$reset()
 ```
 
@@ -331,7 +397,7 @@ rush$reset()
 The `$worker_script()` method generates an R script that can be executed on any machine with access to the Redis database.
 This is the most flexible mechanism for starting workers, as it imposes no constraints on the execution environment.
 
-```{r manager-035}
+```{r manager-041}
 rush = rsh(
   network = "random-search-network",
   config = redux::redis_config())
@@ -350,7 +416,7 @@ If the worker fails, the heartbeat process also ceases, the key expires, and the
 The `heartbeat_period` and `heartbeat_expire` arguments configure the heartbeat at startup.
 The `heartbeat_period` defines the refresh interval in seconds; `heartbeat_expire` sets the expiration duration, which must exceed the heartbeat period.
 
-```{r manager-036}
+```{r manager-042}
 rush$worker_script(
   worker_loop = wl_random_search,
   heartbeat_period = 1,
