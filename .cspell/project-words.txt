@@ -29,12 +29,13 @@ jsonlite
 knitr
 lecyer
 lightswitch
-lockfiles
 LMOVE
+lockfiles
 LRANGE
 lrns
 mathcal
 mathjax
+metacharacters
 mirai
 msrs
 nolint
@@ -63,10 +64,10 @@ Rscript
 rsmp
 rsmps
 rushs
-SMEMBERS
 sbatch
-subsetting
+SMEMBERS
 stackoverflow
+subsetting
 testthat
 tgen
 tgens

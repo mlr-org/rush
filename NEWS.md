@@ -8,6 +8,7 @@
 * feat: `$pop_task()` takes tasks from the queue of the compute profile of the worker first and falls back to the shared queue.
 * feat: `$n_queued_tasks_per_profile` reports the number of queued tasks of the shared queue and of each compute profile.
 * feat: `$fetch_queued_tasks()` now reads the `profile` field by default so that the compute profile a task is queued for is visible.
+* feat: `assert_profiles()` is exported so that packages building on rush can check compute profile definitions.
 
 # rush 1.2.1
 

@@ -83,7 +83,12 @@ assert_lgr_buffer_size = function(lgr_buffer_size) {
   )
 }
 
-# the names of `profiles` are mirai compute profiles and the values the number of workers per profile
+#' @export
+#' @param profiles (named `integer()`).
+#'  The names are `mirai` compute profiles and the values the number of workers per profile.
+#'  Unlike the other assertions, the profiles are returned coerced to `integer()` and not invisibly.
+#'  If `NULL`, `NULL` is returned.
+#' @rdname rush_assertions
 assert_profiles = function(profiles) {
   if (is.null(profiles)) {
     return(NULL)

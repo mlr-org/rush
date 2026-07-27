@@ -6,6 +6,7 @@
 \alias{assert_rushs}
 \alias{assert_rush_worker}
 \alias{assert_rush_workers}
+\alias{assert_profiles}
 \title{Assertion for Rush Objects}
 \usage{
 assert_rush(rush, null_ok = FALSE)
@@ -15,6 +16,8 @@ assert_rushs(rushs, null_ok = FALSE)
 assert_rush_worker(worker, null_ok = FALSE)
 
 assert_rush_workers(workers, null_ok = FALSE)
+
+assert_profiles(profiles)
 }
 \arguments{
 \item{rush}{(\link{Rush}).}
@@ -27,6 +30,11 @@ If \code{TRUE}, \code{NULL} is allowed.}
 \item{worker}{(\link{RushWorker}).}
 
 \item{workers}{(list of \link{RushWorker}).}
+
+\item{profiles}{(named \code{integer()}).
+The names are \code{mirai} compute profiles and the values the number of workers per profile.
+Unlike the other assertions, the profiles are returned coerced to \code{integer()} and not invisibly.
+If \code{NULL}, \code{NULL} is returned.}
 }
 \value{
 Exception if the assertion fails, otherwise the input object invisibly.
