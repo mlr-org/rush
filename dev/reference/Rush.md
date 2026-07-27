@@ -32,7 +32,8 @@ Methods to create a task:
 
 - `$push_failed_tasks(xss, conditions)`: Create failed tasks.
 
-- `$push_tasks(xss)`: Create queued tasks.
+- `$push_tasks(xss)`: Create queued tasks, optionally for a compute
+  profile.
 
 These methods return the key of the created tasks. The methods work on
 multiple tasks at once, so `xss` and `yss` are lists of inputs and
@@ -112,10 +113,49 @@ help script can be generated with the `$worker_script()` method that can
 be run anywhere. The only requirement is that the worker can connect to
 the Redis database.
 
+## Compute Profiles
+
+Daemons can be started on separate [compute
+profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles)
+of [mirai](https://CRAN.R-project.org/package=mirai), e.g. one profile
+for CPU daemons and one profile for GPU daemons. The `profiles` argument
+of the `$start_workers()` method distributes the workers over these
+profiles.
+
+    mirai::daemons(2, .compute = "cpu")
+    mirai::daemons(2, .compute = "gpu")
+
+    rush$start_workers(worker_loop = worker_loop, profiles = c(cpu = 2, gpu = 2))
+
+The profile of a worker is recorded in the `profile` column of
+`$worker_info` and is passed to the worker loop, see the worker loop
+section.
+
+Each compute profile has its own queue. Tasks pushed with
+`$push_tasks(xss, profile = "gpu")` are only processed by the workers of
+the `"gpu"` profile. Tasks pushed without a profile are added to the
+shared queue and are processed by any worker. A worker takes tasks from
+the queue of its profile first and falls back to the shared queue. The
+`$n_queued_tasks_per_profile` field shows the number of tasks queued for
+each profile.
+
 ## Worker Loop
 
 The worker loop is the main function that is run on the workers. It is
-defined by the user and is passed to the `$start_workers()` method.
+defined by the user and is passed to the `$start_workers()` method. The
+first argument of the worker loop is the
+[RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)
+instance, which is passed as `rush`. If the worker loop has a `profile`
+argument, the name of the compute profile the worker runs on is passed
+to it. The profile is `NULL` when the worker runs on the default compute
+profile.
+
+    worker_loop = function(rush, profile = NULL) {
+      while (!rush$terminated) {
+        task = rush$pop_task()
+        ...
+      }
+    }
 
 ## Debugging
 
@@ -194,7 +234,8 @@ of `$start_workers()`.
 - `queued_tasks`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Keys of queued tasks.
+  Keys of queued tasks in the shared queue and the queues of all compute
+  profiles.
 
 - `running_tasks`:
 
@@ -214,7 +255,15 @@ of `$start_workers()`.
 - `n_queued_tasks`:
 
   (`integer(1)`)  
-  Number of queued tasks.
+  Number of queued tasks in the shared queue and the queues of all
+  compute profiles.
+
+- `n_queued_tasks_per_profile`:
+
+  (named [`integer()`](https://rdrr.io/r/base/integer.html))  
+  Number of queued tasks in the shared queue and the queues of all
+  compute profiles. The number of tasks in the shared queue is named
+  `"default"`.
 
 - `n_running_tasks`:
 
@@ -399,12 +448,18 @@ Initializes a
 [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md) in
 each process and starts the worker loop.
 
+Workers are started on the default compute profile unless `profiles` is
+given. With `profiles`, the workers are distributed over the [compute
+profiles](https://mirai.r-lib.org/articles/mirai.html#scoped-profiles)
+of [mirai](https://CRAN.R-project.org/package=mirai).
+
 #### Usage
 
     Rush$start_workers(
       worker_loop,
       ...,
       n_workers = NULL,
+      profiles = NULL,
       packages = NULL,
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
@@ -428,6 +483,15 @@ each process and starts the worker loop.
 
   (`integer(1)`)  
   Number of workers to be started.
+
+- `profiles`:
+
+  (named [`integer()`](https://rdrr.io/r/base/integer.html))  
+  Number of workers to be started on each `mirai` compute profile, e.g.
+  `c(cpu = 2, gpu = 2)`. The names are the compute profiles created with
+  [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html)
+  and the values are the number of workers started on the daemons of the
+  respective profile. Cannot be combined with `n_workers`.
 
 - `packages`:
 
@@ -872,9 +936,14 @@ Invisible self.
 
 Create tasks and add them to the queue.
 
+Tasks pushed without a `profile` are added to the shared queue and are
+processed by any worker. Tasks pushed with a `profile` are added to the
+queue of the compute profile and are only processed by the workers
+running on that profile.
+
 #### Usage
 
-    Rush$push_tasks(xss, xss_extra = NULL, extra = NULL)
+    Rush$push_tasks(xss, xss_extra = NULL, extra = NULL, profile = NULL)
 
 #### Arguments
 
@@ -897,6 +966,12 @@ Create tasks and add them to the queue.
   ([`list()`](https://rdrr.io/r/base/list.html))  
   Deprecated argument for additional information stored along with the
   task. Use `xss_extra` instead.
+
+- `profile`:
+
+  (`character(1)`)  
+  Name of the `mirai` compute profile the tasks are queued for. If
+  `NULL`, the tasks are added to the shared queue.
 
 #### Returns
 
@@ -1031,18 +1106,20 @@ Table of all tasks.
 
 ### `Rush$fetch_queued_tasks()`
 
-Fetch queued tasks from the database.
+Fetch queued tasks from the database. Tasks queued for a compute profile
+have a `profile` column.
 
 #### Usage
 
-    Rush$fetch_queued_tasks(fields = c("xs", "xs_extra"))
+    Rush$fetch_queued_tasks(fields = c("xs", "xs_extra", "profile"))
 
 #### Arguments
 
 - `fields`:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
-  Fields to be read from the hashes. Defaults to `c("xs", "xs_extra")`.
+  Fields to be read from the hashes. Defaults to
+  `c("xs", "xs_extra", "profile")`.
 
 #### Returns
 

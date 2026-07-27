@@ -86,7 +86,7 @@ The input <code>xs</code> and output <code>ys</code> are lists that can contain 
 <p>Methods to create a task:</p><ul><li><p><code>$push_running_tasks(xss)</code>: Create running tasks</p></li>
 <li><p><code>$push_finished_tasks(xss, yss)</code>: Create finished tasks.</p></li>
 <li><p><code>$push_failed_tasks(xss, conditions)</code>: Create failed tasks.</p></li>
-<li><p><code>$push_tasks(xss)</code>: Create queued tasks.</p></li>
+<li><p><code>$push_tasks(xss)</code>: Create queued tasks, optionally for a compute profile.</p></li>
 </ul><p>These methods return the key of the created tasks.
 The methods work on multiple tasks at once, so <code>xss</code> and <code>yss</code> are lists of inputs and outputs.
 When tasks are fetched, the <code>xss</code> and <code>yss</code> are unpacked
@@ -128,11 +128,40 @@ Or a help script can be generated with the <code>$worker_script()</code> method 
 The only requirement is that the worker can connect to the Redis database.</p>
     </div>
     <div class="section level2">
+    <h2 id="compute-profiles">Compute Profiles<a class="anchor" aria-label="anchor" href="#compute-profiles"></a></h2>
+
+
+<p>Daemons can be started on separate
+<a href="https://mirai.r-lib.org/articles/mirai.html#scoped-profiles" class="external-link">compute profiles</a> of <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><span class="pkg">mirai</span></a>,
+e.g. one profile for CPU daemons and one profile for GPU daemons.
+The <code>profiles</code> argument of the <code>$start_workers()</code> method distributes the workers over these profiles.</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>mirai<span class="sc">::</span><span class="fu">daemons</span>(<span class="dv">2</span>, <span class="at">.compute =</span> <span class="st">"cpu"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>mirai<span class="sc">::</span><span class="fu">daemons</span>(<span class="dv">2</span>, <span class="at">.compute =</span> <span class="st">"gpu"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>rush<span class="sc">$</span><span class="fu">start_workers</span>(<span class="at">worker_loop =</span> worker_loop, <span class="at">profiles =</span> <span class="fu">c</span>(<span class="at">cpu =</span> <span class="dv">2</span>, <span class="at">gpu =</span> <span class="dv">2</span>))</span></code></pre><p></p></div>
+<p>The profile of a worker is recorded in the <code>profile</code> column of <code>$worker_info</code>
+and is passed to the worker loop, see the worker loop section.</p>
+<p>Each compute profile has its own queue.
+Tasks pushed with <code>$push_tasks(xss, profile = "gpu")</code> are only processed by the workers of the <code>"gpu"</code> profile.
+Tasks pushed without a profile are added to the shared queue and are processed by any worker.
+A worker takes tasks from the queue of its profile first and falls back to the shared queue.
+The <code>$n_queued_tasks_per_profile</code> field shows the number of tasks queued for each profile.</p>
+    </div>
+    <div class="section level2">
     <h2 id="worker-loop">Worker Loop<a class="anchor" aria-label="anchor" href="#worker-loop"></a></h2>
 
 
 <p>The worker loop is the main function that is run on the workers.
-It is defined by the user and is passed to the <code>$start_workers()</code> method.</p>
+It is defined by the user and is passed to the <code>$start_workers()</code> method.
+The first argument of the worker loop is the <a href="RushWorker.html">RushWorker</a> instance, which is passed as <code>rush</code>.
+If the worker loop has a <code>profile</code> argument, the name of the compute profile the worker runs on is passed to it.
+The profile is <code>NULL</code> when the worker runs on the default compute profile.</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>worker_loop <span class="ot">=</span> <span class="cf">function</span>(rush, <span class="at">profile =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="cf">while</span> (<span class="sc">!</span>rush<span class="sc">$</span>terminated) {</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    task <span class="ot">=</span> rush<span class="sc">$</span><span class="fu">pop_task</span>()</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    ...</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  }</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>}</span></code></pre><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="debugging">Debugging<a class="anchor" aria-label="anchor" href="#debugging"></a></h2>
@@ -212,7 +241,7 @@ Keys of all tasks.</p></dd>
 
     <dt><code>queued_tasks</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
-Keys of queued tasks.</p></dd>
+Keys of queued tasks in the shared queue and the queues of all compute profiles.</p></dd>
 
 
     <dt><code>running_tasks</code></dt>
@@ -232,7 +261,13 @@ Keys of failed tasks.</p></dd>
 
     <dt><code>n_queued_tasks</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
-Number of queued tasks.</p></dd>
+Number of queued tasks in the shared queue and the queues of all compute profiles.</p></dd>
+
+
+    <dt><code>n_queued_tasks_per_profile</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code>)<br>
+Number of queued tasks in the shared queue and the queues of all compute profiles.
+The number of tasks in the shared queue is named <code>"default"</code>.</p></dd>
 
 
     <dt><code>n_running_tasks</code></dt>
@@ -373,12 +408,16 @@ Call this method to reconnect after loading the object.</p><div class="section">
 <p></p><hr><a id="method-Rush-start_workers"></a><div class="section">
 <h3 id="rush-start-workers-"><code>Rush$start_workers()</code><a class="anchor" aria-label="anchor" href="#rush-start-workers-"></a></h3>
 <p>Start workers to run the worker loop in <code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code>.
-Initializes a <a href="RushWorker.html">RushWorker</a> in each process and starts the worker loop.</p><div class="section">
+Initializes a <a href="RushWorker.html">RushWorker</a> in each process and starts the worker loop.</p>
+<p>Workers are started on the default compute profile unless <code>profiles</code> is given.
+With <code>profiles</code>, the workers are distributed over the
+<a href="https://mirai.r-lib.org/articles/mirai.html#scoped-profiles" class="external-link">compute profiles</a> of <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><span class="pkg">mirai</span></a>.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
 <span>  <span class="va">worker_loop</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  n_workers <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  profiles <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -398,6 +437,13 @@ Arguments passed to <code>worker_loop</code>.</p></dd>
       <dt><code>n_workers</code></dt>
 <dd><p>(<code>integer(1)</code>)<br>
 Number of workers to be started.</p></dd>
+
+      <dt><code>profiles</code></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code>)<br>
+Number of workers to be started on each <code>mirai</code> compute profile, e.g. <code>c(cpu = 2, gpu = 2)</code>.
+The names are the compute profiles created with <code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code> and the values are the number of workers
+started on the daemons of the respective profile.
+Cannot be combined with <code>n_workers</code>.</p></dd>
 
       <dt><code>packages</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
@@ -790,9 +836,12 @@ Invisible self.</p>
 
 <p></p><hr><a id="method-Rush-push_tasks"></a><div class="section">
 <h3 id="rush-push-tasks-"><code>Rush$push_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-push-tasks-"></a></h3>
-<p>Create tasks and add them to the queue.</p><div class="section">
+<p>Create tasks and add them to the queue.</p>
+<p>Tasks pushed without a <code>profile</code> are added to the shared queue and are processed by any worker.
+Tasks pushed with a <code>profile</code> are added to the queue of the compute profile
+and are only processed by the workers running on that profile.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, extra <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="va">xss</span>, xss_extra <span class="op">=</span> <span class="cn">NULL</span>, extra <span class="op">=</span> <span class="cn">NULL</span>, profile <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>xss</code></dt>
@@ -809,6 +858,11 @@ e.g. <code>list(list(timestamp_xs = Sys.time()), list(timestamp_xs = Sys.time())
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Deprecated argument for additional information stored along with the task.
 Use <code>xss_extra</code> instead.</p></dd>
+
+      <dt><code>profile</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Name of the <code>mirai</code> compute profile the tasks are queued for.
+If <code>NULL</code>, the tasks are added to the shared queue.</p></dd>
 
 
 </dl><p></p></div>
@@ -931,15 +985,16 @@ Table of all tasks.</p>
 
 <p></p><hr><a id="method-Rush-fetch_queued_tasks"></a><div class="section">
 <h3 id="rush-fetch-queued-tasks-"><code>Rush$fetch_queued_tasks()</code><a class="anchor" aria-label="anchor" href="#rush-fetch-queued-tasks-"></a></h3>
-<p>Fetch queued tasks from the database.</p><div class="section">
+<p>Fetch queued tasks from the database.
+Tasks queued for a compute profile have a <code>profile</code> column.</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Rush</span><span class="op">$</span><span class="fu">fetch_queued_tasks</span><span class="op">(</span>fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xs"</span>, <span class="st">"xs_extra"</span>, <span class="st">"profile"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>fields</code></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Fields to be read from the hashes.
-Defaults to <code>c("xs", "xs_extra")</code>.</p></dd>
+Defaults to <code>c("xs", "xs_extra", "profile")</code>.</p></dd>
 
 
 </dl><p></p></div>

@@ -75,6 +75,7 @@ by the user after creating the worker script with <code>$worker_script()</code>.
 <span>  worker_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">network_id</span>,</span>
 <span>  config <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  profile <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,6 +105,12 @@ Keys in Redis are prefixed with the instance id.</p></dd>
 <dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
 <dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
 Configuration for the Redis connection.</p></dd>
+
+
+<dt id="arg-profile">profile<a class="anchor" aria-label="anchor" href="#arg-profile"></a></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Name of the <code>mirai</code> compute profile the worker runs on.
+If <code>NULL</code>, the worker runs on the default compute profile.</p></dd>
 
 
 <dt id="arg-lgr-thresholds">lgr_thresholds<a class="anchor" aria-label="anchor" href="#arg-lgr-thresholds"></a></dt>
@@ -151,6 +158,10 @@ If <code>NULL</code>, no output is stored.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>NULL</code></p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The compute profile of the worker is passed to the worker loop when the worker loop has a <code>profile</code> argument.</p>
     </div>
 
     <div class="section level2">

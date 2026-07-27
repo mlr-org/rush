@@ -14,6 +14,8 @@ assert_rushs(rushs, null_ok = FALSE)
 assert_rush_worker(worker, null_ok = FALSE)
 
 assert_rush_workers(workers, null_ok = FALSE)
+
+assert_profiles(profiles)
 ```
 
 ## Arguments
@@ -38,6 +40,14 @@ assert_rush_workers(workers, null_ok = FALSE)
 
   (list of
   [RushWorker](https://rush.mlr-org.com/dev/reference/RushWorker.md)).
+
+- profiles:
+
+  (named [`integer()`](https://rdrr.io/r/base/integer.html)). The names
+  are `mirai` compute profiles and the values the number of workers per
+  profile. Unlike the other assertions, the profiles are returned
+  coerced to [`integer()`](https://rdrr.io/r/base/integer.html) and not
+  invisibly. If `NULL`, `NULL` is returned.
 
 ## Value
 

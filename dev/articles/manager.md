@@ -77,10 +77,10 @@ The `remote` column specifies whether the worker is remote and the
 rush$worker_info
 ```
 
-           worker_id   pid      hostname heartbeat   state
-              <char> <int>        <char>    <lgcl>  <char>
-    1: harebraine...  8792 runnervmvr...     FALSE running
-    2: pseudoscie...  8794 runnervmvr...     FALSE running
+           worker_id   pid      hostname profile heartbeat   state
+              <char> <int>        <char>  <char>    <lgcl>  <char>
+    1: unhelpful_...  8680 runnervmvr...    <NA>     FALSE running
+    2: joyless_si...  8682 runnervmvr...    <NA>     FALSE running
 
 ### Stopping Workers
 
@@ -98,10 +98,10 @@ rush$stop_workers(worker_ids = worker_ids[1])
 rush$worker_info
 ```
 
-           worker_id   pid      hostname heartbeat      state
-              <char> <int>        <char>    <lgcl>     <char>
-    1: harebraine...  8792 runnervmvr...     FALSE    running
-    2: pseudoscie...  8794 runnervmvr...     FALSE terminated
+           worker_id   pid      hostname profile heartbeat      state
+              <char> <int>        <char>  <char>    <lgcl>     <char>
+    1: unhelpful_...  8680 runnervmvr...    <NA>     FALSE    running
+    2: joyless_si...  8682 runnervmvr...    <NA>     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id        x1         x2           y          keys
-                <char>     <num>      <num>       <num>        <char>
-      1: smallminde...  2.074403 13.9668487 120.1230118 da22b057-8...
-      2: smallminde... -3.783226  0.3485643 185.1417714 b74c69b9-5...
-      3: smallminde...  8.794360  7.4782873  32.3147473 90e79735-0...
-      4: smallminde...  5.029153 10.0293254  89.8352742 8473a43f-f...
-      5: smallminde...  9.812630 11.2439537  72.0472331 8020a624-e...
+             worker_id         x1        x2          y          keys
+                <char>      <num>     <num>      <num>        <char>
+      1: rutile_sea...  7.5377254  9.200309  74.719687 0dfde36e-2...
+      2: rutile_sea...  1.2608627 11.093064  60.461559 bdecbe7b-7...
+      3: rutile_sea... -0.5661363 12.600387  50.116369 49c6efc4-0...
+      4: rutile_sea...  8.8298559 12.933278 121.171401 5d26421d-5...
+      5: rutile_sea...  9.9821632 10.453334  57.622772 51b8fd39-a...
      ---
-    102: smallminde...  5.968580  8.1786053  69.1982456 391894fe-1...
-    103: brief_cica...  5.533652  5.7117843  37.8503922 04482db7-f...
-    104: smallminde...  5.710966  5.1486124  34.2693275 9072ddc3-0...
-    105: brief_cica...  9.359810  2.3113040   0.4301215 2e123218-7...
-    106: smallminde...  4.579416 10.9530931  99.5921548 206f42de-f...
+    149: rutile_sea...  0.5277766 14.094548  97.479677 730d59c9-b...
+    150: yellowish_... -2.1123994  8.679316   6.635403 2ecae8cc-5...
+    151: rutile_sea... -1.5377319  9.861911  11.547449 de1c4cbf-0...
+    152: yellowish_...  4.2068057  6.485914  29.311012 d237226e-e...
+    153: rutile_sea...  4.1390294 11.055820  93.719124 d151092d-9...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -170,10 +170,10 @@ rush$stop_workers(type = "terminate")
 rush$worker_info
 ```
 
-           worker_id   pid      hostname heartbeat      state
-              <char> <int>        <char>    <lgcl>     <char>
-    1: brief_cica...  8792 runnervmvr...     FALSE terminated
-    2: smallminde...  8794 runnervmvr...     FALSE terminated
+           worker_id   pid      hostname profile heartbeat      state
+              <char> <int>        <char>  <char>    <lgcl>     <char>
+    1: rutile_sea...  8682 runnervmvr...    <NA>     FALSE terminated
+    2: yellowish_...  8680 runnervmvr...    <NA>     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "svelte_jellyfish_4fea4cc6" "vitriolic_borer_ab82996a" 
+    [1] "exclaimational_pilchard_33fde6ed" "agricultural_frogmouth_b6a4e97c" 
 
 ``` r
 
@@ -248,6 +248,72 @@ mirai::daemons(
 )
 ```
 
+### Compute Profiles
+
+Daemons can be started on separate compute profiles, for example one
+profile for CPU daemons and one profile for GPU daemons.
+
+``` r
+
+mirai::daemons(n = 2L, .compute = "cpu")
+mirai::daemons(n = 2L, .compute = "gpu")
+```
+
+The `profiles` argument of the `$start_workers()` method distributes the
+workers over the compute profiles. The names are the compute profiles
+and the values are the numbers of workers started on the daemons of the
+respective profile. The `profiles` argument cannot be combined with the
+`n_workers` argument.
+
+``` r
+
+worker_ids = rush$start_workers(
+  worker_loop = wl_random_search,
+  profiles = c(cpu = 2, gpu = 2),
+  branin = branin)
+```
+
+The profile of a worker is recorded in the `profile` column of the
+`$worker_info` field. Furthermore, the name of the profile is passed to
+the worker loop when the worker loop has a `profile` argument. This
+allows the worker loop to run different code on different profiles. The
+profile is `NULL` when the worker runs on the default compute profile.
+
+``` r
+
+wl_random_search = function(rush, branin, profile = NULL) {
+  while (!rush$terminated) {
+    xs = if (profile == "gpu") sample_gpu() else sample_cpu()
+    keys = rush$push_running_tasks(list(xs))
+    rush$finish_tasks(keys, yss = list(list(y = branin(xs$x1, xs$x2))))
+  }
+}
+```
+
+#### Profile Queues
+
+Each compute profile has its own queue. The `profile` argument of the
+`$push_tasks()` method queues tasks for a single profile. These tasks
+are only processed by the workers running on that profile.
+
+``` r
+
+rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "gpu")
+```
+
+Tasks pushed without a profile are queued in the shared queue. A worker
+takes tasks from the queue of its profile first and falls back to the
+shared queue, so that tasks pushed without a profile are processed by
+any worker. Workers running on the default compute profile only take
+tasks from the shared queue. The `$n_queued_tasks_per_profile` field
+reports the number of queued tasks of the shared queue and of each
+profile.
+
+``` r
+
+rush$n_queued_tasks_per_profile
+```
+
 ### Rush Plan
 
 When `rush` is integrated into a third-party package, worker startup is
@@ -260,6 +326,14 @@ the Redis configuration.
 ``` r
 
 rush_plan(n_workers = 2, config = redux::redis_config(), worker_type = "mirai")
+```
+
+The `profiles` argument sets the number of workers per compute profile,
+see [Section 1.4](#sec-compute-profiles).
+
+``` r
+
+rush_plan(profiles = c(cpu = 2, gpu = 2), config = redux::redis_config())
 ```
 
 ### Passing Data to Workers
@@ -352,10 +426,10 @@ rush$wait_for_workers(worker_ids = worker_ids)
 rush$worker_info
 ```
 
-           worker_id   pid      hostname heartbeat   state
-              <char> <int>        <char>    <lgcl>  <char>
-    1: thickskull...  9044 runnervmvr...     FALSE running
-    2: eclectic_a...  9047 runnervmvr...     FALSE running
+           worker_id   pid      hostname profile heartbeat   state
+              <char> <int>        <char>  <char>    <lgcl>  <char>
+    1: soapsudsy_...  8932 runnervmvr...    <NA>     FALSE running
+    2: unwomanlik...  8934 runnervmvr...    <NA>     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -374,10 +448,10 @@ rush$wait_for_workers(worker_ids = worker_ids)
 rush$worker_info
 ```
 
-           worker_id   pid      hostname heartbeat   state
-              <char> <int>        <char>    <lgcl>  <char>
-    1: thickskull...  9044 runnervmvr...     FALSE running
-    2: eclectic_a...  9047 runnervmvr...     FALSE running
+           worker_id   pid      hostname profile heartbeat   state
+              <char> <int>        <char>  <char>    <lgcl>  <char>
+    1: soapsudsy_...  8932 runnervmvr...    <NA>     FALSE running
+    2: unwomanlik...  8934 runnervmvr...    <NA>     FALSE running
 
 ``` r
 

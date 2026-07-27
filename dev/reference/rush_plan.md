@@ -2,10 +2,12 @@
 
 Stores the number of workers and Redis configuration options
 ([redux::redis_config](https://richfitz.github.io/redux/reference/redis_config.html))
-for [Rush](https://rush.mlr-org.com/dev/reference/Rush.md). The function
-tests the connection to Redis and throws an error if the connection
-fails. This function is usually used in third-party packages to setup
-how workers are started.
+for [Rush](https://rush.mlr-org.com/dev/reference/Rush.md). Instead of a
+single number of workers, the workers can be distributed over the
+compute profiles of [mirai](https://CRAN.R-project.org/package=mirai)
+with the `profiles` argument. The function tests the connection to Redis
+and throws an error if the connection fails. This function is usually
+used in third-party packages to setup how workers are started.
 
 ## Usage
 
@@ -17,7 +19,8 @@ rush_plan(
   lgr_buffer_size = NULL,
   large_objects_path = NULL,
   worker_type = "mirai",
-  start_worker_timeout = NULL
+  start_worker_timeout = NULL,
+  profiles = NULL
 )
 ```
 
@@ -75,6 +78,15 @@ rush_plan(
   `timeout` is passed. If `NULL`, `$wait_for_workers()` waits
   indefinitely by default. A timeout of `0` checks once and errors
   immediately if the workers are not yet registered.
+
+- profiles:
+
+  (named [`integer()`](https://rdrr.io/r/base/integer.html))  
+  Number of workers to be started on each `mirai` compute profile, e.g.
+  `c(cpu = 2, gpu = 2)`. The names are the compute profiles created with
+  [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html)
+  and the values are the number of workers started on the daemons of the
+  respective profile. Cannot be combined with `n_workers`.
 
 ## Value
 

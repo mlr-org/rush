@@ -2,7 +2,20 @@
 
 ## rush (development version)
 
+- feat: `$start_workers()` gains the `profiles` argument to start
+  workers on separate `mirai` compute profiles,
+  e.g. `profiles = c(cpu = 2, gpu = 2)` starts 2 workers on the daemons
+  of the `"cpu"` profile and 2 workers on the daemons of the `"gpu"`
+  profile.
+- feat: `$push_tasks()` gains the `profile` argument to queue tasks for
+  a `mirai` compute profile. Tasks queued for a profile are only
+  processed by the workers running on that profile, whereas tasks pushed
+  without a profile are queued in the shared queue and are processed by
+  any worker.
+
 ## rush 1.2.1
+
+CRAN release: 2026-07-24
 
 - fix: `$start_workers()` now starts each worker in its own
   [`mirai::mirai()`](https://mirai.r-lib.org/reference/mirai.html) call
