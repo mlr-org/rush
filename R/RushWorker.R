@@ -11,6 +11,7 @@
 #' * `$push_running_tasks(xss)`: Create running tasks evaluated by the worker.
 #' * `$finish_tasks(keys, yss)`: Save the output of tasks and mark them as finished.
 #' * `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally save the condition objects.
+#' * `$n_queued_available_tasks`: Number of queued tasks the worker can pop.
 #'
 #' @template param_network_id
 #' @template param_config
@@ -362,6 +363,33 @@ RushWorker = R6::R6Class(
     terminated = function() {
       r = self$connector
       as.logical(r$EXISTS(private$.get_worker_key("terminate")))
+    },
+
+    #' @field n_queued_available_tasks (`integer(1)`)\cr
+    #' Number of queued tasks the worker can pop,
+    #' i.e. the tasks in the shared queue and in the queue of the compute profile the worker runs on.
+    #' Tasks queued for other compute profiles are not counted.
+    n_queued_available_tasks = function() {
+      r = self$connector
+      shared_queue = private$.get_queue_key()
+
+      if (is.null(self$profile)) {
+        return(as.integer(r$LLEN(shared_queue)))
+      }
+
+      # both queue lengths are read in a single transaction so that the count reflects one point in time
+      # and no task is counted twice or missed while other workers pop from the queues
+      res = r$pipeline(
+        .commands = list(
+          "MULTI",
+          c("LLEN", private$.get_queue_key(self$profile)),
+          c("LLEN", shared_queue),
+          "EXEC"
+        )
+      )
+
+      # the last element of the pipeline holds the results of the transaction
+      as.integer(sum(unlist(res[[length(res)]])))
     }
   )
 )

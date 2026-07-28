@@ -17,6 +17,7 @@ In addition to the inherited methods, the worker provides methods that require a
 \item \verb{$push_running_tasks(xss)}: Create running tasks evaluated by the worker.
 \item \verb{$finish_tasks(keys, yss)}: Save the output of tasks and mark them as finished.
 \item \verb{$fail_tasks(keys, conditions)}: Mark tasks as failed and optionally save the condition objects.
+\item \verb{$n_queued_available_tasks}: Number of queued tasks the worker can pop.
 }
 }
 \section{Super class}{
@@ -43,6 +44,11 @@ Background process for the heartbeat.}
     \item{\code{terminated}}{(\code{logical(1)})\cr
 Whether to shutdown the worker.
 Used in the worker loop to determine whether to continue.}
+
+    \item{\code{n_queued_available_tasks}}{(\code{integer(1)})\cr
+Number of queued tasks the worker can pop,
+i.e. the tasks in the shared queue and in the queue of the compute profile the worker runs on.
+Tasks queued for other compute profiles are not counted.}
   }
   \if{html}{\out{</div>}}
 }

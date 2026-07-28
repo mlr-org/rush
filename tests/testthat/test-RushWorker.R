@@ -21,6 +21,7 @@ test_that("active bindings work after construction", {
 
   expect_equal(rush$n_workers, 1)
   expect_equal(rush$n_queued_tasks, 0)
+  expect_equal(rush$n_queued_available_tasks, 0)
   expect_equal(rush$n_running_tasks, 0)
   expect_equal(rush$n_finished_tasks, 0)
   expect_equal(rush$n_failed_tasks, 0)
@@ -322,6 +323,37 @@ test_that("a worker of a compute profile pops tasks from its queue and the share
   # the queue of another profile is not touched
   expect_null(worker$pop_task(timeout = 1))
   expect_equal(rush$queued_tasks, gpu_key)
+})
+
+test_that("n_queued_available_tasks counts the tasks a worker of a compute profile can pop", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker = RushWorker$new(network_id = "test-rush", config = config, profile = "cpu")
+  on.exit(rush$reset())
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)), profile = "cpu")
+  rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "gpu")
+  rush$push_tasks(list(list(x1 = 5, x2 = 6)))
+
+  expect_equal(rush$n_queued_tasks, 3L)
+  # the queue of the "cpu" profile and the shared queue
+  expect_equal(worker$n_queued_available_tasks, 2L)
+
+  worker$pop_task(timeout = 1)
+  expect_equal(worker$n_queued_available_tasks, 1L)
+})
+
+test_that("n_queued_available_tasks only counts the shared queue on the default compute profile", {
+  config = redis_configuration()
+  rush = rsh(network_id = "test-rush", config = config)
+  worker = RushWorker$new(network_id = "test-rush", config = config)
+  on.exit(rush$reset())
+
+  rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$push_tasks(list(list(x1 = 3, x2 = 4)), profile = "cpu")
+
+  expect_equal(rush$n_queued_tasks, 2L)
+  expect_equal(worker$n_queued_available_tasks, 1L)
 })
 
 test_that("popping a task works", {
