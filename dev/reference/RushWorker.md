@@ -20,6 +20,9 @@ require a worker identity:
 - `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
   save the condition objects.
 
+- `$n_queued_available_tasks`: Number of queued tasks the worker can
+  pop.
+
 ## Value
 
 Object of class
@@ -56,6 +59,13 @@ Object of class
   (`logical(1)`)  
   Whether to shutdown the worker. Used in the worker loop to determine
   whether to continue.
+
+- `n_queued_available_tasks`:
+
+  (`integer(1)`)  
+  Number of queued tasks the worker can pop, i.e. the tasks in the
+  shared queue and in the queue of the compute profile the worker runs
+  on. Tasks queued for other compute profiles are not counted.
 
 ## Methods
 

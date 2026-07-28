@@ -13,6 +13,7 @@ $pop_task(): Pop a task from the queue and mark it as running.
 $push_running_tasks(xss): Create running tasks evaluated by the worker.
 $finish_tasks(keys, yss): Save the output of tasks and mark them as finished.
 $fail_tasks(keys, conditions): Mark tasks as failed and optionally save the condition objects.
+$n_queued_available_tasks: Number of queued tasks the worker can pop.
 
 "><meta property="og:description" content="RushWorker inherits all methods from Rush.
 Upon initialization, the worker registers itself in the Redis database as a running worker.
@@ -22,6 +23,7 @@ $pop_task(): Pop a task from the queue and mark it as running.
 $push_running_tasks(xss): Create running tasks evaluated by the worker.
 $finish_tasks(keys, yss): Save the output of tasks and mark them as finished.
 $fail_tasks(keys, conditions): Mark tasks as failed and optionally save the condition objects.
+$n_queued_available_tasks: Number of queued tasks the worker can pop.
 
 "><meta name="robots" content="noindex"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -82,6 +84,7 @@ This class is usually not constructed directly by the user.</p>
 <li><p><code>$push_running_tasks(xss)</code>: Create running tasks evaluated by the worker.</p></li>
 <li><p><code>$finish_tasks(keys, yss)</code>: Save the output of tasks and mark them as finished.</p></li>
 <li><p><code>$fail_tasks(keys, conditions)</code>: Mark tasks as failed and optionally save the condition objects.</p></li>
+<li><p><code>$n_queued_available_tasks</code>: Number of queued tasks the worker can pop.</p></li>
 </ul></div>
 
 
@@ -119,6 +122,13 @@ Background process for the heartbeat.</p></dd>
 <dd><p>(<code>logical(1)</code>)<br>
 Whether to shutdown the worker.
 Used in the worker loop to determine whether to continue.</p></dd>
+
+
+    <dt><code>n_queued_available_tasks</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Number of queued tasks the worker can pop,
+i.e. the tasks in the shared queue and in the queue of the compute profile the worker runs on.
+Tasks queued for other compute profiles are not counted.</p></dd>
 
 
 </dl><p></p></div>
