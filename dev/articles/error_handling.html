@@ -149,17 +149,17 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>            x1        x2     worker_id condition          keys
          &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
- 1:  9.4442011 14.062025 aeromarine... &lt;list[1]&gt; 298f28cc-e...
- 2: -3.6455572 12.169166 mushy_cutw... &lt;list[1]&gt; 83f948d8-d...
- 3: -2.8773444 13.448072 gigantesqu... &lt;list[1]&gt; 19d6adbd-8...
- 4:  5.0287501  9.841376 aeromarine... &lt;list[1]&gt; 1c48feb9-a...
- 5:  6.4327641  5.819368 mushy_cutw... &lt;list[1]&gt; fd6906aa-0...
+ 1:  1.4292855  5.607396 goodly_spo... &lt;list[1]&gt; ff9fd2c9-e...
+ 2:  4.9076983  2.880404 goodly_spo... &lt;list[1]&gt; 7c92ceb4-3...
+ 3:  3.6773057 11.929869 spiniferou... &lt;list[1]&gt; 9b5f00b6-9...
+ 4:  7.2578180 11.689616 spiniferou... &lt;list[1]&gt; b6479799-7...
+ 5: -4.3907145  4.975096 polyphagou... &lt;list[1]&gt; 9d03d921-4...
 ---
-92:  9.4823384 13.495565 mushy_cutw... &lt;list[1]&gt; 9054297c-8...
-93:  1.6050037  7.677374 repairable... &lt;list[1]&gt; 661f2a40-1...
-94:  6.1974062  5.191795 aeromarine... &lt;list[1]&gt; 9aa680d8-f...
-95:  0.8830474  3.689245 repairable... &lt;list[1]&gt; 98729d1c-c...
-96: -3.2311636 11.250435 mushy_cutw... &lt;list[1]&gt; 2310f3de-8...</code></pre>
+78:  5.2127133 10.623735 polyphagou... &lt;list[1]&gt; 43110706-6...
+79:  5.8094785 14.862185 polyphagou... &lt;list[1]&gt; efdc4e44-c...
+80:  0.7866063  6.144464 spiniferou... &lt;list[1]&gt; 1874d876-1...
+81:  1.5556106  8.086137 polyphagou... &lt;list[1]&gt; 0ddab55a-0...
+82:  9.5929565  8.388293 goodly_spo... &lt;list[1]&gt; 420c2112-f...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-error-handling-workers">Handling Failing Workers<a class="anchor" aria-label="anchor" href="#sec-error-handling-workers"></a>
@@ -189,8 +189,7 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "daft_megalotomusquinquespinosus_5d324da5"
-[2] "frowsy_kronosaurus_5df07518"             </code></pre>
+<pre><code>[1] "aerobic_gander_e42b7103" "shallow_turtle_7fbf0705"</code></pre>
 </div>
 </div>
 <p>When a worker fails, the state of any task it was evaluating is set to <code>"failed"</code>.</p>
@@ -198,10 +197,10 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>            x1        x2     worker_id condition          keys
-         &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
-1:  5.79426115  1.100169 daft_megal... &lt;list[1]&gt; 1addb4e5-e...
-2: -0.08124474 11.450250 frowsy_kro... &lt;list[1]&gt; 09e7bd9a-f...</code></pre>
+<pre><code>          x1       x2     worker_id condition          keys
+       &lt;num&gt;    &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+1: -2.152451 14.55130 aerobic_ga... &lt;list[1]&gt; afa270cd-9...
+2:  7.132455 10.79008 shallow_tu... &lt;list[1]&gt; d2a1fe14-2...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-debugging">Debugging<a class="anchor" aria-label="anchor" href="#sec-debugging"></a>
@@ -255,7 +254,7 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "unquenchable_sambar_5d7eacb8"</code></pre>
+<pre><code>[1] "cloistered_colt_8bdeb8df"</code></pre>
 </div>
 </div>
 <p>Output and message logs can be written to files via the <code>message_log</code> and <code>output_log</code> arguments.</p>
@@ -280,12 +279,12 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">message_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"message_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Debug message logging on worker sedulous_nuthatch_68a55fe0 started"</code></pre>
+<pre><code>[1] "Debug message logging on worker irrationalistic_zebra_60ae60f3 started"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"output_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "[1] \"Debug output logging on worker sedulous_nuthatch_68a55fe0 started\""</code></pre>
+<pre><code>[1] "[1] \"Debug output logging on worker irrationalistic_zebra_60ae60f3 started\""</code></pre>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

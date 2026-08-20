@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat   state
               <char> <int>        <char>  <char>    <lgcl>  <char>
-    1: severe_nya...  8720 runnervmvr...    <NA>     FALSE running
-    2: hyperbolic...  8722 runnervmvr...    <NA>     FALSE running
+    1: discrete_s...  9149 runnervmzv...    <NA>     FALSE running
+    2: viperine_n...  9151 runnervmzv...    <NA>     FALSE running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat      state
               <char> <int>        <char>  <char>    <lgcl>     <char>
-    1: hyperbolic...  8722 runnervmvr...    <NA>     FALSE    running
-    2: severe_nya...  8720 runnervmvr...    <NA>     FALSE terminated
+    1: viperine_n...  9151 runnervmzv...    <NA>     FALSE    running
+    2: discrete_s...  9149 runnervmzv...    <NA>     FALSE terminated
 
 To stop all workers and reset the network, the `$reset()` method is
 used.
@@ -143,19 +143,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id         x1         x2         y          keys
-                <char>      <num>      <num>     <num>        <char>
-      1: nightmaris...  4.4151659 14.9818129 189.18105 3c8411e2-5...
-      2: nightmaris...  3.4838097 10.5712158  74.02244 fd4ba069-8...
-      3: unwieldabl...  2.8057669  7.3313325  23.78140 aa190886-c...
-      4: nightmaris... -0.1193922 14.0798877  81.75474 01efde67-8...
-      5: unwieldabl...  7.0393859  0.5004581  17.47153 185a7718-e...
+             worker_id          x1        x2          y          keys
+                <char>       <num>     <num>      <num>        <char>
+      1: titanous_s...  5.40212512  6.915106  49.090693 5738e543-9...
+      2: titanous_s...  3.92637313  6.547991  26.298407 53e5d7a1-9...
+      3: nontheolog...  1.98458809  2.164202   7.545819 d735baf0-a...
+      4: titanous_s...  8.29664696  4.869488  16.010031 82e75641-5...
+      5: nontheolog...  8.97941664 13.529620 131.400997 e8436d88-9...
      ---
-    120: nightmaris...  1.0808640  6.8407777  20.32703 4a4030e9-f...
-    121: nightmaris...  4.7431187  6.3178360  34.90116 e05f8bd1-0...
-    122: unwieldabl...  4.8369996  4.9146156  24.08488 bd6383f8-9...
-    123: nightmaris...  6.1336476 13.2728107 167.71783 fe882f46-4...
-    124: unwieldabl... -1.6878069 11.4792221  14.75957 6a04c066-4...
+    130: nontheolog...  1.70188690 12.941800  94.793937 7cffb3fc-f...
+    131: titanous_s...  6.08235646  4.122286  28.550487 c6adf455-9...
+    132: nontheolog... -0.05440683  3.472300  26.424420 ce7fc821-5...
+    133: titanous_s...  6.51996670  2.814669  22.223818 94f0f40a-5...
+    134: nontheolog... -1.70576222 13.230350  25.844816 75931c1f-b...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -172,8 +172,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat      state
               <char> <int>        <char>  <char>    <lgcl>     <char>
-    1: unwieldabl...  8722 runnervmvr...    <NA>     FALSE terminated
-    2: nightmaris...  8720 runnervmvr...    <NA>     FALSE terminated
+    1: nontheolog...  9151 runnervmzv...    <NA>     FALSE terminated
+    2: titanous_s...  9149 runnervmzv...    <NA>     FALSE terminated
 
 ``` r
 
@@ -211,7 +211,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "soppy_elkhound_22181382" "doddered_goat_b6a4f715" 
+    [1] "cerate_bordercollie_293b4b56" "snaky_nauplius_5311868d"     
 
 ``` r
 
@@ -428,8 +428,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat   state
               <char> <int>        <char>  <char>    <lgcl>  <char>
-    1: master_ame...  8992 runnervmvr...    <NA>     FALSE running
-    2: smooth_xip...  8996 runnervmvr...    <NA>     FALSE running
+    1: activated_...  9401 runnervmzv...    <NA>     FALSE running
+    2: cosmonauti...  9404 runnervmzv...    <NA>     FALSE running
 
 Additional workers can be added to the network at any time.
 
@@ -450,8 +450,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat   state
               <char> <int>        <char>  <char>    <lgcl>  <char>
-    1: master_ame...  8992 runnervmvr...    <NA>     FALSE running
-    2: smooth_xip...  8996 runnervmvr...    <NA>     FALSE running
+    1: activated_...  9401 runnervmzv...    <NA>     FALSE running
+    2: cosmonauti...  9404 runnervmzv...    <NA>     FALSE running
 
 ``` r
 
