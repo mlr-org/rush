@@ -2,20 +2,13 @@
 
 ## rush (development version)
 
-- feat: `RushWorker` gains the `$n_queued_available_tasks` field which
-  counts the queued tasks the worker can pop, i.e. the tasks in the
-  shared queue and in the queue of the compute profile the worker runs
-  on. The two queues are counted in a single transaction.
 - feat: `$start_workers()` gains the `profiles` argument to start
   workers on separate `mirai` compute profiles,
   e.g. `profiles = c(cpu = 2, gpu = 2)` starts 2 workers on the daemons
   of the `"cpu"` profile and 2 workers on the daemons of the `"gpu"`
   profile.
 - feat: `$push_tasks()` gains the `profile` argument to queue tasks for
-  a `mirai` compute profile. Tasks queued for a profile are only
-  processed by the workers running on that profile, whereas tasks pushed
-  without a profile are queued in the shared queue and are processed by
-  any worker.
+  a `mirai` compute profile.
 
 ## rush 1.2.1
 
