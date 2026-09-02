@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.1</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -147,10 +147,10 @@
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid      hostname heartbeat   state
-          &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: sightly_wa...  8846 runnervmvr...     FALSE running
-2: glassy_afr...  8848 runnervmvr...     FALSE running</code></pre>
+<pre><code>       worker_id   pid      hostname profile heartbeat   state
+          &lt;char&gt; &lt;int&gt;        &lt;char&gt;  &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: immense_ad...  9725 runnervmgx...    &lt;NA&gt;     FALSE running
+2: mesodermic...  9723 runnervmgx...    &lt;NA&gt;     FALSE running</code></pre>
 </div>
 </div>
 <section class="level2"><h3 id="sec-local-stop-worker">Stopping Workers<a class="anchor" aria-label="anchor" href="#sec-local-stop-worker"></a>
@@ -164,10 +164,10 @@
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid      hostname heartbeat      state
-          &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: sightly_wa...  8846 runnervmvr...     FALSE    running
-2: glassy_afr...  8848 runnervmvr...     FALSE terminated</code></pre>
+<pre><code>       worker_id   pid      hostname profile heartbeat      state
+          &lt;char&gt; &lt;int&gt;        &lt;char&gt;  &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
+1: immense_ad...  9725 runnervmgx...    &lt;NA&gt;     FALSE    running
+2: mesodermic...  9723 runnervmgx...    &lt;NA&gt;     FALSE terminated</code></pre>
 </div>
 </div>
 <p>To stop all workers and reset the network, the <code>$reset()</code> method is used.</p>
@@ -202,19 +202,19 @@
 <div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_finished_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         worker_id        x1         x2          y          keys
-            &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;        &lt;char&gt;
-  1: dotted_cat...  4.396488  8.7744202  59.937079 d467e5e9-1...
-  2: dotted_cat...  4.513567  0.3807248   9.242988 15ef48fa-8...
-  3: dotted_cat... -1.983443 12.9438319  16.900174 291d6639-d...
-  4: dotted_cat...  1.304200  3.2396488  13.347583 7fc91f70-0...
-  5: dotted_cat... -3.302953 14.3644050   3.406687 2e85c8d2-f...
+<pre><code>         worker_id         x1        x2         y          keys
+            &lt;char&gt;      &lt;num&gt;     &lt;num&gt;     &lt;num&gt;        &lt;char&gt;
+  1: sterile_pe...  1.4130714  5.277322  13.11692 66c5a0f2-7...
+  2: sterile_pe...  6.1797111  1.388107  19.63486 5e2b4be0-9...
+  3: sterile_pe...  7.9803038 11.526932 108.80691 9a7ec218-0...
+  4: sterile_pe... -0.1730459  8.156605  22.98306 566aaa10-a...
+  5: sterile_pe...  3.0202646  5.712471  11.63043 3ea6d098-6...
  ---
- 98: meaningles...  8.432988  3.7625498   8.734095 7cc22c27-f...
- 99: dotted_cat...  2.159953 12.5714023  93.144423 60d16c9e-3...
-100: meaningles...  6.815003 14.0040946 183.414604 348f7bd6-e...
-101: dotted_cat...  5.170906 14.7573921 197.391472 b2291dde-7...
-102: meaningles...  4.800742  0.1987504  12.142235 83d0c69b-f...</code></pre>
+142: sterile_pe...  8.3086254  4.841145  15.68506 9aabf10a-d...
+143: superimpor... -4.6798359  9.120728  60.90604 56b00416-b...
+144: sterile_pe...  2.0118072  9.628902  45.69135 6319d914-8...
+145: superimpor...  7.0377978 14.366781 190.42328 cadeb84b-9...
+146: sterile_pe...  0.2338983  7.960021  24.74727 1708889f-d...</code></pre>
 </div>
 </div>
 <p>The <code>$stop_workers()</code> method with <code>type = "terminate"</code> sends the terminate signal.</p>
@@ -226,10 +226,10 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid      hostname heartbeat      state
-          &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
-1: dotted_cat...  8848 runnervmvr...     FALSE terminated
-2: meaningles...  8846 runnervmvr...     FALSE terminated</code></pre>
+<pre><code>       worker_id   pid      hostname profile heartbeat      state
+          &lt;char&gt; &lt;int&gt;        &lt;char&gt;  &lt;char&gt;    &lt;lgcl&gt;     &lt;char&gt;
+1: superimpor...  9725 runnervmgx...    &lt;NA&gt;     FALSE terminated
+2: sterile_pe...  9723 runnervmgx...    &lt;NA&gt;     FALSE terminated</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -261,7 +261,7 @@
 <div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "otherworldly_cuckoo_ec336827"      "pronationalist_minibeast_1246d4cd"</code></pre>
+<pre><code>[1] "nonsubjective_kakarikis_9807a1ec" "tyrannicidal_doe_2b3e1bde"       </code></pre>
 </div>
 </div>
 <div class="cell">
@@ -293,12 +293,56 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-</section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
+</section><section class="level2"><h3 id="sec-compute-profiles">Compute Profiles<a class="anchor" aria-label="anchor" href="#sec-compute-profiles"></a>
+</h3>
+<p>Daemons can be started on separate compute profiles, for example one profile for CPU daemons and one profile for GPU daemons.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2L</span>, .compute <span class="op">=</span> <span class="st">"cpu"</span><span class="op">)</span></span>
+<span><span class="fu">mirai</span><span class="fu">::</span><span class="fu"><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">daemons</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2L</span>, .compute <span class="op">=</span> <span class="st">"gpu"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>The <code>profiles</code> argument of the <code>$start_workers()</code> method distributes the workers over the compute profiles. The names are the compute profiles and the values are the numbers of workers started on the daemons of the respective profile. The <code>profiles</code> argument cannot be combined with the <code>n_workers</code> argument.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">worker_ids</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">start_workers</span><span class="op">(</span></span>
+<span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
+<span>  profiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cpu <span class="op">=</span> <span class="fl">2</span>, gpu <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  branin <span class="op">=</span> <span class="va">branin</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>The profile of a worker is recorded in the <code>profile</code> column of the <code>$worker_info</code> field. Furthermore, the name of the profile is passed to the worker loop when the worker loop has a <code>profile</code> argument. This allows the worker loop to run different code on different profiles. The profile is <code>NULL</code> when the worker runs on the default compute profile.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">wl_random_search</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span>, <span class="va">branin</span>, <span class="va">profile</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">while</span> <span class="op">(</span><span class="op">!</span><span class="va">rush</span><span class="op">$</span><span class="va">terminated</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">xs</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">profile</span> <span class="op">==</span> <span class="st">"gpu"</span><span class="op">)</span> <span class="fu">sample_gpu</span><span class="op">(</span><span class="op">)</span> <span class="kw">else</span> <span class="fu">sample_cpu</span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="va">keys</span> <span class="op">=</span> <span class="va">rush</span><span class="op">$</span><span class="fu">push_running_tasks</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">xs</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">rush</span><span class="op">$</span><span class="fu">finish_tasks</span><span class="op">(</span><span class="va">keys</span>, yss <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu">branin</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span>, <span class="va">xs</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<section class="level3"><h4 id="sec-profile-queues">Profile Queues<a class="anchor" aria-label="anchor" href="#sec-profile-queues"></a>
+</h4>
+<p>Each compute profile has its own queue. The <code>profile</code> argument of the <code>$push_tasks()</code> method queues tasks for a single profile. These tasks are only processed by the workers running on that profile.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">push_tasks</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fl">1</span>, x2 <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, profile <span class="op">=</span> <span class="st">"gpu"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>Tasks pushed without a profile are queued in the shared queue. A worker takes tasks from the queue of its profile first and falls back to the shared queue, so that tasks pushed without a profile are processed by any worker. Workers running on the default compute profile only take tasks from the shared queue. The <code>$n_queued_tasks_per_profile</code> field reports the number of queued tasks of the shared queue and of each profile.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">n_queued_tasks_per_profile</span></span></code></pre></div>
+</div>
+</section></section><section class="level2"><h3 id="sec-local-rush-plan">Rush Plan<a class="anchor" aria-label="anchor" href="#sec-local-rush-plan"></a>
 </h3>
 <p>When <code>rush</code> is integrated into a third-party package, worker startup is typically managed by the package itself. Users can configure worker options by calling the <code><a href="../reference/rush_plan.html">rush_plan()</a></code> function, which specifies the number of workers, the worker type, and the Redis configuration.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rush_plan.html">rush_plan</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">2</span>, config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span>, worker_type <span class="op">=</span> <span class="st">"mirai"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>The <code>profiles</code> argument sets the number of workers per compute profile, see <a href="#sec-compute-profiles" class="quarto-xref">Section 1.4</a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/rush_plan.html">rush_plan</a></span><span class="op">(</span>profiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cpu <span class="op">=</span> <span class="fl">2</span>, gpu <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-local-globals">Passing Data to Workers<a class="anchor" aria-label="anchor" href="#sec-local-globals"></a>
 </h3>
@@ -313,7 +357,7 @@
 </h3>
 <p>Workers can record messages generated via the <code>lgr</code> package to the database. The <code>lgr_thresholds</code> argument of <code>$start_local_workers()</code> specifies the logging level for each logger, e.g. <code>c("mlr3/rush" = "debug")</code>. Logging introduces a minor performance overhead and is disabled by default.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span>network_id <span class="op">=</span> <span class="st">"random-search-network"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">wl_log_message</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">rush</span><span class="op">)</span> <span class="op">{</span></span>
@@ -328,27 +372,27 @@
 </div>
 <p>The most recent log messages can be retrieved as follows.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">rush</span><span class="op">$</span><span class="fu">print_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>To retrieve all log entries, use the <code>$read_log()</code> method.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">read_log</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Null data.table (0 rows and 0 cols)</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section></section><section class="section level2"><h2 id="sec-starting-local-workers">Starting Local Workers<a class="anchor" aria-label="anchor" href="#sec-starting-local-workers"></a>
 </h2>
 <p>The <code>$start_local_workers()</code> method launches workers using the <code>processx</code> package on the local machine. The <code>n_workers</code> argument specifies the number of workers to launch and <code>worker_loop</code> defines the function executed by each worker. Additional arguments required by the worker loop are passed as named arguments to <code>$start_local_workers()</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"random-search-network"</span>,</span>
 <span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -361,18 +405,18 @@
 <span><span class="va">rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>worker_ids <span class="op">=</span> <span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid      hostname heartbeat   state
-          &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: homesick_b...  9099 runnervmvr...     FALSE running
-2: sociopsych...  9102 runnervmvr...     FALSE running</code></pre>
+<pre><code>       worker_id   pid      hostname profile heartbeat   state
+          &lt;char&gt; &lt;int&gt;        &lt;char&gt;  &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: permier_ga...  9974 runnervmgx...    &lt;NA&gt;     FALSE running
+2: allergic_b...  9976 runnervmgx...    &lt;NA&gt;     FALSE running</code></pre>
 </div>
 </div>
 <p>Additional workers can be added to the network at any time.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">start_local_workers</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  branin <span class="op">=</span> <span class="va">branin</span>,</span>
@@ -381,24 +425,24 @@
 <span><span class="va">rush</span><span class="op">$</span><span class="fu">wait_for_workers</span><span class="op">(</span>worker_ids <span class="op">=</span> <span class="va">worker_ids</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="va">worker_info</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       worker_id   pid      hostname heartbeat   state
-          &lt;char&gt; &lt;int&gt;        &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
-1: homesick_b...  9099 runnervmvr...     FALSE running
-2: sociopsych...  9102 runnervmvr...     FALSE running</code></pre>
+<pre><code>       worker_id   pid      hostname profile heartbeat   state
+          &lt;char&gt; &lt;int&gt;        &lt;char&gt;  &lt;char&gt;    &lt;lgcl&gt;  &lt;char&gt;
+1: permier_ga...  9974 runnervmgx...    &lt;NA&gt;     FALSE running
+2: allergic_b...  9976 runnervmgx...    &lt;NA&gt;     FALSE running</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="section level2"><h2 id="sec-script-workers">Script Workers<a class="anchor" aria-label="anchor" href="#sec-script-workers"></a>
 </h2>
 <p>The <code>$worker_script()</code> method generates an R script that can be executed on any machine with access to the Redis database. This is the most flexible mechanism for starting workers, as it imposes no constraints on the execution environment.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span> <span class="op">=</span> <span class="fu"><a href="../reference/rsh.html">rsh</a></span><span class="op">(</span></span>
 <span>  network <span class="op">=</span> <span class="st">"random-search-network"</span>,</span>
 <span>  config <span class="op">=</span> <span class="fu">redux</span><span class="fu">::</span><span class="fu"><a href="https://richfitz.github.io/redux/reference/redis_config.html" class="external-link">redis_config</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -414,7 +458,7 @@
 <p>Workers started with <code>processx</code> and <code>mirai</code> are monitored automatically by the respective packages. Script workers require an explicit heartbeat mechanism to detect failures. The heartbeat consists of a Redis key with a set expiration timeout, refreshed periodically by a background process linked to the main worker process. If the worker fails, the heartbeat process also ceases, the key expires, and the manager marks the worker as <code>"terminated"</code>.</p>
 <p>The <code>heartbeat_period</code> and <code>heartbeat_expire</code> arguments configure the heartbeat at startup. The <code>heartbeat_period</code> defines the refresh interval in seconds; <code>heartbeat_expire</code> sets the expiration duration, which must exceed the heartbeat period.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">worker_script</span><span class="op">(</span></span>
 <span>  worker_loop <span class="op">=</span> <span class="va">wl_random_search</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="fl">1</span>,</span>

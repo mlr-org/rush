@@ -13,6 +13,7 @@ start_worker(
   worker_id = NULL,
   network_id,
   config = NULL,
+  profile = NULL,
   lgr_thresholds = NULL,
   lgr_buffer_size = 0,
   heartbeat_period = NULL,
@@ -40,6 +41,12 @@ start_worker(
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
   Configuration for the Redis connection.
+
+- profile:
+
+  (`character(1)`)  
+  Name of the `mirai` compute profile the worker runs on. If `NULL`, the
+  worker runs on the default compute profile.
 
 - lgr_thresholds:
 
@@ -89,6 +96,11 @@ start_worker(
 ## Value
 
 `NULL`
+
+## Details
+
+The compute profile of the worker is passed to the worker loop when the
+worker loop has a `profile` argument.
 
 ## Examples
 

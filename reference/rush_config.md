@@ -36,6 +36,9 @@ if (redux::redis_available()) {
 #> $n_workers
 #> [1] 2
 #> 
+#> $profiles
+#> NULL
+#> 
 #> $lgr_thresholds
 #> NULL
 #> 

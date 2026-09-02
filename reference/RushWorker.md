@@ -19,6 +19,9 @@ require a worker identity:
 - `$fail_tasks(keys, conditions)`: Mark tasks as failed and optionally
   save the condition objects.
 
+- `$n_queued_available_tasks`: Number of queued tasks the worker can
+  pop.
+
 ## Value
 
 Object of class
@@ -36,6 +39,12 @@ Object of class
   (`character(1)`)  
   Identifier of the worker.
 
+- `profile`:
+
+  (`character(1)`)  
+  Name of the `mirai` compute profile the worker runs on. `NULL` if the
+  worker runs on the default compute profile.
+
 - `heartbeat`:
 
   ([`callr::r_bg`](https://callr.r-lib.org/reference/r_bg.html))  
@@ -48,6 +57,13 @@ Object of class
   (`logical(1)`)  
   Whether to shutdown the worker. Used in the worker loop to determine
   whether to continue.
+
+- `n_queued_available_tasks`:
+
+  (`integer(1)`)  
+  Number of queued tasks the worker can pop, i.e. the tasks in the
+  shared queue and in the queue of the compute profile the worker runs
+  on. Tasks queued for other compute profiles are not counted.
 
 ## Methods
 
@@ -115,6 +131,7 @@ Creates a new instance of this
       network_id,
       config = NULL,
       worker_id = NULL,
+      profile = NULL,
       heartbeat_period = NULL,
       heartbeat_expire = NULL
     )
@@ -145,6 +162,12 @@ Creates a new instance of this
   Identifier of the worker. Keys in redis specific to the worker are
   prefixed with the worker id.
 
+- `profile`:
+
+  (`character(1)`)  
+  Name of the `mirai` compute profile the worker runs on. If `NULL`, the
+  worker runs on the default compute profile.
+
 - `heartbeat_period`:
 
   (`integer(1)`)  
@@ -168,6 +191,11 @@ Creates a new instance of this
 
 Pop a task from the queue and mark it as running. Returns `NULL` if no
 task is available.
+
+A worker running on a compute profile takes tasks from the queue of its
+profile first and falls back to the shared queue, so that tasks pushed
+without a profile are processed by any worker. A worker running on the
+default compute profile only takes tasks from the shared queue.
 
 #### Usage
 

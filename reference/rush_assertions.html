@@ -17,7 +17,7 @@ Otherwise, the input object is returned invisibly."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.1</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +74,9 @@ Otherwise, the input object is returned invisibly.</p>
 <span></span>
 <span><span class="fu">assert_rush_worker</span><span class="op">(</span><span class="va">worker</span>, null_ok <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">assert_rush_workers</span><span class="op">(</span><span class="va">workers</span>, null_ok <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">assert_rush_workers</span><span class="op">(</span><span class="va">workers</span>, null_ok <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">assert_profiles</span><span class="op">(</span><span class="va">profiles</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -100,6 +102,13 @@ If <code>TRUE</code>, <code>NULL</code> is allowed.</p></dd>
 
 <dt id="arg-workers">workers<a class="anchor" aria-label="anchor" href="#arg-workers"></a></dt>
 <dd><p>(list of <a href="RushWorker.html">RushWorker</a>).</p></dd>
+
+
+<dt id="arg-profiles">profiles<a class="anchor" aria-label="anchor" href="#arg-profiles"></a></dt>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code>).
+The names are <code>mirai</code> compute profiles and the values the number of workers per profile.
+Unlike the other assertions, the profiles are returned coerced to <code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code> and not invisibly.
+If <code>NULL</code>, <code>NULL</code> is returned.</p></dd>
 
 </dl></div>
     <div class="section level2">
