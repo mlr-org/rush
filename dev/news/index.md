@@ -4,6 +4,8 @@
 
 ## rush 1.3.0
 
+CRAN release: 2026-09-01
+
 - feat: `$start_workers()` gains the `profiles` argument to start
   workers on separate `mirai` compute profiles,
   e.g. `profiles = c(cpu = 2, gpu = 2)` starts 2 workers on the daemons
