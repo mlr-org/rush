@@ -207,6 +207,21 @@ Rush = R6::R6Class(
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
+    #' @param restart (`logical(1)`)\cr
+    #' Whether to restart lost workers.
+    #' `$detect_lost_workers()` starts a new worker with a new worker id for each lost worker.
+    #' The new worker runs on the same compute profile and stores the id of the lost worker in `restarted_from`.
+    #' Default is `FALSE`.
+    #' @param launcher (`function()` | `list()`)\cr
+    #' Relaunches a daemon when the daemon of a lost worker has died, e.g. because its Slurm job was canceled.
+    #' Either a launcher configuration of \CRANpkg{mirai} created with [mirai::cluster_config()],
+    #' [mirai::ssh_config()], or [mirai::remote_config()], which is passed to [mirai::launch_remote()],
+    #' or a function with the arguments `n` and `profile` that launches `n` daemons on the compute profile `profile`.
+    #' If `NULL`, the new worker waits until a daemon is available, e.g. because the scheduler requeues the job.
+    #' Only used if `restart = TRUE`.
+    #' @param max_restarts (`integer(1)`)\cr
+    #' Maximum number of restarts of a worker and its successors.
+    #' Default is `3`.
     start_workers = function(
       worker_loop,
       ...,
@@ -216,7 +231,10 @@ Rush = R6::R6Class(
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       message_log = NULL,
-      output_log = NULL
+      output_log = NULL,
+      restart = FALSE,
+      launcher = NULL,
+      max_restarts = 3L
     ) {
       if (!is.null(n_workers) && !is.null(profiles)) {
         error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
@@ -224,6 +242,9 @@ Rush = R6::R6Class(
       profiles = assert_profiles(profiles)
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
+      assert_flag(restart)
+      assert(check_function(launcher, args = c("n", "profile")), check_list(launcher), check_null(launcher))
+      max_restarts = assert_count(max_restarts, coerce = TRUE)
 
       # an explicitly passed `n_workers` takes precedence over the profiles of the rush plan
       if (is.null(profiles) && is.null(n_workers)) {
@@ -279,49 +300,23 @@ Rush = R6::R6Class(
 
       lg$info("Starting %i worker(s)", sum(groups))
 
-      # reduce redis config
-      config = mlr3misc::discard(unclass(self$config), is.null)
-      config$url = NULL
-
       # generate worker ids per compute profile
       worker_ids = imap(groups, function(n, profile) generate_worker_ids(n))
 
-      # start each rush worker in its own mirai call
-      # using mirai_map() would run the worker loop "within a mirai map", which prevents the worker
-      # from creating local daemons (e.g. for the encapsulation in mlr3)
-      processes_mirai = imap(worker_ids, function(ids, profile) {
-        profile = if (!is.na(profile)) profile
-        set_names(
-          map(ids, function(worker_id) {
-            mirai(
-              rush::start_worker(
-                worker_id = worker_id,
-                network_id = network_id,
-                config = config,
-                profile = profile,
-                lgr_thresholds = lgr_thresholds,
-                lgr_buffer_size = lgr_buffer_size,
-                message_log = message_log,
-                output_log = output_log
-              ),
-              .args = list(
-                worker_id = worker_id,
-                network_id = private$.network_id,
-                config = config,
-                profile = profile,
-                lgr_thresholds = lgr_thresholds,
-                lgr_buffer_size = lgr_buffer_size,
-                message_log = message_log,
-                output_log = output_log
-              ),
-              .compute = profile
-            )
-          }),
-          ids
+      iwalk(worker_ids, function(ids, profile) {
+        spec = list(
+          profile = if (!is.na(profile)) profile,
+          lgr_thresholds = lgr_thresholds,
+          lgr_buffer_size = lgr_buffer_size,
+          message_log = message_log,
+          output_log = output_log,
+          restart = restart,
+          launcher = launcher,
+          max_restarts = max_restarts,
+          n_restarts = 0L
         )
+        walk(ids, function(worker_id) private$.submit_mirai_worker(worker_id, spec))
       })
-
-      self$processes_mirai = c(self$processes_mirai, unlist(unname(processes_mirai), recursive = FALSE))
 
       invisible(unlist(unname(worker_ids)))
     },
@@ -737,6 +732,9 @@ Rush = R6::R6Class(
           r$command(c("SMOVE", private$.get_key("running_worker_ids"), private$.get_key("terminated_worker_ids"), id))
 
           private$.fail_lost_tasks(id, message)
+
+          # an interrupt (19) means the daemon has died and must be relaunched before the new worker can start
+          private$.restart_mirai_worker(id, daemon_lost = is_error_value(m$data) && unclass(m$data) == 19)
         })
         lost_worker_ids = c(lost_worker_ids, names(running_mirai)[lost])
       }
@@ -818,6 +816,7 @@ Rush = R6::R6Class(
         # reset fields set by starting workers
         self$processes_processx = NULL
         self$processes_mirai = NULL
+        private$.worker_specs = list()
 
         # remove worker specific keys
         cmds = unlist(
@@ -1705,7 +1704,7 @@ Rush = R6::R6Class(
       }
       r = private$.connector
 
-      fields = c("worker_id", "pid", "hostname", "profile", "heartbeat")
+      fields = c("worker_id", "pid", "hostname", "profile", "heartbeat", "restarted_from")
       cmds = map(self$worker_ids, function(worker_id) c("HMGET", private$.get_key(worker_id), fields))
       worker_info = set_names(rbindlist(r$pipeline(.commands = cmds)), fields)
 
@@ -1714,6 +1713,8 @@ Rush = R6::R6Class(
       # workers on the default compute profile store an empty string
       worker_info[!nzchar(profile), profile := NA_character_][]
       worker_info[, heartbeat := nzchar(heartbeat)][]
+      # workers that are not a restart store an empty string
+      worker_info[!nzchar(restarted_from), restarted_from := NA_character_][]
 
       # get worker states as atomic operation
       r$MULTI()
@@ -1753,6 +1754,9 @@ Rush = R6::R6Class(
     # counter for printed logs
     # zero based
     .log_counter = list(),
+
+    # arguments of the mirai workers needed to restart them, named by worker id
+    .worker_specs = list(),
 
     # prefix key with instance id
     .get_key = function(key) {
@@ -1939,6 +1943,82 @@ Rush = R6::R6Class(
     },
 
     # move pending and running tasks of a lost worker to failed state
+    # start a rush worker in its own mirai call
+    # using mirai_map() would run the worker loop "within a mirai map", which prevents the worker
+    # from creating local daemons (e.g. for the encapsulation in mlr3)
+    .submit_mirai_worker = function(worker_id, spec, restarted_from = NULL) {
+      # reduce redis config
+      config = discard(unclass(self$config), is.null)
+      config$url = NULL
+
+      process = mirai(
+        rush::start_worker(
+          worker_id = worker_id,
+          network_id = network_id,
+          config = config,
+          profile = profile,
+          lgr_thresholds = lgr_thresholds,
+          lgr_buffer_size = lgr_buffer_size,
+          message_log = message_log,
+          output_log = output_log,
+          restarted_from = restarted_from
+        ),
+        .args = list(
+          worker_id = worker_id,
+          network_id = private$.network_id,
+          config = config,
+          profile = spec$profile,
+          lgr_thresholds = spec$lgr_thresholds,
+          lgr_buffer_size = spec$lgr_buffer_size,
+          message_log = spec$message_log,
+          output_log = spec$output_log,
+          restarted_from = restarted_from
+        ),
+        .compute = spec$profile
+      )
+
+      self$processes_mirai[[worker_id]] = process
+      private$.worker_specs[[worker_id]] = spec
+      invisible(worker_id)
+    },
+
+    # start a new worker with the arguments of a lost mirai worker
+    # returns the id of the new worker or NULL if the worker is not restarted
+    .restart_mirai_worker = function(worker_id, daemon_lost) {
+      spec = private$.worker_specs[[worker_id]]
+      if (is.null(spec) || !spec$restart) {
+        return(NULL)
+      }
+      if (spec$n_restarts >= spec$max_restarts) {
+        warning_config(
+          "Lost worker '%s' is not restarted because it reached %i restart(s)",
+          worker_id,
+          spec$max_restarts
+        )
+        return(NULL)
+      }
+
+      if (daemon_lost && !is.null(spec$launcher)) {
+        lg$info("Relaunching daemon for lost worker '%s'", worker_id)
+        if (is.function(spec$launcher)) {
+          spec$launcher(n = 1L, profile = spec$profile)
+        } else {
+          launch_remote(1L, remote = spec$launcher, .compute = spec$profile)
+        }
+      }
+
+      spec$n_restarts = spec$n_restarts + 1L
+      new_worker_id = generate_worker_ids(1L)
+      lg$info(
+        "Restarting lost worker '%s' as '%s' (restart %i of %i)",
+        worker_id,
+        new_worker_id,
+        spec$n_restarts,
+        spec$max_restarts
+      )
+      private$.submit_mirai_worker(new_worker_id, spec, restarted_from = worker_id)
+    },
+
     .fail_lost_tasks = function(worker_id, message) {
       r = private$.connector
 

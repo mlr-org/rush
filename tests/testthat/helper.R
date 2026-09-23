@@ -86,6 +86,22 @@ wl_segfault = function(rush) {
   tools::pskill(Sys.getpid(), tools::SIGKILL)
 }
 
+# simulates a segfault on the first worker and runs the queue loop on its restarted successor
+wl_segfault_once = function(rush) {
+  restarted_from = rush$connector$HGET(sprintf("%s:%s", rush$network_id, rush$worker_id), "restarted_from")
+  if (!nzchar(restarted_from)) {
+    tools::pskill(Sys.getpid(), tools::SIGKILL)
+  }
+  while (!rush$terminated) {
+    task = rush$pop_task(fields = c("xs"))
+    if (!is.null(task)) {
+      rush$finish_tasks(task$key, yss = list(list(y = task$xs$x1 + task$xs$x2)))
+    }
+  }
+
+  NULL
+}
+
 # writes more than the OS pipe buffer (~64 KiB) to stderr before finishing a task
 wl_big_stderr = function(rush) {
   keys = rush$push_running_tasks(list(list(x1 = 1, x2 = 2)))
