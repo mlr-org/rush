@@ -124,6 +124,9 @@
 #' @template param_heartbeat_expire
 #' @template param_message_log
 #' @template param_output_log
+#' @template param_restart
+#' @template param_launcher
+#' @template param_max_restarts
 #' @template param_xss
 #' @template param_xss_extra
 #' @template param_yss
@@ -207,21 +210,6 @@ Rush = R6::R6Class(
     #' Arguments passed to `worker_loop`.
     #' @param n_workers (`integer(1)`)\cr
     #' Number of workers to be started.
-    #' @param restart (`logical(1)`)\cr
-    #' Whether to restart lost workers.
-    #' `$detect_lost_workers()` starts a new worker with a new worker id for each lost worker.
-    #' The new worker runs on the same compute profile and stores the id of the lost worker in `restarted_from`.
-    #' Default is `FALSE`.
-    #' @param launcher (`function()` | `list()`)\cr
-    #' Relaunches a daemon when the daemon of a lost worker has died, e.g. because its Slurm job was canceled.
-    #' Either a launcher configuration of \CRANpkg{mirai} created with [mirai::cluster_config()],
-    #' [mirai::ssh_config()], or [mirai::remote_config()], which is passed to [mirai::launch_remote()],
-    #' or a function with the arguments `n` and `profile` that launches `n` daemons on the compute profile `profile`.
-    #' If `NULL`, the new worker waits until a daemon is available, e.g. because the scheduler requeues the job.
-    #' Only used if `restart = TRUE`.
-    #' @param max_restarts (`integer(1)`)\cr
-    #' Maximum number of restarts of a worker and its successors.
-    #' Default is `3`.
     start_workers = function(
       worker_loop,
       ...,
@@ -232,9 +220,9 @@ Rush = R6::R6Class(
       lgr_buffer_size = NULL,
       message_log = NULL,
       output_log = NULL,
-      restart = FALSE,
+      restart = NULL,
       launcher = NULL,
-      max_restarts = 3L
+      max_restarts = NULL
     ) {
       if (!is.null(n_workers) && !is.null(profiles)) {
         error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
@@ -242,9 +230,9 @@ Rush = R6::R6Class(
       profiles = assert_profiles(profiles)
       lgr_thresholds = assert_lgr_thresholds(lgr_thresholds)
       lgr_buffer_size = assert_lgr_buffer_size(lgr_buffer_size)
-      assert_flag(restart)
-      assert(check_function(launcher, args = c("n", "profile")), check_list(launcher), check_null(launcher))
-      max_restarts = assert_count(max_restarts, coerce = TRUE)
+      restart = assert_restart(restart)
+      launcher = assert_launcher(launcher)
+      max_restarts = assert_max_restarts(max_restarts)
 
       # an explicitly passed `n_workers` takes precedence over the profiles of the rush plan
       if (is.null(profiles) && is.null(n_workers)) {

@@ -362,9 +362,9 @@ With \code{profiles}, the workers are distributed over the
   lgr_buffer_size = NULL,
   message_log = NULL,
   output_log = NULL,
-  restart = FALSE,
+  restart = NULL,
   launcher = NULL,
-  max_restarts = 3L
+  max_restarts = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -399,7 +399,7 @@ Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
       \item{\code{restart}}{(\code{logical(1)})\cr
-Whether to restart lost workers.
+Whether to restart lost workers started with \verb{$start_workers()}.
 \verb{$detect_lost_workers()} starts a new worker with a new worker id for each lost worker.
 The new worker runs on the same compute profile and stores the id of the lost worker in \code{restarted_from}.
 Default is \code{FALSE}.}

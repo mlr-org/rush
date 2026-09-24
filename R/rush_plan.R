@@ -26,6 +26,9 @@
 #' @template param_lgr_thresholds
 #' @template param_lgr_buffer_size
 #' @template param_large_objects_path
+#' @template param_restart
+#' @template param_launcher
+#' @template param_max_restarts
 #'
 #' @return `list()` with the stored configuration.
 #' @export
@@ -45,7 +48,10 @@ rush_plan = function(
   large_objects_path = NULL,
   worker_type = "mirai",
   start_worker_timeout = NULL,
-  profiles = NULL
+  profiles = NULL,
+  restart = FALSE,
+  launcher = NULL,
+  max_restarts = 3L
 ) {
   if (!is.null(n_workers) && !is.null(profiles)) {
     error_config("Arguments `n_workers` and `profiles` cannot be used at the same time")
@@ -58,6 +64,9 @@ rush_plan = function(
   assert_string(large_objects_path, null.ok = TRUE)
   assert_number(start_worker_timeout, lower = 0, null.ok = TRUE)
   assert_choice(worker_type, c("mirai", "processx", "script"))
+  assert_flag(restart)
+  assert(check_function(launcher, args = c("n", "profile")), check_list(launcher), check_null(launcher))
+  max_restarts = assert_count(max_restarts, coerce = TRUE)
 
   if (is.null(config)) {
     config = redux::redis_config()
@@ -73,6 +82,9 @@ rush_plan = function(
   assign("large_objects_path", large_objects_path, rush_env)
   assign("worker_type", worker_type, rush_env)
   assign("start_worker_timeout", start_worker_timeout, rush_env)
+  assign("restart", restart, rush_env)
+  assign("launcher", launcher, rush_env)
+  assign("max_restarts", max_restarts, rush_env)
   invisible(as.list(rush_env))
 }
 
@@ -99,7 +111,10 @@ rush_config = function() {
     lgr_buffer_size = rush_env$lgr_buffer_size,
     large_objects_path = rush_env$large_objects_path,
     start_worker_timeout = rush_env$start_worker_timeout,
-    worker_type = rush_env$worker_type
+    worker_type = rush_env$worker_type,
+    restart = rush_env$restart,
+    launcher = rush_env$launcher,
+    max_restarts = rush_env$max_restarts
   )
 }
 

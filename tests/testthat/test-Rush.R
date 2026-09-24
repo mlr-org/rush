@@ -1217,7 +1217,7 @@ test_that("lost mirai workers are not restarted more than max_restarts times", {
       rush$detect_lost_workers()
       rush$n_terminated_workers == 2
     }, timeout = 20),
-    "reached 1 restart"
+    class = "Mlr3WarningConfig"
   )
   expect_equal(rush$n_running_workers, 0)
   expect_character(rush$worker_info$restarted_from, any.missing = TRUE)

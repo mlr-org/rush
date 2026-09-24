@@ -121,3 +121,30 @@ test_that("set threshold", {
 
   wait_until(rush$n_running_workers == 2)
 })
+
+test_that("restart settings are stored and used to restart workers", {
+  on.exit({
+    rush$reset()
+    remove_rush_plan()
+    mirai::daemons(0)
+  })
+
+  config = redis_configuration()
+  launcher = function(n, profile) mirai::launch_local(n, .compute = profile)
+  rush_plan(n_workers = 1, config = config, restart = TRUE, launcher = launcher, max_restarts = 1)
+  expect_true(rush_config()$restart)
+  expect_identical(rush_config()$launcher, launcher)
+  expect_equal(rush_config()$max_restarts, 1L)
+  mirai::daemons(1)
+
+  rush = rsh("test-rush")
+  rush$start_workers(worker_loop = wl_segfault)
+
+  expect_warning(
+    wait_until({
+      rush$detect_lost_workers()
+      rush$n_terminated_workers == 2
+    }, timeout = 20),
+    class = "Mlr3WarningConfig"
+  )
+})
