@@ -1168,6 +1168,62 @@ test_that("segfaults on mirai workers are detected", {
   expect_set_equal(map_chr(data$condition, "message"), "Worker has crashed or was killed")
 })
 
+test_that("lost mirai workers are restarted", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  worker_id = rush$start_workers(
+    worker_loop = wl_segfault_once,
+    n_workers = 1,
+    restart = TRUE,
+    launcher = function(n, profile) mirai::launch_local(n, .compute = profile)
+  )
+
+  wait_until({
+    rush$detect_lost_workers()
+    rush$n_running_workers == 1 && rush$n_terminated_workers == 1
+  }, timeout = 20)
+
+  worker_info = rush$worker_info
+  expect_data_table(worker_info, nrows = 2)
+  expect_equal(worker_info[state == "terminated", worker_id], worker_id)
+  expect_equal(worker_info[state == "running", restarted_from], worker_id)
+
+  keys = rush$push_tasks(list(list(x1 = 1, x2 = 2)))
+  rush$wait_for_tasks(keys, detect_lost_workers = TRUE)
+  expect_data_table(rush$fetch_finished_tasks(), nrows = 1)
+})
+
+test_that("lost mirai workers are not restarted more than max_restarts times", {
+  rush = start_rush(n_workers = 1)
+  on.exit({
+    rush$reset()
+    mirai::daemons(0)
+  })
+
+  rush$start_workers(
+    worker_loop = wl_segfault,
+    n_workers = 1,
+    restart = TRUE,
+    launcher = function(n, profile) mirai::launch_local(n, .compute = profile),
+    max_restarts = 1
+  )
+
+  expect_warning(
+    wait_until({
+      rush$detect_lost_workers()
+      rush$n_terminated_workers == 2
+    }, timeout = 20),
+    class = "Mlr3WarningConfig"
+  )
+  expect_equal(rush$n_running_workers, 0)
+  expect_character(rush$worker_info$restarted_from, any.missing = TRUE)
+  expect_data_table(rush$fetch_failed_tasks(), nrows = 2)
+})
+
 test_that("segfaults on processx workers are detected", {
   config = redis_configuration()
   rush = rsh(config = config)

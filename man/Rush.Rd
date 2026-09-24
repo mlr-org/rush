@@ -361,7 +361,10 @@ With \code{profiles}, the workers are distributed over the
   lgr_thresholds = NULL,
   lgr_buffer_size = NULL,
   message_log = NULL,
-  output_log = NULL
+  output_log = NULL,
+  restart = NULL,
+  launcher = NULL,
+  max_restarts = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -395,6 +398,21 @@ If \code{NULL}, no messages, warnings or errors are stored.}
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
+      \item{\code{restart}}{(\code{logical(1)})\cr
+Whether to restart lost workers started with \verb{$start_workers()}.
+\verb{$detect_lost_workers()} starts a new worker with a new worker id for each lost worker.
+The new worker runs on the same compute profile and stores the id of the lost worker in \code{restarted_from}.
+Default is \code{FALSE}.}
+      \item{\code{launcher}}{(\verb{function()} | \code{list()})\cr
+Relaunches a daemon when the daemon of a lost worker has died, e.g. because its Slurm job was canceled.
+Either a launcher configuration of \CRANpkg{mirai} created with \code{\link[mirai:cluster_config]{mirai::cluster_config()}},
+\code{\link[mirai:ssh_config]{mirai::ssh_config()}}, or \code{\link[mirai:remote_config]{mirai::remote_config()}}, which is passed to \code{\link[mirai:launch_remote]{mirai::launch_remote()}},
+or a function with the arguments \code{n} and \code{profile} that launches \code{n} daemons on the compute profile \code{profile}.
+If \code{NULL}, the new worker waits until a daemon is available, e.g. because the scheduler requeues the job.
+Only used if \code{restart = TRUE}.}
+      \item{\code{max_restarts}}{(\code{integer(1)})\cr
+Maximum number of restarts of a worker and its successors.
+Default is \code{3}.}
     }
     \if{html}{\out{</div>}}
   }

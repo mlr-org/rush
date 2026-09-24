@@ -113,7 +113,8 @@ Tasks queued for other compute profiles are not counted.}
   worker_id = NULL,
   profile = NULL,
   heartbeat_period = NULL,
-  heartbeat_expire = NULL
+  heartbeat_expire = NULL,
+  restarted_from = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -146,6 +147,9 @@ The heartbeat key is set to expire after \code{heartbeat_expire} seconds.
 Must be at least \code{heartbeat_period}, otherwise a live worker is reaped as lost between two heartbeats.
 Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
 because a live worker wrongly declared lost can leave a task in an inconsistent state.}
+      \item{\code{restarted_from}}{(\code{character(1)})\cr
+Id of the lost worker that this worker replaces.
+\code{NULL} if the worker is not a restart.}
     }
     \if{html}{\out{</div>}}
   }

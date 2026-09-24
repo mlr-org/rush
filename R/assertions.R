@@ -83,6 +83,25 @@ assert_lgr_buffer_size = function(lgr_buffer_size) {
   )
 }
 
+assert_restart = function(restart) {
+  assert_flag(restart %??% rush_env$restart %??% FALSE, .var.name = "restart")
+}
+
+assert_launcher = function(launcher) {
+  launcher = launcher %??% rush_env$launcher
+  assert(
+    check_function(launcher, args = c("n", "profile")),
+    check_list(launcher),
+    check_null(launcher),
+    .var.name = "launcher"
+  )
+  launcher
+}
+
+assert_max_restarts = function(max_restarts) {
+  assert_count(max_restarts %??% rush_env$max_restarts %??% 3L, coerce = TRUE, .var.name = "max_restarts")
+}
+
 #' @export
 #' @param profiles (named `integer()`).
 #'  The names are `mirai` compute profiles and the values the number of workers per profile.

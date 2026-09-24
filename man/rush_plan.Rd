@@ -12,7 +12,10 @@ rush_plan(
   large_objects_path = NULL,
   worker_type = "mirai",
   start_worker_timeout = NULL,
-  profiles = NULL
+  profiles = NULL,
+  restart = FALSE,
+  launcher = NULL,
+  max_restarts = 3L
 )
 }
 \arguments{
@@ -54,6 +57,24 @@ Number of workers to be started on each \code{mirai} compute profile, e.g. \code
 The names are the compute profiles created with \code{\link[mirai:daemons]{mirai::daemons()}} and the values are the number of workers
 started on the daemons of the respective profile.
 Cannot be combined with \code{n_workers}.}
+
+\item{restart}{(\code{logical(1)})\cr
+Whether to restart lost workers started with \verb{$start_workers()}.
+\verb{$detect_lost_workers()} starts a new worker with a new worker id for each lost worker.
+The new worker runs on the same compute profile and stores the id of the lost worker in \code{restarted_from}.
+Default is \code{FALSE}.}
+
+\item{launcher}{(\verb{function()} | \code{list()})\cr
+Relaunches a daemon when the daemon of a lost worker has died, e.g. because its Slurm job was canceled.
+Either a launcher configuration of \CRANpkg{mirai} created with \code{\link[mirai:cluster_config]{mirai::cluster_config()}},
+\code{\link[mirai:ssh_config]{mirai::ssh_config()}}, or \code{\link[mirai:remote_config]{mirai::remote_config()}}, which is passed to \code{\link[mirai:launch_remote]{mirai::launch_remote()}},
+or a function with the arguments \code{n} and \code{profile} that launches \code{n} daemons on the compute profile \code{profile}.
+If \code{NULL}, the new worker waits until a daemon is available, e.g. because the scheduler requeues the job.
+Only used if \code{restart = TRUE}.}
+
+\item{max_restarts}{(\code{integer(1)})\cr
+Maximum number of restarts of a worker and its successors.
+Default is \code{3}.}
 }
 \value{
 \code{list()} with the stored configuration.

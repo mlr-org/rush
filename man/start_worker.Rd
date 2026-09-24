@@ -14,7 +14,8 @@ start_worker(
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   message_log = NULL,
-  output_log = NULL
+  output_log = NULL,
+  restarted_from = NULL
 )
 }
 \arguments{
@@ -63,6 +64,10 @@ If \code{NULL}, no messages, warnings or errors are stored.}
 Path to the output log files e.g. \verb{/tmp/output_logs/}
 The output log files are named \verb{output_<worker_id>.log}.
 If \code{NULL}, no output is stored.}
+
+\item{restarted_from}{(\code{character(1)})\cr
+Id of the lost worker that this worker replaces.
+\code{NULL} if the worker is not a restart.}
 }
 \value{
 \code{NULL}

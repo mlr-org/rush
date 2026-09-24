@@ -21,6 +21,7 @@
 #' @template param_heartbeat_expire
 #' @template param_message_log
 #' @template param_output_log
+#' @template param_restarted_from
 #'
 #' @return `NULL`
 #' @export
@@ -41,7 +42,8 @@ start_worker = function(
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   message_log = NULL,
-  output_log = NULL
+  output_log = NULL,
+  restarted_from = NULL
 ) {
   timestamp_start = Sys.time()
   worker_id = checkmate::assert_string(worker_id, null.ok = TRUE) %??% generate_worker_ids()
@@ -152,7 +154,8 @@ start_worker = function(
     config = config,
     profile = profile,
     heartbeat_period = heartbeat_period,
-    heartbeat_expire = heartbeat_expire
+    heartbeat_expire = heartbeat_expire,
+    restarted_from = restarted_from
   )
 
   lg$debug("Worker '%s' started", worker_id)

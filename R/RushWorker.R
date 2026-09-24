@@ -19,6 +19,7 @@
 #' @template param_profile
 #' @template param_heartbeat_period
 #' @template param_heartbeat_expire
+#' @template param_restarted_from
 #' @template param_xss
 #' @template param_xss_extra
 #' @template param_yss
@@ -52,9 +53,11 @@ RushWorker = R6::R6Class(
       worker_id = NULL,
       profile = NULL,
       heartbeat_period = NULL,
-      heartbeat_expire = NULL
+      heartbeat_expire = NULL,
+      restarted_from = NULL
     ) {
       super$initialize(network_id = network_id, config = config)
+      assert_string(restarted_from, null.ok = TRUE)
 
       self$worker_id = assert_string(worker_id %??% generate_worker_ids())
       self$profile = assert_string(profile, null.ok = TRUE)
@@ -128,7 +131,10 @@ RushWorker = R6::R6Class(
         # empty string marks the default compute profile
         self$profile %??% "",
         "heartbeat",
-        heartbeat_key
+        heartbeat_key,
+        "restarted_from",
+        # empty string marks a worker that is not a restart
+        restarted_from %??% ""
       ))
       r$EXEC()
     },
