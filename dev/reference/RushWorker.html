@@ -187,7 +187,8 @@ Tasks queued for other compute profiles are not counted.</p></dd>
 <span>  worker_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  profile <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restarted_from <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
@@ -228,6 +229,11 @@ The heartbeat key is set to expire after <code>heartbeat_expire</code> seconds.
 Must be at least <code>heartbeat_period</code>, otherwise a live worker is reaped as lost between two heartbeats.
 Set it larger than the longest pause a worker may experience, for example from garbage collection or swapping,
 because a live worker wrongly declared lost can leave a task in an inconsistent state.</p></dd>
+
+      <dt><code>restarted_from</code></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Id of the lost worker that this worker replaces.
+<code>NULL</code> if the worker is not a restart.</p></dd>
 
 
 </dl><p></p></div>

@@ -81,7 +81,8 @@ by the user after creating the worker script with <code>$worker_script()</code>.
 <span>  heartbeat_period <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  heartbeat_expire <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restarted_from <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -153,6 +154,12 @@ If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no output is stored.</p></dd>
+
+
+<dt id="arg-restarted-from">restarted_from<a class="anchor" aria-label="anchor" href="#arg-restarted-from"></a></dt>
+<dd><p>(<code>character(1)</code>)<br>
+Id of the lost worker that this worker replaces.
+<code>NULL</code> if the worker is not a restart.</p></dd>
 
 </dl></div>
     <div class="section level2">

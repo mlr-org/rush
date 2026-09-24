@@ -422,7 +422,10 @@ With <code>profiles</code>, the workers are distributed over the
 <span>  lgr_thresholds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lgr_buffer_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  message_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  output_log <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  output_log <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restart <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  launcher <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_restarts <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
@@ -470,6 +473,27 @@ If <code>NULL</code>, no messages, warnings or errors are stored.</p></dd>
 Path to the output log files e.g. <code>/tmp/output_logs/</code>
 The output log files are named <code>output_&lt;worker_id&gt;.log</code>.
 If <code>NULL</code>, no output is stored.</p></dd>
+
+      <dt><code>restart</code></dt>
+<dd><p>(<code>logical(1)</code>)<br>
+Whether to restart lost workers started with <code>$start_workers()</code>.
+<code>$detect_lost_workers()</code> starts a new worker with a new worker id for each lost worker.
+The new worker runs on the same compute profile and stores the id of the lost worker in <code>restarted_from</code>.
+Default is <code>FALSE</code>.</p></dd>
+
+      <dt><code>launcher</code></dt>
+<dd><p>(<code>function()</code> | <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+Relaunches a daemon when the daemon of a lost worker has died, e.g. because its Slurm job was canceled.
+Either a launcher configuration of <a href="https://CRAN.R-project.org/package=mirai" class="external-link"><span class="pkg">mirai</span></a> created with <code><a href="https://mirai.r-lib.org/reference/cluster_config.html" class="external-link">mirai::cluster_config()</a></code>,
+<code><a href="https://mirai.r-lib.org/reference/ssh_config.html" class="external-link">mirai::ssh_config()</a></code>, or <code><a href="https://mirai.r-lib.org/reference/remote_config.html" class="external-link">mirai::remote_config()</a></code>, which is passed to <code><a href="https://mirai.r-lib.org/reference/launch_local.html" class="external-link">mirai::launch_remote()</a></code>,
+or a function with the arguments <code>n</code> and <code>profile</code> that launches <code>n</code> daemons on the compute profile <code>profile</code>.
+If <code>NULL</code>, the new worker waits until a daemon is available, e.g. because the scheduler requeues the job.
+Only used if <code>restart = TRUE</code>.</p></dd>
+
+      <dt><code>max_restarts</code></dt>
+<dd><p>(<code>integer(1)</code>)<br>
+Maximum number of restarts of a worker and its successors.
+Default is <code>3</code>.</p></dd>
 
 
 </dl><p></p></div>

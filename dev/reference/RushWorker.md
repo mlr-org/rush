@@ -135,7 +135,8 @@ Creates a new instance of this
       worker_id = NULL,
       profile = NULL,
       heartbeat_period = NULL,
-      heartbeat_expire = NULL
+      heartbeat_expire = NULL,
+      restarted_from = NULL
     )
 
 #### Arguments
@@ -186,6 +187,12 @@ Creates a new instance of this
   experience, for example from garbage collection or swapping, because a
   live worker wrongly declared lost can leave a task in an inconsistent
   state.
+
+- `restarted_from`:
+
+  (`character(1)`)  
+  Id of the lost worker that this worker replaces. `NULL` if the worker
+  is not a restart.
 
 ------------------------------------------------------------------------
 

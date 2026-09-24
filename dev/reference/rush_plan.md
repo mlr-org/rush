@@ -20,7 +20,10 @@ rush_plan(
   large_objects_path = NULL,
   worker_type = "mirai",
   start_worker_timeout = NULL,
-  profiles = NULL
+  profiles = NULL,
+  restart = FALSE,
+  launcher = NULL,
+  max_restarts = 3L
 )
 ```
 
@@ -87,6 +90,38 @@ rush_plan(
   [`mirai::daemons()`](https://mirai.r-lib.org/reference/daemons.html)
   and the values are the number of workers started on the daemons of the
   respective profile. Cannot be combined with `n_workers`.
+
+- restart:
+
+  (`logical(1)`)  
+  Whether to restart lost workers started with `$start_workers()`.
+  `$detect_lost_workers()` starts a new worker with a new worker id for
+  each lost worker. The new worker runs on the same compute profile and
+  stores the id of the lost worker in `restarted_from`. Default is
+  `FALSE`.
+
+- launcher:
+
+  (`function()` \| [`list()`](https://rdrr.io/r/base/list.html))  
+  Relaunches a daemon when the daemon of a lost worker has died, e.g.
+  because its Slurm job was canceled. Either a launcher configuration of
+  [mirai](https://CRAN.R-project.org/package=mirai) created with
+  [`mirai::cluster_config()`](https://mirai.r-lib.org/reference/cluster_config.html),
+  [`mirai::ssh_config()`](https://mirai.r-lib.org/reference/ssh_config.html),
+  or
+  [`mirai::remote_config()`](https://mirai.r-lib.org/reference/remote_config.html),
+  which is passed to
+  [`mirai::launch_remote()`](https://mirai.r-lib.org/reference/launch_local.html),
+  or a function with the arguments `n` and `profile` that launches `n`
+  daemons on the compute profile `profile`. If `NULL`, the new worker
+  waits until a daemon is available, e.g. because the scheduler requeues
+  the job. Only used if `restart = TRUE`.
+
+- max_restarts:
+
+  (`integer(1)`)  
+  Maximum number of restarts of a worker and its successors. Default is
+  `3`.
 
 ## Value
 

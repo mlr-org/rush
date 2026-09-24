@@ -464,7 +464,10 @@ of [mirai](https://CRAN.R-project.org/package=mirai).
       lgr_thresholds = NULL,
       lgr_buffer_size = NULL,
       message_log = NULL,
-      output_log = NULL
+      output_log = NULL,
+      restart = NULL,
+      launcher = NULL,
+      max_restarts = NULL
     )
 
 #### Arguments
@@ -525,6 +528,38 @@ of [mirai](https://CRAN.R-project.org/package=mirai).
   Path to the output log files e.g. `/tmp/output_logs/` The output log
   files are named `output_<worker_id>.log`. If `NULL`, no output is
   stored.
+
+- `restart`:
+
+  (`logical(1)`)  
+  Whether to restart lost workers started with `$start_workers()`.
+  `$detect_lost_workers()` starts a new worker with a new worker id for
+  each lost worker. The new worker runs on the same compute profile and
+  stores the id of the lost worker in `restarted_from`. Default is
+  `FALSE`.
+
+- `launcher`:
+
+  (`function()` \| [`list()`](https://rdrr.io/r/base/list.html))  
+  Relaunches a daemon when the daemon of a lost worker has died, e.g.
+  because its Slurm job was canceled. Either a launcher configuration of
+  [mirai](https://CRAN.R-project.org/package=mirai) created with
+  [`mirai::cluster_config()`](https://mirai.r-lib.org/reference/cluster_config.html),
+  [`mirai::ssh_config()`](https://mirai.r-lib.org/reference/ssh_config.html),
+  or
+  [`mirai::remote_config()`](https://mirai.r-lib.org/reference/remote_config.html),
+  which is passed to
+  [`mirai::launch_remote()`](https://mirai.r-lib.org/reference/launch_local.html),
+  or a function with the arguments `n` and `profile` that launches `n`
+  daemons on the compute profile `profile`. If `NULL`, the new worker
+  waits until a daemon is available, e.g. because the scheduler requeues
+  the job. Only used if `restart = TRUE`.
+
+- `max_restarts`:
+
+  (`integer(1)`)  
+  Maximum number of restarts of a worker and its successors. Default is
+  `3`.
 
 ------------------------------------------------------------------------
 
