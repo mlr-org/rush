@@ -1,6 +1,8 @@
 # rush (development version)
 
-* feat: `$start_workers()` and `rush_plan()` gain the `restart`, `launcher`, and `max_restarts` arguments to restart lost `mirai` workers. `$detect_lost_workers()` starts a new worker for each lost worker and, if the daemon has died, calls `launcher` (a `mirai` launcher configuration such as `mirai::cluster_config()` or a function) to relaunch it. `$worker_info` gains a `restarted_from` column.
+* feat: `$start_workers()` and `rush_plan()` gain the `restart`, `launcher`, and `max_restarts` arguments to restart lost `mirai` workers.
+  `$detect_lost_workers()` starts a new worker for each lost worker and, if the daemon has died, calls `launcher` (a `mirai` launcher configuration such as `mirai::cluster_config()` or a function) to relaunch it.
+  `$worker_info` gains a `restarted_from` column.
 
 # rush 1.3.0
 
