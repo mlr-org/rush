@@ -11,6 +11,9 @@
   [`mirai::cluster_config()`](https://mirai.r-lib.org/reference/cluster_config.html)
   or a function) to relaunch it. `$worker_info` gains a `restarted_from`
   column.
+- fix: `$start_local_workers()` now starts workers with the `Rscript` of
+  the running R installation instead of the first `Rscript` on the
+  `PATH`.
 
 ## rush 1.3.0
 
