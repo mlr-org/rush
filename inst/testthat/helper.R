@@ -56,7 +56,9 @@ start_rush_worker = function() {
 
 # runs the string returned by rush$worker_script() through a POSIX shell like a user would
 # exec replaces the shell with Rscript, so the process handle points at the worker itself
+# the bare Rscript is replaced with the full path because R CMD check --as-cran puts a failing Rscript stub on the PATH
 start_script_worker = function(script) {
+  script = sub("^Rscript ", paste0(shQuote(file.path(R.home("bin"), "Rscript"), type = "sh"), " "), script)
   px = processx::process$new("sh",
     args = c("-c", paste("exec", script)),
     supervise = TRUE,

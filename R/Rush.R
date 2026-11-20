@@ -376,8 +376,9 @@ Rush = R6::R6Class(
               deparse(args_file)
             )
 
+            # the Rscript of the running R installation, not whichever is first on the PATH
             processx::process$new(
-              "Rscript",
+              file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"),
               args = c("-e", expr),
               supervise = supervise,
               # a file instead of a pipe ("|") so a worker writing more than the OS pipe buffer
