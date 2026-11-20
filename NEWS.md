@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 1.4.0
 
 * feat: `$start_workers()` and `rush_plan()` gain the `restart`, `launcher`, and `max_restarts` arguments to restart lost `mirai` workers.
