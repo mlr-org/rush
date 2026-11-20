@@ -54,4 +54,13 @@ if (redux::redis_available()) {
 #> $worker_type
 #> [1] "mirai"
 #> 
+#> $restart
+#> [1] FALSE
+#> 
+#> $launcher
+#> NULL
+#> 
+#> $max_restarts
+#> [1] 3
+#> 
 ```

@@ -19,7 +19,8 @@ start_worker(
   heartbeat_period = NULL,
   heartbeat_expire = NULL,
   message_log = NULL,
-  output_log = NULL
+  output_log = NULL,
+  restarted_from = NULL
 )
 ```
 
@@ -92,6 +93,12 @@ start_worker(
   Path to the output log files e.g. `/tmp/output_logs/` The output log
   files are named `output_<worker_id>.log`. If `NULL`, no output is
   stored.
+
+- restarted_from:
+
+  (`character(1)`)  
+  Id of the lost worker that this worker replaces. `NULL` if the worker
+  is not a restart.
 
 ## Value
 

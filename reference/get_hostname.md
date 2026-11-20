@@ -22,5 +22,5 @@ get_hostname()
 ``` r
 get_hostname()
 #>        nodename 
-#> "runnervmgx7h7" 
+#> "runnervm0hi8g" 
 ```
