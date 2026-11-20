@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.3.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +57,9 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rush-development-version">rush (development version)<a class="anchor" aria-label="anchor" href="#rush-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.0" id="rush-140">rush 1.4.0<a class="anchor" aria-label="anchor" href="#rush-140"></a></h2>
 <ul><li>feat: <code>$start_workers()</code> and <code><a href="../reference/rush_plan.html">rush_plan()</a></code> gain the <code>restart</code>, <code>launcher</code>, and <code>max_restarts</code> arguments to restart lost <code>mirai</code> workers. <code>$detect_lost_workers()</code> starts a new worker for each lost worker and, if the daemon has died, calls <code>launcher</code> (a <code>mirai</code> launcher configuration such as <code><a href="https://mirai.r-lib.org/reference/cluster_config.html" class="external-link">mirai::cluster_config()</a></code> or a function) to relaunch it. <code>$worker_info</code> gains a <code>restarted_from</code> column.</li>
 <li>fix: <code>$start_local_workers()</code> now starts workers with the <code>Rscript</code> of the running R installation instead of the first <code>Rscript</code> on the <code>PATH</code>.</li>
 </ul></div>

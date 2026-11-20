@@ -36,7 +36,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rush</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.3.0.9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,19 +146,19 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              x1        x2     worker_id condition          keys
-           &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
-  1:  0.81049994  2.125959 patriotic_... &lt;list[1]&gt; 4f784dcf-5...
-  2:  0.34319150 12.543004 marital_iv... &lt;list[1]&gt; 11d6ff78-a...
-  3:  3.72581606 12.429497 reckonable... &lt;list[1]&gt; 58777f83-3...
-  4:  6.47439428  8.418599 patriotic_... &lt;list[1]&gt; 1d46f44e-b...
-  5:  0.03410545 10.565274 patriotic_... &lt;list[1]&gt; 79a68521-8...
- ---
-107:  6.69595737  1.589351 patriotic_... &lt;list[1]&gt; 9f2a2918-c...
-108:  7.30779955 14.111365 wettish_wa... &lt;list[1]&gt; a05134b5-3...
-109:  2.12436970  1.233946 reckonable... &lt;list[1]&gt; 11a5abea-6...
-110: -2.87873027 14.761522 marital_iv... &lt;list[1]&gt; 60260dd1-3...
-111: -2.60586053  7.552948 wettish_wa... &lt;list[1]&gt; 607155af-7...</code></pre>
+<pre><code>            x1        x2     worker_id condition          keys
+         &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+ 1: -4.4631643  4.936272 chondrite_... &lt;list[1]&gt; 4fe65c65-c...
+ 2:  9.0461283 12.747851 coltish_ta... &lt;list[1]&gt; f285f56c-9...
+ 3: -3.7264985 12.826786 coltish_ta... &lt;list[1]&gt; d0161667-f...
+ 4:  5.8379848 13.404024 bacillopho... &lt;list[1]&gt; d465adff-f...
+ 5:  3.8297013  1.224851 chondrite_... &lt;list[1]&gt; b26c34c3-a...
+---
+91:  5.7812334 13.469065 fiberglass... &lt;list[1]&gt; 2c7fade5-c...
+92:  5.7983762  4.635290 chondrite_... &lt;list[1]&gt; 954ea628-a...
+93:  8.2306490 10.928575 coltish_ta... &lt;list[1]&gt; 2a43f77b-9...
+94: -1.0249615 14.985729 bacillopho... &lt;list[1]&gt; b54fd4c7-0...
+95: -0.2081523  7.046720 chondrite_... &lt;list[1]&gt; 27125bf8-c...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-error-handling-workers">Handling Failing Workers<a class="anchor" aria-label="anchor" href="#sec-error-handling-workers"></a>
@@ -188,8 +188,8 @@
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "resurrective_neondwarfgourami_b0fad0e6"
-[2] "hypermystical_hochstettersfrog_c4c500d1"</code></pre>
+<pre><code>[1] "semiparalyzed_indianskimmer_a2a984cf"
+[2] "holographic_aegeancat_6adafb05"      </code></pre>
 </div>
 </div>
 <p>When a worker fails, the state of any task it was evaluating is set to <code>"failed"</code>.</p>
@@ -197,10 +197,10 @@
 <div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">fetch_failed_tasks</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          x1       x2     worker_id condition          keys
-       &lt;num&gt;    &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
-1: -4.252901 3.904752 resurrecti... &lt;list[1]&gt; 71a35a7c-3...
-2: -1.468899 7.821981 hypermysti... &lt;list[1]&gt; fe4e9920-e...</code></pre>
+<pre><code>          x1        x2     worker_id condition          keys
+       &lt;num&gt;     &lt;num&gt;        &lt;char&gt;    &lt;list&gt;        &lt;char&gt;
+1:  6.700773 10.040436 semiparaly... &lt;list[1]&gt; 374ab4c6-7...
+2: -3.505790  2.119664 holographi... &lt;list[1]&gt; 40f1211f-e...</code></pre>
 </div>
 </div>
 </section><section class="section level2"><h2 id="sec-debugging">Debugging<a class="anchor" aria-label="anchor" href="#sec-debugging"></a>
@@ -254,7 +254,7 @@
 <div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rush</span><span class="op">$</span><span class="fu">detect_lost_workers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "unwhited_papillon_e1ffafd6"</code></pre>
+<pre><code>[1] "traumatic_ballpython_54129d14"</code></pre>
 </div>
 </div>
 <p>Output and message logs can be written to files via the <code>message_log</code> and <code>output_log</code> arguments.</p>
@@ -279,12 +279,12 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">message_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"message_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Debug message logging on worker supercilious_longhorn_f9977b77 started"</code></pre>
+<pre><code>[1] "Debug message logging on worker invigorative_aracari_bf6ad28d started"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output_log</span>, <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"output_%s.log"</span>, <span class="va">worker_ids</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "[1] \"Debug output logging on worker supercilious_longhorn_f9977b77 started\""</code></pre>
+<pre><code>[1] "[1] \"Debug output logging on worker invigorative_aracari_bf6ad28d started\""</code></pre>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

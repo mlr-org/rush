@@ -2,6 +2,8 @@
 
 ## rush (development version)
 
+## rush 1.4.0
+
 - feat: `$start_workers()` and
   [`rush_plan()`](https://rush.mlr-org.com/dev/reference/rush_plan.md)
   gain the `restart`, `launcher`, and `max_restarts` arguments to

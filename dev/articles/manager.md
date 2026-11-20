@@ -79,8 +79,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat restarted_from   state
               <char> <int>        <char>  <char>    <lgcl>         <char>  <char>
-    1: patterny_l...  8933 runnervmcc...    <NA>     FALSE           <NA> running
-    2: wishful_gu...  8935 runnervmcc...    <NA>     FALSE           <NA> running
+    1: commendato...  8448 runnervmcc...    <NA>     FALSE           <NA> running
+    2: irrepressi...  8446 runnervmcc...    <NA>     FALSE           <NA> running
 
 ### Stopping Workers
 
@@ -100,8 +100,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat restarted_from
               <char> <int>        <char>  <char>    <lgcl>         <char>
-    1: wishful_gu...  8935 runnervmcc...    <NA>     FALSE           <NA>
-    2: patterny_l...  8933 runnervmcc...    <NA>     FALSE           <NA>
+    1: irrepressi...  8446 runnervmcc...    <NA>     FALSE           <NA>
+    2: commendato...  8448 runnervmcc...    <NA>     FALSE           <NA>
             state
            <char>
     1:    running
@@ -147,19 +147,19 @@ rush$wait_for_workers(2)
 rush$fetch_finished_tasks()
 ```
 
-             worker_id          x1         x2          y          keys
-                <char>       <num>      <num>      <num>        <char>
-      1: minced_sif...  0.01689764 13.3160167  73.518529 43d131d9-9...
-      2: minced_sif...  8.09866806  9.8471620  75.960691 1c011cba-a...
-      3: grasslike_...  4.40569736  7.6533972  45.019429 fb101163-0...
-      4: minced_sif... -4.60733980 11.3186446  31.616872 60ae8ebc-4...
-      5: grasslike_...  5.08924457 11.6771035 122.338406 636e0da2-6...
+             worker_id         x1         x2          y          keys
+                <char>      <num>      <num>      <num>        <char>
+      1: floggable_...  1.5216635  1.9886981  14.038477 da13a5f0-7...
+      2: floggable_...  6.7297733  2.9340473  21.879072 630f0657-2...
+      3: floggable_...  6.0005898  0.3156076  19.838590 7d3e1b2f-1...
+      4: floggable_...  6.3226748 12.4001397 147.254826 84a8f579-d...
+      5: floggable_... -3.1915746  5.7102505  45.101656 8d1f3107-f...
      ---
-    121: minced_sif...  6.33969826  6.5416070  49.173807 019d1903-1...
-    122: grasslike_...  6.54357873  0.9909901  19.294304 2e1d0e28-d...
-    123: minced_sif...  3.38348446  4.5546166   6.732479 19f20a39-8...
-    124: grasslike_...  5.07254565  2.9790212  16.370722 fb60fc2e-b...
-    125: minced_sif...  7.16641440  2.0313062  16.737939 e1b8dbe0-2...
+    155: floggable_...  1.3888598  6.3094620  16.893491 a218b732-8...
+    156: floggable_...  1.9019361  4.5703975   8.155312 9b5afce0-d...
+    157: preliminar... -2.8873974 12.5401612   1.459356 8b65c95d-2...
+    158: floggable_... -0.7470109  4.7756633  23.222156 ef751eee-e...
+    159: preliminar...  2.1418294  5.0161842   8.167683 16ab2dee-2...
 
 The `$stop_workers()` method with `type = "terminate"` sends the
 terminate signal.
@@ -176,8 +176,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat restarted_from
               <char> <int>        <char>  <char>    <lgcl>         <char>
-    1: grasslike_...  8935 runnervmcc...    <NA>     FALSE           <NA>
-    2: minced_sif...  8933 runnervmcc...    <NA>     FALSE           <NA>
+    1: floggable_...  8448 runnervmcc...    <NA>     FALSE           <NA>
+    2: preliminar...  8446 runnervmcc...    <NA>     FALSE           <NA>
             state
            <char>
     1: terminated
@@ -219,7 +219,7 @@ worker_ids = rush$start_workers(
 rush$detect_lost_workers()
 ```
 
-    [1] "nonpsychic_falcon_965f98fe" "psychotic_kitten_b5799fac" 
+    [1] "small_electriceel_9d09157e" "witching_sheep_bc046072"   
 
 ``` r
 
@@ -436,8 +436,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat restarted_from   state
               <char> <int>        <char>  <char>    <lgcl>         <char>  <char>
-    1: greenish_a...  9203 runnervmcc...    <NA>     FALSE           <NA> running
-    2: tenuous_bi...  9205 runnervmcc...    <NA>     FALSE           <NA> running
+    1: arachnidan...  8715 runnervmcc...    <NA>     FALSE           <NA> running
+    2: asphalt_sh...  8718 runnervmcc...    <NA>     FALSE           <NA> running
 
 Additional workers can be added to the network at any time.
 
@@ -458,8 +458,8 @@ rush$worker_info
 
            worker_id   pid      hostname profile heartbeat restarted_from   state
               <char> <int>        <char>  <char>    <lgcl>         <char>  <char>
-    1: greenish_a...  9203 runnervmcc...    <NA>     FALSE           <NA> running
-    2: tenuous_bi...  9205 runnervmcc...    <NA>     FALSE           <NA> running
+    1: arachnidan...  8715 runnervmcc...    <NA>     FALSE           <NA> running
+    2: asphalt_sh...  8718 runnervmcc...    <NA>     FALSE           <NA> running
 
 ``` r
 
